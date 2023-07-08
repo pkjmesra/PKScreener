@@ -8,6 +8,7 @@
 from decimal import DivisionByZero
 from genericpath import isfile
 import os
+import glob
 import sys
 import platform
 import datetime
@@ -163,7 +164,7 @@ class tools:
                 nextRun = curr.replace(hour=9, minute=15) - datetime.timedelta(days=daysToAdd, seconds=1.5*cronWaitSeconds + bufferSeconds)
         return nextRun
 
-    def saveStockData(stockDict, configManager, loadCount):
+    def afterMarketStockDataExists():
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         cache_date = datetime.date.today()  # for monday to friday
@@ -176,7 +177,17 @@ class tools:
             cache_date = datetime.datetime.today() - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
         cache_file = "stock_data_" + str(cache_date) + ".pkl"
-        configManager.deleteStockData(excludeFile=cache_file)
+        exists = False
+        for f in glob.glob('stock_data*.pkl'):
+            if f.endswith(cache_file):
+                exists = True
+                break
+        return exists, cache_file
+
+    def saveStockData(stockDict, configManager, loadCount):
+        exists, cache_file = tools.afterMarketStockDataExists()
+        if exists:
+            configManager.deleteStockData(excludeFile=cache_file)
 
         if not os.path.exists(cache_file) or len(stockDict) > (loadCount+1):
             with open(cache_file, 'wb') as f:
@@ -191,7 +202,7 @@ class tools:
             print(colorText.BOLD + colorText.GREEN +
                   "=> Already Cached." + colorText.END)
 
-    def loadStockData(stockDict, configManager, proxyServer=None):
+    def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None):
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         last_cached_date = datetime.date.today()  # for monday to friday after 3:30
@@ -208,16 +219,21 @@ class tools:
             with open(cache_file, 'rb') as f:
                 try:
                     stockData = pickle.load(f)
-                    print(colorText.BOLD + colorText.GREEN +
-                          "[+] Automatically Using Cached Stock Data due to After-Market hours!" + colorText.END)
+                    if not downloadOnly:
+                        print(colorText.BOLD + colorText.GREEN +
+                            "[+] Automatically Using Cached Stock Data due to After-Market hours!" + colorText.END)
                     for stock in stockData:
                         stockDict[stock] = stockData.get(stock)
                 except pickle.UnpicklingError:
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Error while Reading Stock Cache." + colorText.END)
+                    if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
+                        configManager.deleteStockData()
                 except EOFError:
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Stock Cache Corrupted." + colorText.END)
+                    if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
+                        configManager.deleteStockData()
         elif ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
             cache_url = "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/" + cache_file
             if proxyServer is not None:
@@ -246,7 +262,7 @@ class tools:
                 except Exception as e:
                     print("[!] Download Error - " + str(e))
                 print("")
-                tools.loadStockData(stockDict, configManager, proxyServer)
+                tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
             else:
                 print(colorText.BOLD + colorText.FAIL +
                       "[+] Cache unavailable on pkscreener server, Continuing.." + colorText.END)
@@ -270,6 +286,18 @@ class tools:
             return filename
         return None
 
+    # Save screened results to excel
+    def promptFileExists(cache_file='stock_data_*.pkl', defaultAnswer=None):
+        try:
+            if defaultAnswer is None:
+                response = str(input(colorText.BOLD + colorText.WARN +
+                                    '[>] ' + cache_file + ' already exists. Do you want to replace this? [Y/N]: ')).upper()
+            else:
+                response = defaultAnswer
+        except ValueError:
+            pass
+        return 'Y' if response != 'N' else 'N'
+    
     # Prompt for asking RSI
     def promptRSIValues():
         try:

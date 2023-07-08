@@ -310,8 +310,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
     
     if testBuild:
         tickerOption, executeOption = 1, 0
+        selectedChoice = {'0':'X','1':'1','2':'0'}
     elif downloadOnly:
+        exists, cache_file = Utility.tools.afterMarketStockDataExists()
+        if exists:
+            shouldReplace = Utility.tools.promptFileExists(cache_file=cache_file, defaultAnswer=defaultAnswer)
+            if shouldReplace == 'N':
+                print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
+                sys.exit(0)
         tickerOption, executeOption = 12, 2
+        selectedChoice = {'0':'X','1':'12','2':'2'}
     else:
         executeOption = None
         menuOption = None
@@ -475,8 +483,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
                     input('\nPress any key to Continue...\n')
                     return
             else:
-                menuChoiceHierarchy = level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + ' > ' + level2MenuDict[selectedChoice['2']].strip()
-                print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
+                if not downloadOnly:
+                    menuChoiceHierarchy = level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + ' > ' + level2MenuDict[selectedChoice['2']].strip()
+                    print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer)
         except urllib.error.URLError:
             print(colorText.BOLD + colorText.FAIL +
@@ -485,12 +494,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             sys.exit(0)
 
         if not Utility.tools.isTradingTime() and configManager.cacheEnabled and not loadedStockData and not testing:
-            Utility.tools.loadStockData(stockDict, configManager, proxyServer)
+            Utility.tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly=downloadOnly, defaultAnswer=defaultAnswer)
             loadedStockData = True
         loadCount = len(stockDict)
 
-        print(colorText.BOLD + colorText.WARN +
-              "[+] Starting Stock Screening.. Press Ctrl+C to stop!\n")
+        if not downloadOnly:
+            print(colorText.BOLD + colorText.WARN +
+                "[+] Starting Stock Screening.. Press Ctrl+C to stop!\n")
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
                   configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild)
@@ -577,43 +590,44 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
                 _ = tasks_queue.get(False)
             except Exception as e:
                 break
-        # Publish to gSheet with https://github.com/burnash/gspread 
-        screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-        saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-        screenResults.set_index('Stock', inplace=True)
-        saveResults.set_index('Stock', inplace=True)
-        screenResults.rename(
-            columns={
-                'Trend': f'Trend ({configManager.daysToLookback}Periods)',
-                'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
-                'LTP': 'LTP (% Chng)'
-            },
-            inplace=True
-        )
-        saveResults.rename(
-            columns={
-                'Trend': f'Trend ({configManager.daysToLookback}Periods)',
-                'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
-            },
-            inplace=True
-        )
-        Utility.tools.clearScreen()
-        menuChoiceHierarchy = menuChoiceHierarchy + ' (Data Period: ' + configManager.period + ', Candle Duration: ' + configManager.duration + ')'
-        print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
-        tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
-        print(tabulated_results)
-        markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
-        pngName = 'PKScreener-result_' + \
-                datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
-        Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
-        sendMessageToTelegramChannel(message="'''" + saveResults.to_markdown() + "'''", photo_filePath=pngName, caption=menuChoiceHierarchy)
-        try:
-            os.remove(pngName)
-        except:
-            pass
-        print(colorText.BOLD + colorText.GREEN +
-                  f"[+] Found {len(screenResults)} Stocks." + colorText.END)
-        if configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing:
+        if not downloadOnly:
+            # Publish to gSheet with https://github.com/burnash/gspread 
+            screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+            saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+            screenResults.set_index('Stock', inplace=True)
+            saveResults.set_index('Stock', inplace=True)
+            screenResults.rename(
+                columns={
+                    'Trend': f'Trend ({configManager.daysToLookback}Periods)',
+                    'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
+                    'LTP': 'LTP (% Chng)'
+                },
+                inplace=True
+            )
+            saveResults.rename(
+                columns={
+                    'Trend': f'Trend ({configManager.daysToLookback}Periods)',
+                    'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
+                },
+                inplace=True
+            )
+            Utility.tools.clearScreen()
+            menuChoiceHierarchy = menuChoiceHierarchy + ' (Data Period: ' + configManager.period + ', Candle Duration: ' + configManager.duration + ')'
+            print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
+            tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
+            print(tabulated_results)
+            markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
+            pngName = 'PKScreener-result_' + \
+                    datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
+            Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
+            sendMessageToTelegramChannel(message="'''" + saveResults.to_markdown() + "'''", photo_filePath=pngName, caption=menuChoiceHierarchy)
+            try:
+                os.remove(pngName)
+            except:
+                pass
+            print(colorText.BOLD + colorText.GREEN +
+                    f"[+] Found {len(screenResults)} Stocks." + colorText.END)
+        if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
             print(colorText.BOLD + colorText.GREEN +
                   "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
             Utility.tools.saveStockData(

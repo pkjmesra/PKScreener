@@ -12,7 +12,7 @@ on:
         required: false
         default: 'pkscreener - Data Download'
   schedule:
-  - cron: '31 8 * * *'
+  - cron: '03 10 * * 1-5'
 
 jobs:
 
@@ -54,7 +54,7 @@ jobs:
       run: |
         rmdir /s /q actions-data-download
         mkdir actions-data-download
-        python src/pkscreener.py -d
+        python src/pkscreener.py -d -a Y
         copy "stock_data_*.pkl" "actions-data-download"
 
     - name: Push Pickle Data
