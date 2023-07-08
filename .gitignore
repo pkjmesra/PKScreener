@@ -1,16 +1,16 @@
-# venv/
-# build/
-# dist/
-# test/*.ini
-# __pycache__/
-# .vscode/
-# # *.xlsx
-# *.pkl
-# # *.spec
-# .DS_Store
-# Help
-# # *.h5
-# # *.ini
-# *.env
-# *.dev
-# # *.png
+venv/
+build/
+dist/
+test/*.ini
+__pycache__/
+.vscode/
+*.xlsx
+*.pkl
+*.spec
+.DS_Store
+Help
+*.h5
+*.ini
+*.env
+*.dev
+*.png
