@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-# Pyinstaller compile Windows: pyinstaller --onefile --icon=src\icon.ico src\screenipy.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
-# Pyinstaller compile Linux  : pyinstaller --onefile --icon=src/icon.ico src/screenipy.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
+# Pyinstaller compile Windows: pyinstaller --onefile --icon=src\icon.ico src\pkscreener.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
+# Pyinstaller compile Linux  : pyinstaller --onefile --icon=src/icon.ico src/pkscreener.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
 
 # Keep module imports prior to classes
 import os

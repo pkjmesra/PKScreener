@@ -2,7 +2,7 @@
  *  Project             :   Screenipy
  *  Author              :   Pranjal Joshi
  *  Created             :   29/04/2021
- *  Description         :   Automated Test Script for Screenipy
+ *  Description         :   Automated Test Script for pkscreener
 '''
 
 

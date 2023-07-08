@@ -40,7 +40,7 @@ del updater.bat & exit
     def updateForLinux(url):
         bashFile = """#!/bin/bash
 echo ""
-echo "[+] Starting Screeni-py updater, Please Wait..."
+echo "[+] Starting PKScreener updater, Please Wait..."
 sleep 3
 echo "[+] pkscreener Software Updater!"
 echo "[+] Downloading Software Update..."
@@ -61,7 +61,7 @@ rm updater.sh
     def updateForMac(url):
         bashFile = """#!/bin/bash
 echo ""
-echo "[+] Starting Screeni-py updater, Please Wait..."
+echo "[+] Starting PKScreener updater, Please Wait..."
 sleep 3
 echo "[+] pkscreener Software Updater!"
 echo "[+] Downloading Software Update..."

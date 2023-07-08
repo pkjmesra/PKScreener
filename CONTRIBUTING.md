@@ -7,13 +7,13 @@ When contributing to this repository, please first discuss the change you wish t
 * It is a good practice to always keep your fork up-to-date before starting development of features/fixes to avoid merge conflicts.
 * Update your fork using following code snippet.
 ```
-# Add a new remote repo called as screenipy_upstream
-git remote add screenipy_upstream https://github.com/pkjmesra/PKScreener.git
+# Add a new remote repo called as pkscreener_upstream
+git remote add pkscreener_upstream https://github.com/pkjmesra/PKScreener.git
 
 # Sync your fork before starting work
-git fetch screenipy_upstream
+git fetch pkscreener_upstream
 git checkout <BRANCH_YOU_ARE_WORKING_ON>
-git merge screenipy_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_BRANCH>
+git merge pkscreener_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_BRANCH>
 ```
 
 
@@ -31,7 +31,7 @@ git merge screenipy_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_BR
 
 ## 4. Testing Code Locally
 
-1. Update the test-cases as per the new features from `test/screenipy_test.py` if required.
+1. Update the test-cases as per the new features from `test/pkscreener_test.py` if required.
 2. Run a test locally with `pytest -v` and ensure that all tests are passed.
 3. In case of a failure, Rectify code or Consider opening an issue for further discussion.
 

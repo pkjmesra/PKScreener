@@ -14,3 +14,5 @@ Help
 *.env
 *.dev
 *.png
+src/.env.dev
+src/.env

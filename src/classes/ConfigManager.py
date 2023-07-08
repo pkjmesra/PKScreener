@@ -87,7 +87,7 @@ class tools:
             parser.add_section('config')
             print('')
             print(colorText.BOLD + colorText.GREEN +
-                  '[+] Screeni-py User Configuration:' + colorText.END)
+                  '[+] PKScreener User Configuration:' + colorText.END)
             self.period = input(
                 '[+] Enter number of days for which stock data to be downloaded (Days)(Optimal = 365): ')
             self.daysToLookback = input(
@@ -189,7 +189,7 @@ class tools:
         try:
             f = open('pkscreener.ini', 'r')
             print(colorText.BOLD + colorText.GREEN +
-                  '[+] Screeni-py User Configuration:' + colorText.END)
+                  '[+] PKScreener User Configuration:' + colorText.END)
             print("\n"+f.read())
             f.close()
             input('')
