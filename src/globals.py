@@ -198,10 +198,10 @@ def initScannerExecution(tickerOption=None, executeOption=None):
             tickerOption = input(
                 colorText.BOLD + colorText.FAIL + '[+] Select option: ')
             print(colorText.END, end='')
-        if tickerOption == '':
+        if tickerOption == '' or tickerOption is None:
             tickerOption = 12
         # elif tickerOption == 'W' or tickerOption == 'w' or tickerOption == 'N' or tickerOption == 'n' or tickerOption == 'E' or tickerOption == 'e':
-        elif not tickerOption.isnumeric():
+        elif not str(tickerOption).isnumeric():
             tickerOption = tickerOption.upper()
             if tickerOption in 'MENZ':
                 return tickerOption, 0
@@ -216,9 +216,13 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
+        # raise e
+        # import traceback
+        # traceback.print_exc()
         print(colorText.BOLD + colorText.FAIL +
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
+        # input()
         Utility.tools.clearScreen()
         return initScannerExecution()
     if executeOption is None:
@@ -255,7 +259,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
                 print(colorText.END, end='')
             if executeOption == '':
                 executeOption = 0
-            if not executeOption.isnumeric():
+            if not str(executeOption).isnumeric():
                 executeOption = executeOption.upper()
             else:
                 executeOption = int(executeOption)
@@ -267,9 +271,13 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
+        # raise e
+        # import traceback
+        # traceback.print_exc()
         print(colorText.BOLD + colorText.FAIL +
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
+        # input()
         Utility.tools.clearScreen()
         return initScannerExecution()
     return tickerOption, executeOption
@@ -305,7 +313,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
     elif downloadOnly:
         tickerOption, executeOption = 12, 2
     else:
-        executeOption = 2
+        executeOption = None
         menuOption = None
         tickerOption = None
         try:
