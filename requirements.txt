@@ -60,7 +60,7 @@ pywin32-ctypes # Installed as dependency for pyinstaller
 requests # Installed as dependency for yfinance, cachecontrol
 setuptools # Installed as dependency for pyinstaller
 six # Installed as dependency for cycler, nsetools, packaging, retrying, python-dateutil, html5lib
-sklearn
+# sklearn
 toml # Installed as dependency for pep517, pytest
 urllib3 # Installed as dependency for requests
 webencodings # Installed as dependency for html5lib
