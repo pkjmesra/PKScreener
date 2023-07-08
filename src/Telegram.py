@@ -18,6 +18,7 @@ import pandas as pd
 from datetime import datetime
 
 from telegram.constants import ParseMode
+import pkscreener
 
 TOKEN = "00000000xxxxxxx"
 # URL_TELE = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
@@ -55,8 +56,10 @@ def init():
         botsUrl = f"https://api.telegram.org/bot{TOKEN}"
 
 def get_secrets():
-    secrets = dotenv_values(".env")
-    local_secrets = dotenv_values(".env.dev")
+    if pkscreener.ProductionBuild:
+        local_secrets = dotenv_values(".env")
+    else:
+        local_secrets = dotenv_values(".env.dev")
     return local_secrets['CHAT_ID'], local_secrets['TOKEN'], local_secrets['chat_idADMIN']
 
 # if TOKEN == "00000000xxxxxxx":
