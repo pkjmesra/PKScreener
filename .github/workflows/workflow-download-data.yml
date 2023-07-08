@@ -12,7 +12,7 @@ on:
         required: false
         default: 'pkscreener - Data Download'
   schedule:
-  - cron: '29 13 * * 1-7'
+  - cron: '02 10 * * *'
 
 jobs:
 
