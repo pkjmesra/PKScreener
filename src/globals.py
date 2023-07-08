@@ -38,6 +38,7 @@ np.seterr(divide='ignore', invalid='ignore')
 menuChoiceHierarchy = ''
 defaultAnswer = None
 screenCounter = None
+screenResults = None
 screenResultsCounter = None
 stockDict = None
 keyboardInterruptEvent = None
@@ -285,7 +286,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
 
 # Main function
 def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, startupoptions=None, defaultConsoleAnswer=None):
-    global selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, productionbuild, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, productionbuild, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     productionbuild = prodbuild
     defaultAnswer = defaultConsoleAnswer
     screenCounter = multiprocessing.Value('i', 1)
@@ -529,11 +530,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             for item in items:
                 tasks_queue.put(item)
                 result = results_queue.get()
+                lstscreen = []
+                lstsave = []
                 if result is not None:
-                    screenResults = screenResults.append(
-                        result[0], ignore_index=True)
-                    saveResults = saveResults.append(
-                        result[1], ignore_index=True)
+                    if result is not None:
+                        lstscreen.append(result[0])
+                        lstsave.append(result[1])
+                    df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
+                    df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
+                    screenResults = pd.concat([screenResults, df_extendedscreen])
+                    saveResults = pd.concat([saveResults, df_extendedsave])
                     if testing or (testBuild and len(screenResults) > 2):
                         break
         else:

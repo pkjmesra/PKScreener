@@ -12,6 +12,7 @@ import platform
 import sys
 import subprocess
 import requests
+from classes.Changelog import VERSION
 
 class OTAUpdater:
 
@@ -89,10 +90,10 @@ rm updater.sh
         return (txt+"\n")
 
     # Check for update and download if available
-    def checkForUpdate(proxyServer, VERSION="1.0"):
+    def checkForUpdate(proxyServer, VERSION=VERSION):
         OTAUpdater.checkForUpdate.url = None
+        resp = None
         try:
-            resp = None
             now = float(VERSION)
             if proxyServer:
                 resp = requests.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",proxies={'https':proxyServer})
@@ -125,8 +126,11 @@ rm updater.sh
                 print(colorText.BOLD + colorText.FAIL + ('[+] This version (v%s) is in Development mode and unreleased!' % VERSION) + colorText.END)
                 return OTAUpdater.developmentVersion
         except Exception as e:
-            print(colorText.BOLD + colorText.FAIL + "[+] Failure while checking update!" + colorText.END)
-            print(e)
             if OTAUpdater.checkForUpdate.url != None:
                 print(colorText.BOLD + colorText.BLUE + ("[+] Download update manually from %s\n" % OTAUpdater.checkForUpdate.url) + colorText.END)
+            if resp.json()['message'] == 'Not Found':
+                OTAUpdater.checkForUpdate.url = 'exe/bin not available.'
+                print(colorText.BOLD + colorText.FAIL + "[+] No exe/bin as an update available!" + colorText.END)
+            print(colorText.BOLD + colorText.FAIL + "[+] Failure while checking update!" + colorText.END)
+            print(e)
         return
