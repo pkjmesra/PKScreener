@@ -16,7 +16,6 @@ from globals import main, getProxyServer
 from time import sleep
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-ProductionBuild
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
@@ -37,8 +36,6 @@ if __name__ == "__main__":
         multiprocessing.set_start_method('fork')
 
     Utility.tools.clearScreen()
-    global ProductionBuild
-    ProductionBuild = args.prodbuild
     if not configManager.checkConfigFile():
         configManager.setConfig(ConfigManager.parser, default=True, showFileCreatedText=False)
     if args.testbuild:

@@ -24,7 +24,7 @@ import pandas as pd
 from datetime import datetime
 from time import sleep
 from tabulate import tabulate
-from Telegram import send_message, send_photo, send_document
+from Telegram import send_message, send_photo, send_document, initTelegram
 import multiprocessing
 multiprocessing.freeze_support()
 
@@ -660,6 +660,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
+    initTelegram(prodbuild=productionbuild)
     if message is not None:
         try:
             send_message(message)
