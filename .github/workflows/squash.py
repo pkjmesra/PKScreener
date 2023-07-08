@@ -33,7 +33,7 @@ if cnt < 1:
 else:
     os.system(f"git reset --soft HEAD~{cnt}")
     os.system(f"git commit -m '{c_msg}'")
-    os.system(f"git push -f")
+    os.system(f"git push -f -u origin actions-data-download")
 
 os.remove("msg.log")
 sleep(5)
