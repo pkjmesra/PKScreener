@@ -1,4 +1,4 @@
-numpy==1.21.0 # Installed as dependency for yfinance, scipy, matplotlib, pandas
+numpy #==1.21.0 # Installed as dependency for yfinance, scipy, matplotlib, pandas
 appdirs
 cachecontrol
 contextlib2
@@ -14,7 +14,7 @@ pep517
 pip
 pip-chill
 progress
-pyinstaller==5.6.2
+pyinstaller #==5.6.2
 pytest-mock
 python-dotenv
 telegram
@@ -29,7 +29,7 @@ alive-progress==1.6.2
 Pillow
 # dataframe_image
 scikit-learn #==1.1.1
-tensorflow==2.9.2
+tensorflow #==2.9.2
 joblib
 altgraph # Installed as dependency for pyinstaller
 atomicwrites # Installed as dependency for pytest
@@ -46,7 +46,7 @@ lxml # Installed as dependency for yfinance
 msgpack # Installed as dependency for cachecontrol
 multitasking # Installed as dependency for yfinance
 packaging # Installed as dependency for pytest
-pandas==1.3.5 # Installed as dependency for yfinance
+pandas #==1.3.5 # Installed as dependency for yfinance
 pandas_ta
 pefile # Installed as dependency for pyinstaller
 pluggy # Installed as dependency for pytest
