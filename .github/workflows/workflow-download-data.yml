@@ -64,7 +64,7 @@ jobs:
         git checkout actions-data-download
         git add actions-data-download/stock_data_*.pkl --force
         git commit -m "GitHub Action Workflow - Market Data Download (Default Config)"
-        git push
+        git push -u origin actions-data-download
 
     - name: Squash Commits (Python)
       shell: cmd
