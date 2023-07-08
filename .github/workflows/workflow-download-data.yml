@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: actions-data-download
+        ref: main
 
     - name: Set up Python 3.9.4
       uses: actions/setup-python@v2
