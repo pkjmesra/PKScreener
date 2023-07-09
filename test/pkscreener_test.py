@@ -27,8 +27,12 @@ from pkscreener import *
 last_release = 0
 configManager = ConfigManager.tools()
 
-# Generate default configuration if not exist
+def cleanup():
+    configManager.deleteStockData(pattern='*.pkl')
+    configManager.deleteStockData(pattern='*.png')
+    configManager.deleteStockData(pattern='*.xlsx')
 
+# Generate default configuration if not exist
 def test_generate_default_config(mocker, capsys):
     mocker.patch('builtins.input', side_effect=['5','0', '\n'])
     with pytest.raises(SystemExit):
@@ -117,6 +121,7 @@ def test_option_U(mocker, capsys):
 
 def test_option_X_0(mocker):
     try:
+        cleanup()
         mocker.patch('builtins.input', side_effect=['X', '0', globals.TEST_STKCODE, 'y'])
         main(testing=True)
         assert globals.screenResults is not None
@@ -126,6 +131,7 @@ def test_option_X_0(mocker):
 
 def test_option_X_5_1(mocker):
     try:
+        cleanup()
         mocker.patch('builtins.input', side_effect=['X', '5', '1', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
@@ -135,7 +141,8 @@ def test_option_X_5_1(mocker):
 
 def test_option_X_5_2(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '2', 'y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '2', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -144,7 +151,8 @@ def test_option_X_5_2(mocker):
 
 def test_option_X_5_3(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '3', 'y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '3', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -153,7 +161,8 @@ def test_option_X_5_3(mocker):
 
 def test_option_X_5_4_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '4', '7', 'y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '4', '7', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -162,7 +171,8 @@ def test_option_X_5_4_7(mocker):
 
 def test_option_X_5_5(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '5', '30', '70','y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '5', '30', '70','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -171,7 +181,8 @@ def test_option_X_5_5(mocker):
 
 def test_option_X_5_6_1(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '6', '1', 'y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '6', '1', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -180,7 +191,8 @@ def test_option_X_5_6_1(mocker):
 
 def test_option_X_5_7_1_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '7', '1', '7', 'y','y'])
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '5', '7', '1', '7', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -211,6 +223,7 @@ def test_option_X_12_Z(mocker, capsys):
 def test_option_X_14_0(mocker):
     # Scanners > F&O Stocks > All indicators
     try:
+        cleanup()
         mocker.patch('builtins.input', side_effect=['X','14', '0', 'y'])
         main(testing=True)
         assert globals.screenResults is not None
@@ -230,7 +243,7 @@ def test_option_Y(mocker, capsys):
 
 def test_option_Z(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['Z'])
+        mocker.patch('builtins.input', side_effect=['Z',''])
         with pytest.raises(SystemExit):
             main(testing=True)
         out, err = capsys.readouterr()

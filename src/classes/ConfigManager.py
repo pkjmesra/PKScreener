@@ -35,13 +35,16 @@ class tools:
         self.stageTwo = False
         self.useEMA = False
 
-    def deleteStockData(self,excludeFile=None):
-        for f in glob.glob('stock_data*.pkl'):
-            if excludeFile is not None:
-                if not f.endswith(excludeFile):
+    def deleteStockData(self, pattern='stock_data*.pkl', excludeFile=None):
+        for f in glob.glob(pattern):
+            try:
+                if excludeFile is not None:
+                    if not f.endswith(excludeFile):
+                        os.remove(f)
+                else:
                     os.remove(f)
-            else:
-                os.remove(f)
+            except:
+                pass
 
     # Handle user input and save config
 

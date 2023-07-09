@@ -202,20 +202,10 @@ class tools:
             print(colorText.BOLD + colorText.GREEN +
                   "=> Already Cached." + colorText.END)
 
-    def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None):
-        curr = tools.currentDateTime()
-        openTime = curr.replace(hour=9, minute=15)
-        last_cached_date = datetime.date.today()  # for monday to friday after 3:30
-        weekday = datetime.date.today().weekday()
-        if curr < openTime:  # for monday to friday before 9:15
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(1)
-        if weekday == 5 or weekday == 6:  # for saturday and sunday
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(days=weekday - 4)
-        if weekday == 0 and curr < openTime:  # for monday before 9:15
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(3)
-        last_cached_date = last_cached_date.strftime("%d%m%y")
-        cache_file = "stock_data_" + str(last_cached_date) + ".pkl"
-        if os.path.exists(cache_file):
+    def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None,retrial=False):
+        exists, cache_file = tools.afterMarketStockDataExists()
+        stockDataLoaded = False
+        if exists:
             with open(cache_file, 'rb') as f:
                 try:
                     stockData = pickle.load(f)
@@ -224,17 +214,20 @@ class tools:
                             "[+] Automatically Using Cached Stock Data due to After-Market hours!" + colorText.END)
                     for stock in stockData:
                         stockDict[stock] = stockData.get(stock)
+                    stockDataLoaded = True
                 except pickle.UnpicklingError:
+                    f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Error while Reading Stock Cache." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
                         configManager.deleteStockData()
                 except EOFError:
+                    f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Stock Cache Corrupted." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
                         configManager.deleteStockData()
-        elif ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
+        if not stockDataLoaded and ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
             cache_url = "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/" + cache_file
             if proxyServer is not None:
                 resp = requests.get(cache_url, stream=True, proxies={'https':proxyServer})
@@ -259,13 +252,17 @@ class tools:
                             if dl >= filesize:
                                 progressbar(1.0)
                     f.close()
+                    stockDataLoaded = True
                 except Exception as e:
+                    f.close()
                     print("[!] Download Error - " + str(e))
                 print("")
-                tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
-            else:
-                print(colorText.BOLD + colorText.FAIL +
-                      "[+] Cache unavailable on pkscreener server, Continuing.." + colorText.END)
+                if not retrial:
+                    # Don't try for more than once.
+                    tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer,retrial=True)
+        if not stockDataLoaded:
+            print(colorText.BOLD + colorText.FAIL +
+                  "[+] Cache unavailable on pkscreener server, Continuing.." + colorText.END)
 
     # Save screened results to excel
     def promptSaveResults(df, defaultAnswer=None):
