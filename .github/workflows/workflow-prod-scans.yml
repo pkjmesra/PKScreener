@@ -3,7 +3,7 @@
 # Created             :   09/07/2023
 # Description         :   Workflow for sending pre-selected scan results at scheduled intervals (cron: '41 4,10 * * 1-5')
 
-name: PKScreener Scan Alerts
+name: PKScreener Production Scan Alerts
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +12,7 @@ on:
         required: false
         default: 'PKScreener - Scan Alerts'
   schedule:
-  - cron: '59 4,19 * * *'
+  - cron: '41 4,10 * * 1-5'
 
 jobs:
 
