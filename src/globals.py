@@ -289,6 +289,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
     global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, productionbuild, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     productionbuild = prodbuild
     defaultAnswer = defaultConsoleAnswer
+    options = None
     screenCounter = multiprocessing.Value('i', 1)
     screenResultsCounter = multiprocessing.Value('i', 0)
     keyboardInterruptEvent = multiprocessing.Manager().Event()
