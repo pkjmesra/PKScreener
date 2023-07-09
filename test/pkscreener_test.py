@@ -180,7 +180,7 @@ def test_option_X_5_6_1(mocker):
 
 def test_option_X_5_7_1_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '7', '1', '7', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '7', '1', '7', 'y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
