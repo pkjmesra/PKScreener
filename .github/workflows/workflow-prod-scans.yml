@@ -16,7 +16,7 @@ on:
 
 jobs:
 
-  Download_Stock_Data:
+  Send_Production_Alerts:
 
     runs-on: windows-latest
 
