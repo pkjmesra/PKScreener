@@ -58,7 +58,7 @@ class tools:
     def showDevInfo():
         print('\n'+changelog)
         print(colorText.BOLD + colorText.WARN +
-              "\n[+] Developer: Pranjal Joshi." + colorText.END)
+              "\n[+] Developer: Pranjal Joshi(Screeni-py), PK (PKScreener)" + colorText.END)
         print(colorText.BOLD + colorText.WARN +
               ("[+] Version: %s" % VERSION) + colorText.END)
         print(colorText.BOLD +

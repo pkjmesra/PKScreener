@@ -48,7 +48,11 @@ LIST_PEOPLE_IDS_CHAT = [Channel_Id]
 def initTelegram(prodbuild=False):
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if chat_idADMIN == "" or botsUrl == "":
-        Channel_Id, TOKEN, chat_idADMIN = get_secrets(prodbuild=prodbuild)
+        try:
+            Channel_Id, TOKEN, chat_idADMIN = get_secrets(prodbuild=prodbuild)
+        except:
+            print('Telegram token and secrets are not configured!')
+            pass
         Channel_Id = "-" + str(Channel_Id)
         LIST_PEOPLE_IDS_CHAT = [Channel_Id]
         botsUrl = f"https://api.telegram.org/bot{TOKEN}"
@@ -62,7 +66,7 @@ def get_secrets(prodbuild=False):
 
 # if TOKEN == "00000000xxxxxxx":
 #     raise ValueError("There is no value for the telegram TOKEN, telegram is required to telegram one, see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token")
-def is_token_telegram_configurated():
+def is_token_telegram_configured():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if TOKEN == "00000000xxxxxxx":
         print("There is not value for the telegram TOKEN, telegram is required to telegram one, see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token")
@@ -71,7 +75,7 @@ def is_token_telegram_configurated():
 
 def send_exception(ex, extra_mes = ""):
     message_aler = extra_mes + "   ** Exception **" + str(ex)
-    if not is_token_telegram_configurated():
+    if not is_token_telegram_configured():
         return
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_idADMIN}&text={message_aler}"
 
@@ -80,7 +84,7 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None):
     initTelegram()
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
-    if not is_token_telegram_configurated():
+    if not is_token_telegram_configured():
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if list_png is None or any(elem is None for elem in list_png):
@@ -104,6 +108,8 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None):
 
 def send_photo(photoFilePath, message = "", message_id = None):
     initTelegram()
+    if not is_token_telegram_configured():
+        return
     method = "/sendPhoto"
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     photo = open(photoFilePath, "rb")
@@ -122,6 +128,8 @@ def send_photo(photoFilePath, message = "", message_id = None):
 
 def send_document(documentFilePath, message="", message_id = None):
     initTelegram()
+    if not is_token_telegram_configured():
+        return
     document = open(documentFilePath, "rb")
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"

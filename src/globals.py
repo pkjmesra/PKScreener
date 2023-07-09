@@ -161,7 +161,7 @@ def toggleUserConfig():
     configManager.toggleConfig()
     print(colorText.BOLD + colorText.GREEN +
     '\nConfiguration toggled to duration: ' + str(configManager.duration) + ' and period: ' + str(configManager.period) + colorText.END)
-    sleep(3)
+    input('\nPress any key to Continue...\n')
 
 # Manage Execution flow
 def initScannerExecution(tickerOption=None, executeOption=None):
