@@ -135,7 +135,7 @@ def test_option_X_5_1(mocker):
 
 def test_option_X_5_2(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '2', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '2', 'y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -144,7 +144,7 @@ def test_option_X_5_2(mocker):
 
 def test_option_X_5_3(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '3', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '3', 'y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -153,7 +153,7 @@ def test_option_X_5_3(mocker):
 
 def test_option_X_5_4_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '4', '7', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '4', '7', 'y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -162,7 +162,7 @@ def test_option_X_5_4_7(mocker):
 
 def test_option_X_5_5(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '5', '30', '70'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '5', '30', '70','y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -171,7 +171,7 @@ def test_option_X_5_5(mocker):
 
 def test_option_X_5_6_1(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['X', '5', '6', '1', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '6', '1', 'y','y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
@@ -220,7 +220,7 @@ def test_option_X_14_0(mocker):
 
 def test_option_Y(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['Y',''])
+        mocker.patch('builtins.input', side_effect=['Y'])
         with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
             main(testing=True)
         out, err = capsys.readouterr()
@@ -230,7 +230,7 @@ def test_option_Y(mocker, capsys):
 
 def test_option_Z(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['Z',''])
+        mocker.patch('builtins.input', side_effect=['Z'])
         with pytest.raises(SystemExit):
             main(testing=True)
         out, err = capsys.readouterr()
