@@ -1,0 +1,125 @@
+# Project             :   PKScreener
+# Author              :   PK
+# Created             :   09/07/2023
+# Description         :   Workflow for sending pre-selected scan results at scheduled intervals (cron: '41 4,10 * * 1-5')
+
+name: PKScreener Production Scan Alerts
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Run Details'
+        required: false
+        default: 'PKScreener - Scan Alerts'
+  schedule:
+  - cron: '41 4,10 * * 1-5'
+
+jobs:
+
+  Download_Stock_Data:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: main
+
+    - name: Set up Python 3.9.4
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9.4
+
+    - name: Restore Dependencies from Cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install TA-Lib
+      run: |
+        python -m pip install --upgrade pip
+        cd .github/dependencies/
+        echo %cd%
+        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+
+    - name: Install Python Dependencies
+      run: |
+        pip3 install -r requirements.txt
+
+    - name: Configure .env file
+      run: |
+        python -c "import os; file = open('src/.env', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+      shell: bash
+      env:
+        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+
+    - name: 2.1 All relevant technical indicators
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:0 -e
+    
+    - name: 2.2 Probable breakouts
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:1 -e
+
+    - name: 2.3 Recent breakouts and volumes
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:2 -e
+
+    - name: 2.4 Volume gainers/shockers
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:9:2.5 -e
+
+    - name: 2.5 Stocks gaining at least 2% since last 3 sessions
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:10 -e
+
+    - name: 2.6 Short term bullish stocks
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:11 -e
+
+    - name: 2.7 CCI outside the -100,+150 range
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:8:-100:150 -e
+
+    - name: 2.8 Buy signals(Bullish reversals)
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:6:1 -e
+
+    - name: 2.9 Sell signals(bearish reversals)
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:6:2 -e
+
+    - name: 2.10 Momentum gainers (Rising bullish momentum)
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:6:3 -e
+
+    - name: 2.11 NR4 daily
+      shell: cmd
+      run: |
+        python src/pkscreener.py -p -a Y -o X:12:14 -e
+
+    - name: 1. Next day Nifty/Market AI prediction
+      shell: cmd
+      run: |
+        currenttime=$(date --utc +%H:%M)
+        if [[ "$currenttime" > "09:00" ]]; then
+          python src/pkscreener.py -p -a Y -o X:N -e
+        else
+          echo 'Skipping because it's not 3:30pm IST yet.'
+        fi
+

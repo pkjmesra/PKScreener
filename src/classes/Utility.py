@@ -58,7 +58,7 @@ class tools:
     def showDevInfo():
         print('\n'+changelog)
         print(colorText.BOLD + colorText.WARN +
-              "\n[+] Developer: Pranjal Joshi." + colorText.END)
+              "\n[+] Developer: Pranjal Joshi(Screeni-py), PK (PKScreener)" + colorText.END)
         print(colorText.BOLD + colorText.WARN +
               ("[+] Version: %s" % VERSION) + colorText.END)
         print(colorText.BOLD +
@@ -202,20 +202,10 @@ class tools:
             print(colorText.BOLD + colorText.GREEN +
                   "=> Already Cached." + colorText.END)
 
-    def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None):
-        curr = tools.currentDateTime()
-        openTime = curr.replace(hour=9, minute=15)
-        last_cached_date = datetime.date.today()  # for monday to friday after 3:30
-        weekday = datetime.date.today().weekday()
-        if curr < openTime:  # for monday to friday before 9:15
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(1)
-        if weekday == 5 or weekday == 6:  # for saturday and sunday
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(days=weekday - 4)
-        if weekday == 0 and curr < openTime:  # for monday before 9:15
-            last_cached_date = datetime.datetime.today() - datetime.timedelta(3)
-        last_cached_date = last_cached_date.strftime("%d%m%y")
-        cache_file = "stock_data_" + str(last_cached_date) + ".pkl"
-        if os.path.exists(cache_file):
+    def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None,retrial=False):
+        exists, cache_file = tools.afterMarketStockDataExists()
+        stockDataLoaded = False
+        if exists:
             with open(cache_file, 'rb') as f:
                 try:
                     stockData = pickle.load(f)
@@ -224,17 +214,20 @@ class tools:
                             "[+] Automatically Using Cached Stock Data due to After-Market hours!" + colorText.END)
                     for stock in stockData:
                         stockDict[stock] = stockData.get(stock)
+                    stockDataLoaded = True
                 except pickle.UnpicklingError:
+                    f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Error while Reading Stock Cache." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
                         configManager.deleteStockData()
                 except EOFError:
+                    f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Stock Cache Corrupted." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
                         configManager.deleteStockData()
-        elif ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
+        if not stockDataLoaded and ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
             cache_url = "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/" + cache_file
             if proxyServer is not None:
                 resp = requests.get(cache_url, stream=True, proxies={'https':proxyServer})
@@ -259,13 +252,17 @@ class tools:
                             if dl >= filesize:
                                 progressbar(1.0)
                     f.close()
+                    stockDataLoaded = True
                 except Exception as e:
+                    f.close()
                     print("[!] Download Error - " + str(e))
                 print("")
-                tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
-            else:
-                print(colorText.BOLD + colorText.FAIL +
-                      "[+] Cache unavailable on pkscreener server, Continuing.." + colorText.END)
+                if not retrial:
+                    # Don't try for more than once.
+                    tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer,retrial=True)
+        if not stockDataLoaded:
+            print(colorText.BOLD + colorText.FAIL +
+                  "[+] Cache unavailable on pkscreener server, Continuing.." + colorText.END)
 
     # Save screened results to excel
     def promptSaveResults(df, defaultAnswer=None):
@@ -310,18 +307,22 @@ class tools:
             return (0, 0)
 
     # Prompt for asking CCI
-    def promptCCIValues():
+    def promptCCIValues(minCCI=-100, maxCCI=150):
+        if minCCI is not None and maxCCI is not None:
+            return minCCI, maxCCI
         try:
-            minRSI, maxRSI = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min CCI value: " + colorText.END)), int(
+            minCCI, maxCCI = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min CCI value: " + colorText.END)), int(
                 input(colorText.BOLD + colorText.WARN + "[+] Enter Max CCI value: " + colorText.END))
-            if (minRSI <= maxRSI):
-                return (minRSI, maxRSI)
+            if (minCCI <= maxCCI):
+                return (minCCI, maxCCI)
             raise ValueError
         except ValueError:
             return (-100, 100)
 
     # Prompt for asking Volume ratio
-    def promptVolumeMultiplier():
+    def promptVolumeMultiplier(volumeRatio=2.5):
+        if volumeRatio is not None:
+            return volumeRatio
         try:
             volumeRatio = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2): " + colorText.END))
             if (volumeRatio > 0):
@@ -402,6 +403,7 @@ class tools:
 
     def getNiftyModel(proxyServer=None):
         files = ['nifty_model_v2.h5', 'nifty_model_v2.pkl']
+        model = None
         urls = [
             "https://raw.github.com/pkjmesra/PKScreener/new-features/src/ml/nifty_model_v2.h5",
             "https://raw.github.com/pkjmesra/PKScreener/new-features/src/ml/nifty_model_v2.pkl"
@@ -443,7 +445,7 @@ class tools:
                     except Exception as e:
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
-            model = keras.models.load_model(files[0]) if Imports['keras'] else None
+        model = keras.models.load_model(files[0]) if Imports['keras'] else None
         pkl = joblib.load(files[1])
         return model, pkl
 

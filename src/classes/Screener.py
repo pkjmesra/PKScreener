@@ -257,16 +257,21 @@ class tools:
             data = pkl['scaler'].transform([data])
             pred = model.predict(data)[0]
         if pred > 0.5:
-            out = colorText.BOLD + colorText.FAIL + "BEARISH" + colorText.END + colorText.BOLD
+            outText = "BEARISH"
+            out = colorText.BOLD + colorText.FAIL + outText + colorText.END + colorText.BOLD
             sug = "Hold your Short position!"
         else:
-            out = colorText.BOLD + colorText.GREEN + "BULLISH" + colorText.END + colorText.BOLD
+            outText = "BULLISH"
+            out = colorText.BOLD + colorText.GREEN + outText + colorText.END + colorText.BOLD
             sug = "Stay Bullish!"
         if not Utility.tools.isClosingHour():
             print(colorText.BOLD + colorText.WARN + "Note: The AI prediction should be executed After 3 PM or Near to Closing time as the Prediction Accuracy is based on the Closing price!" + colorText.END)
-        print(colorText.BOLD + colorText.BLUE + "\n" + "[+] Nifty AI Prediction -> " + colorText.END + colorText.BOLD + "Market may Open {} next day! {}".format(out, sug) + colorText.END)
-        print(colorText.BOLD + colorText.BLUE + "\n" + "[+] Nifty AI Prediction -> " + colorText.END + "Probability/Strength of Prediction = {}%".format(Utility.tools.getSigmoidConfidence(pred[0])))
-        return pred
+        predictionText = "Market may Open {} next day! {}".format(out, sug)
+        strengthText = "Probability/Strength of Prediction = {}%".format(Utility.tools.getSigmoidConfidence(pred[0]))
+        print(colorText.BOLD + colorText.BLUE + "\n" + "[+] Nifty AI Prediction -> " + colorText.END + colorText.BOLD + predictionText + colorText.END)
+        print(colorText.BOLD + colorText.BLUE + "\n" + "[+] Nifty AI Prediction -> " + colorText.END + strengthText)
+        
+        return pred, predictionText.replace(out, outText), strengthText
 
     def monitorFiveEma(self, proxyServer, fetcher, result_df, last_signal, risk_reward = 3):
         col_names = ['High', 'Low', 'Close', '5EMA']
