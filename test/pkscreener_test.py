@@ -129,6 +129,136 @@ def test_option_X_0(mocker):
     except StopIteration:
         pass
 
+def test_option_X_1_0(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '0', 'y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 1 
+    except StopIteration:
+        pass
+
+def test_option_X_1_1(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '1', 'y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 1 
+    except StopIteration:
+        pass
+
+def test_option_X_1_2(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '2', 'y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 1 
+    except StopIteration:
+        pass
+
+def test_option_X_1_3(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '3', 'y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 1 
+    except StopIteration:
+        pass
+
+def test_option_X_1_4(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '4','5','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 0 
+    except StopIteration:
+        pass
+
+def test_option_X_1_5(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '5','10','90','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 0 
+    except StopIteration:
+        pass
+
+def test_option_X_1_6_1(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '6','1','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 0 
+    except StopIteration:
+        pass
+
+def test_option_X_1_6_2(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '1', '6','2','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 0 
+    except StopIteration:
+        pass
+
+def test_option_X_12_6_3(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '6','3','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 1
+    except StopIteration:
+        pass
+
+def test_option_X_12_6_4(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '6','4','50','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 0
+    except StopIteration:
+        pass
+
+def test_option_X_12_6_6(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '6','6','4','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 1
+    except StopIteration:
+        pass
+
+def test_option_X_12_6_6(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '9','3','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 1
+    except StopIteration:
+        pass
+
+def test_option_X_12_11(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '11','y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) >= 1
+    except StopIteration:
+        pass
+
 def test_option_X_5_1(mocker):
     try:
         cleanup()
