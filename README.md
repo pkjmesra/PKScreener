@@ -4,19 +4,43 @@
 ## What is PKScreener?
 
 ### A Python-based stock screener for NSE, India.
-This is based on the original work of https://github.com/pranjal-joshi/Screeni-py
 
 **pkscreener** is an advanced stock screener to find potential breakout stocks from NSE and tell it's possible breakout values. It also helps to find the stocks which are consolidating and may breakout, or the particular chart patterns that you're looking specifically to make your decisions.
 pkscreener is totally customizable and it can screen stocks with the settings that you have provided.
 
-## How to use?
+You can get daily scan results/alerts at scheduled times by subscribing to the following Telegram channel:
+https://t.me/PKScreener
+![Telegram Channel](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/Telegram_Channel_Prod.jpg)
+
+For any discussion related to PKScreener, you may like to join the following related Telegram group:
+https://t.me/PKScreeners
+![Telegram Group](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/Telegram_Channel_Prod.jpg)
+
+## Receiving Scheduled Scan results
+If you would like to receive the scan results, please join the telegram channel and group above. 
+You may receive the following scan results:
+1. Next day Nifty/Market AI prediction by 4pm IST, Monday - Friday
+2. For all Nifty stocks at/by 9:45am and 4pm IST, Monday - Friday
+    2.1 Scan result containing all relevant technical indicators 
+    2.2 Scan result with probable breakouts
+    2.3 Scan result with recent breakouts and volumes
+    2.4 Scan result with volume gainers/shockers
+    2.5 Scan result with stocks gaining at least 2% since last 3 sessions
+    2.6 Scan result with short term bullish stocks
+    2.7 Scan result with CCI outside the -100,+150 range
+    2.8 Scan result with buy signals(Bullish reversals)
+    2.9 Scan result with sell signals(bearish reversals)
+    2.10 Scan result with momentum gainers (Rising bullish momentum)
+    2.11 Scan result for NR4 daily
+
+## How to use on your own local Windows/Linux/Macbook laptop?
 * Download the suitable file according to your OS.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
 
 ![home](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/pkscreener_demo.gif)
 
-* **Configure** the parameters as per your requirement using `Option > 8`.
+* **Configure** the parameters as per your requirement using `Option > E`.
 
 ![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/config.png)
 
@@ -60,7 +84,7 @@ cachestockdata = y
 onlystagetwostocks = y
 useema = n
 ```
-Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on.
+Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well.
 
 ## Contributing:
 * Please feel free to Suggest improvements bugs by creating an issue.
@@ -70,3 +94,4 @@ Try to tweak this parameters as per your trading styles. For example, If you're 
 * DO NOT use the result provided by the software 'solely' to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
 * The Author and the software will not be held liable for your losses.
+* A lot of this work is based on the original work of https://github.com/pranjal-joshi/Screeni-py. A big thank you!

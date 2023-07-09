@@ -395,7 +395,15 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             main()
             return
     if executeOption == 6:
-        reversalOption, maLength = Utility.tools.promptReversalScreening()
+        if len(options) >= 4:
+            reversalOption = int(options[3])
+            if reversalOption == 4 or reversalOption == 6:
+                if len(options) >= 5:
+                    maLength = int(options[4])
+                else:
+                    reversalOption, maLength = Utility.tools.promptReversalScreening()
+        else:
+            reversalOption, maLength = Utility.tools.promptReversalScreening()
         if reversalOption is None or reversalOption == 0:
             main()
             return
@@ -405,7 +413,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             main()
             return
     if executeOption == 8:
-        minRSI, maxRSI = Utility.tools.promptCCIValues()
+        if len(options) >= 5:
+            minRSI = int(options[3])
+            maxRSI = int(options[4])
+        else:
+            minRSI, maxRSI = Utility.tools.promptCCIValues()
         if (not minRSI and not maxRSI):
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for CCI! Values should be in range of -300 to 500. Screening aborted.' + colorText.END)
@@ -413,7 +425,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             main()
             return
     if executeOption == 9:
-        volumeRatio = Utility.tools.promptVolumeMultiplier()
+        if len(options) >= 4:
+            volumeRatio = float(options[3])
+        else:
+            volumeRatio = Utility.tools.promptVolumeMultiplier()
         if (volumeRatio <= 0):
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for Volume Ratio! Value should be a positive number. Screening aborted.' + colorText.END)
@@ -442,10 +457,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
                     sys.exit(0)
             elif tickerOption == 'N':
                 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-                prediction = screener.getNiftyPrediction(
+                prediction, pText, sText = screener.getNiftyPrediction(
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=proxyServer), 
                     proxyServer=proxyServer
                 )
+                sendMessageToTelegramChannel(message=f'Nifty AI prediction for the next day: {pText}. {sText}')
                 input('\nPress any key to Continue...\n')
                 return
             elif tickerOption == 'M':
@@ -486,7 +502,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + ' > ' + level2MenuDict[selectedChoice['2']].strip()
+                    menuChoiceHierarchy = f'({selectedChoice["0"]}) {level0MenuDict[selectedChoice["0"]].strip()} > ({selectedChoice["1"]}) {level1MenuDict[selectedChoice["1"]].strip()} > ({selectedChoice["2"]}) {level2MenuDict[selectedChoice["2"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer)
         except urllib.error.URLError:

@@ -93,6 +93,16 @@ def test_option_H(mocker, capsys):
     except StopIteration:
         pass
 
+def test_nifty_prediction(mocker, capsys):
+    try:
+        mocker.patch('builtins.input', side_effect=['X', 'N'])
+        main(testing=True)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert 'Probability' in out
+    except StopIteration:
+        pass
+
 def test_option_T(mocker, capsys):
     try:
         mocker.patch('builtins.input', side_effect=['T'])

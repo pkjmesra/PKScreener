@@ -307,18 +307,22 @@ class tools:
             return (0, 0)
 
     # Prompt for asking CCI
-    def promptCCIValues():
+    def promptCCIValues(minCCI=-100, maxCCI=150):
+        if minCCI is not None and maxCCI is not None:
+            return minCCI, maxCCI
         try:
-            minRSI, maxRSI = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min CCI value: " + colorText.END)), int(
+            minCCI, maxCCI = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min CCI value: " + colorText.END)), int(
                 input(colorText.BOLD + colorText.WARN + "[+] Enter Max CCI value: " + colorText.END))
-            if (minRSI <= maxRSI):
-                return (minRSI, maxRSI)
+            if (minCCI <= maxCCI):
+                return (minCCI, maxCCI)
             raise ValueError
         except ValueError:
             return (-100, 100)
 
     # Prompt for asking Volume ratio
-    def promptVolumeMultiplier():
+    def promptVolumeMultiplier(volumeRatio=2.5):
+        if volumeRatio is not None:
+            return volumeRatio
         try:
             volumeRatio = int(input(colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2): " + colorText.END))
             if (volumeRatio > 0):
@@ -399,6 +403,7 @@ class tools:
 
     def getNiftyModel(proxyServer=None):
         files = ['nifty_model_v2.h5', 'nifty_model_v2.pkl']
+        model = None
         urls = [
             "https://raw.github.com/pkjmesra/PKScreener/new-features/src/ml/nifty_model_v2.h5",
             "https://raw.github.com/pkjmesra/PKScreener/new-features/src/ml/nifty_model_v2.pkl"
@@ -440,7 +445,7 @@ class tools:
                     except Exception as e:
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
-            model = keras.models.load_model(files[0]) if Imports['keras'] else None
+        model = keras.models.load_model(files[0]) if Imports['keras'] else None
         pkl = joblib.load(files[1])
         return model, pkl
 
