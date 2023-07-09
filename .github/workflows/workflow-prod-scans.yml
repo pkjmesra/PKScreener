@@ -16,7 +16,9 @@ on:
 
 jobs:
 
-  Download_Stock_Data:
+
+  Send_Production_Alerts:
+
 
     runs-on: windows-latest
 
@@ -49,9 +51,12 @@ jobs:
       run: |
         pip3 install -r requirements.txt
 
-    - name: Configure .env file
+
+    - name: Configure .env and env.dev file
       run: |
         python -c "import os; file = open('src/.env', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python -c "import os; file = open('src/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
