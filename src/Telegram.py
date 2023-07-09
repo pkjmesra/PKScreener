@@ -45,18 +45,19 @@ botsUrl = ""
 # chat_idUser3= "495000000"
 LIST_PEOPLE_IDS_CHAT = [Channel_Id]
 
-
-def init():
+def initTelegram(prodbuild=False):
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if chat_idADMIN == "" or botsUrl == "":
-        Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+        Channel_Id, TOKEN, chat_idADMIN = get_secrets(prodbuild=prodbuild)
         Channel_Id = "-" + str(Channel_Id)
         LIST_PEOPLE_IDS_CHAT = [Channel_Id]
         botsUrl = f"https://api.telegram.org/bot{TOKEN}"
 
-def get_secrets():
-    secrets = dotenv_values(".env")
-    local_secrets = dotenv_values(".env.dev")
+def get_secrets(prodbuild=False):
+    if prodbuild:
+        local_secrets = dotenv_values(".env")
+    else:
+        local_secrets = dotenv_values(".env.dev")
     return local_secrets['CHAT_ID'], local_secrets['TOKEN'], local_secrets['chat_idADMIN']
 
 # if TOKEN == "00000000xxxxxxx":
@@ -76,7 +77,7 @@ def send_exception(ex, extra_mes = ""):
 
 
 def send_message(message, parse_type = ParseMode.HTML, list_png = None):
-    init()
+    initTelegram()
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
     if not is_token_telegram_configurated():
@@ -102,7 +103,7 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None):
     #     # print(telegram_msg.content)
 
 def send_photo(photoFilePath, message = "", message_id = None):
-    init()
+    initTelegram()
     method = "/sendPhoto"
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     photo = open(photoFilePath, "rb")
@@ -120,7 +121,7 @@ def send_photo(photoFilePath, message = "", message_id = None):
     return resp
 
 def send_document(documentFilePath, message="", message_id = None):
-    init()
+    initTelegram()
     document = open(documentFilePath, "rb")
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"

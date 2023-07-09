@@ -24,7 +24,7 @@ import pandas as pd
 from datetime import datetime
 from time import sleep
 from tabulate import tabulate
-from Telegram import send_message, send_photo, send_document
+from Telegram import send_message, send_photo, send_document, initTelegram
 import multiprocessing
 multiprocessing.freeze_support()
 
@@ -38,6 +38,7 @@ np.seterr(divide='ignore', invalid='ignore')
 menuChoiceHierarchy = ''
 defaultAnswer = None
 screenCounter = None
+screenResults = None
 screenResultsCounter = None
 stockDict = None
 keyboardInterruptEvent = None
@@ -102,6 +103,7 @@ level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any c
 selectedChoice = {'0':'', '1':'','2':''}
 
 def initExecution(menuOption=None):
+    global selectedChoice, level0MenuDict
     Utility.tools.clearScreen()
     if menuOption == None:
         print(colorText.BOLD + colorText.WARN +
@@ -163,7 +165,7 @@ def toggleUserConfig():
 
 # Manage Execution flow
 def initScannerExecution(tickerOption=None, executeOption=None):
-    global newlyListedOnly
+    global newlyListedOnly, selectedChoice, level0MenuDict, level1MenuDict
     Utility.tools.clearScreen()
     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + colorText.END)
     if tickerOption is None:
@@ -284,7 +286,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
 
 # Main function
 def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, startupoptions=None, defaultConsoleAnswer=None):
-    global defaultAnswer, productionbuild,menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, productionbuild, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     productionbuild = prodbuild
     defaultAnswer = defaultConsoleAnswer
     screenCounter = multiprocessing.Value('i', 1)
@@ -528,11 +530,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             for item in items:
                 tasks_queue.put(item)
                 result = results_queue.get()
+                lstscreen = []
+                lstsave = []
                 if result is not None:
-                    screenResults = screenResults.append(
-                        result[0], ignore_index=True)
-                    saveResults = saveResults.append(
-                        result[1], ignore_index=True)
+                    if result is not None:
+                        lstscreen.append(result[0])
+                        lstsave.append(result[1])
+                    df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
+                    df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
+                    screenResults = pd.concat([screenResults, df_extendedscreen])
+                    saveResults = pd.concat([saveResults, df_extendedsave])
                     if testing or (testBuild and len(screenResults) > 2):
                         break
         else:
@@ -616,15 +623,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
             tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
             print(tabulated_results)
-            markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
-            pngName = 'PKScreener-result_' + \
-                    datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
-            Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
-            sendMessageToTelegramChannel(message="'''" + saveResults.to_markdown() + "'''", photo_filePath=pngName, caption=menuChoiceHierarchy)
-            try:
-                os.remove(pngName)
-            except:
-                pass
+            if len(screenResults) >= 1:
+                markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
+                pngName = 'PKScreener-result_' + \
+                        datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
+                sendMessageToTelegramChannel(message="'''" + saveResults.to_markdown() + "'''", photo_filePath=pngName, caption=menuChoiceHierarchy)
+                try:
+                    os.remove(pngName)
+                except:
+                    pass
             print(colorText.BOLD + colorText.GREEN +
                     f"[+] Found {len(screenResults)} Stocks." + colorText.END)
         if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
@@ -635,22 +643,24 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
 
         Utility.tools.setLastScreenedResults(screenResults)
         if not testBuild and not downloadOnly:
-            filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
-            if filename is not None:
-                sendMessageToTelegramChannel(document_filePath=filename, caption=menuChoiceHierarchy)
-            print(colorText.BOLD + colorText.WARN +
-                "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
+            if len(screenResults) >= 1:
+                filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
+                if filename is not None:
+                    sendMessageToTelegramChannel(document_filePath=filename, caption=menuChoiceHierarchy)
+                print(colorText.BOLD + colorText.WARN +
+                    "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
+                try:
+                    os.remove(filename)
+                except:
+                    pass
             print(colorText.BOLD + colorText.GREEN +
                 "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
             if defaultAnswer is not None and defaultAnswer.upper() != 'Y':
                 input('')
-        try:
-            os.remove(filename)
-        except:
-            pass
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
+    initTelegram(prodbuild=productionbuild)
     if message is not None:
         try:
             send_message(message)

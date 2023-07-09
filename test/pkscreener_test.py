@@ -15,10 +15,14 @@ import configparser
 import requests
 import json
 import platform
+import shutil
 
+shutil.copyfile('../src/.env.dev', '.env.dev')
 sys.path.append(os.path.abspath('../src'))
 import classes.ConfigManager as ConfigManager
-from classes.Changelog import changelog
+from classes.Changelog import changelog, VERSION
+from classes.OtaUpdater import OTAUpdater
+import globals 
 from pkscreener import *
 last_release = 0
 configManager = ConfigManager.tools()
@@ -33,91 +37,100 @@ def test_generate_default_config(mocker, capsys):
     out, err = capsys.readouterr()
     assert err == ''
 
-
 def test_if_release_version_increamented():
     global last_release
     r = requests.get(
         "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
-    last_release = float(r.json()['tag_name'])
+    try:
+        last_release = float(r.json()['tag_name'])
+    except:
+        if r.json()['message'] == 'Not Found':
+            last_release = 0
     assert float(VERSION) > last_release
 
-
-def test_option_0(mocker):
+def test_option_X_0(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['0', TEST_STKCODE, 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '0', globals.TEST_STKCODE, 'y'])
         main(testing=True)
-        assert len(screenResults) == 1
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) == 1 
     except StopIteration:
         pass
 
 
-def test_option_1(mocker):
+def test_option_X_5_1(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '1', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '1', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_2(mocker):
+def test_option_X_5_2(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '2', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '2', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_3(mocker):
+def test_option_X_5_3(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '3', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '3', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_4(mocker):
+def test_option_X_5_4_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '4', '7', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '4', '7', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_5(mocker):
+def test_option_X_5_5(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '5', '30', '70'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '5', '30', '70'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_6(mocker):
+def test_option_X_5_6_1(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '6', '1', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '6', '1', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_7(mocker):
+def test_option_X_5_7_1_7(mocker):
     try:
-        mocker.patch('builtins.input', side_effect=['5', '7', '1', '7', 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '5', '7', '1', '7', 'y'])
         main(testing=True)
-        assert len(screenResults) > 0
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 
 
-def test_option_8(mocker, capsys):
+def test_option_E(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['5',
-            '8',
+        mocker.patch('builtins.input', side_effect=['E', 
             str(configManager.period),
             str(configManager.daysToLookback),
             str(configManager.duration),
@@ -136,16 +149,16 @@ def test_option_8(mocker, capsys):
         pass
 
 
-def test_option_9():
+def test_option_configManager():
     configManager.getConfig(ConfigManager.parser)
     assert configManager.duration is not None
     assert configManager.period is not None
     assert configManager.consolidationPercentage is not None
 
 
-def test_option_12(mocker, capsys):
+def test_option_Z(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['5','12'])
+        mocker.patch('builtins.input', side_effect=['Z',''])
         with pytest.raises(SystemExit):
             main(testing=True)
         out, err = capsys.readouterr()
@@ -153,18 +166,40 @@ def test_option_12(mocker, capsys):
     except StopIteration:
         pass
 
-def test_option_14(mocker):
+def test_option_X_Z(mocker, capsys):
     try:
-        mocker.patch('builtins.input', side_effect=['14', '0', 'y'])
-        main(testing=True)
-        assert len(screenResults) > 0
+
+        mocker.patch('builtins.input', side_effect=['X','Z',''])
+        with pytest.raises(SystemExit):
+            main(testing=True)
+        out, err = capsys.readouterr()
+        assert err == ''
     except StopIteration:
         pass
 
+def test_option_X_12_Z(mocker, capsys):
+    try:
+        mocker.patch('builtins.input', side_effect=['X','12','Z',''])
+        with pytest.raises(SystemExit):
+            main(testing=True)
+        out, err = capsys.readouterr()
+        assert err == ''
+    except StopIteration:
+        pass
+
+def test_option_X_14_0(mocker):
+    # Scanners > F&O Stocks > All indicators
+    try:
+        mocker.patch('builtins.input', side_effect=['X','14', '0', 'y'])
+        main(testing=True)
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
+    except StopIteration:
+        pass
 
 def test_ota_updater():
     try:
-        OTAUpdater.checkForUpdate(proxyServer, VERSION)
+        OTAUpdater.checkForUpdate(globals.proxyServer,VERSION)
         assert (
             "exe" in OTAUpdater.checkForUpdate.url or "bin" in OTAUpdater.checkForUpdate.url)
     except StopIteration:

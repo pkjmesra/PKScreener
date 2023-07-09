@@ -36,7 +36,6 @@ if __name__ == "__main__":
         multiprocessing.set_start_method('fork')
 
     Utility.tools.clearScreen()
-
     if not configManager.checkConfigFile():
         configManager.setConfig(ConfigManager.parser, default=True, showFileCreatedText=False)
     if args.testbuild:
