@@ -26,9 +26,10 @@ import globals
 from pkscreener import *
 last_release = 0
 configManager = ConfigManager.tools()
+disableSysOut(input=False)
 
 def cleanup():
-    configManager.deleteStockData(pattern='*.pkl')
+    # configManager.deleteStockData(pattern='*.pkl')
     configManager.deleteStockData(pattern='*.png')
     configManager.deleteStockData(pattern='*.xlsx')
 

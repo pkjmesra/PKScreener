@@ -16,6 +16,7 @@ import classes.Utility as Utility
 from classes.ColorText import colorText
 from classes.CandlePatterns import CandlePatterns
 from classes.ParallelProcessing import StockConsumer
+from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 from classes.Changelog import VERSION
 from alive_progress import alive_bar
 import urllib
@@ -99,7 +100,7 @@ level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any c
                   '26': 'Dividend Yield',
                   '42': 'Show Last Screened Results'
                   }
-selectedChoice = {'0':'', '1':'','2':''}
+selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
 
 def initExecution(menuOption=None):
     global selectedChoice, level0MenuDict
@@ -406,11 +407,26 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         if reversalOption is None or reversalOption == 0:
             main()
             return
+        else:
+            selectedChoice['3'] = str(reversalOption)
     if executeOption == 7:
-        respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns()
-        if insideBarToLookback is None:
+        if len(options) >= 4:
+            respChartPattern = int(options[3])
+            selectedChoice['3'] = options[3]
+            if respChartPattern in [1,2,3]:
+                if len(options) >= 5:
+                    insideBarToLookback = int(options[4])
+                else:
+                    respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns()
+            elif respChartPattern in [0,4,5]:
+                insideBarToLookback = 0
+            else:
+                respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns()
+        if respChartPattern is None or insideBarToLookback is None:
             main()
             return
+        else:
+            selectedChoice['3'] = str(respChartPattern)
     if executeOption == 8:
         if len(options) >= 5:
             minRSI = int(options[3])
@@ -502,6 +518,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             else:
                 if not downloadOnly:
                     menuChoiceHierarchy = f'({selectedChoice["0"]}) {level0MenuDict[selectedChoice["0"]].strip()} > ({selectedChoice["1"]}) {level1MenuDict[selectedChoice["1"]].strip()} > ({selectedChoice["2"]}) {level2MenuDict[selectedChoice["2"]].strip()}'
+                    if selectedChoice['2'] == '6':
+                        menuChoiceHierarchy = menuChoiceHierarchy + f' > ({selectedChoice["3"]}) {level3ReversalMenuDict[selectedChoice["3"]].strip()}'
+                    elif selectedChoice['2'] == '7':
+                        menuChoiceHierarchy = menuChoiceHierarchy + f' > ({selectedChoice["3"]}) {level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer)
         except urllib.error.URLError:

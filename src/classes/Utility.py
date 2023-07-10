@@ -44,7 +44,22 @@ lastScreened = 'last_screened_results.pkl'
 
 # Class for managing misc and utility methods
 
-
+level3ReversalMenuDict = {'1': 'Buy Signals (Bullish Reversal)',
+                          '2':'Sell Signals (Bearish Reversal)',
+                          '3': 'Momentum Gainers (Rising Bullish Momentum)',
+                          '4': 'Reversal at Moving Average (Bullish Reversal)',
+                          '5': 'Volume Spread Analysis (Bullish VSA Reversal)',
+                          '6': 'Narrow Range (NRx) Reversal',
+                          '0': 'Cancel'
+                          }
+level3ChartPatternMenuDict = {'1': 'Bullish Inside Bar (Flag) Pattern',
+                              '2':'Bearish Inside Bar (Flag) Pattern',
+                              '3': 'The Confluence (50 & 200 MA/EMA)',
+                              '4': 'VCP (Experimental)',
+                              '5': 'Buying at Trendline (Ideal for Swing/Mid/Long term)',
+                              '6': 'Narrow Range (NRx) Reversal',
+                              '0': 'Cancel'
+                              }
 class tools:
 
     def clearScreen():
@@ -331,17 +346,30 @@ class tools:
         except ValueError:
             return 2
 
+    def promptMenus(menuDict, onTheirOwnSeparateLine=[], menusPerLine=1):
+        menuText = ''
+        tabLevel = 0
+        for key in menuDict:
+            if not key.isnumeric():
+                menuText = menuText + '\n     ' + key + ' > '+ menuDict[key]
+            elif key in onTheirOwnSeparateLine:
+                menuText = menuText + '\n\n     ' + key + ' > '+ menuDict[key]
+            else:
+                spaces = '     ' if int(key) <= 9 else '    '
+                if tabLevel == 0:
+                    menuText = menuText + '\n' + spaces + key + ' > '+ menuDict[key]
+                elif tabLevel <= (menusPerLine-1):
+                    menuText = menuText + '\t' + key + ' > '+ menuDict[key]
+                tabLevel = tabLevel + 1
+                if tabLevel >= menusPerLine:
+                    tabLevel = 0
+        return menuText
+    
     # Prompt for Reversal screening
     def promptReversalScreening():
         try:
-            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:
-    1 > Buy Signals (Bullish Reversal)
-    2 > Sell Signals (Bearish Reversal)
-    3 > Momentum Gainers (Rising Bullish Momentum)
-    4 > Reversal at Moving Average (Bullish Reversal)
-    5 > Volume Spread Analysis (Bullish VSA Reversal)
-    6 > Narrow Range (NRx) Reversal
-    0 > Cancel
+            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:""" + tools.promptMenus(level3ReversalMenuDict,onTheirOwnSeparateLine=['0']) + """
+    
 [+] Select option: """ + colorText.END))
             if resp >= 0 and resp <= 6:
                 if resp == 4:
@@ -369,13 +397,8 @@ class tools:
     # Prompt for Reversal screening
     def promptChartPatterns():
         try:
-            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:
-    1 > Bullish Inside Bar (Flag) Pattern
-    2 > Bearish Inside Bar (Flag) Pattern
-    3 > The Confluence (50 & 200 MA/EMA)
-    4 > VCP (Experimental)
-    5 > Buying at Trendline (Ideal for Swing/Mid/Long term)
-    0 > Cancel
+            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:""" + tools.promptMenus(level3ChartPatternMenuDict,onTheirOwnSeparateLine=['0']) + """
+
 [+] Select option: """ + colorText.END))
             if resp == 1 or resp == 2:
                 candles = int(input(colorText.BOLD + colorText.WARN +
