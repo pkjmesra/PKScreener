@@ -401,7 +401,7 @@ class tools:
             spinner = 'dots_recur'
         return bar, spinner
 
-    def getNiftyModel(proxyServer=None):
+    def getNiftyModel(proxyServer=None, retrial=False):
         files = ['nifty_model_v2.h5', 'nifty_model_v2.pkl']
         model = None
         urls = [
@@ -445,8 +445,14 @@ class tools:
                     except Exception as e:
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
-        model = keras.models.load_model(files[0]) if Imports['keras'] else None
-        pkl = joblib.load(files[1])
+        try:
+            model = keras.models.load_model(files[0]) if Imports['keras'] else None
+            pkl = joblib.load(files[1])
+        except:
+            os.remove(files[0])
+            os.remove(files[1])
+            if not retrial:
+                tools.getNiftyModel(proxyServer=proxyServer, retrial=True)
         return model, pkl
 
     def getSigmoidConfidence(x):
