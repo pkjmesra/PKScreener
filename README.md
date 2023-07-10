@@ -12,13 +12,13 @@ You can get daily scan results/alerts at scheduled times by subscribing to the f
 
 https://t.me/PKScreener (or scan the QR code to join)
 
-<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>
+<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>
 
 For any discussion related to PKScreener, you may like to join the following related Telegram group:
 
 https://t.me/PKScreeners (or scan the QR code to join)
 
-<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>
+<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>
 
 ## Receiving Scheduled Scan results
 If you would like to receive the scan results, please join the telegram channel and group above. 
@@ -42,17 +42,17 @@ You may receive the following scan results:
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
 
-![home](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/pkscreener_demo.gif)
+![home](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/pkscreener_demo.gif)
 
 * **Configure** the parameters as per your requirement using `Option > E`.
 
-![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/config.png)
+![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/config.png)
 
 * Following are the screenshots of screening and output results.
 
-![screening](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/screening.png)
-![results](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/results.png)
-![done](https://raw.githubusercontent.com/pkjmesra/PKScreener/new-features/screenshots/done.png)
+![screening](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/screening.png)
+![results](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/results.png)
+![done](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/done.png)
 
 * Once done, you can also save the results in an excel file.
 
@@ -92,7 +92,7 @@ Try to tweak this parameters as per your trading styles. For example, If you're 
 
 ## Contributing:
 * Please feel free to Suggest improvements bugs by creating an issue.
-* Please follow the [Guidelines for Contributing](https://github.com/pkjmesra/PKScreener/blob/new-features/CONTRIBUTING.md) while making a Pull Request.
+* Please follow the [Guidelines for Contributing](https://github.com/pkjmesra/PKScreener/blob/main/CONTRIBUTING.md) while making a Pull Request.
 
 ## Disclaimer:
 * DO NOT use the result provided by the software 'solely' to make your trading decisions.
