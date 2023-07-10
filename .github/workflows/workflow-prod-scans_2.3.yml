@@ -1,0 +1,65 @@
+# Project             :   PKScreener
+# Author              :   PK
+# Created             :   09/07/2023
+# Description         :   Workflow for sending pre-selected scan results at scheduled intervals (cron: '41 4,10 * * 1-5')
+
+name: 2.3 Recent breakouts and volumes
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Run Details'
+        required: false
+        default: 'PKScreener - Scan Alerts'
+  schedule:
+  - cron: '14 4,10 * * 1-5'
+
+jobs:
+
+  Recent_Breakouts_Alert:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: main
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Restore Dependencies from Cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install TA-Lib
+      run: |
+        python -m pip install --upgrade pip
+        cd .github/dependencies/
+        echo %cd%
+        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+
+    - name: Install Python Dependencies
+      run: |
+        pip3 install -r requirements.txt
+
+
+    - name: Configure env.dev file
+      run: |
+        python -c "import os; file = open('src/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+      shell: bash
+      env:
+        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+
+    - name: 2.3 Recent breakouts and volumes
+      shell: cmd
+      run: |
+        python src/pkscreener.py -a Y -o X:12:2 -e

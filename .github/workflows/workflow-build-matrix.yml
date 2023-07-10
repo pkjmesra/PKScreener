@@ -89,10 +89,10 @@ jobs:
         shell: bash
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: Set up Python 3.9.4
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9.4
+          python-version: 3.9
 
       - name: Load Cache for Linux Dependencies
         uses: actions/cache@v2
