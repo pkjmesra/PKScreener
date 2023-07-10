@@ -477,7 +477,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     proxyServer=proxyServer
                 )
                 sendMessageToTelegramChannel(message=f'Nifty AI prediction for the next day: {pText}. {sText}')
-                input('\nPress any key to Continue...\n')
+                if defaultAnswer is None:
+                    input('\nPress any key to Continue...\n')
                 return
             elif tickerOption == 'M':
                 main()
@@ -690,7 +691,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     pass
             print(colorText.BOLD + colorText.GREEN +
                 "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
-            if defaultAnswer is not None and defaultAnswer.upper() != 'Y':
+            if defaultAnswer is None:
                 input('')
         newlyListedOnly = False
 
