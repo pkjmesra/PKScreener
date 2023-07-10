@@ -276,7 +276,7 @@ class tools:
             response = 'Y'
         if response != 'N':
             filename = 'PKScreener-result_' + \
-                datetime.datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".xlsx"
+                tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".xlsx"
             df.to_excel(filename)
             print(colorText.BOLD + colorText.GREEN +
                   ("[+] Results saved to %s" % filename) + colorText.END)
@@ -335,12 +335,12 @@ class tools:
     def promptReversalScreening():
         try:
             resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:
-    1 > Screen for Buy Signal (Bullish Reversal)
-    2 > Screen for Sell Signal (Bearish Reversal)
-    3 > Screen for Momentum Gainers (Rising Bullish Momentum)
-    4 > Screen for Reversal at Moving Average (Bullish Reversal)
-    5 > Screen for Volume Spread Analysis (Bullish VSA Reversal)
-    6 > Screen for Narrow Range (NRx) Reversal
+    1 > Buy Signals (Bullish Reversal)
+    2 > Sell Signals (Bearish Reversal)
+    3 > Momentum Gainers (Rising Bullish Momentum)
+    4 > Reversal at Moving Average (Bullish Reversal)
+    5 > Volume Spread Analysis (Bullish VSA Reversal)
+    6 > Narrow Range (NRx) Reversal
     0 > Cancel
 [+] Select option: """ + colorText.END))
             if resp >= 0 and resp <= 6:
@@ -370,11 +370,11 @@ class tools:
     def promptChartPatterns():
         try:
             resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:
-    1 > Screen for Bullish Inside Bar (Flag) Pattern
-    2 > Screen for Bearish Inside Bar (Flag) Pattern
-    3 > Screen for the Confluence (50 & 200 MA/EMA)
-    4 > Screen for VCP (Experimental)
-    5 > Screen for Buying at Trendline (Ideal for Swing/Mid/Long term)
+    1 > Bullish Inside Bar (Flag) Pattern
+    2 > Bearish Inside Bar (Flag) Pattern
+    3 > The Confluence (50 & 200 MA/EMA)
+    4 > VCP (Experimental)
+    5 > Buying at Trendline (Ideal for Swing/Mid/Long term)
     0 > Cancel
 [+] Select option: """ + colorText.END))
             if resp == 1 or resp == 2:
