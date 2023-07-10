@@ -55,7 +55,6 @@ jobs:
     - name: Configure env.dev file
       run: |
         python -c "import os; file = open('src/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
-
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
@@ -118,7 +117,7 @@ jobs:
         python src/pkscreener.py -a Y -o X:12:14 -e
 
     - name: 1. Next day Nifty/Market AI prediction
-      shell: cmd
+      shell: bash
       run: |
         currenttime=$(date --utc +%H:%M)
         if [[ "$currenttime" > "09:00" ]]; then
