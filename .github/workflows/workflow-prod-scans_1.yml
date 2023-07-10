@@ -52,6 +52,9 @@ jobs:
     - name: Configure env.dev file
       run: |
         python -c "import os; file = open('src/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        cat < src/.env.dev
+        pwd
+        ls
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
