@@ -53,6 +53,12 @@ fetcher = Fetcher.tools(configManager)
 screener = Screener.tools(configManager)
 candlePatterns = CandlePatterns()
 level0MenuDict = {'X': 'Scanners', 'S': 'Strategies', 'B': 'Backtests'}
+level0MenuDictAdditional = {'E': 'Edit user configuration',
+                            'Y': 'View your user configuration',
+                            'U': 'Check for software update',
+                            'H': 'Help / About Developer',
+                            'Z': 'Exit (Ctrl + C)'
+                            }
 level1MenuDict = {'W': 'Screen stocks from my own Watchlist',
                   'N': 'Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)',
                   'E': 'Live Index Scan : 5 EMA for Intraday',
@@ -70,7 +76,9 @@ level1MenuDict = {'W': 'Screen stocks from my own Watchlist',
                   '11': 'Nifty Midcap 150',
                   '12': 'Nifty (All Stocks)',
                   '13': 'Newly Listed (IPOs in last 2 Year)        ',
-                  '14': 'F&O Stocks Only'}
+                  '14': 'F&O Stocks Only',
+                  'M': 'Back to the Top/Main menu',
+                  'Z': 'Exit (Ctrl + C)'}
 level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any criterion)',
                   '1': 'Probable Breakouts              ',
                   '2': 'Recent Breakouts & Volumes',
@@ -98,8 +106,9 @@ level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any c
                   '24': 'Extremely bullish daily close',
                   '25': 'Rising RSI                      ',
                   '26': 'Dividend Yield',
-                  '42': 'Show Last Screened Results'
-                  }
+                  '42': 'Show Last Screened Results',
+                  'M': 'Back to the Top/Main menu',
+                  'Z': 'Exit (Ctrl + C)'}
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
 
 def initExecution(menuOption=None):
@@ -109,18 +118,9 @@ def initExecution(menuOption=None):
         print(colorText.BOLD + colorText.WARN +
             '[+] Select a menu option:' + colorText.END)
         toggleText = 'T > Toggle between long-term (Default)' + colorText.WARN + ' [Current]'+ colorText.END + ' and Intraday user configuration\n' if not configManager.isIntradayConfig() else 'T > Toggle between long-term (Default) and Intraday' + colorText.WARN + ' [Current]' +  colorText.END + ' user configuration'
-        menuText = ''
-        for key in level0MenuDict:
-            menuText = menuText + '\n     ' + key + ' > '+ level0MenuDict[key]
-        print(colorText.BOLD + menuText + '''
+        print(colorText.BOLD + Utility.tools.promptMenus(level0MenuDict) + '''
 
-    ''' + toggleText + '''
-    E > Edit user configuration
-    Y > View your user configuration
-
-    U > Check for software update
-    H > Help / About Developer
-    Z > Exit (Ctrl + C)
+     ''' + toggleText + Utility.tools.promptMenus(level0MenuDictAdditional,['E','U']) + '''
 
     Enter your choice >  (default is ''' + colorText.WARN + 'X > Scanners) ''' + colorText.END
             )
@@ -171,27 +171,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     if tickerOption is None:
         print(colorText.BOLD + colorText.WARN +
             '[+] Select an Index for Screening:' + colorText.END)
-        menuText = ''
-        tabLevel = 0
-        for key in level1MenuDict:
-            if not key.isnumeric():
-                menuText = menuText + '\n     ' + key + ' > '+ level1MenuDict[key]
-            elif int(key) == 0:
-                menuText = menuText + '\n\n     ' + key + ' > '+ level1MenuDict[key]
-            else:
-                spaces = '     ' if int(key) <= 9 else '    '
-                if tabLevel == 0:
-                    menuText = menuText + '\n' + spaces + key + ' > '+ level1MenuDict[key]
-                elif tabLevel <= 2:
-                    menuText = menuText + '\t' + key + ' > '+ level1MenuDict[key]
-                tabLevel = tabLevel + 1
-                if tabLevel >= 3:
-                    tabLevel = 0
-
-        print(colorText.BOLD + menuText + '''
-
-    M > Back to the Top/Main menu
-    Z > Exit
+        print(colorText.BOLD + Utility.tools.promptMenus(level1MenuDict, ['W','0','M'], 3) + '''
 
     Enter > ''' + colorText.WARN + 'All Stocks (default) ''' + colorText.END
             )
@@ -233,25 +213,10 @@ def initScannerExecution(tickerOption=None, executeOption=None):
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + colorText.END)
             print(colorText.BOLD + colorText.WARN +
                 '[+] Select a Criterion for Stock Screening: ' + colorText.END)
-            menuText = ''
-            tabLevel = 0
-            for key in level2MenuDict:
-                if int(key) == 0 or int(key) == 42:
-                    spaces = '     ' if int(key) == 0 else '\n    '
-                    menuText = menuText + '\n' + spaces + key + ' > '+ level2MenuDict[key]
-                elif int(key) <= 26:
-                    spaces = '     ' if int(key) <= 9 else '    '
-                    if tabLevel == 0:
-                        menuText = menuText + '\n' + spaces + key + ' > '+ level2MenuDict[key]
-                    elif tabLevel == 1:
-                        menuText = menuText + spaces + key + ' > '+ level2MenuDict[key]
-                    tabLevel = tabLevel + 1
-                    if tabLevel >= 2:
-                        tabLevel = 0
-            print(colorText.BOLD + menuText + '''
+            
+            print(colorText.BOLD + Utility.tools.promptMenus(level2MenuDict, ['0','42','M'], 2) + '''
 
-        M > Back to the Top/Main menu
-        Z > Exit''' + colorText.END
+        ''' + colorText.END
                 )
     try:
         if tickerOption and tickerOption != 'W':
@@ -660,25 +625,26 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
             print(tabulated_results)
             if len(screenResults) >= 1:
-                markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
-                pngName = 'PKScreener-result_' + \
-                        datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
-                Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
-                sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
-                try:
-                    os.remove(pngName)
-                except:
-                    pass
-            print(colorText.BOLD + colorText.GREEN +
-                    f"[+] Found {len(screenResults)} Stocks." + colorText.END)
+                if not testing:
+                    markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
+                    pngName = 'PKScreener-result_' + \
+                            datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                    Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
+                    sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
+                    try:
+                        os.remove(pngName)
+                    except:
+                        pass
+                    print(colorText.BOLD + colorText.GREEN +
+                            f"[+] Found {len(screenResults)} Stocks." + colorText.END)
+                    Utility.tools.setLastScreenedResults(screenResults)
+
         if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
             print(colorText.BOLD + colorText.GREEN +
                   "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
-            Utility.tools.saveStockData(
-                stockDict, configManager, loadCount)
+            Utility.tools.saveStockData(stockDict, configManager, loadCount)
 
-        Utility.tools.setLastScreenedResults(screenResults)
-        if not testBuild and not downloadOnly:
+        if not testBuild and not downloadOnly and not testing:
             if len(screenResults) >= 1:
                 filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
                 if filename is not None:
@@ -693,6 +659,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
             if defaultAnswer is None:
                 input('')
+        elif testing:
+            sendMessageToTelegramChannel(message=f'SUCCESS: {menuChoiceHierarchy}')
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):

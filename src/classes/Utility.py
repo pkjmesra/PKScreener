@@ -350,10 +350,10 @@ class tools:
         menuText = ''
         tabLevel = 0
         for key in menuDict:
-            if not key.isnumeric():
-                menuText = menuText + '\n     ' + key + ' > '+ menuDict[key]
-            elif key in onTheirOwnSeparateLine:
+            if key in onTheirOwnSeparateLine:
                 menuText = menuText + '\n\n     ' + key + ' > '+ menuDict[key]
+            elif not key.isnumeric():
+                menuText = menuText + '\n     ' + key + ' > '+ menuDict[key]
             else:
                 spaces = '     ' if int(key) <= 9 else '    '
                 if tabLevel == 0:

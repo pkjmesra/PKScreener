@@ -12,7 +12,7 @@ on:
         required: false
         default: 'PKScreener - Scan Alerts'
   schedule:
-  - cron: '13 4,10 * * 1-5'
+  - cron: '5 4,10 * * 1-5'
 
 jobs:
 
