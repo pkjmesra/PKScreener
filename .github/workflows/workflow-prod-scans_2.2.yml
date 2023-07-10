@@ -63,5 +63,5 @@ jobs:
       shell: cmd
       run: |
         cd src/
-        python pkscreener.py -a Y -o X:12:1 -e
+        python pkscreener.py -a Y -p -o X:12:1 -e
 

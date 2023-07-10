@@ -660,7 +660,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if defaultAnswer is None:
                 input('')
         elif testing:
-            sendMessageToTelegramChannel(message=f'SUCCESS: {menuChoiceHierarchy}')
+            sendMessageToTelegramChannel(message=f'SUCCESS: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):

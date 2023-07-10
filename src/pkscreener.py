@@ -57,7 +57,7 @@ if __name__ == "__main__":
     Utility.tools.clearScreen()
     if not configManager.checkConfigFile():
         configManager.setConfig(ConfigManager.parser, default=True, showFileCreatedText=False)
-    if args.testbuild:
+    if args.testbuild and not args.prodbuild:
         print(colorText.BOLD + colorText.FAIL +"[+] Started in TestBuild mode!" + colorText.END)
         main(testBuild=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault)
     elif args.download:
@@ -82,7 +82,7 @@ if __name__ == "__main__":
                     print(colorText.BOLD + colorText.GREEN +
                       "=> Going to fetch again!" + colorText.END, end='\r', flush=True)
                     sleep(3)
-                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer)
+                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild))
                 else:
                     main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer)
                     startupOptions= None
