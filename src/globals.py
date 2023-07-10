@@ -46,7 +46,6 @@ loadedStockData = False
 loadCount = 0
 maLength = None
 newlyListedOnly = False
-productionbuild = False
 
 configManager = ConfigManager.tools()
 fetcher = Fetcher.tools(configManager)
@@ -285,9 +284,8 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     return tickerOption, executeOption
 
 # Main function
-def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, startupoptions=None, defaultConsoleAnswer=None):
-    global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, productionbuild, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
-    productionbuild = prodbuild
+def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None):
+    global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     defaultAnswer = defaultConsoleAnswer
     options = []
     screenCounter = multiprocessing.Value('i', 1)
@@ -677,7 +675,6 @@ def main(testing=False, testBuild=False, downloadOnly=False, prodbuild=False, st
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
-    initTelegram(prodbuild=productionbuild)
     if message is not None:
         try:
             send_message(message)
