@@ -62,4 +62,5 @@ jobs:
     - name: 2.5 Stocks gaining at least 2% since last 3 sessions
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:10 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:10 -e

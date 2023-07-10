@@ -62,4 +62,5 @@ jobs:
     - name: 2.7 CCI outside the -100,+150 range
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:8:-100:150 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:8:-100:150 -e

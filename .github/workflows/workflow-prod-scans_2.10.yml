@@ -61,4 +61,5 @@ jobs:
     - name: 2.10 Momentum gainers (Rising bullish momentum)
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:6:3 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:6:3 -e

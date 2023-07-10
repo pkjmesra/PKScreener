@@ -62,6 +62,7 @@ jobs:
     - name: 2.9 Sell signals(bearish reversals)
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:6:2 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:6:2 -e
 
 

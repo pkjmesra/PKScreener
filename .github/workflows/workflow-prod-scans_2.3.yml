@@ -62,4 +62,5 @@ jobs:
     - name: 2.3 Recent breakouts and volumes
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:2 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:2 -e

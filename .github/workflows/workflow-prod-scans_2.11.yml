@@ -62,4 +62,5 @@ jobs:
     - name: 2.11 NR4 daily
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:14 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:14 -e

@@ -643,7 +643,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 pngName = 'PKScreener-result_' + \
                         datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
                 Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
-                sendMessageToTelegramChannel(message="'''" + saveResults.to_markdown() + "'''", photo_filePath=pngName, caption=menuChoiceHierarchy)
+                sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
                 try:
                     os.remove(pngName)
                 except:

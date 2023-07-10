@@ -62,5 +62,6 @@ jobs:
     - name: 2.2 Probable breakouts
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:1 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:1 -e
 

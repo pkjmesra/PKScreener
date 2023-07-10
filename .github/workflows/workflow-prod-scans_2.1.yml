@@ -62,4 +62,5 @@ jobs:
     - name: 2.1 All relevant technical indicators
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:0 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:0 -e

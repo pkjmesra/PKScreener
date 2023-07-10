@@ -62,4 +62,5 @@ jobs:
     - name: 2.6 Short term bullish stocks
       shell: cmd
       run: |
-        python src/pkscreener.py -a Y -o X:12:11 -e
+        cd src/
+        python pkscreener.py -a Y -o X:12:11 -e
