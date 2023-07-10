@@ -45,11 +45,11 @@ botsUrl = ""
 # chat_idUser3= "495000000"
 LIST_PEOPLE_IDS_CHAT = [Channel_Id]
 
-def initTelegram(prodbuild=False):
+def initTelegram():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if chat_idADMIN == "" or botsUrl == "":
         try:
-            Channel_Id, TOKEN, chat_idADMIN = get_secrets(prodbuild=prodbuild)
+            Channel_Id, TOKEN, chat_idADMIN = get_secrets()
         except:
             print('Telegram token and secrets are not configured!')
             pass
@@ -57,11 +57,8 @@ def initTelegram(prodbuild=False):
         LIST_PEOPLE_IDS_CHAT = [Channel_Id]
         botsUrl = f"https://api.telegram.org/bot{TOKEN}"
 
-def get_secrets(prodbuild=False):
-    if prodbuild:
-        local_secrets = dotenv_values(".env")
-    else:
-        local_secrets = dotenv_values(".env.dev")
+def get_secrets():
+    local_secrets = dotenv_values(".env.dev")
     return local_secrets['CHAT_ID'], local_secrets['TOKEN'], local_secrets['chat_idADMIN']
 
 # if TOKEN == "00000000xxxxxxx":
