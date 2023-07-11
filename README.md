@@ -24,18 +24,18 @@ https://t.me/PKScreeners (or scan the QR code to join)
 If you would like to receive the scan results, please join the telegram channel and group above. 
 You may receive the following scan results:
 1. Next day Nifty/Market AI prediction by 4pm IST, Monday - Friday
-2. For all Nifty stocks at/by 9:45am and 4pm IST, Monday - Friday
-2.1  Scan result containing all relevant technical indicators 
-2.2  Scan result with probable breakouts
-2.3  Scan result with recent breakouts and volumes
-2.4  Scan result with volume gainers/shockers
-2.5  Scan result with stocks gaining at least 2% since last 3 sessions
-2.6  Scan result with short term bullish stocks
-2.7  Scan result with CCI outside the -100,+150 range
-2.8  Scan result with buy signals(Bullish reversals)
-2.9  Scan result with sell signals(bearish reversals)
-2.10  Scan result with momentum gainers (Rising bullish momentum)
-2.11  Scan result for NR4 daily
+2. For all Nifty stocks at/by 9:45-10:15am and 4pm IST, Monday - Friday
+** 2.1 Scan result containing all relevant technical indicators 
+** 2.2 Scan result with probable breakouts
+** 2.3 Scan result with recent breakouts and volumes
+** 2.4 Scan result with volume gainers/shockers
+** 2.5 Scan result with stocks gaining at least 2% since last 3 sessions
+** 2.6 Scan result with short term bullish stocks
+** 2.7 Scan result with CCI outside the -100,+150 range
+** 2.8 Scan result with buy signals(Bullish reversals)
+** 2.9 Scan result with sell signals(bearish reversals)
+** 2.10 Scan result with momentum gainers (Rising bullish momentum)
+** 2.11 Scan result for NR4 daily
 
 ## How to use on your own local Windows/Linux/Macbook laptop?
 * Download the suitable file according to your OS.
