@@ -84,7 +84,7 @@ if __name__ == "__main__":
                     sleep(3)
                     main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild))
                 else:
-                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild)
+                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild))
                     startupOptions= None
                     defaultAnswer = None
                     cronInterval = None
