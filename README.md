@@ -60,7 +60,6 @@ You may receive the following scan results:
 
 ![screening](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/screening.png)
 ![results](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/results.png)
-![done](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/done.png)
 
 * Once done, you can also save the results in an excel file.
 
@@ -98,11 +97,11 @@ cachestockdata = y
 onlystagetwostocks = y
 useema = n
 ```
-Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well.
+Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well. You can use the toggle menu option `T` to toggle between long term and intraday config before you begin the scanners.
 
 ## Creating your own Telegram channel to receive your own alerts:
 You can create your own telegram channel to receive alerts wherenevr you run it locally on your laptop either from a command line interface console or run it as a scheduler. Simply, go ahead and 
-1. Create a bot for yourself, then a channel and get their IDs. Follow the steps in https://medium.com/codex/using-python-to-send-telegram-messages-in-3-simple-steps-419a8b5e5e2
+1. Create a bot for yourself, then a channel and get their IDs. Follow the steps in https://medium.com/codex/using-python-to-send-telegram-messages-in-3-simple-steps-419a8b5e5e2 and https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token
 2. After you have created the bot using `botFather` and have received/verified your bot id/token and channel ID using `get id bot`, simply go to `src` folder in the source code directory and create a `.env.dev` file with the following
 ```
 CHAT_ID=Your_Channel_Id_Here_Without_A_Hyphen_or_Minus_Sign
