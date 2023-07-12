@@ -100,6 +100,17 @@ useema = n
 ```
 Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well.
 
+## Creating your own Telegram channel to receive your own alerts:
+You can create your own telegram channel to receive alerts wherenevr you run it locally on your laptop either from a command line interface console or run it as a scheduler. Simply, go ahead and 
+1. Create a bot for yourself, then a channel and get their IDs. Follow the steps in https://medium.com/codex/using-python-to-send-telegram-messages-in-3-simple-steps-419a8b5e5e2
+2. After you have created the bot using `botFather` and have received/verified your bot id/token and channel ID using `get id bot`, simply go to `src` folder in the source code directory and create a `.env.dev` file with the following
+```
+CHAT_ID=Your_Channel_Id_Here_Without_A_Hyphen_or_Minus_Sign
+TOKEN=Your_Bot_Token_Here
+chat_idADMIN=Your_Own_ID_Here
+```
+3. From now on, you will begin to receive your own alerts on your telegram channel.
+
 ## Contributing:
 * Please feel free to Suggest improvements bugs by creating an issue.
 * Please follow the [Guidelines for Contributing](https://github.com/pkjmesra/PKScreener/blob/main/CONTRIBUTING.md) while making a Pull Request.
