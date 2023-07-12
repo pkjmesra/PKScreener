@@ -53,7 +53,7 @@ class tools:
             return False
         if hs > hc:
             if ((hs - hc) <= (hs*2/100)):
-                saveDict['Breaking-Out'] = str(hc)
+                saveDict['Breaking-Out'] = "BO: " + str(hc)
                 if rc >= hc:
                     screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                     return True and self.getCandleType(recent)
@@ -61,20 +61,20 @@ class tools:
                 return False
             noOfHigherShadows = len(data[data.High > hc])
             if(daysToLookback/noOfHigherShadows <= 3):
-                saveDict['Breaking-Out'] = str(hs)
+                saveDict['Breaking-Out'] = "BO: " + str(hs)
                 if rc >= hs:
                     screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hs) + colorText.END
                     return True and self.getCandleType(recent)
                 screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
                 return False
-            saveDict['Breaking-Out'] = str(hc) + ", " + str(hs)
+            saveDict['Breaking-Out'] = "BO: " + str(hc) + ", R: " + str(hs)
             if rc >= hc:
                 screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return True and self.getCandleType(recent)
             screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
             return False
         else:
-            saveDict['Breaking-Out'] = str(hc)
+            saveDict['Breaking-Out'] = "BO: " + str(hc)
             if rc >= hc:
                 screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
                 return True and self.getCandleType(recent)
@@ -515,7 +515,6 @@ class tools:
             pct_change = colorText.WARN + (" (%.1f%%)" % pct_change) + colorText.END
             
         ltp = round(recent['Close'][0],2)
-        saveDict['LTP'] = str(ltp)
         verifyStageTwo = True
         if self.configManager.stageTwo and len(data) > 250:
             yearlyLow = data.head(250).min()['Close']
@@ -523,9 +522,11 @@ class tools:
             if ltp < (2 * yearlyLow) or ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
         if(ltp >= minLTP and ltp <= maxLTP and verifyStageTwo):
+            saveDict['LTP'] = str(("%.2f" % ltp) + pct_change)
             screenDict['LTP'] = colorText.GREEN + ("%.2f" % ltp) + pct_change + colorText.END
             return True
         screenDict['LTP'] = colorText.FAIL + ("%.2f" % ltp) + pct_change + colorText.END
+        saveDict['LTP'] = str(("%.2f" % ltp) + pct_change)
         return False
 
     # Find if stock gaining bullish momentum

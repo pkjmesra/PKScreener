@@ -1,13 +1,19 @@
 from enum import Enum
 from classes.ColorText import colorText
+import classes.ConfigManager as ConfigManager
 
-level0MenuDict = {'X': 'Scanners', 'S': 'Strategies', 'B': 'Backtests'}
-level0MenuDictAdditional = {'E': 'Edit user configuration',
-                            'Y': 'View your user configuration',
-                            'U': 'Check for software update',
-                            'H': 'Help / About Developer',
-                            'Z': 'Exit (Ctrl + C)'
-                            }
+configManager = ConfigManager.tools()
+
+level0MenuDict = {'X': 'Scanners', 
+                  'S': 'Strategies',
+                  'B': 'Backtests',
+                  'T': '~',
+                  'E': 'Edit user configuration',
+                  'Y': 'View your user configuration',
+                  'U': 'Check for software update',
+                  'H': 'Help / About Developer',
+                  'Z': 'Exit (Ctrl + C)'
+                  }
 level1_X_MenuDict = {'W': 'Screen stocks from my own Watchlist',
                   'N': 'Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)',
                   'E': 'Live Index Scan : 5 EMA for Intraday',
@@ -96,21 +102,33 @@ class menu:
         self.level = level
         self.isException = isException
     
+    def keyTextLabel(self):
+        return f'{self.menuKey} > {self.menuText}'
+    
     def render(self):
         t = ''
         if self.isException:
-            t = f'\n\n     {self.menuKey} > {self.menuText}'
+            if self.menuText.startswith('~'):
+                self.menuText = self.renderSpecial(self.menuKey)
+            t = f'\n\n     {self.keyTextLabel()}'
         elif not self.menuKey.isnumeric():
-            t = f'\n     {self.menuKey} > {self.menuText}'
+            t = f'\n     {self.keyTextLabel()}'
         else:
             # 9 to adjust an extra space when 10 becomes a 2 digit number
             spaces = '     ' if int(self.menuKey) <= 9 else '    '
             if not self.hasLeftSibling:
-                t = f'\n{spaces}{self.menuKey} > {self.menuText}'
+                t = f'\n{spaces}{self.keyTextLabel()}'
             else:
-                t = f'\t{self.menuKey} > {self.menuText}'
+                t = f'\t{self.keyTextLabel()}'
         return t
 
+    def renderSpecial(self, menuKey):
+        configManager.getConfig(ConfigManager.parser)
+        menuText = '~'
+        if self.level == 0 and menuKey == 'T':
+            menuText = 'Toggle between long-term (Default)' + colorText.WARN + ' [Current]'+ colorText.END + ' and Intraday user configuration\n' if not configManager.isIntradayConfig() else 'Toggle between long-term (Default) and Intraday' + colorText.WARN + ' [Current]' +  colorText.END + ' user configuration'
+        return menuText
+    
 # This Class manages application menus
 class menus:
 
@@ -125,15 +143,15 @@ class menus:
         self.menuDict = {}
         for key in rawDictionary:
             m = menu()
-            m.create(key, rawDictionary[key], level=self.level)
+            m.create(str(key).upper(), rawDictionary[key], level=self.level)
             if key in renderExceptionKeys:
                 m.isException = True
             elif str(key).isnumeric():
                 m.hasLeftSibling= False if tabLevel == 0 else True
                 tabLevel = tabLevel + 1
-                if tabLevel >= renderStyle:
+                if tabLevel >= renderStyle.value:
                     tabLevel = 0
-            self.menuDict[str(key)] = m
+            self.menuDict[str(key).upper()] = m
         return self
     
     def render(self):
@@ -146,31 +164,37 @@ class menus:
     def renderForMenu(self, selectedMenu=None):
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
-            return
+            return self.renderLevel0Menus()
         elif selectedMenu is not None:
-            if self.level == 1:
+            if selectedMenu.level == 0:
+                self.level = 1
                 # sub-menu of the top level main selected menu
-                return
-            elif self.level == 1:
+                return self.renderLevel1_X_Menus()
+            elif selectedMenu.level == 1:
+                self.level = 2
                 # next levelsub-menu of the selected sub-menu
                 return
         
     def find(self, key=None):
         if key is not None:
             try:
-                return self.menuDict[key]
-            except:
+                return self.menuDict[str(key).upper()]
+            except Exception as e:
                 return None
         return None
 
-    # def renderLevel0Menus(self):
-    #     print(colorText.BOLD + colorText.WARN +
-    #         '[+] Select a menu option:' + colorText.END)
-    #     toggleText = 'T > Toggle between long-term (Default)' + colorText.WARN + ' [Current]'+ colorText.END + ' and Intraday user configuration\n' if not configManager.isIntradayConfig() else 'T > Toggle between long-term (Default) and Intraday' + colorText.WARN + ' [Current]' +  colorText.END + ' user configuration'
-    #     print(colorText.BOLD + Utility.tools.promptMenus(level0MenuDict) + '''
+    def renderLevel0Menus(self):
+        print(colorText.BOLD + colorText.WARN +
+            '[+] Select a menu option:' + colorText.END)
+        print(colorText.BOLD + self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U']).render() + '''
 
-    #  ''' + toggleText + Utility.tools.promptMenus(level0MenuDictAdditional,['E','U']) + '''
-
-    # Enter your choice >  (default is ''' + colorText.WARN + 'X > Scanners) ''' + colorText.END
-    #         )
+    Enter your choice >  (default is ''' + colorText.WARN + self.find('X').keyTextLabel() + ') ''' + colorText.END
+            )
     
+    def renderLevel1_X_Menus(self):
+        print(colorText.BOLD + colorText.WARN +
+            '[+] Select an Index for Screening:' + colorText.END)
+        print(colorText.BOLD + self.fromDictionary(level1_X_MenuDict, renderExceptionKeys=['W','0','M'], renderStyle=MenuRenderStyle.THREE_PER_ROW).render() + '''
+
+    Enter your choice > (default is ''' + colorText.WARN + self.find('12').keyTextLabel() + ')  ''' + colorText.END
+            )

@@ -29,7 +29,7 @@ from time import sleep
 from classes.ColorText import colorText
 from classes.Changelog import VERSION, changelog
 import classes.ConfigManager as ConfigManager
-from classes.MenuOptions import menus, menu
+from classes.MenuOptions import menus, menu, MenuRenderStyle
 
 artText = '''
     $$$$$$      $$   $$      $$$$$                                                        
@@ -349,7 +349,7 @@ class tools:
 
     def promptMenus(menuDict, onTheirOwnSeparateLine=[], menusPerLine=1):
         m = menus()
-        return m.fromDictionary(menuDict,renderStyle=menusPerLine,renderExceptionKeys=onTheirOwnSeparateLine).render()
+        return m.fromDictionary(menuDict,renderStyle=MenuRenderStyle(menusPerLine),renderExceptionKeys=onTheirOwnSeparateLine).render()
     
     # Prompt for Reversal screening
     def promptReversalScreening():
