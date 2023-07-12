@@ -40,6 +40,38 @@ You may receive the following scan results:
 * 2.10 Scan result with momentum gainers (Rising bullish momentum)
 * 2.11 Scan result for NR4 daily
 
+## Scanners
+
+Screening options to choose from:
+* Artificial Intelligence v2 for Nifty 50 Prediction
+* Live Index Scan : 5 EMA for Intraday
+* Screen stocks by the stock names (NSE Stock Code)
+* Nifty 50
+* Nifty Next 50
+* Nifty 100
+* Nifty 200
+* Nifty 500
+* Nifty Smallcap 50
+* Nifty Smallcap 100
+* Nifty Smallcap 250
+* Nifty Midcap 50
+* Nifty Midcap 100
+* Nifty Midcap 150
+* Nifty (All Stocks)
+* Newly Listed (IPOs in last 2 Year)
+* F&O Stocks Only
+
+Followin scanners are already implemented. Others are `In Progress`
+```
+     0 > Full Screening (Shows Technical Parameters without any criterion)
+     1 > Probable Breakouts                     2 > Recent Breakouts & Volumes
+     3 > Consolidating stocks                   4 > Lowest Volume in last 'N'-days (Early Breakout Detection)
+     5 > RSI screening                          6 > Reversal Signals
+     7 > Stocks making Chart Patterns           8 > CCI outside of the given range
+     9 > Volume gainers                         10 > Closing at least 2% up since last 3 days
+    11 > Short term bullish stocks              12 > 15 Minute Price & Volume breakout
+    13 > Bullish RSI & MACD Intraday            14 > NR4 Daily Today
+```
 ## How to use on your own local Windows/Linux/Macbook laptop?
 * Download the suitable file according to your OS.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.

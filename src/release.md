@@ -1,14 +1,6 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 ## What's New?
-
-Celebrating more than 5K+ Downloads - Thank You for your support :tada:
-
-1. New Index - **F&O Stocks Only** Added for F&O traders
-2. Trend detection fixed (#173) and % change added.
-3. **Artificial Intelligence v2 for Nifty 50 Prediction** - Predict Next day Gap-up/down - Try `Select Index for Screening > N`
-4. **Live Intraday Scanner - 5 EMA** - Try `Select Index for Screening > E` - Get live trade entries for Nifty and BankNifty with notifications!
-5. New Screener **Buy at Trendline** added for Swing/Mid/Long term traders - Try `Option > 7 > 5`.
-6. Alternate Data Source for faster After-Market Analysis - Optimizations and  Cosmetic Updates!
+1. First release - v0.01
 
 ## Downloads
 | Operating System | Executable File |
@@ -37,3 +29,6 @@ Celebrating more than 5K+ Downloads - Thank You for your support :tada:
 * DO NOT use the result provided by the software solely to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
 * The Author(s) and the software will not be held liable for any losses.
+
+## License
+* MIT: https://github.com/pkjmesra/PKScreener/blob/main/LICENSE

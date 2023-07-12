@@ -34,7 +34,7 @@ jobs:
               cd ..
               cd ..
               python -m pip install --upgrade pip
-              pip install -r requirements.txt
+              pip3 install -r requirements.txt
             TEST_BUILD: |
               ./dist/pkscreener.exe --testbuild
               exit $?
@@ -57,8 +57,8 @@ jobs:
               sudo make install
               cd /home/runner/work/PKScreener/PKScreener/
               python -m pip install --upgrade pip
-              pip install -r requirements.txt
-              pip install ta-lib==0.4.24
+              pip3 install -r requirements.txt
+              pip3 install ta-lib==0.4.24
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin --testbuild
               exit $?
@@ -73,8 +73,8 @@ jobs:
             DEP_BUILD: |
               brew install ta-lib
               python -m pip install --upgrade pip
-              pip install -r requirements.txt
-              pip install ta-lib==0.4.24
+              pip3 install -r requirements.txt
+              pip3 install ta-lib==0.4.24
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreener.run --testbuild
               exit $?
