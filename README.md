@@ -28,17 +28,17 @@ You may receive the following scan results:
 1. Next day Nifty/Market AI prediction by 4pm IST, Monday - Friday
 2. For all Nifty stocks at/by 9:45-10:15am and 4pm IST, Monday - Friday
 
-* 2.1 Scan result containing all relevant technical indicators 
-* 2.2 Scan result with probable breakouts
-* 2.3 Scan result with recent breakouts and volumes
-* 2.4 Scan result with volume gainers/shockers
-* 2.5 Scan result with stocks gaining at least 2% since last 3 sessions
-* 2.6 Scan result with short term bullish stocks
-* 2.7 Scan result with CCI outside the -100,+150 range
-* 2.8 Scan result with buy signals(Bullish reversals)
-* 2.9 Scan result with sell signals(bearish reversals)
-* 2.10 Scan result with momentum gainers (Rising bullish momentum)
-* 2.11 Scan result for NR4 daily
+    * 2.1 Scan result containing all relevant technical indicators 
+    * 2.2 Scan result with probable breakouts
+    * 2.3 Scan result with recent breakouts and volumes
+    * 2.4 Scan result with volume gainers/shockers
+    * 2.5 Scan result with stocks gaining at least 2% since last 3 sessions
+    * 2.6 Scan result with short term bullish stocks
+    * 2.7 Scan result with CCI outside the -100,+150 range
+    * 2.8 Scan result with buy signals(Bullish reversals)
+    * 2.9 Scan result with sell signals(bearish reversals)
+    * 2.10 Scan result with momentum gainers (Rising bullish momentum)
+    * 2.11 Scan result for NR4 daily
 
 ## Scanners
 
@@ -95,7 +95,12 @@ Followin scanners are already implemented. Others are `In Progress`
 
 * Once done, you can also save the results in an excel file.
 
-* You can also run it as cron/jobs in any scheduler with pre-defined options. For example `./pkscreener.py -a Y -o X:12:10 -e` will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreener.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreener.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreener.py -h`.
+## Scanning as a scheduled job once or at regular intervals
+* Running it once with pre-defined inputs
+You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreener.py -a Y -o X:12:10 -e` will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreener.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreener.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreener.py -h`.
+
+* Running it at regular intervals
+If you want to runn it at regular intervals, you can just pass the interval in `-c` command line option. For example, `./pkscreener.py -a Y -o X:12:6:1 -c 180` will run it every `180` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the `-p` parameter. For example, `./pkscreener.py -a Y -p -o X:12:6:1 -c 180`
 
 ## Understanding the Result Table:
 
