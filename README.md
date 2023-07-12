@@ -20,6 +20,8 @@ https://t.me/PKScreeners (or scan the QR code to join)
 
 <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>
 
+![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
+
 ## Receiving Scheduled Scan results
 If you would like to receive the scan results, please join the telegram channel and group above. 
 You may receive the following scan results:
@@ -43,11 +45,16 @@ You may receive the following scan results:
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
 
-![home](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/pkscreener_demo.gif)
 
 * **Configure** the parameters as per your requirement using `Option > E`.
 
 ![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/config.png)
+
+* **Scanner Menus** the scanner menus for each level/sub-level
+![menulevel1](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu.png)
+![menulevel2](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level2.png)
+![menulevel3](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level3.png)
+
 
 * Following are the screenshots of screening and output results.
 
@@ -56,6 +63,8 @@ You may receive the following scan results:
 ![done](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/done.png)
 
 * Once done, you can also save the results in an excel file.
+
+* You can also run it as cron/jobs in any scheduler with pre-defined options. For example `./pkscreener.py -a Y -o X:12:10 -e` will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreener.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreener.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreener.py -h`.
 
 ## Understanding the Result Table:
 
