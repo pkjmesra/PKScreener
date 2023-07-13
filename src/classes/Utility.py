@@ -323,7 +323,7 @@ class tools:
             return (0, 0)
 
     # Prompt for asking CCI
-    def promptCCIValues(minCCI=-100, maxCCI=150):
+    def promptCCIValues(minCCI=None, maxCCI=None):
         if minCCI is not None and maxCCI is not None:
             return minCCI, maxCCI
         try:
@@ -336,7 +336,7 @@ class tools:
             return (-100, 100)
 
     # Prompt for asking Volume ratio
-    def promptVolumeMultiplier(volumeRatio=2.5):
+    def promptVolumeMultiplier(volumeRatio=None):
         if volumeRatio is not None:
             return volumeRatio
         try:

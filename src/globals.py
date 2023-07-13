@@ -280,6 +280,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         executeOption = None
         menuOption = None
         tickerOption = None
+        options =[]
         try:
             if startupoptions is not None:
                 options = startupoptions.split(':')
