@@ -116,10 +116,7 @@ def initExecution(menuOption=None):
     global selectedChoice, level0MenuDict
     Utility.tools.clearScreen()
     
-    if menuOption == None:
-        m0.renderForMenu(selectedMenu=None)
-    else:
-        print('initExecution:menuOption:' + menuOption)
+    m0.renderForMenu(selectedMenu=None)
     try:
         if menuOption == None:
             menuOption = input(

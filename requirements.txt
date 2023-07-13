@@ -64,3 +64,4 @@ six # Installed as dependency for cycler, nsetools, packaging, retrying, python-
 toml # Installed as dependency for pep517, pytest
 urllib3 # Installed as dependency for requests
 webencodings # Installed as dependency for html5lib
+xlsxwriter

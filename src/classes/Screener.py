@@ -522,11 +522,11 @@ class tools:
             if ltp < (2 * yearlyLow) or ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
         if(ltp >= minLTP and ltp <= maxLTP and verifyStageTwo):
-            saveDict['LTP'] = str(("%.2f" % ltp) + pct_change)
+            saveDict['LTP'] = str((" %.2f" % ltp) + pct_change)
             screenDict['LTP'] = colorText.GREEN + ("%.2f" % ltp) + pct_change + colorText.END
             return True
         screenDict['LTP'] = colorText.FAIL + ("%.2f" % ltp) + pct_change + colorText.END
-        saveDict['LTP'] = str(("%.2f" % ltp) + pct_change)
+        saveDict['LTP'] = str((" %.2f" % ltp) + pct_change)
         return False
 
     # Find if stock gaining bullish momentum
