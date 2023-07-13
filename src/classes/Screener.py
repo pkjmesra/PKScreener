@@ -507,6 +507,7 @@ class tools:
         recent = data.head(1)
 
         pct_change = (data[::-1]['Close'].pct_change() * 100).iloc[-1]
+        pct_save = (" (%.1f%%)" % pct_change)
         if pct_change > 0.2:
             pct_change = colorText.GREEN + (" (%.1f%%)" % pct_change) + colorText.END
         elif pct_change < -0.2:
@@ -522,11 +523,11 @@ class tools:
             if ltp < (2 * yearlyLow) or ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
         if(ltp >= minLTP and ltp <= maxLTP and verifyStageTwo):
-            saveDict['LTP'] = str((" %.2f" % ltp) + pct_change)
+            saveDict['LTP'] = str((" %.2f" % ltp) + pct_save)
             screenDict['LTP'] = colorText.GREEN + ("%.2f" % ltp) + pct_change + colorText.END
             return True
         screenDict['LTP'] = colorText.FAIL + ("%.2f" % ltp) + pct_change + colorText.END
-        saveDict['LTP'] = str((" %.2f" % ltp) + pct_change)
+        saveDict['LTP'] = str((" %.2f" % ltp) + pct_save)
         return False
 
     # Find if stock gaining bullish momentum
