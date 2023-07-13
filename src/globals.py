@@ -112,6 +112,8 @@ level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any c
                   'Z': 'Exit (Ctrl + C)'}
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
 m0 = menus()
+m1 = menus()
+m2 = menus()
 def initExecution(menuOption=None):
     global selectedChoice, level0MenuDict
     Utility.tools.clearScreen()
@@ -161,7 +163,6 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     Utility.tools.clearScreen()
     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + colorText.END)
     if tickerOption is None:
-        m1 = menus()
         selectedMenu = m0.find('X')
         m1.renderForMenu(selectedMenu=selectedMenu)
     try:
@@ -200,13 +201,8 @@ def initScannerExecution(tickerOption=None, executeOption=None):
         if tickerOption and tickerOption != 'W':
             Utility.tools.clearScreen()
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + colorText.END)
-            print(colorText.BOLD + colorText.WARN +
-                '[+] Select a Criterion for Stock Screening: ' + colorText.END)
-            
-            print(colorText.BOLD + Utility.tools.promptMenus(level2MenuDict, ['0','42','M'], 2) + '''
-
-        ''' + colorText.END
-                )
+            selectedMenu = m1.find(tickerOption)
+            m2.renderForMenu(selectedMenu=selectedMenu)
     try:
         if tickerOption and tickerOption != 'W':
             if executeOption is None:
@@ -351,21 +347,23 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             main()
             return
     if executeOption == 6:
+        selectedMenu = m2.find(str(executeOption))
         if len(options) >= 4:
             reversalOption = int(options[3])
             if reversalOption == 4 or reversalOption == 6:
                 if len(options) >= 5:
                     maLength = int(options[4])
                 else:
-                    reversalOption, maLength = Utility.tools.promptReversalScreening()
+                    reversalOption, maLength = Utility.tools.promptReversalScreening(selectedMenu)
         else:
-            reversalOption, maLength = Utility.tools.promptReversalScreening()
+            reversalOption, maLength = Utility.tools.promptReversalScreening(selectedMenu)
         if reversalOption is None or reversalOption == 0:
             main()
             return
         else:
             selectedChoice['3'] = str(reversalOption)
     if executeOption == 7:
+        selectedMenu = m2.find(str(executeOption))
         if len(options) >= 4:
             respChartPattern = int(options[3])
             selectedChoice['3'] = options[3]
@@ -373,11 +371,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 if len(options) >= 5:
                     insideBarToLookback = int(options[4])
                 else:
-                    respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns()
+                    respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(selectedMenu)
             elif respChartPattern in [0,4,5]:
                 insideBarToLookback = 0
             else:
-                respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns()
+                respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(selectedMenu)
         if respChartPattern is None or insideBarToLookback is None:
             main()
             return
