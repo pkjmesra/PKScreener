@@ -29,7 +29,7 @@ from time import sleep
 from classes.ColorText import colorText
 from classes.Changelog import VERSION, changelog
 import classes.ConfigManager as ConfigManager
-from classes.MenuOptions import menus, menu
+from classes.MenuOptions import menus, menu, MenuRenderStyle
 
 artText = '''
     $$$$$$      $$   $$      $$$$$                                                        
@@ -293,7 +293,7 @@ class tools:
         if response != 'N':
             filename = 'PKScreener-result_' + \
                 tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".xlsx"
-            df.to_excel(filename)
+            df.to_excel(filename, engine='xlsxwriter') # openpyxl throws an error exporting % sign.
             print(colorText.BOLD + colorText.GREEN +
                   ("[+] Results saved to %s" % filename) + colorText.END)
             return filename
@@ -349,7 +349,7 @@ class tools:
 
     def promptMenus(menuDict, onTheirOwnSeparateLine=[], menusPerLine=1):
         m = menus()
-        return m.fromDictionary(menuDict,renderStyle=menusPerLine,renderExceptionKeys=onTheirOwnSeparateLine).render()
+        return m.fromDictionary(menuDict,renderStyle=MenuRenderStyle(menusPerLine),renderExceptionKeys=onTheirOwnSeparateLine).render()
     
     # Prompt for Reversal screening
     def promptReversalScreening():

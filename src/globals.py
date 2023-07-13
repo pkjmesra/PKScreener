@@ -15,6 +15,7 @@ import classes.Screener as Screener
 import classes.Utility as Utility
 from classes.ColorText import colorText
 from classes.CandlePatterns import CandlePatterns
+from classes.MenuOptions import menu, menus
 from classes.ParallelProcessing import StockConsumer
 from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 from classes.Changelog import VERSION
@@ -110,22 +111,12 @@ level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any c
                   'M': 'Back to the Top/Main menu',
                   'Z': 'Exit (Ctrl + C)'}
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
-
+m0 = menus()
 def initExecution(menuOption=None):
     global selectedChoice, level0MenuDict
     Utility.tools.clearScreen()
-    if menuOption == None:
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select a menu option:' + colorText.END)
-        toggleText = 'T > Toggle between long-term (Default)' + colorText.WARN + ' [Current]'+ colorText.END + ' and Intraday user configuration\n' if not configManager.isIntradayConfig() else 'T > Toggle between long-term (Default) and Intraday' + colorText.WARN + ' [Current]' +  colorText.END + ' user configuration'
-        print(colorText.BOLD + Utility.tools.promptMenus(level0MenuDict) + '''
-
-     ''' + toggleText + Utility.tools.promptMenus(level0MenuDictAdditional,['E','U']) + '''
-
-    Enter your choice >  (default is ''' + colorText.WARN + 'X > Scanners) ''' + colorText.END
-            )
-    else:
-        print('initExecution:menuOption:' + menuOption)
+    
+    m0.renderForMenu(selectedMenu=None)
     try:
         if menuOption == None:
             menuOption = input(
@@ -133,21 +124,22 @@ def initExecution(menuOption=None):
             print(colorText.END, end='')
         if menuOption == '':
             menuOption = 'X'
-        if not menuOption.isnumeric():
-            menuOption = menuOption.upper()
-            if menuOption == 'Z':
+        selectedMenu = m0.find(menuOption)
+        if selectedMenu is not None:
+            if selectedMenu.menuKey == 'Z':
                 input(colorText.BOLD + colorText.FAIL +
                     "[+] Press any key to Exit!" + colorText.END)
                 sys.exit(0)
-            elif menuOption in 'BHUTSEXY':
+            elif selectedMenu.menuKey in 'BHUTSEXY':
                 Utility.tools.clearScreen()
-                selectedChoice['0'] = menuOption
-                return menuOption
+                selectedChoice['0'] = selectedMenu.menuKey
+                return selectedMenu
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
         showOptionErrorMessage()
         return initExecution()
+    
     showOptionErrorMessage()
     return initExecution()
 
@@ -169,12 +161,9 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     Utility.tools.clearScreen()
     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + colorText.END)
     if tickerOption is None:
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select an Index for Screening:' + colorText.END)
-        print(colorText.BOLD + Utility.tools.promptMenus(level1MenuDict, ['W','0','M'], 3) + '''
-
-    Enter > ''' + colorText.WARN + 'All Stocks (default) ''' + colorText.END
-            )
+        m1 = menus()
+        selectedMenu = m0.find('X')
+        m1.renderForMenu(selectedMenu=selectedMenu)
     try:
         if tickerOption is None:
             tickerOption = input(
@@ -297,7 +286,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 menuOption = options[0] if len(options) >= 1 else None
                 tickerOption = options[1] if len(options) >= 2 else None
                 executeOption = options[2] if len(options) >= 3 else None
-            menuOption = initExecution(menuOption=menuOption)
+            selectedMenu = initExecution(menuOption=menuOption)
+            menuOption = selectedMenu.menuKey
             if menuOption == 'H':
                 Utility.tools.showDevInfo()
                 main()
