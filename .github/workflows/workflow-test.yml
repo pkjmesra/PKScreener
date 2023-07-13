@@ -7,10 +7,16 @@
 name: pkscreener Test - New Features
 
 on:
-  push:
-    branches: [ new-features ]
-  pull_request:
-    branches: [ new-features ]
+#   push:
+#     branches: [ new-features ]
+#   pull_request:
+#     branches: [ new-features ]
+  workflow_dispatch:
+      inputs:
+        name:
+          description: 'Run Details'
+          required: false
+          default: 'pkscreener - New Features'
 
 jobs:
 
@@ -21,7 +27,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
+      with:
+        ref: new-features
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
