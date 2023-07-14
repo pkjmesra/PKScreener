@@ -73,6 +73,14 @@ Followin scanners are already implemented. Others are `In Progress`
     13 > Bullish RSI & MACD Intraday            14 > NR4 Daily Today
 ```
 ## How to use on your own local Windows/Linux/Macbook laptop?
+
+# Using docker, running within docker container
+* Download and install docker desktop: https://docs.docker.com/get-docker/
+* After installation, launch/run docker desktop and if it asks, login using your docker credentials.
+* Launch any command line and type `docker pull pkjmesra/pkscreener-debian:latest`. Then type `docker run pkjmesra/pkscreener-debian:latest python3 pkscreener -a Y -o X:12:10 -e` ow whatever -o options you'd like executed.
+* Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `12` is `Scanners.`. `10` `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
+
+# Building from source repo
 * Download the suitable file according to your OS.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.

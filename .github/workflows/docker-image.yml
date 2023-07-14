@@ -35,10 +35,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Publish latest image to Docker Hub
       run: |
-        docker build . -f Dockerfile-linux -t pkjmesra/pkscreener:latest --no-cache
-        docker push pkjmesra/pkscreener:latest
+        docker build . -f Dockerfile-linux -t pkjmesra/pkscreener-debian:latest --no-cache
+        docker push pkjmesra/pkscreener-debian:latest
     - name: Publish release version image to Docker Hub
       if: startsWith(github.ref, 'refs/tags')
       run: |
-        docker build . -f Dockerfile-linux -t pkjmesra/pkscreener:${{ steps.vars.outputs.THIS_VERSION }} --no-cache
-        docker push pkjmesra/pkscreener:${{ steps.vars.outputs.THIS_VERSION }}
+        docker build . -f Dockerfile-linux -t pkjmesra/pkscreener-debian:${{ steps.vars.outputs.THIS_VERSION }} --no-cache
+        docker push pkjmesra/pkscreener-debian:${{ steps.vars.outputs.THIS_VERSION }}
