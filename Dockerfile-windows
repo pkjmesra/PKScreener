@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/windows:10.0.17763.4645-amd64 as base-image
+RUN powershell.exe -Command \
+    $ErrorActionPreference = 'Stop'; \
+    wget https://www.python.org/ftp/python/3.9.13/python-3.9.13.exe -OutFile c:\python-3.9.13.exe ; \
+    Start-Process c:\python-3.9.13.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait ; \
+    Remove-Item c:\python-3.9.13.exe -Force
+FROM scratch
+
+COPY --from=base-image ["/", "/"]
+
+RUN git clone https://github.com/pkjmesra/pkscreener.git
+
+WORKDIR /pkscreener-main/
+
+RUN tar -xf ./.github/dependencies/ta-lib-0.4.0-msvc.zip
+
+RUN pip3 install --upgrade pip
+RUN pip install ./.github/dependencies/TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+RUN pip3 install -r requirements.txt
+
+RUN cd src
+
+RUN python3 ./pkscreener
