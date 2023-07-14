@@ -20,11 +20,11 @@ RUN wget https://github.com/pkjmesra/pkscreener/archive/main.zip && \
   rm -rf main.zip
 
 WORKDIR PKScreener-main
+
 RUN pip3 install --upgrade pip
 RUN python3 -m pip install setuptools
 RUN pip install --upgrade setuptools
 RUN pip install packages
-RUN pip3 install importlib
 RUN pip3 install -r requirements.txt
 
 WORKDIR /

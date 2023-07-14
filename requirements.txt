@@ -5,7 +5,6 @@ contextlib2
 distlib
 distro
 html5lib
-importlib
 ipaddr
 lockfile
 nsetools
