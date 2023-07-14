@@ -12,9 +12,9 @@ RUN apt-get -y install libc-dev
 RUN apt-get update && apt-get -y install build-essential
 
 WORKDIR /
+RUN rm -rf PKScreener-*
 
 RUN apt-get -y install unzip
-
 RUN wget https://github.com/pkjmesra/pkscreener/archive/main.zip && \
   unzip main.zip && \
   rm -rf main.zip
@@ -27,7 +27,5 @@ RUN pip install --upgrade setuptools
 RUN pip install packages
 RUN pip3 install -r requirements.txt
 
-WORKDIR /
-RUN cd src
-
-RUN python3 ./pkscreener.py -a Y -o X:0:SBIN -e
+WORKDIR src
+# RUN python3 pkscreener.py
