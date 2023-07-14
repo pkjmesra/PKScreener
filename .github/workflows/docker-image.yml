@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: main
     - name: Declare env variables
       id: vars
       shell: bash

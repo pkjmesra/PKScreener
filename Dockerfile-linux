@@ -3,6 +3,9 @@ ENV PYTHONUNBUFFERED 1
 
 FROM scratch
 
+RUN echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" > /etc/apt/sources.list
+RUN apt-get update
+
 COPY --from=base-image ["/", "/"]
 
 RUN apt-get -y install libc-dev
