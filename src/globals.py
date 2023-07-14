@@ -26,7 +26,7 @@ import pandas as pd
 from datetime import datetime
 from time import sleep
 from tabulate import tabulate
-from Telegram import send_message, send_photo, send_document, initTelegram
+from Telegram import send_message, send_photo, send_document, is_token_telegram_configured
 import multiprocessing
 multiprocessing.freeze_support()
 
@@ -620,12 +620,13 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
                     pngName = 'PKScreener-result_' + \
                             datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
-                    Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
-                    sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
-                    try:
-                        os.remove(pngName)
-                    except:
-                        pass
+                    if is_token_telegram_configured():
+                        Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
+                        sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
+                        try:
+                            os.remove(pngName)
+                        except:
+                            pass
                     print(colorText.BOLD + colorText.GREEN +
                             f"[+] Found {len(screenResults)} Stocks." + colorText.END)
                     Utility.tools.setLastScreenedResults(screenResults)

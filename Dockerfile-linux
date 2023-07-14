@@ -26,6 +26,7 @@ RUN python3 -m pip install setuptools
 RUN pip install --upgrade setuptools
 RUN pip install packages
 RUN pip3 install -r requirements.txt
-
+RUN wget https://github.com/taveevut/Windows-10-Fonts-Default/raw/master/courbd.ttf && \
+  cp courbd.ttf /usr/local/share/fonts/courbd.ttf
 WORKDIR src
 # RUN python3 pkscreener.py
