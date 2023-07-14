@@ -3,8 +3,8 @@ ENV PYTHONUNBUFFERED 1
 
 FROM scratch
 
-RUN echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" > /etc/apt/sources.list
-RUN apt-get update
+# RUN echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" > /etc/apt/sources.list
+# RUN apt-get update
 
 COPY --from=base-image ["/", "/"]
 
@@ -19,11 +19,15 @@ RUN wget https://github.com/pkjmesra/pkscreener/archive/main.zip && \
   unzip main.zip && \
   rm -rf main.zip
 
-WORKDIR pkscreener-main
+WORKDIR PKScreener-main
 RUN pip3 install --upgrade pip
+RUN python3 -m pip install setuptools
+RUN pip install --upgrade setuptools
+RUN pip install packages
+RUN pip3 install importlib
 RUN pip3 install -r requirements.txt
 
 WORKDIR /
 RUN cd src
 
-RUN python3 ./pkscreener -a Y -o X:0:SBIN -e
+RUN python3 ./pkscreener.py -a Y -o X:0:SBIN -e
