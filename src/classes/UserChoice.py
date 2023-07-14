@@ -14,5 +14,3 @@ class choices:
 
     def renderChoices(self):
         m = menus()
-        return m.fromDictionary(menuDict,renderStyle=menusPerLine,renderExceptionKeys=onTheirOwnSeparateLine).render()
-    

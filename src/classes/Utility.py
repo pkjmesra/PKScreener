@@ -347,16 +347,15 @@ class tools:
         except ValueError:
             return 2
 
-    def promptMenus(menuDict, onTheirOwnSeparateLine=[], menusPerLine=1):
+    def promptMenus(menu):
         m = menus()
-        return m.fromDictionary(menuDict,renderStyle=MenuRenderStyle(menusPerLine),renderExceptionKeys=onTheirOwnSeparateLine).render()
+        return m.renderForMenu(menu)
     
     # Prompt for Reversal screening
-    def promptReversalScreening():
+    def promptReversalScreening(menu=None):
         try:
-            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:""" + tools.promptMenus(level3ReversalMenuDict,onTheirOwnSeparateLine=['0']) + """
-    
-[+] Select option: """ + colorText.END))
+            tools.promptMenus(menu=menu)
+            resp = int(input(colorText.BOLD + colorText.WARN + """[+] Select Option:""" + colorText.END))
             if resp >= 0 and resp <= 6:
                 if resp == 4:
                     try:
@@ -381,11 +380,10 @@ class tools:
             return None, None
 
     # Prompt for Reversal screening
-    def promptChartPatterns():
+    def promptChartPatterns(menu=None):
         try:
-            resp = int(input(colorText.BOLD + colorText.WARN + """\n[+] Select Option:""" + tools.promptMenus(level3ChartPatternMenuDict,onTheirOwnSeparateLine=['0']) + """
-
-[+] Select option: """ + colorText.END))
+            tools.promptMenus(menu=menu)
+            resp = int(input(colorText.BOLD + colorText.WARN + """[+] Select Option:""" + colorText.END))
             if resp == 1 or resp == 2:
                 candles = int(input(colorText.BOLD + colorText.WARN +
                                     "\n[+] How many candles (TimeFrame) to look back Inside Bar formation? : " + colorText.END))
