@@ -9,6 +9,7 @@ FROM scratch
 COPY --from=base-image ["/", "/"]
 
 ENV PYTHON_VERSION 3.7.10-r0
+ENV PYTHON_VERSION_1 3.11.4-r1
 
 # RUN apt-get -y install libc-dev
 # RUN apt-get update && apt-get -y install build-essential
@@ -19,6 +20,7 @@ RUN apk add --no-cache python3=${PYTHON_VERSION} && \
   apk add git && \
   git clone https://github.com/pkjmesra/pkscreener.git
 
+RUN apk add --no-cache python3=${PYTHON_VERSION_1}
 WORKDIR pkscreener
 
 RUN pip3 install --upgrade pip
