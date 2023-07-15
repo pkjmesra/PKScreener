@@ -255,9 +255,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     reversalOption = None
 
     screenResults = pd.DataFrame(columns=[
-                                 'Stock', 'Consolidating', 'Breaking-Out', 'LTP', 'Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
+                                 'Stock', 'Consol.', 'Breakout', 'LTP','%Chng', 'Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
     saveResults = pd.DataFrame(columns=[
-                               'Stock', 'Consolidating', 'Breaking-Out', 'LTP', 'Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
+                               'Stock', 'Consol.', 'Breakout', 'LTP','%Chng','Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
 
     
     if testBuild:
@@ -595,27 +595,32 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             saveResults.set_index('Stock', inplace=True)
             screenResults.rename(
                 columns={
-                    'Trend': f'Trend ({configManager.daysToLookback}Periods)',
-                    'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
-                    'LTP': 'LTP (% Chng)'
+                    'Trend': f'Trend({configManager.daysToLookback}Prds)',
+                    'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+                    'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
                 },
                 inplace=True
             )
             saveResults.rename(
                 columns={
-                    'Trend': f'Trend ({configManager.daysToLookback}Periods)',
-                    'Breaking-Out': f'Breakout ({configManager.daysToLookback}Periods)',
+                    'Trend': f'Trend({configManager.daysToLookback}Prds)',
+                    'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+                    'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
                 },
                 inplace=True
             )
             Utility.tools.clearScreen()
+            screenResults = screenResults[screenResults['MA-Signal'].str.contains('Unknown') == False]
+            screenResults = screenResults[screenResults[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
             menuChoiceHierarchy = menuChoiceHierarchy + ' (Data Period: ' + configManager.period + ', Candle Duration: ' + configManager.duration + ')'
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
             tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
             print(tabulated_results)
             if len(screenResults) >= 1:
                 if not testing:
-                    markdown_results = tabulate(saveResults, headers='keys', tablefmt='psql')
+                    readyForPhoto = saveResults[saveResults['MA-Signal'].str.contains('Unknown') == False]
+                    readyForPhoto = readyForPhoto[readyForPhoto[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
+                    markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='psql')
                     pngName = 'PKScreener-result_' + \
                             datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
                     if is_token_telegram_configured():

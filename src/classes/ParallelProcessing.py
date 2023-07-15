@@ -61,11 +61,11 @@ class StockConsumer(multiprocessing.Process):
     def screenStocks(self, executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, totalSymbols,
                      configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testbuild=False, printCounter=False):
         screenResults = pd.DataFrame(columns=[
-            'Stock', 'Consolidating', 'Breaking-Out', 'MA-Signal', 'Volume', 'LTP', 'RSI', 'Trend', 'Pattern', 'CCI'])
-        screeningDictionary = {'Stock': "", 'Consolidating': "",  'Breaking-Out': "",
-                               'MA-Signal': "", 'Volume': "", 'LTP': 0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
-        saveDictionary = {'Stock': "", 'Consolidating': "", 'Breaking-Out': "",
-                          'MA-Signal': "", 'Volume': "", 'LTP': 0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
+            'Stock', 'Consol.', 'Breakout', 'MA-Signal', 'Volume', 'LTP','%Chng', 'RSI', 'Trend', 'Pattern', 'CCI'])
+        screeningDictionary = {'Stock': "", 'Consol.': "",  'Breakout': "",
+                               'MA-Signal': "", 'Volume': "", 'LTP': 0, '%Chng':0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
+        saveDictionary = {'Stock': "", 'Consol.': "", 'Breakout': "",
+                          'MA-Signal': "", 'Volume': "", 'LTP': 0, '%Chng':0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
 
         try:
             period = configManager.period

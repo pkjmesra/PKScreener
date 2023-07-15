@@ -48,37 +48,37 @@ class tools:
         hc = round(data.describe()['Close']['max'],2)
         rc = round(recent['Close'][0],2)
         if np.isnan(hc) or np.isnan(hs):
-            saveDict['Breaking-Out'] = 'BO: Unknown'
-            screenDict['Breaking-Out'] = colorText.BOLD + colorText.WARN + 'BO: Unknown' + colorText.END
+            saveDict['Breakout'] = 'BO: Unknown'
+            screenDict['Breakout'] = colorText.BOLD + colorText.WARN + 'BO: Unknown' + colorText.END
             return False
         if hs > hc:
             if ((hs - hc) <= (hs*2/100)):
-                saveDict['Breaking-Out'] = "BO: " + str(hc)
+                saveDict['Breakout'] = "BO: " + str(hc)
                 if rc >= hc:
-                    screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
+                    screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                     return True and self.getCandleType(recent)
-                screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
+                screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return False
             noOfHigherShadows = len(data[data.High > hc])
             if(daysToLookback/noOfHigherShadows <= 3):
-                saveDict['Breaking-Out'] = "BO: " + str(hs)
+                saveDict['Breakout'] = "BO: " + str(hs)
                 if rc >= hs:
-                    screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hs) + colorText.END
+                    screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hs) + colorText.END
                     return True and self.getCandleType(recent)
-                screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
+                screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
                 return False
-            saveDict['Breaking-Out'] = "BO: " + str(hc) + ", R: " + str(hs)
+            saveDict['Breakout'] = "BO: " + str(hc) + ", R: " + str(hs)
             if rc >= hc:
-                screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
+                screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return True and self.getCandleType(recent)
-            screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
+            screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
             return False
         else:
-            saveDict['Breaking-Out'] = "BO: " + str(hc)
+            saveDict['Breakout'] = "BO: " + str(hc)
             if rc >= hc:
-                screenDict['Breaking-Out'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
+                screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
                 return True and self.getCandleType(recent)
-            screenDict['Breaking-Out'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
+            screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
             return False
 
     # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10 
@@ -433,10 +433,10 @@ class tools:
         hc = data.describe()['Close']['max']
         lc = data.describe()['Close']['min']
         if ((hc - lc) <= (hc*percentage/100) and (hc - lc != 0)):
-            screenDict['Consolidating'] = colorText.BOLD + colorText.GREEN + "Range = " + str(round((abs((hc-lc)/hc)*100),1))+"%" + colorText.END
+            screenDict['Consol.'] = colorText.BOLD + colorText.GREEN + "Range:" + str(round((abs((hc-lc)/hc)*100),1))+"%" + colorText.END
         else:
-            screenDict['Consolidating'] = colorText.BOLD + colorText.FAIL + "Range = " + str(round((abs((hc-lc)/hc)*100),1)) + "%" + colorText.END
-        saveDict['Consolidating'] = str(round((abs((hc-lc)/hc)*100),1))+"%"
+            screenDict['Consol.'] = colorText.BOLD + colorText.FAIL + "Range:" + str(round((abs((hc-lc)/hc)*100),1)) + "%" + colorText.END
+        saveDict['Consol.'] = f'Range:{str(round((abs((hc-lc)/hc)*100),1))+"%"}'
         return round((abs((hc-lc)/hc)*100),1)
 
     # Validate 'Inside Bar' structure for recent days
@@ -507,14 +507,15 @@ class tools:
         recent = data.head(1)
 
         pct_change = (data[::-1]['Close'].pct_change() * 100).iloc[-1]
-        pct_save = (" (%.1f%%)" % pct_change)
+        pct_save = ("%.1f%%" % pct_change)
         if pct_change > 0.2:
-            pct_change = colorText.GREEN + (" (%.1f%%)" % pct_change) + colorText.END
+            pct_change = colorText.GREEN + ("%.1f%%" % pct_change) + colorText.END
         elif pct_change < -0.2:
-            pct_change = colorText.FAIL + (" (%.1f%%)" % pct_change) + colorText.END
+            pct_change = colorText.FAIL + ("%.1f%%" % pct_change) + colorText.END
         else:
-            pct_change = colorText.WARN + (" (%.1f%%)" % pct_change) + colorText.END
-            
+            pct_change = colorText.WARN + ("%.1f%%" % pct_change) + colorText.END
+        saveDict['%Chng'] = pct_save
+        screenDict['%Chng'] = pct_change
         ltp = round(recent['Close'][0],2)
         verifyStageTwo = True
         if self.configManager.stageTwo and len(data) > 250:
@@ -523,11 +524,11 @@ class tools:
             if ltp < (2 * yearlyLow) or ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
         if(ltp >= minLTP and ltp <= maxLTP and verifyStageTwo):
-            saveDict['LTP'] = str((" %.2f" % ltp) + pct_save)
-            screenDict['LTP'] = colorText.GREEN + ("%.2f" % ltp) + pct_change + colorText.END
+            saveDict['LTP'] = str((" %.2f" % ltp))
+            screenDict['LTP'] = colorText.GREEN + ("%.2f" % ltp) + colorText.END
             return True
-        screenDict['LTP'] = colorText.FAIL + ("%.2f" % ltp) + pct_change + colorText.END
-        saveDict['LTP'] = str((" %.2f" % ltp) + pct_save)
+        screenDict['LTP'] = colorText.FAIL + ("%.2f" % ltp) + colorText.END
+        saveDict['LTP'] = str((" %.2f" % ltp))
         return False
 
     # Find if stock gaining bullish momentum
