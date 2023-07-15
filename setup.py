@@ -8,7 +8,7 @@ This is a temporary script file.
 import sys
 import setuptools  # noqa
 from distutils.core import setup
-from classes.Changelog import VERSION
+from src.classes.Changelog import VERSION
 
 __USERNAME__ = 'pkjmesra'
 
