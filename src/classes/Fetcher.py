@@ -79,7 +79,7 @@ class tools:
         return listStockCodes
 
     # Fetch all stock codes from NSE
-    def fetchStockCodes(self, tickerOption, proxyServer=None):
+    def fetchStockCodes(self, tickerOption, proxyServer=None, stockCode=None):
         listStockCodes = []
         if tickerOption == 0:
             stockCode = None

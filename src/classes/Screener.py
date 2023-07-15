@@ -404,7 +404,7 @@ class tools:
         cci = int(data.head(1)['CCI'][0])
         saveDict['CCI'] = cci
         if((cci <= minCCI or cci >= maxCCI) and ("Up" in saveDict['Trend'])):
-            if(cci <= minCCI):
+            if(cci <= minCCI) or cci >= maxCCI:
                 screenDict['CCI'] = colorText.BOLD + colorText.GREEN + str(cci) + colorText.END
             else:
                 screenDict['CCI'] = colorText.BOLD + colorText.FAIL + str(cci) + colorText.END

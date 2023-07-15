@@ -112,20 +112,86 @@ class tools:
             print(colorText.BOLD + colorText.FAIL +
                   '[+] Failed to load recently screened result table from disk! Skipping..' + colorText.END)
 
-    def tableToImage(table, filename,label):
+    def getCellColor(cellStyledValue=''):
+        otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
+        mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]
+        colorsDict = {colorText.BLUE:'blue', colorText.GREEN:'green',colorText.WARN:'yellow',colorText.FAIL:'red'}
+        cleanedUpStyledValue = cellStyledValue
+        cellFillColor = 'white'
+        for style in otherStyles:
+            cleanedUpStyledValue = cleanedUpStyledValue.replace(style,'')
+        for style in mainStyles:
+            if style in cleanedUpStyledValue:
+                cleanedUpStyledValue = cleanedUpStyledValue.replace(style,'')
+                cellFillColor = colorsDict[style]
+                break
+        return cellFillColor, cleanedUpStyledValue
+
+    def tableToImage(table, styledTable, filename,label):
         warnings.filterwarnings('ignore', category=DeprecationWarning)
+        # First 4 lines are headers. Last 1 line is bottom grid line
+        bgColor = 'white'
+        artColor = 'green'
+        menuColor = 'red'
+        gridColor = 'black'
+        screenLines = styledTable.splitlines()
+        unstyledLines = table.splitlines()
         artfont = ImageFont.truetype("courbd.ttf", 30)
-        font = ImageFont.truetype("courbd.ttf", 40)
+        font = ImageFont.truetype("courbd.ttf", 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
         label_width, label_height = font.getsize_multiline(label)
         text_width, text_height = font.getsize_multiline(table)
-        im = Image.new("RGB", (text_width + 15, arttext_height + text_height + label_height + 15), "white")
+        im = Image.new("RGB", (text_width + 15, arttext_height + text_height + label_height + 15),bgColor)
         draw = ImageDraw.Draw(im)
-        draw.text((7, 7), artText, font=artfont, fill="green")
-        draw.text((7, 8 + arttext_height), label, font=font, fill="red")
-        draw.text((7, 9 + arttext_height + label_height), table, font=font, fill="black")
+        # artwork
+        draw.text((7, 7), artText, font=artfont, fill=artColor)
+        # selected menu options
+        draw.text((7, 8 + arttext_height), label, font=font, fill=menuColor)
+        lineNumber = 0
+        colPixelRunValue = 7
+        rowPixelRunValue = 9 + arttext_height + label_height
+        separator = '|'
+        sep_width, sep_height = font.getsize_multiline(separator)
+        for line in screenLines:
+            line_width, line_height = font.getsize_multiline(line)
+            # Print the header columns and bottom grid line
+            if lineNumber == 0 or (lineNumber % 2) == 0 or lineNumber == len(screenLines)-1:
+                draw.text((colPixelRunValue, rowPixelRunValue),line , font=font, fill=gridColor)
+                rowPixelRunValue = rowPixelRunValue + line_height + 1
+            elif lineNumber == 1:
+                draw.text((colPixelRunValue, rowPixelRunValue),line , font=font, fill=gridColor)
+                rowPixelRunValue = rowPixelRunValue + line_height + 1
+            else:
+                valueScreenCols = line.split(separator)
+                columnNumber = 0
+                del valueScreenCols[0]
+                del valueScreenCols[-1]
+                for val in valueScreenCols:
+                    unstyledLine = unstyledLines[lineNumber]
+                    style, cleanValue = tools.getCellColor(val)
+                    if columnNumber == 0:
+                        cleanValue = unstyledLine.split(separator)[1]
+                        style = gridColor
+                    if bgColor == 'white' and style == 'yellow':
+                        # Yellow on a white background is difficult to read
+                        style = 'blue'
+                    elif bgColor == 'black' and style == 'blue':
+                        # blue on a black background is difficult to read
+                        style = 'yellow'
+                    col_width, col_height = font.getsize_multiline(cleanValue)
+                    draw.text((colPixelRunValue, rowPixelRunValue),separator, font=font, fill=gridColor)
+                    colPixelRunValue = colPixelRunValue + sep_width
+                    draw.text((colPixelRunValue, rowPixelRunValue),cleanValue, font=font, fill=style)
+                    colPixelRunValue = colPixelRunValue + col_width
+                    columnNumber = columnNumber + 1
+                # Close the row with the separator
+                draw.text((colPixelRunValue, rowPixelRunValue),separator, font=font, fill=gridColor)
+                colPixelRunValue = 7
+                rowPixelRunValue = rowPixelRunValue + line_height + 1
+            lineNumber = lineNumber + 1
+        # draw.text((colPixelRunValue, rowPixelRunValue), table, font=font, fill="black")
+        im.save(filename, format='png', bitmap_format='png', dpi=[300,300])
         # im.show()
-        im.save(filename, 'PNG')
     
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))

@@ -478,7 +478,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     elif selectedChoice['2'] == '7':
                         menuChoiceHierarchy = menuChoiceHierarchy + f' > ({selectedChoice["3"]}) {level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
-                listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer)
+                listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
         except urllib.error.URLError:
             print(colorText.BOLD + colorText.FAIL +
                   "\n\n[+] Oops! It looks like you don't have an Internet connectivity at the moment! Press any key to exit!" + colorText.END)
@@ -614,17 +614,17 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             screenResults = screenResults[screenResults[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
             menuChoiceHierarchy = menuChoiceHierarchy + ' (Data Period: ' + configManager.period + ', Candle Duration: ' + configManager.duration + ')'
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
-            tabulated_results = tabulate(screenResults, headers='keys', tablefmt='psql')
+            tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
             print(tabulated_results)
             if len(screenResults) >= 1:
                 if not testing:
                     readyForPhoto = saveResults[saveResults['MA-Signal'].str.contains('Unknown') == False]
                     readyForPhoto = readyForPhoto[readyForPhoto[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
-                    markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='psql')
+                    markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='grid')
                     pngName = 'PKScreener-result_' + \
                             datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
                     if is_token_telegram_configured():
-                        Utility.tools.tableToImage(markdown_results,pngName,menuChoiceHierarchy)
+                        Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
                         sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
                         try:
                             os.remove(pngName)
