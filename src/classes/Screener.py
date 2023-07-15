@@ -778,15 +778,15 @@ class tools:
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         if recent['VolMA'][0] == 0: # Handles Divide by 0 warning
-            saveDict['Volume'] = "Unknown"
-            screenDict['Volume'] = colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
+            saveDict['Volume'] = 0 #"Unknown"
+            screenDict['Volume'] = 0 #colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
             return True
         ratio = round(recent['Volume'][0]/recent['VolMA'][0],2)
-        saveDict['Volume'] = str(ratio)+"x"
+        saveDict['Volume'] = ratio #str(ratio)+"x"
         if(ratio >= volumeRatio and ratio != np.nan and (not math.isinf(ratio)) and (ratio != 20)):
-            screenDict['Volume'] = colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
+            screenDict['Volume'] = ratio # colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
             return True
-        screenDict['Volume'] = colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
+        screenDict['Volume'] = ratio # colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
         return False
 
     # Find if stock is validating volume spread analysis

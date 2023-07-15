@@ -593,6 +593,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
             screenResults.set_index('Stock', inplace=True)
             saveResults.set_index('Stock', inplace=True)
+            screenResults.loc[:,'Volume'] = screenResults.loc[:,'Volume'].apply(lambda x: Utility.tools.formatRatio(x, volumeRatio))
+            saveResults.loc[:,'Volume'] = saveResults.loc[:,'Volume'].apply(lambda x: str(x)+"x")
             screenResults.rename(
                 columns={
                     'Trend': f'Trend({configManager.daysToLookback}Prds)',
@@ -666,7 +668,7 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
             pass
     if photo_filePath is not None:
         try:
-            send_photo(photo_filePath, caption)
+            send_document(photo_filePath, caption)
         except:
             pass
     if document_filePath is not None:

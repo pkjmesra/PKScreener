@@ -4,6 +4,8 @@
  *  Created             :   28/04/2021
  *  Description         :   Class for managing misc and utility methods
 '''
+import math
+import numpy as np
 
 from decimal import DivisionByZero
 from genericpath import isfile
@@ -112,6 +114,11 @@ class tools:
             print(colorText.BOLD + colorText.FAIL +
                   '[+] Failed to load recently screened result table from disk! Skipping..' + colorText.END)
 
+    def formatRatio(ratio, volumeRatio):
+        if(ratio >= volumeRatio and ratio != np.nan and (not math.isinf(ratio)) and (ratio != 20)):
+            return colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
+        return colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
+    
     def getCellColor(cellStyledValue=''):
         otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
         mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]
@@ -134,6 +141,7 @@ class tools:
         artColor = 'green'
         menuColor = 'red'
         gridColor = 'black'
+        repoText = 'https://GitHub.com/pkjmesra/pkscreener/'
         screenLines = styledTable.splitlines()
         unstyledLines = table.splitlines()
         artfont = ImageFont.truetype("courbd.ttf", 30)
@@ -189,8 +197,8 @@ class tools:
                 colPixelRunValue = 7
                 rowPixelRunValue = rowPixelRunValue + line_height + 1
             lineNumber = lineNumber + 1
-        # draw.text((colPixelRunValue, rowPixelRunValue), table, font=font, fill="black")
-        im.save(filename, format='png', bitmap_format='png', dpi=[300,300])
+        draw.text((colPixelRunValue, rowPixelRunValue), repoText, font=font, fill=menuColor)
+        im.save(filename, format='png', bitmap_format='png')
         # im.show()
     
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
