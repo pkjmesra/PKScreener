@@ -36,7 +36,7 @@ DIST_DIR = 'dist/'
 
 setup(
 	name = 'pkscreener',
-	packages=setuptools.find_packages(where=".", exclude=["docs", "tests"]),
+	packages=setuptools.find_packages(where=".", exclude=["docs", "test"]),
 	include_package_data = True,    # include everything in source control
 	package_data={'src': ['pkscreener.ini']},
 	# ...but exclude README.txt from all packages
