@@ -20,12 +20,14 @@ telegram
 python-telegram-bot
 pytoml
 retrying
+scipy>=1.7.3
+# ta-lib
 tabulate
 yfinance==0.1.87
 alive-progress==1.6.2
 Pillow==9.5.0
 # dataframe_image
-# scikit-learn #==1.1.1
+scikit-learn #==1.1.1
 tensorflow #==2.9.2
 joblib
 altgraph # Installed as dependency for pyinstaller
