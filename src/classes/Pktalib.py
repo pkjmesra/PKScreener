@@ -55,9 +55,14 @@ class pktalib:
     @classmethod
     def STOCHRSI(self, close, timeperiod, fastk_period, fastd_period, fastd_matype):
         try:
-            return talib.stochrsi(close,length=timeperiod, rsi_length=timeperiod, k=fastk_period, d=fastd_period, mamode=fastd_matype)
+            _name = "STOCHRSI"
+            _props = f"_{timeperiod}_{timeperiod}_{fastk_period}_{fastd_period}"
+            stochrsi_kname = f"{_name}k{_props}"
+            stochrsi_dname = f"{_name}d{_props}"
+            df= talib.stochrsi(close,length=timeperiod, rsi_length=timeperiod, k=fastk_period, d=fastd_period, mamode=fastd_matype)
+            return df[stochrsi_kname], df[stochrsi_dname]
         except:
-            return talib.STOCHRSI(close,timeperiod,fastk_period,fastd_period,fastd_matype)
+            return talib.STOCHRSI(close.values,timeperiod,fastk_period,fastd_period,fastd_matype)
     
     @classmethod
     def ichimoku(self, df, tenkan=None, kijun=None, senkou=None, include_chikou=True, offset=None):

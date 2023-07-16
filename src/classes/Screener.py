@@ -98,7 +98,6 @@ class tools:
         cond4 = cond3 and (recent['Close'][0] > recent['EMA200'][0])
         return cond4
     
-    # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10 
     def findNR4Day(self, data):
         # https://chartink.com/screener/nr4-daily-today
         if data.tail(1)['Volume'][0] <= 50000:
@@ -370,7 +369,7 @@ class tools:
         cci = pktalib.CCI(data['High'], data['Low'], data['Close'], timeperiod=14)
         data.insert(11,'CCI',cci)
         x = len(data["Close"])
-        fastk, fastd = pktalib.STOCHRSI(data["Close"].values, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0)
+        fastk, fastd = pktalib.STOCHRSI(data["Close"], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0)
         data.insert(12,'FASTK',fastk)
         data.insert(13,'FASTD',fastd)
         data = data[::-1]               # Reverse the dataframe

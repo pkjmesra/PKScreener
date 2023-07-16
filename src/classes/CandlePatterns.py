@@ -22,7 +22,15 @@ class CandlePatterns:
     def findPattern(self, data, dict, saveDict):
         data = data.head(4)
         data = data[::-1]
-
+        # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+        # Otherwise, for the rest of the candle patterns, they also need
+        # TA-Lib.
+        check = pktalib.CDLDOJI(data['Open'], data['High'], data['Low'], data['Close'])
+        if(check.tail(1).item() != 0):
+            dict['Pattern'] = colorText.BOLD + 'Doji' + colorText.END
+            saveDict['Pattern'] = 'Doji'
+            return True
+        
         check = pktalib.CDLMORNINGSTAR(data['Open'], data['High'], data['Low'], data['Close'])
         if(check.tail(1).item() != 0):
             dict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Morning Star' + colorText.END
@@ -162,12 +170,6 @@ class CandlePatterns:
         if(check.tail(1).item() != 0):
             dict['Pattern'] = colorText.BOLD + colorText.FAIL + 'Gravestone Doji' + colorText.END
             saveDict['Pattern'] = 'Gravestone Doji'
-            return True
-
-        check = pktalib.CDLDOJI(data['Open'], data['High'], data['Low'], data['Close'])
-        if(check.tail(1).item() != 0):
-            dict['Pattern'] = colorText.BOLD + 'Doji' + colorText.END
-            saveDict['Pattern'] = 'Doji'
             return True
 
         check = pktalib.CDLENGULFING(data['Open'], data['High'], data['Low'], data['Close'])

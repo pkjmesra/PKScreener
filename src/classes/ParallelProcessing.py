@@ -151,9 +151,18 @@ class StockConsumer(multiprocessing.Process):
                     saveDictionary['Trend'] = 'Unknown'
                 isValidCci = screener.validateCCI(
                     processedData, screeningDictionary, saveDictionary, minRSI, maxRSI)
-                isCandlePattern = candlePatterns.findPattern(
+                isCandlePattern=False
+                try:
+                    # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+                    # Otherwise, for the rest of the candle patterns, they also need
+                    # TA-Lib. So if TA-Lib is not available, it will throw exception
+                    # We can live with no-patterns if user has not installed ta-lib
+                    # yet. If ta-lib is available, PKTalib will load it automatically.
+                    isCandlePattern = candlePatterns.findPattern(
                     processedData, screeningDictionary, saveDictionary)
-                
+                except:
+                    screeningDictionary['Pattern'] = ''
+                    saveDictionary['Pattern'] = ''
                 isConfluence = False
                 isInsideBar = False
                 isIpoBase = False
