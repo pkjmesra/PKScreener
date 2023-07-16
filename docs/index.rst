@@ -25,6 +25,5 @@ Requirements: Python 3.9+.
 * **Run** the file. Following window will appear after a brief delay.
 
 .. code:: sh
-   git clone https://github.com/pkjmesra/PKScreener
    cd PKScreener-main
    python3 pkscreener.py
