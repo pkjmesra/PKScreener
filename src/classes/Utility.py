@@ -29,7 +29,8 @@ from alive_progress import alive_bar
 from tabulate import tabulate
 from time import sleep
 from classes.ColorText import colorText
-from classes import VERSION, changelog
+from classes import VERSION
+from classes.Changelog import changelog
 import classes.ConfigManager as ConfigManager
 from classes.MenuOptions import menus, menu, MenuRenderStyle
 
