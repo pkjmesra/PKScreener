@@ -24,6 +24,3 @@ Requirements: Python 3.9+.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
 
-.. code:: sh
-   cd PKScreener-main
-   python3 pkscreener.py
