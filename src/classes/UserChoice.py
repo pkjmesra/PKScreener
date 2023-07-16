@@ -1,5 +1,5 @@
 
-from src.classes.MenuOptions import menu, menus
+from classes.MenuOptions import menu, menus
 
 # This Class manages user menu choices
 class choices:

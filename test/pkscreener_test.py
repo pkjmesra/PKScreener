@@ -19,12 +19,12 @@ import shutil
 
 shutil.copyfile('../src/.env.dev', '.env.dev')
 sys.path.append(os.path.abspath('../src'))
-import src.classes.ConfigManager as ConfigManager
-from src import VERSION
-from src.classes.Changelog import changelog
-from src.classes.OtaUpdater import OTAUpdater
+import classes.ConfigManager as ConfigManager
+from classes import VERSION
+from classes.Changelog import changelog
+from classes.OtaUpdater import OTAUpdater
 import globals 
-from src.pkscreener import *
+from pkscreener import *
 last_release = 0
 configManager = ConfigManager.tools()
 disableSysOut(input=False)

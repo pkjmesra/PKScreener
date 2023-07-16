@@ -25,10 +25,10 @@ def disableSysOut(input=True):
     sys.stdout = open(os.devnull, 'w')
     sys.__stdout__ = open(os.devnull, 'w')
 
-import src.classes.ConfigManager as ConfigManager
-import src.classes.Utility as Utility
-from src.classes.ColorText import colorText
-from src.globals import main, getProxyServer
+import classes.ConfigManager as ConfigManager
+import classes.Utility as Utility
+from classes.ColorText import colorText
+from globals import main, getProxyServer
 from time import sleep
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -46,8 +46,11 @@ argParser.add_argument('-v', action='store_true')        # Dummy Arg for pytest 
 args = argParser.parse_args()
 
 configManager = ConfigManager.tools()
-
-def pkscreener():
+    
+if __name__ == "__main__":
+    if sys.platform.startswith('darwin'):
+        multiprocessing.set_start_method('fork')
+ 
     if args.prodbuild:
         disableSysOut()
 
@@ -94,8 +97,3 @@ def pkscreener():
             # input(colorText.BOLD + colorText.FAIL +
             #     "[+] Press any key to Exit!" + colorText.END)
             # sys.exit(0)
-            
-if __name__ == "__main__":
-    if sys.platform.startswith('darwin'):
-        multiprocessing.set_start_method('fork')
-    pkscreener()

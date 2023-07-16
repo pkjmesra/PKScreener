@@ -1,5 +1,5 @@
 import numpy as np
-from src.classes import Imports
+from classes import Imports
 if Imports['talib']:
     import talib
 else:

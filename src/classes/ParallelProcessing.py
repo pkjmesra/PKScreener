@@ -14,13 +14,13 @@ import os
 import pytz
 from queue import Empty
 from datetime import datetime
-from src.classes import Imports
-import src.classes.Fetcher as Fetcher
-import src.classes.Screener as Screener
-import src.classes.Utility as Utility
-from src.classes.CandlePatterns import CandlePatterns
-from src.classes.ColorText import colorText
-from src.classes.SuppressOutput import SuppressOutput
+from classes import Imports
+import classes.Fetcher as Fetcher
+import classes.Screener as Screener
+import classes.Utility as Utility
+from classes.CandlePatterns import CandlePatterns
+from classes.ColorText import colorText
+from classes.SuppressOutput import SuppressOutput
 
 if sys.platform.startswith('win'):
     import multiprocessing.popen_spawn_win32 as forking

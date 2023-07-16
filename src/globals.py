@@ -7,17 +7,17 @@ import sys
 # import dataframe_image as dfi
 # import df2img
 
-import src.classes.Fetcher as Fetcher
-import src.classes.ConfigManager as ConfigManager
-from src.classes.OtaUpdater import OTAUpdater
-from src import VERSION
-import src.classes.Screener as Screener
-import src.classes.Utility as Utility
-from src.classes.ColorText import colorText
-from src.classes.CandlePatterns import CandlePatterns
-from src.classes.MenuOptions import menu, menus
-from src.classes.ParallelProcessing import StockConsumer
-from src.classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
+import classes.Fetcher as Fetcher
+import classes.ConfigManager as ConfigManager
+from classes.OtaUpdater import OTAUpdater
+from classes import VERSION
+import classes.Screener as Screener
+import classes.Utility as Utility
+from classes.ColorText import colorText
+from classes.CandlePatterns import CandlePatterns
+from classes.MenuOptions import menu, menus
+from classes.ParallelProcessing import StockConsumer
+from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 from alive_progress import alive_bar
 import urllib
 import numpy as np
@@ -25,7 +25,7 @@ import pandas as pd
 from datetime import datetime
 from time import sleep
 from tabulate import tabulate
-from src.Telegram import send_message, send_photo, send_document, is_token_telegram_configured
+from Telegram import send_message, send_photo, send_document, is_token_telegram_configured
 import multiprocessing
 multiprocessing.freeze_support()
 

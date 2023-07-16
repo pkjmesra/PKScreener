@@ -5,7 +5,7 @@
  *  Description         :   Class for maintaining changelog
 '''
 
-from src.classes.ColorText import colorText
+from classes.ColorText import colorText
 
 changelog = colorText.BOLD + '[ChangeLog]\n' + colorText.END + colorText.BLUE + '''
 [0.01]

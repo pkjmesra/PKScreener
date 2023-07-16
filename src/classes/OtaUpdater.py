@@ -5,14 +5,14 @@
  *  Description         :   Class for handling OTA updates
 '''
 
-from src.classes.ColorText import colorText
+from classes.ColorText import colorText
 import requests
 import os
 import platform
 import sys
 import subprocess
 import requests
-from src import VERSION
+from classes import VERSION
 
 class OTAUpdater:
 

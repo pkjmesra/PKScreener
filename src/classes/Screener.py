@@ -10,15 +10,15 @@ import math
 import numpy as np
 import pandas as pd
 import joblib
-import src.classes.Utility as Utility
-from src.classes.Pktalib import pktalib
-from src.classes import Imports
+import classes.Utility as Utility
+from classes.Pktalib import pktalib
+from classes import Imports
 # from sklearn.preprocessing import StandardScaler
 if Imports['scipy']:
     from scipy.signal import argrelextrema
     from scipy.stats import linregress
-from src.classes.ColorText import colorText
-from src.classes.SuppressOutput import SuppressOutput
+from classes.ColorText import colorText
+from classes.SuppressOutput import SuppressOutput
 
 # Exception for only downloading stock data and not screening
 class DownloadDataOnly(Exception):
