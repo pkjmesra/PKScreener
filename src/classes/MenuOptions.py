@@ -1,6 +1,6 @@
 from enum import Enum
-from classes.ColorText import colorText
-import classes.ConfigManager as ConfigManager
+from src.classes.ColorText import colorText
+import src.classes.ConfigManager as ConfigManager
 
 configManager = ConfigManager.tools()
 

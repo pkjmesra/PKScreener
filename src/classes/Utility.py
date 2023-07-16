@@ -19,7 +19,7 @@ import pickle
 import requests
 import time
 import joblib
-from classes import Imports
+from src.classes import Imports
 if Imports['keras']:
     import keras
 import warnings
@@ -28,11 +28,11 @@ import pandas as pd
 from alive_progress import alive_bar
 from tabulate import tabulate
 from time import sleep
-from classes.ColorText import colorText
-from classes import VERSION
-from classes.Changelog import changelog
-import classes.ConfigManager as ConfigManager
-from classes.MenuOptions import menus, menu, MenuRenderStyle
+from src.classes.ColorText import colorText
+from src import VERSION
+from src.classes.Changelog import changelog
+import src.classes.ConfigManager as ConfigManager
+from src.classes.MenuOptions import menus, menu, MenuRenderStyle
 
 artText = '''
     $$$$$$      $$   $$      $$$$$                                                        

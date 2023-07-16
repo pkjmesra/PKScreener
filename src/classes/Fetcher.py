@@ -14,8 +14,8 @@ import os
 import yfinance as yf
 import pandas as pd
 from nsetools import Nse
-from classes.ColorText import colorText
-from classes.SuppressOutput import SuppressOutput
+from src.classes.ColorText import colorText
+from src.classes.SuppressOutput import SuppressOutput
 
 nse = Nse()
 

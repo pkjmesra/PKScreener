@@ -11,7 +11,7 @@ import string
 import glob
 import configparser
 from datetime import date
-from classes.ColorText import colorText
+from src.classes.ColorText import colorText
 
 parser = configparser.ConfigParser(strict=False)
 

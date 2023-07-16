@@ -17,3 +17,4 @@ Help
 *.pyc
 src/__pycache__
 src/classes/__pycache__
+*.egg-*/*

@@ -8,7 +8,7 @@ This is a temporary script file.
 import sys
 import setuptools  # noqa
 from distutils.core import setup
-from src.classes import VERSION
+from src import VERSION
 
 __USERNAME__ = 'pkjmesra'
 
@@ -52,7 +52,7 @@ setup(
 	zip_safe=False,
 	entry_points='''
 	[console_scripts]
-	pkscreener=src.pkscreener:__main__
+	pkscreener=src.pkscreener:pkscreener
 	''',
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[

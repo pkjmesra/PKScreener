@@ -6,8 +6,8 @@
 '''
 
 import pandas as pd
-from classes.Pktalib import pktalib
-from classes.ColorText import colorText
+from src.classes.Pktalib import pktalib
+from src.classes.ColorText import colorText
 
 class CandlePatterns:
 
