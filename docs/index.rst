@@ -11,13 +11,6 @@ Usage
 
 Installation
 ------------
-
-.. code:: sh
-   git clone https://github.com/pkjmesra/PKScreener
-   cd PKScreener-main
-   python3 pkscreener.py
-
-
 Requirements: Python 3.9+.
 
 # Using docker, running within docker container
@@ -30,3 +23,8 @@ Requirements: Python 3.9+.
 * Download the suitable file according to your OS.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
+
+.. code:: sh
+   git clone https://github.com/pkjmesra/PKScreener
+   cd PKScreener-main
+   python3 pkscreener.py
