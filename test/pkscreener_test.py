@@ -20,7 +20,7 @@ import shutil
 shutil.copyfile('../src/.env.dev', '.env.dev')
 sys.path.append(os.path.abspath('../src'))
 import classes.ConfigManager as ConfigManager
-from classes.Changelog import changelog, VERSION
+from classes import changelog, VERSION
 from classes.OtaUpdater import OTAUpdater
 import globals 
 from pkscreener import *

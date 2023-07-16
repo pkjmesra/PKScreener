@@ -10,7 +10,7 @@ import sys
 import classes.Fetcher as Fetcher
 import classes.ConfigManager as ConfigManager
 from classes.OtaUpdater import OTAUpdater
-from classes.Changelog import VERSION
+from classes import VERSION
 import classes.Screener as Screener
 import classes.Utility as Utility
 from classes.ColorText import colorText
@@ -18,7 +18,6 @@ from classes.CandlePatterns import CandlePatterns
 from classes.MenuOptions import menu, menus
 from classes.ParallelProcessing import StockConsumer
 from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
-from classes.Changelog import VERSION
 from alive_progress import alive_bar
 import urllib
 import numpy as np

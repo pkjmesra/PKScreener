@@ -12,7 +12,7 @@ import platform
 import sys
 import subprocess
 import requests
-from classes.Changelog import VERSION
+from classes import VERSION
 
 class OTAUpdater:
 

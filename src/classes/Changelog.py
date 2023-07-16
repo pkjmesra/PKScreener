@@ -7,8 +7,6 @@
 
 from classes.ColorText import colorText
 
-VERSION = "0.02"
-
 changelog = colorText.BOLD + '[ChangeLog]\n' + colorText.END + colorText.BLUE + '''
 [0.01]
 1. First release
