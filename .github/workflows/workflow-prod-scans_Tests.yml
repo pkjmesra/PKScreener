@@ -30,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: ${{ inputs.branch-name }}"
+        ref: ${{ inputs.branch-name }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
