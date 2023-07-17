@@ -1,6 +1,7 @@
 from enum import Enum
 from classes.ColorText import colorText
 import classes.ConfigManager as ConfigManager
+from classes.log import default_logger
 
 configManager = ConfigManager.tools()
 
@@ -184,6 +185,7 @@ class menus:
             try:
                 return self.menuDict[str(key).upper()]
             except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 return None
         return None
 

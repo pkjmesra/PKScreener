@@ -3,7 +3,7 @@
 # Created             :   03/09/2021
 # Description         :   Workflow for marking Stale Issues/PRs
 
-name: pkscreener Stale - Mark stale issues and pull requests
+name: 5. Mark stale issues and pull requests
 
 on:
   schedule:

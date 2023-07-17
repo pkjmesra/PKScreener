@@ -13,7 +13,7 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
-    
+
 from itertools import *
 
 __all__ = ['redForegroundText', 'greenForegroundText', 'line_break','clear_screen','set_cursor','setup_custom_logger', 'default_logger', 'log_to', 'tracelog', 'suppress_stdout_stderr']
@@ -95,15 +95,17 @@ class filterlogger:
 
   def debug(self, e, exc_info=False):
     global __filter__
+    global __DEBUG__
+    if not __DEBUG__:
+      return
     line = str(e)
     try:
       frame = inspect.stack()[1]
       filename = (frame[0].f_code.co_filename).rsplit('/', 1)[1]
       components = str(frame).split(',')
       line = '{} - {} - {}\n{}'.format(filename, components[5],components[6] , line)
-    except:
+    except Exception as e:
       pass
-    global __DEBUG__
     if __DEBUG__:
       if __filter__ is None:
         self.logger.debug(line, exc_info=exc_info)
@@ -115,6 +117,9 @@ class filterlogger:
 
   def info(self, line):
     global __filter__
+    global __DEBUG__
+    if not __DEBUG__:
+      return
     if __filter__ is None:
       self.logger.info(line)
       return    
@@ -145,7 +150,7 @@ class filterlogger:
   def removeHandler(self, hdl):
     self.logger.removeHandler(hdl)
 
-def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_path='logs.log', filter=None):
+def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_path='pkscreener-logs.txt', filter=None):
   trace_formatter = logging.Formatter(fmt='\n%(asctime)s - %(name)s - %(levelname)s - %(filename)s - %(module)s - %(funcName)s - %(lineno)d\n%(message)s\n')
   # console_info_formatter = logging.Formatter(fmt='\n%(levelname)s - %(filename)s(%(funcName)s - %(lineno)d)\n%(message)s\n')
   global __trace__
@@ -171,7 +176,7 @@ def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_pat
     logger.debug('Logging started. Filter:{}'.format(filter))
 
   if trace:
-    tracelogger = logging.getLogger('nseta_file_logger')
+    tracelogger = logging.getLogger('pkscreener_file_logger')
     tracelogger.setLevel(levelname)
     tracelogger.addHandler(consolehandler)
     if levelname == logging.DEBUG:
@@ -184,10 +189,10 @@ def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_pat
   return logger
 
 def default_logger():
-  return filterlogger.getlogger(logging.getLogger('nseta'))
+  return filterlogger.getlogger(logging.getLogger('pkscreener'))
 
 def file_logger():
-  return filterlogger.getlogger(logging.getLogger('nseta_file_logger'))
+  return filterlogger.getlogger(logging.getLogger('pkscreener_file_logger'))
 
 def trace_log(line):
   global __trace__
@@ -238,8 +243,8 @@ def log_to(logger_func):
         global __DEBUG__
         if __DEBUG__:
           frame = inspect.stack()[1]
-          filename = (frame[0].f_code.co_filename).rsplit('/', 1)[1]
           components = str(frame).split(',')
+          filename = components[4] #(frame[0].f_code.co_filename).rsplit('/', 1)[1]
           func_description = '{} - {} - {}'.format(filename, components[5],components[6])
           description = func_description
           for line in describe_call(func, *args, **kwargs):

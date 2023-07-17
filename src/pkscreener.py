@@ -29,6 +29,7 @@ def disableSysOut(input=True):
 import classes.ConfigManager as ConfigManager
 import classes.Utility as Utility
 import classes.log as log
+from classes.log import default_logger
 from classes.ColorText import colorText
 from globals import main, getProxyServer
 from time import sleep
@@ -50,25 +51,32 @@ args = argParser.parse_args()
 
 configManager = ConfigManager.tools()
 
-def setupLogger(shouldLog=False):
+def setupLogger(shouldLog=False, trace=False):
     if not shouldLog:
         return
-    log_file_path = os.path.join(tempfile.gettempdir(),'logs.log')
+    log_file_path = os.path.join(tempfile.gettempdir(),'pkscreener-logs.txt')
     if os.path.exists(log_file_path):
-        os.remove(log_file_path)
-    print(f'Logs will be written to: {log_file_path}')
-    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=False, log_file_path=log_file_path, filter=None)
+        try:
+            os.remove(log_file_path)
+        except:
+            pass
+    print(colorText.BOLD + colorText.GREEN + f'[+] Logs will be written to:' + colorText.END)
+    print(colorText.BOLD + colorText.FAIL + f'[+] {log_file_path}' + colorText.END)
+    print(colorText.BOLD + colorText.GREEN + f'[+] If you need to share, open this folder, copy and zip the log file to share.' + colorText.END)
+    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None)
 
 if __name__ == "__main__":
     if sys.platform.startswith('darwin'):
         multiprocessing.set_start_method('fork')
- 
-    if args.log:
-        setupLogger(True)
+    
+    Utility.tools.clearScreen()
+    if args.log or configManager.logsEnabled:
+        setupLogger(shouldLog=True, trace=args.testbuild)
+        if not args.prodbuild:
+            input(f'Press any key to continue...')
     if args.prodbuild:
         disableSysOut()
 
-    Utility.tools.clearScreen()
     if not configManager.checkConfigFile():
         configManager.setConfig(ConfigManager.parser, default=True, showFileCreatedText=False)
     if args.testbuild and not args.prodbuild:
@@ -105,6 +113,7 @@ if __name__ == "__main__":
                 if args.exit:
                     break
         except Exception as e:
+            default_logger().debug(e, exc_info=True)
             raise e
             # if isDevVersion == OTAUpdater.developmentVersion:
             #     raise(e)

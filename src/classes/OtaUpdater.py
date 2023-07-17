@@ -13,6 +13,7 @@ import sys
 import subprocess
 import requests
 from classes import VERSION
+from classes.log import default_logger
 
 class OTAUpdater:
 
@@ -120,12 +121,14 @@ rm updater.sh
                         else:
                             OTAUpdater.updateForLinux(OTAUpdater.checkForUpdate.url)
                     except Exception as e:
+                        default_logger().debug(e, exc_info=True)
                         print(colorText.BOLD + colorText.WARN + '[+] Error occured while updating!' + colorText.END)
                         raise(e)
             elif(float(resp.json()['tag_name']) < now):
                 print(colorText.BOLD + colorText.FAIL + ('[+] This version (v%s) is in Development mode and unreleased!' % VERSION) + colorText.END)
                 return OTAUpdater.developmentVersion
         except Exception as e:
+            default_logger().debug(e, exc_info=True)
             if OTAUpdater.checkForUpdate.url != None:
                 print(colorText.BOLD + colorText.BLUE + ("[+] Download update manually from %s\n" % OTAUpdater.checkForUpdate.url) + colorText.END)
             if resp.json()['message'] == 'Not Found':
