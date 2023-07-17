@@ -9,6 +9,7 @@ import sys
 import multiprocessing
 import argparse
 import builtins
+import tempfile
 
 def decorator(func):
     def new_func(*args,**kwargs):
@@ -27,6 +28,7 @@ def disableSysOut(input=True):
 
 import classes.ConfigManager as ConfigManager
 import classes.Utility as Utility
+import classes.log as log
 from classes.ColorText import colorText
 from globals import main, getProxyServer
 from time import sleep
@@ -42,15 +44,27 @@ argParser.add_argument('-e', '--exit', action='store_true', help='Exit right aft
 argParser.add_argument('-o', '--options', help='Pass selected options in the <MainMenu>:<SubMenu>:<SubMenu>:etc. format. For example: ./pkscreener.py -a Y -o X:12:10 -e will run the screener with answer Y as default choice to questions and scan with menu choices: Scanners > Nifty (All Stocks) > Closing at least 2%% up since last 3 day', required=False)
 argParser.add_argument('-p', '--prodbuild', action='store_true', help='Run in production-build mode', required=False)
 argParser.add_argument('-t', '--testbuild', action='store_true', help='Run in test-build mode', required=False)
+argParser.add_argument('-l', '--log', action='store_true', help='Run with full logging enabled', required=False)
 argParser.add_argument('-v', action='store_true')        # Dummy Arg for pytest -v
 args = argParser.parse_args()
 
 configManager = ConfigManager.tools()
-    
+
+def setupLogger(shouldLog=False):
+    if not shouldLog:
+        return
+    log_file_path = os.path.join(tempfile.gettempdir(),'logs.log')
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+    print(f'Logs will be written to: {log_file_path}')
+    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=False, log_file_path=log_file_path, filter=None)
+
 if __name__ == "__main__":
     if sys.platform.startswith('darwin'):
         multiprocessing.set_start_method('fork')
  
+    if args.log:
+        setupLogger(True)
     if args.prodbuild:
         disableSysOut()
 
