@@ -84,7 +84,7 @@ jobs:
         pytest -v
 
   Call-prod-scan-test-workflow:
-    uses: .github/workflow/workflow-prod-scans_Tests.yml@main
+    uses: .github/workflows/workflow-prod-scans_Tests.yml@main
     with:
       branch-name: 'new-features'
     secrets: inherit
