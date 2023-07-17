@@ -24,16 +24,16 @@ class tools:
 
     def __init__(self):
         self.consolidationPercentage = 10
-        self.volumeRatio = 2
+        self.volumeRatio = 2.5
         self.minLTP = 20.0
         self.maxLTP = 50000
-        self.period = '300d'
+        self.period = '365d'
         self.duration = '1d'
         self.daysToLookback = 30
         self.shuffleEnabled = True
         self.cacheEnabled = True
         self.stageTwo = False
-        self.useEMA = False
+        self.useEMA = True
         self.logsEnabled = False
 
     def deleteStockData(self, pattern='stock_data*.pkl', excludeFile=None):
@@ -170,10 +170,10 @@ class tools:
                 self.useEMA = False if 'y' not in str(parser.get('config', 'useEMA')).lower() else True
                 self.logsEnabled = False if 'y' not in str(parser.get('config', 'logsEnabled')).lower() else True
             except configparser.NoOptionError:
-                input(colorText.BOLD + colorText.FAIL +
-                      '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
+                # input(colorText.BOLD + colorText.FAIL +
+                #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
                 parser.remove_section('config')
-                self.setConfig(parser, default=False)
+                self.setConfig(parser, default=True,showFileCreatedText=False)
         else:
             self.setConfig(parser, default=True)
 
@@ -214,6 +214,7 @@ class tools:
         try:
             f = open('pkscreener.ini','r')
             f.close()
+            self.getConfig(parser)
             return True
         except FileNotFoundError:
-            return False
+            self.setConfig(parser,default=True,showFileCreatedText=False)
