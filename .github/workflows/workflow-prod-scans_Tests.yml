@@ -3,15 +3,24 @@
 # Created             :   09/07/2023
 # Description         :   Workflow for sending pre-selected scan results at scheduled intervals (cron: '41 4,10 * * 1-5')
 
-name: Production Scan Tests On Dev
+name: 3. Production Scan Tests On Dev
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: 'Run Details'
+      branch-name:
+        description: 'Branch name'
         required: false
-        default: 'PKScreener - PRoduction Scan Alerts'
-
+        default: 'main'
+  # workflow_run:
+  #   workflows: ["0. New Features - Tests"]
+  #   types:
+  #     - completed
+  workflow_call:
+    inputs:
+      branch-name:
+        required: true
+        type: string
+        default: 'new-features'
 jobs:
 
   Prod_Scan_Tests_OnDev:
@@ -21,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: main
+        ref: ${{ inputs.branch-name }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2

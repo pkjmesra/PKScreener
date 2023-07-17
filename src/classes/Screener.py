@@ -13,6 +13,7 @@ import joblib
 import classes.Utility as Utility
 from classes.Pktalib import pktalib
 from classes import Imports
+from classes.log import default_logger
 # from sklearn.preprocessing import StandardScaler
 if Imports['scipy']:
     from scipy.signal import argrelextrema
@@ -155,6 +156,7 @@ class tools:
                     raise StockDataNotAdequate
                 slope,c = np.polyfit(data.index[data.tops > 0], data['tops'][data.tops > 0], 1)
             except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 slope,c = 0,0
             angle = np.rad2deg(np.arctan(slope))
             if (angle == 0):
@@ -175,7 +177,8 @@ class tools:
             elif angle <= -60:
                 screenDict['Trend'] = colorText.BOLD + colorText.FAIL + "Strong Down" + colorText.END
                 saveDict['Trend'] = 'Strong Down'
-        except np.linalg.LinAlgError:
+        except np.linalg.LinAlgError as e:
+            default_logger().debug(e, exc_info=True)
             screenDict['Trend'] = colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
             saveDict['Trend'] = 'Unknown'
         return saveDict['Trend']
@@ -203,7 +206,8 @@ class tools:
         while len(data_low) > points:
             try:
                 slope, intercept, r_value, p_value, std_err = linregress(x=data_low['Number'], y=data_low['Low'])
-            except:
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 continue
             data_low = data_low.loc[data_low['Low'] < slope * data_low['Number'] + intercept]
         
@@ -319,7 +323,8 @@ class tools:
             elif data_list[cnt] in last_signal:
                 try:
                     condition = last_signal[data_list[cnt]][0]['SL'][0]
-                except KeyError:
+                except KeyError as e:
+                    default_logger().debug(e, exc_info=True)
                     condition = last_signal[data_list[cnt]]['SL'][0]
                 # if last_signal[data_list[cnt]] is not final:          # Debug - Shows all conditions
                 if condition != final['SL'][0]:
@@ -340,6 +345,7 @@ class tools:
                             ], axis=0)
                         result_df.reset_index(drop=True, inplace=True)
                     except Exception as e:
+                        default_logger().debug(e, exc_info=True)
                         pass
                     # Then update
                     last_signal[data_list[cnt]] = [final]
@@ -550,12 +556,12 @@ class tools:
                         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Momentum Gainer' + colorText.END
                         saveDict['Pattern'] = 'Momentum Gainer'
                         return True
-            except IndexError:
+            except IndexError as e:
+                default_logger().debug(e, exc_info=True)
                 pass
             return False
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            default_logger().debug(e, exc_info=True)
             return False
 
     # Validate Moving averages and look for buy/sell signals
@@ -714,7 +720,8 @@ class tools:
             df_new = df_new.head(1)
             df_new['cloud_green'] = df_new['ISA_9'][0] > df_new['ISB_26'][0]
             df_new['cloud_red'] = df_new['ISB_26'][0] > df_new['ISA_9'][0]
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             pass
         aboveCloudTop = False
         # baseline > cloud top (cloud is bound by span a and span b) and close is > cloud top
@@ -770,8 +777,7 @@ class tools:
                     saveDict['Pattern'] = f'VCP (BO: {highestTop})'
                     return True
         except Exception as e:
-            import traceback
-            print(traceback.format_exc())
+            default_logger().debug(e, exc_info=True)
         return False      
 
     # Validate if volume of last day is higher than avg
@@ -812,12 +818,12 @@ class tools:
                         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Demand Rise' + colorText.END
                         saveDict['Pattern'] = 'Demand Rise'
                         return True
-            except IndexError:
+            except IndexError as e:
+                default_logger().debug(e, exc_info=True)
                 pass
             return False
-        except:
-            import traceback
-            traceback.print_exc()
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             return False
 
 

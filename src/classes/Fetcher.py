@@ -16,6 +16,7 @@ import pandas as pd
 from nsetools import Nse
 from classes.ColorText import colorText
 from classes.SuppressOutput import SuppressOutput
+from classes.log import default_logger
 
 nse = Nse()
 
@@ -73,8 +74,9 @@ class tools:
                 next(cr)  # skipping first line
                 for row in cr:
                     listStockCodes.append(row[2])
-        except Exception as error:
-            print(error)
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
+            print(e)
 
         return listStockCodes
 
@@ -132,7 +134,8 @@ class tools:
             try:
                 print(colorText.BOLD + colorText.GREEN + ("[%d%%] Screened %d, Found %d. Fetching data & Analyzing %s..." % (
                     int((screenCounter.value/totalSymbols)*100), screenCounter.value, screenResultsCounter.value, stockCode)) + colorText.END, end='')
-            except ZeroDivisionError:
+            except ZeroDivisionError as e:
+                default_logger().debug(e, exc_info=True)
                 pass
             if len(data) == 0:
                 print(colorText.BOLD + colorText.FAIL +
@@ -197,14 +200,16 @@ class tools:
         data = pd.DataFrame()
         try:
             data = pd.read_excel('watchlist.xlsx')
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   f'[+] watchlist.xlsx not found in f{os.getcwd()}' + colorText.END)
             createTemplate = True
         try:
             if not createTemplate:
                 data = data['Stock Code'].values.tolist()
-        except KeyError:
+        except KeyError as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   '[+] Bad Watchlist Format: First Column (A1) should have Header named "Stock Code"' + colorText.END)
             createTemplate = True

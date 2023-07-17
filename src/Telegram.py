@@ -18,6 +18,7 @@ import pandas as pd
 from datetime import datetime
 
 from telegram.constants import ParseMode
+from classes.log import default_logger
 
 TOKEN = "00000000xxxxxxx"
 # URL_TELE = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
@@ -50,7 +51,8 @@ def initTelegram():
     if chat_idADMIN == "" or botsUrl == "":
         try:
             Channel_Id, TOKEN, chat_idADMIN = get_secrets()
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             print('Telegram token and secrets are not configured!')
             pass
         Channel_Id = "-" + str(Channel_Id)
@@ -90,7 +92,8 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None):
             url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(people_id, message,parse_mode=parse_type)
             try:
                 resp = requests.get(url)
-            except:
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 from time import sleep
                 sleep(2)
                 resp = requests.get(url)
@@ -118,7 +121,8 @@ def send_photo(photoFilePath, message = "", message_id = None):
     files = {'photo': photo}
     try:
         resp = requests.post(botsUrl + method, params, files=files)
-    except:
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
         from time import sleep
         sleep(2)
         resp = requests.post(botsUrl + method, params, files=files)
@@ -139,7 +143,8 @@ def send_document(documentFilePath, message="", message_id = None):
     method = "/sendDocument"
     try:
         resp = requests.post(botsUrl + method, params, files=files)
-    except:
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
         from time import sleep
         sleep(2)
         resp = requests.post(botsUrl + method, params, files=files)

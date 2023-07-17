@@ -3,16 +3,16 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: pkscreener Data - After-Market Data Gen
+name: 4. After-Market Data Gen
 on:
   workflow_dispatch:
     inputs:
       name:
         description: 'Run Details'
         required: false
-        default: 'pkscreener - Data Download'
+        default: 'Data Download'
   schedule:
-  - cron: '03 10 * * 1-5'
+  - cron: '03 03 * * 1-5'
 
 jobs:
 
@@ -67,7 +67,7 @@ jobs:
         git checkout -b actions-data-download origin/actions-data-download
         git add actions-data-download/stock_data_*.pkl --force
         git commit -m "GitHub Action Workflow - Market Data Download (Default Config)"
-        git push -u origin actions-data-download
+        git push -v -u origin +actions-data-download
 
     - name: Squash Commits (Python)
       shell: cmd

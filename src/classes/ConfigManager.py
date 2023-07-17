@@ -12,6 +12,7 @@ import glob
 import configparser
 from datetime import date
 from classes.ColorText import colorText
+from classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
 
@@ -24,16 +25,16 @@ class tools:
 
     def __init__(self):
         self.consolidationPercentage = 10
-        self.volumeRatio = 2
+        self.volumeRatio = 2.5
         self.minLTP = 20.0
         self.maxLTP = 50000
-        self.period = '300d'
+        self.period = '365d'
         self.duration = '1d'
         self.daysToLookback = 30
         self.shuffleEnabled = True
         self.cacheEnabled = True
         self.stageTwo = False
-        self.useEMA = False
+        self.useEMA = True
         self.logsEnabled = False
 
     def deleteStockData(self, pattern='stock_data*.pkl', excludeFile=None):
@@ -44,7 +45,8 @@ class tools:
                         os.remove(f)
                 else:
                     os.remove(f)
-            except:
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 pass
 
     # Handle user input and save config
@@ -53,7 +55,8 @@ class tools:
         if default:
             try:
                 parser.remove_section('config')
-            except:
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 pass
             parser.add_section('config')
             parser.set('config', 'period', self.period)
@@ -82,7 +85,8 @@ class tools:
                         '[+] Close and Restart the program now.' + colorText.END)
                     input('')
                     sys.exit(0)
-            except IOError:
+            except IOError as e:
+                default_logger().debug(e, exc_info=True)
                 print(colorText.BOLD + colorText.FAIL +
                       '[+] Failed to save user config. Exiting..' + colorText.END)
                 input('')
@@ -145,7 +149,8 @@ class tools:
                       '[+] Restart the Program to start Screening...' + colorText.END)
                 input('')
                 sys.exit(0)
-            except IOError:
+            except IOError as e:
+                default_logger().debug(e, exc_info=True)
                 print(colorText.BOLD + colorText.FAIL +
                       '[+] Failed to save user config. Exiting..' + colorText.END)
                 input('')
@@ -169,11 +174,12 @@ class tools:
                 self.stageTwo = True if 'n' not in str(parser.get('config', 'onlyStageTwoStocks')).lower() else False
                 self.useEMA = False if 'y' not in str(parser.get('config', 'useEMA')).lower() else True
                 self.logsEnabled = False if 'y' not in str(parser.get('config', 'logsEnabled')).lower() else True
-            except configparser.NoOptionError:
-                input(colorText.BOLD + colorText.FAIL +
-                      '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
+            except configparser.NoOptionError as e:
+                default_logger().debug(e, exc_info=True)
+                # input(colorText.BOLD + colorText.FAIL +
+                #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
                 parser.remove_section('config')
-                self.setConfig(parser, default=False)
+                self.setConfig(parser, default=True,showFileCreatedText=False)
         else:
             self.setConfig(parser, default=True)
 
@@ -202,7 +208,8 @@ class tools:
             print("\n"+f.read())
             f.close()
             input('')
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   "[+] User Configuration not found!" + colorText.END)
             print(colorText.BOLD + colorText.WARN +
@@ -214,6 +221,8 @@ class tools:
         try:
             f = open('pkscreener.ini','r')
             f.close()
+            self.getConfig(parser)
             return True
-        except FileNotFoundError:
-            return False
+        except FileNotFoundError as e:
+            default_logger().debug(e, exc_info=True)
+            self.setConfig(parser,default=True,showFileCreatedText=False)

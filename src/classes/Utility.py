@@ -20,6 +20,8 @@ import requests
 import time
 import joblib
 from classes import Imports
+from classes.log import default_logger
+
 if Imports['keras']:
     import keras
 import warnings
@@ -96,7 +98,8 @@ class tools:
         try:
             df.sort_values(by=['Stock'], ascending=True, inplace=True)
             df.to_pickle(lastScreened)
-        except IOError:
+        except IOError as e:
+            default_logger().debug(e, exc_info=True)
             input(colorText.BOLD + colorText.FAIL +
                   '[+] Failed to save recently screened result table on disk! Skipping..' + colorText.END)
 
@@ -111,7 +114,8 @@ class tools:
                   "[+] Note: Trend calculation is based on number of recent days to screen as per your configuration." + colorText.END)
             input(colorText.BOLD + colorText.GREEN +
                   '[+] Press any key to continue..' + colorText.END)
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   '[+] Failed to load recently screened result table from disk! Skipping..' + colorText.END)
 
@@ -286,7 +290,8 @@ class tools:
                     pickle.dump(stockDict.copy(), f)
                     print(colorText.BOLD + colorText.GREEN +
                           "=> Done." + colorText.END)
-                except pickle.PicklingError:
+                except pickle.PicklingError as e:
+                    default_logger().debug(e, exc_info=True)
                     print(colorText.BOLD + colorText.FAIL +
                           "=> Error while Caching Stock Data." + colorText.END)
         else:
@@ -306,13 +311,15 @@ class tools:
                     for stock in stockData:
                         stockDict[stock] = stockData.get(stock)
                     stockDataLoaded = True
-                except pickle.UnpicklingError:
+                except pickle.UnpicklingError as e:
+                    default_logger().debug(e, exc_info=True)
                     f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Error while Reading Stock Cache." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
                         configManager.deleteStockData()
-                except EOFError:
+                except EOFError as e:
+                    default_logger().debug(e, exc_info=True)
                     f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Stock Cache Corrupted." + colorText.END)
@@ -345,6 +352,7 @@ class tools:
                     f.close()
                     stockDataLoaded = True
                 except Exception as e:
+                    default_logger().debug(e, exc_info=True)
                     f.close()
                     print("[!] Download Error - " + str(e))
                 print("")
@@ -363,7 +371,8 @@ class tools:
                                     '[>] Do you want to save the results in excel file? [Y/N]: ')).upper()
             else:
                 response = defaultAnswer
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             response = 'Y'
         if response != 'N':
             filename = 'PKScreener-result_' + \
@@ -382,7 +391,8 @@ class tools:
                                     '[>] ' + cache_file + ' already exists. Do you want to replace this? [Y/N]: ')).upper()
             else:
                 response = defaultAnswer
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             pass
         return 'Y' if response != 'N' else 'N'
     
@@ -394,7 +404,8 @@ class tools:
             if (minRSI >= 0 and minRSI <= 100) and (maxRSI >= 0 and maxRSI <= 100) and (minRSI <= maxRSI):
                 return (minRSI, maxRSI)
             raise ValueError
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             return (0, 0)
 
     # Prompt for asking CCI
@@ -407,7 +418,8 @@ class tools:
             if (minCCI <= maxCCI):
                 return (minCCI, maxCCI)
             raise ValueError
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             return (-100, 100)
 
     # Prompt for asking Volume ratio
@@ -419,7 +431,8 @@ class tools:
             if (volumeRatio > 0):
                 return volumeRatio
             raise ValueError
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             return 2
 
     def promptMenus(menu):
@@ -437,7 +450,8 @@ class tools:
                         maLength = int(input(colorText.BOLD + colorText.WARN +
                                              '\n[+] Enter MA Length (E.g. 50 or 200): ' + colorText.END))
                         return resp, maLength
-                    except ValueError:
+                    except ValueError as e:
+                        default_logger().debug(e, exc_info=True)
                         print(colorText.BOLD + colorText.FAIL +
                               '\n[!] Invalid Input! MA Lenght should be single integer value!\n' + colorText.END)
                         raise ValueError
@@ -446,12 +460,14 @@ class tools:
                         maLength = int(input(colorText.BOLD + colorText.WARN +
                                              '\n[+] Enter NR timeframe [Integer Number] (E.g. 4, 7, etc.): ' + colorText.END))
                         return resp, maLength
-                    except ValueError:
+                    except ValueError as e:
+                        default_logger().debug(e, exc_info=True)
                         print(colorText.BOLD + colorText.FAIL + '\n[!] Invalid Input! NR timeframe should be single integer value!\n' + colorText.END)
                         raise ValueError
                 return resp, None
             raise ValueError
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             return None, None
 
     # Prompt for Reversal screening
@@ -470,7 +486,8 @@ class tools:
             if resp >= 0 and resp <= 5:
                 return resp, 0
             raise ValueError
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             input(colorText.BOLD + colorText.FAIL +
                   "\n[+] Invalid Option Selected. Press Any Key to Continue..." + colorText.END)
             return (None, None)
@@ -525,12 +542,14 @@ class tools:
                                     progressbar(1.0)
                         f.close()
                     except Exception as e:
+                        default_logger().debug(e, exc_info=True)
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
         try:
             model = keras.models.load_model(files[0]) if Imports['keras'] else None
             pkl = joblib.load(files[1])
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             os.remove(files[0])
             os.remove(files[1])
             if not retrial:

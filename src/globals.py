@@ -11,6 +11,7 @@ import classes.Fetcher as Fetcher
 import classes.ConfigManager as ConfigManager
 from classes.OtaUpdater import OTAUpdater
 from classes import VERSION
+from classes.log import default_logger, tracelog
 import classes.Screener as Screener
 import classes.Utility as Utility
 from classes.ColorText import colorText
@@ -138,6 +139,7 @@ def initExecution(menuOption=None):
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
+        default_logger().debug(e, exc_info=True)
         showOptionErrorMessage()
         return initExecution()
     
@@ -187,13 +189,10 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
-        # raise e
-        # import traceback
-        # traceback.print_exc()
+        default_logger().debug(e, exc_info=True)
         print(colorText.BOLD + colorText.FAIL +
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
-        # input()
         Utility.tools.clearScreen()
         return initScannerExecution()
     if executeOption is None:
@@ -222,18 +221,16 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except Exception as e:
-        # raise e
-        # import traceback
-        # traceback.print_exc()
+        default_logger().debug(e, exc_info=True)
         print(colorText.BOLD + colorText.FAIL +
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
-        # input()
         Utility.tools.clearScreen()
         return initScannerExecution()
     return tickerOption, executeOption
 
 # Main function
+@tracelog
 def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None):
     global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     defaultAnswer = defaultConsoleAnswer
@@ -329,7 +326,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         try:
             daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
                                             '\n[+] The Volume should be lowest since last how many candles? '))
-        except ValueError:
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.END)
             print(colorText.BOLD + colorText.FAIL +
                   '[+] Error: Non-numeric value entered! Screening aborted.' + colorText.END)
@@ -478,7 +476,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         menuChoiceHierarchy = menuChoiceHierarchy + f' > ({selectedChoice["3"]}) {level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
-        except urllib.error.URLError:
+        except urllib.error.URLError as e:
+            default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   "\n\n[+] Oops! It looks like you don't have an Internet connectivity at the moment! Press any key to exit!" + colorText.END)
             input('')
@@ -521,16 +520,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 result = results_queue.get()
                 lstscreen = []
                 lstsave = []
+                default_logger().info(f'Fetched results:\n{result}')
                 if result is not None:
-                    if result is not None:
-                        lstscreen.append(result[0])
-                        lstsave.append(result[1])
+                    lstscreen.append(result[0])
+                    lstsave.append(result[1])
                     df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
                     df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
                     screenResults = pd.concat([screenResults, df_extendedscreen])
                     saveResults = pd.concat([saveResults, df_extendedsave])
-                    if testing or (testBuild and len(screenResults) > 2):
-                        break
+                if testing or (testBuild and len(screenResults) > 2):
+                    break
         else:
             for item in items:
                 tasks_queue.put(item)
@@ -576,6 +575,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             try:
                 worker.terminate()
             except OSError as e:
+                default_logger().debug(e, exc_info=True)
                 if e.winerror == 5:
                     pass
 
@@ -585,6 +585,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             try:
                 _ = tasks_queue.get(False)
             except Exception as e:
+                default_logger().debug(e, exc_info=True)
                 break
         if not downloadOnly:
             # Publish to gSheet with https://github.com/burnash/gspread 
@@ -629,7 +630,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
                         try:
                             os.remove(pngName)
-                        except:
+                        except Exception as e:
+                            default_logger().debug(e, exc_info=True)
                             pass
                     print(colorText.BOLD + colorText.GREEN +
                             f"[+] Found {len(screenResults)} Stocks." + colorText.END)
@@ -650,7 +652,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 try:
                     if filename is not None:
                         os.remove(filename)
-                except:
+                except Exception as e:
+                    default_logger().debug(e, exc_info=True)
                     pass
             print(colorText.BOLD + colorText.GREEN +
                 "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
@@ -664,24 +667,28 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
     if message is not None:
         try:
             send_message(message)
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             pass
     if photo_filePath is not None:
         try:
             send_document(photo_filePath, caption)
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             pass
     if document_filePath is not None:
         try:
             send_document(document_filePath, caption)
-        except:
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
             pass
 
 def getProxyServer():
     # Get system wide proxy for networking
     try:
         proxyServer = urllib.request.getproxies()['http']
-    except KeyError:
+    except KeyError as e:
+        default_logger().debug(e, exc_info=True)
         proxyServer = ""
     return proxyServer
 
