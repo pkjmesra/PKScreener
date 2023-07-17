@@ -34,6 +34,7 @@ class tools:
         self.cacheEnabled = True
         self.stageTwo = False
         self.useEMA = False
+        self.logsEnabled = False
 
     def deleteStockData(self, pattern='stock_data*.pkl', excludeFile=None):
         for f in glob.glob(pattern):
@@ -67,6 +68,7 @@ class tools:
             parser.set('config', 'cacheStockData', 'y' if self.cacheEnabled else 'n')
             parser.set('config', 'onlyStageTwoStocks', 'y' if self.stageTwo else 'n')
             parser.set('config', 'useEMA', 'y' if self.useEMA else 'n')
+            parser.set('config', 'logsEnabled', 'y' if self.logsEnabled else 'n')
             try:
                 fp = open('pkscreener.ini', 'w')
                 parser.write(fp)
@@ -113,6 +115,8 @@ class tools:
                 '[+] Screen only for Stage-2 stocks?\n(What are the stages? => https://www.investopedia.com/articles/trading/08/stock-cycle-trend-price.asp)\n(Y/N): ')).lower()
             self.useEmaPrompt = str(input(
                 '[+] Use EMA instead of SMA? (EMA is good for Short-term & SMA for Mid/Long-term trades)[Y/N]: ')).lower()
+            self.logsEnabledPrompt = str(input(
+                '[+] Enable Viewing logs? You can ebale if you are having problems.[Y/N]: ')).lower()
             parser.set('config', 'period', self.period + "d")
             parser.set('config', 'daysToLookback', self.daysToLookback)
             parser.set('config', 'duration', self.duration + "d")
@@ -125,6 +129,7 @@ class tools:
             parser.set('config', 'cacheStockData', self.cacheStockData)
             parser.set('config', 'onlyStageTwoStocks', self.stageTwoPrompt)
             parser.set('config', 'useEMA', self.useEmaPrompt)
+            parser.set('config', 'logsEnabled', self.logsEnabledPrompt)
 
             # delete stock data due to config change
             self.deleteStockData()
@@ -163,6 +168,7 @@ class tools:
                 self.cacheEnabled = True if 'n' not in str(parser.get('config', 'cachestockdata')).lower() else False
                 self.stageTwo = True if 'n' not in str(parser.get('config', 'onlyStageTwoStocks')).lower() else False
                 self.useEMA = False if 'y' not in str(parser.get('config', 'useEMA')).lower() else True
+                self.logsEnabled = False if 'y' not in str(parser.get('config', 'logsEnabled')).lower() else True
             except configparser.NoOptionError:
                 input(colorText.BOLD + colorText.FAIL +
                       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)

@@ -4,9 +4,9 @@ if Imports['talib']:
     import talib
 else:
     try:
-        import talib
-    except:
         import pandas_ta as talib
+    except:
+        import talib
 
 class pktalib:
 

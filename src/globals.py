@@ -648,7 +648,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 print(colorText.BOLD + colorText.WARN +
                     "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
                 try:
-                    os.remove(filename)
+                    if filename is not None:
+                        os.remove(filename)
                 except:
                     pass
             print(colorText.BOLD + colorText.GREEN +

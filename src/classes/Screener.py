@@ -201,7 +201,10 @@ class tools:
         '''
 
         while len(data_low) > points:
-            slope, intercept, r_value, p_value, std_err = linregress(x=data_low['Number'], y=data_low['Low'])
+            try:
+                slope, intercept, r_value, p_value, std_err = linregress(x=data_low['Number'], y=data_low['Low'])
+            except:
+                continue
             data_low = data_low.loc[data_low['Low'] < slope * data_low['Number'] + intercept]
         
         slope, intercept, r_value, p_value, std_err = linregress(x=data_low['Number'], y=data_low['Close'])
