@@ -71,13 +71,13 @@ def initExecution(menuOption=None):
             print(colorText.END, end='')
         if menuOption == '':
             menuOption = 'X'
-        selectedMenu = m0.find(menuOption)
+        selectedMenu = m0.find(menuOption.upper())
         if selectedMenu is not None:
             if selectedMenu.menuKey == 'Z':
                 input(colorText.BOLD + colorText.FAIL +
                     "[+] Press any key to Exit!" + colorText.END)
                 sys.exit(0)
-            elif selectedMenu.menuKey in 'BHUTSEXY':
+            elif selectedMenu.menuKey in ['B','H','U','T','S','E','X','Y']:
                 Utility.tools.clearScreen()
                 selectedChoice['0'] = selectedMenu.menuKey
                 return selectedMenu
@@ -121,7 +121,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
         # elif tickerOption == 'W' or tickerOption == 'w' or tickerOption == 'N' or tickerOption == 'n' or tickerOption == 'E' or tickerOption == 'e':
         elif not str(tickerOption).isnumeric():
             tickerOption = tickerOption.upper()
-            if tickerOption in 'MENZ':
+            if tickerOption in ['M','E','N','Z']:
                 return tickerOption, 0
         else:
             tickerOption = int(tickerOption)
@@ -174,6 +174,88 @@ def initScannerExecution(tickerOption=None, executeOption=None):
         return initScannerExecution()
     return tickerOption, executeOption
 
+def initDataframes():
+    screenResults = pd.DataFrame(columns=[
+                                 'Stock', 'Consol.', 'Breakout', 'LTP','%Chng', 'Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
+    saveResults = pd.DataFrame(columns=[
+                               'Stock', 'Consol.', 'Breakout', 'LTP','%Chng','Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
+    return screenResults, saveResults
+
+def getTestBuildChoices():
+    return 1, 0, {'0':'X','1':'1','2':'0'}
+
+def getDownloadChoices():
+    exists, cache_file = Utility.tools.afterMarketStockDataExists()
+    if exists:
+        shouldReplace = Utility.tools.promptFileExists(cache_file=cache_file, defaultAnswer=defaultAnswer)
+        if shouldReplace == 'N':
+            print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
+            sys.exit(0)
+    return 12, 2, {'0':'X','1':'12','2':'2'}
+    
+def handleSecondaryMenuChoices(menuOption):
+    if menuOption == 'H':
+        Utility.tools.showDevInfo()
+    elif menuOption == 'U':
+        OTAUpdater.checkForUpdate(getProxyServer(), VERSION)
+    elif menuOption == 'T':
+        toggleUserConfig()
+    elif menuOption == 'E':
+        configManager.setConfig(ConfigManager.parser)
+    elif menuOption == 'Y':
+        configManager.showConfigFile()
+    main()
+    return
+
+def getTopLevelMenuChoices(startupoptions):
+    executeOption = None
+    menuOption = None
+    tickerOption = None
+    options =[]
+    if startupoptions is not None:
+        options = startupoptions.split(':')
+        menuOption = options[0] if len(options) >= 1 else None
+        tickerOption = options[1] if len(options) >= 2 else None
+        executeOption = options[2] if len(options) >= 3 else None
+    return options, menuOption, tickerOption, executeOption
+
+def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None):
+    global selectedChoice
+    executeOption = None
+    menuOption = menuOption
+    tickerOption = None
+    if testBuild:
+        tickerOption, executeOption, selectedChoice = getTestBuildChoices()
+    elif downloadOnly:
+        tickerOption, executeOption, selectedChoice = getDownloadChoices()
+    else:
+        try:
+            selectedMenu = initExecution(menuOption=menuOption)
+            menuOption = selectedMenu.menuKey
+            if menuOption in ['H','U','T','E','Y']:
+                return handleSecondaryMenuChoices(menuOption)
+            elif menuOption == 'X':
+                tickerOption, executeOption = initScannerExecution(tickerOption=tickerOption, executeOption=executeOption)
+        except KeyboardInterrupt:
+            input(colorText.BOLD + colorText.FAIL +
+                "[+] Press any key to Exit!" + colorText.END)
+            sys.exit(0)
+    return menuOption, tickerOption, executeOption, selectedChoice
+
+def handleScannerEXecuteOption4():
+    try:
+        daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
+                                        '\n[+] The Volume should be lowest since last how many candles? '))
+    except ValueError as e:
+        default_logger().debug(e, exc_info=True)
+        print(colorText.END)
+        print(colorText.BOLD + colorText.FAIL +
+                '[+] Error: Non-numeric value entered! Screening aborted.' + colorText.END)
+        input('')
+        main()
+        return
+    print(colorText.END)
+
 # Main function
 @tracelog
 def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None):
@@ -194,69 +276,17 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     respChartPattern = 1
     daysForLowestVolume = 30
     reversalOption = None
-
-    screenResults = pd.DataFrame(columns=[
-                                 'Stock', 'Consol.', 'Breakout', 'LTP','%Chng', 'Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
-    saveResults = pd.DataFrame(columns=[
-                               'Stock', 'Consol.', 'Breakout', 'LTP','%Chng','Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
-
-    
-    if testBuild:
-        tickerOption, executeOption = 1, 0
-        selectedChoice = {'0':'X','1':'1','2':'0'}
-    elif downloadOnly:
-        exists, cache_file = Utility.tools.afterMarketStockDataExists()
-        if exists:
-            shouldReplace = Utility.tools.promptFileExists(cache_file=cache_file, defaultAnswer=defaultAnswer)
-            if shouldReplace == 'N':
-                print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
-                sys.exit(0)
-        tickerOption, executeOption = 12, 2
-        selectedChoice = {'0':'X','1':'12','2':'2'}
+    screenResults, saveResults = initDataframes()
+    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions) 
+    selectedMenu = initExecution(menuOption=menuOption)
+    menuOption = selectedMenu.menuKey
+    if menuOption in ['X','T','E','Y','U','H']:
+        menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(testBuild,downloadOnly,startupoptions, menuOption=menuOption)
     else:
-        executeOption = None
-        menuOption = None
-        tickerOption = None
-        options =[]
-        try:
-            if startupoptions is not None:
-                options = startupoptions.split(':')
-                menuOption = options[0] if len(options) >= 1 else None
-                tickerOption = options[1] if len(options) >= 2 else None
-                executeOption = options[2] if len(options) >= 3 else None
-            selectedMenu = initExecution(menuOption=menuOption)
-            menuOption = selectedMenu.menuKey
-            if menuOption == 'H':
-                Utility.tools.showDevInfo()
-                main()
-                return
-            elif menuOption == 'U':
-                OTAUpdater.checkForUpdate(getProxyServer(), VERSION)
-                main()
-                return
-            elif menuOption == 'T':
-                toggleUserConfig()
-                main()
-                return
-            elif menuOption == 'E':
-                configManager.setConfig(ConfigManager.parser)
-                main()
-                return
-            elif menuOption == 'X':
-                tickerOption, executeOption = initScannerExecution(tickerOption=tickerOption, executeOption=executeOption)
-            elif menuOption == 'Y':
-                configManager.showConfigFile()
-                main()
-                return
-            else:
-                print('Work in progress! Try selecting a different option.')
-                sleep(3)
-                main()
-                return
-        except KeyboardInterrupt:
-            input(colorText.BOLD + colorText.FAIL +
-                "[+] Press any key to Exit!" + colorText.END)
-            sys.exit(0)
+        print('Work in progress! Try selecting a different option.')
+        sleep(3)
+        main()
+        return
 
     if tickerOption == 'M' or executeOption == 'M':
         main()
@@ -268,18 +298,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
-        try:
-            daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
-                                            '\n[+] The Volume should be lowest since last how many candles? '))
-        except ValueError as e:
-            default_logger().debug(e, exc_info=True)
-            print(colorText.END)
-            print(colorText.BOLD + colorText.FAIL +
-                  '[+] Error: Non-numeric value entered! Screening aborted.' + colorText.END)
-            input('')
-            main()
-            return
-        print(colorText.END)
+        daysForLowestVolume = handleScannerEXecuteOption4()
     if executeOption == 5:
         minRSI, maxRSI = Utility.tools.promptRSIValues()
         if (not minRSI and not maxRSI):
