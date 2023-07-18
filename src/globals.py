@@ -16,7 +16,7 @@ import classes.Screener as Screener
 import classes.Utility as Utility
 from classes.ColorText import colorText
 from classes.CandlePatterns import CandlePatterns
-from classes.MenuOptions import menu, menus
+from classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
 from classes.ParallelProcessing import StockConsumer
 from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 from alive_progress import alive_bar
@@ -54,69 +54,13 @@ configManager = ConfigManager.tools()
 fetcher = Fetcher.tools(configManager)
 screener = Screener.tools(configManager)
 candlePatterns = CandlePatterns()
-level0MenuDict = {'X': 'Scanners', 'S': 'Strategies', 'B': 'Backtests'}
-level0MenuDictAdditional = {'E': 'Edit user configuration',
-                            'Y': 'View your user configuration',
-                            'U': 'Check for software update',
-                            'H': 'Help / About Developer',
-                            'Z': 'Exit (Ctrl + C)'
-                            }
-level1MenuDict = {'W': 'Screen stocks from my own Watchlist',
-                  'N': 'Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)',
-                  'E': 'Live Index Scan : 5 EMA for Intraday',
-                  '0': 'Screen stocks by the stock names (NSE Stock Code)',
-                  '1': 'Nifty 50          ',
-                  '2': 'Nifty Next 50     ',
-                  '3': 'Nifty 100         ',
-                  '4': 'Nifty 200         ',
-                  '5': 'Nifty 500         ',
-                  '6': 'Nifty Smallcap 50 ',
-                  '7': 'Nifty Smallcap 100',
-                  '8': 'Nifty Smallcap 250',
-                  '9': 'Nifty Midcap 50   ',
-                  '10': 'Nifty Midcap 100',
-                  '11': 'Nifty Midcap 150',
-                  '12': 'Nifty (All Stocks)',
-                  '13': 'Newly Listed (IPOs in last 2 Year)        ',
-                  '14': 'F&O Stocks Only',
-                  'M': 'Back to the Top/Main menu',
-                  'Z': 'Exit (Ctrl + C)'}
-level2MenuDict = {'0': 'Full Screening (Shows Technical Parameters without any criterion)',
-                  '1': 'Probable Breakouts              ',
-                  '2': 'Recent Breakouts & Volumes',
-                  '3': 'Consolidating stocks            ',
-                  '4': 'Lowest Volume in last \'N\'-days (Early Breakout Detection)',
-                  '5': 'RSI screening                   ',
-                  '6': 'Reversal Signals',
-                  '7': 'Stocks making Chart Patterns    ',
-                  '8': 'CCI outside of the given range',
-                  '9': 'Volume gainers                  ',
-                  '10': 'Closing at least 2% up since last 3 days',
-                  '11': 'Short term bullish stocks       ',
-                  '12': '15 Minute Price & Volume breakout',
-                  '13': 'Bullish RSI & MACD Intraday     ',
-                  '14': 'NR4 Daily Today',
-                  '15': '52 week low breakout            ',
-                  '16': '10 days low breakout',
-                  '17': '52 week high breakout           ',
-                  '18': 'Bullish Aroon Crossover',
-                  '19': 'MACD Historgram x below 0       ',
-                  '20': 'RSI entering bullish territory',
-                  '21': 'Bearish CCI crossover           ',
-                  '22': 'RSI crosses above 30 and price higher than psar',
-                  '23': 'Intraday Momentum Build-up      ',
-                  '24': 'Extremely bullish daily close',
-                  '25': 'Rising RSI                      ',
-                  '26': 'Dividend Yield',
-                  '42': 'Show Last Screened Results',
-                  'M': 'Back to the Top/Main menu',
-                  'Z': 'Exit (Ctrl + C)'}
+
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
 m0 = menus()
 m1 = menus()
 m2 = menus()
 def initExecution(menuOption=None):
-    global selectedChoice, level0MenuDict
+    global selectedChoice
     Utility.tools.clearScreen()
     
     m0.renderForMenu(selectedMenu=None)
@@ -161,7 +105,7 @@ def toggleUserConfig():
 
 # Manage Execution flow
 def initScannerExecution(tickerOption=None, executeOption=None):
-    global newlyListedOnly, selectedChoice, level0MenuDict, level1MenuDict
+    global newlyListedOnly, selectedChoice
     Utility.tools.clearScreen()
     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + colorText.END)
     if tickerOption is None:
@@ -199,7 +143,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
     if executeOption is None:
         if tickerOption and tickerOption != 'W':
             Utility.tools.clearScreen()
-            print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1MenuDict[selectedChoice['1']].strip() + colorText.END)
+            print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1_X_MenuDict[selectedChoice['1']].strip() + colorText.END)
             selectedMenu = m1.find(tickerOption)
             m2.renderForMenu(selectedMenu=selectedMenu)
     try:
@@ -233,7 +177,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
 # Main function
 @tracelog
 def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None):
-    global screenResults, selectedChoice, level0MenuDict, level1MenuDict, level2MenuDict, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     defaultAnswer = defaultConsoleAnswer
     options = []
     screenCounter = multiprocessing.Value('i', 1)
@@ -470,7 +414,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = f'({selectedChoice["0"]}){level0MenuDict[selectedChoice["0"]].strip()}>({selectedChoice["1"]}){level1MenuDict[selectedChoice["1"]].strip()}>({selectedChoice["2"]}){level2MenuDict[selectedChoice["2"]].strip()}'
+                    menuChoiceHierarchy = f'({selectedChoice["0"]}){level0MenuDict[selectedChoice["0"]].strip()}>({selectedChoice["1"]}){level1_X_MenuDict[selectedChoice["1"]].strip()}>({selectedChoice["2"]}){level2_X_MenuDict[selectedChoice["2"]].strip()}'
                     if selectedChoice['2'] == '6':
                         menuChoiceHierarchy = menuChoiceHierarchy + f'>({selectedChoice["3"]}){level3ReversalMenuDict[selectedChoice["3"]].strip()}'
                     elif selectedChoice['2'] == '7':
@@ -616,7 +560,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             screenResults = screenResults[screenResults['MA-Signal'].str.contains('Unknown') == False]
             screenResults = screenResults[screenResults[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
             menuChoiceHierarchy = menuChoiceHierarchy + f'({configManager.period} period, {configManager.duration} candles.)'
-            print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
+            print(colorText.BOLD + colorText.FAIL + f'[+] You chose: {menuChoiceHierarchy}\n' + colorText.END)
             tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
             print(tabulated_results)
             if len(screenResults) >= 1:
