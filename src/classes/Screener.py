@@ -13,7 +13,7 @@ import joblib
 import classes.Utility as Utility
 from classes.Pktalib import pktalib
 from classes import Imports
-from classes.log import default_logger
+from classes.log import default_logger, tracelog
 # from sklearn.preprocessing import StandardScaler
 if Imports['scipy']:
     from scipy.signal import argrelextrema
