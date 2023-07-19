@@ -17,7 +17,7 @@ from classes.log import default_logger
 parser = configparser.ConfigParser(strict=False)
 
 # Default attributes for Downloading Cache from Git repo
-default_period = '300d'
+default_period = '365d'
 default_duration = '1d'
 
 # This Class manages read/write of user configuration

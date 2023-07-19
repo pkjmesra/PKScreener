@@ -437,7 +437,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}> **{level2_X_MenuDict[selectedChoice["2"]].strip()}** '
+                    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}>{level2_X_MenuDict[selectedChoice["2"]].strip()}'
                     if selectedChoice['2'] == '6':
                         menuChoiceHierarchy = menuChoiceHierarchy + f'>{level3ReversalMenuDict[selectedChoice["3"]].strip()}'
                     elif selectedChoice['2'] == '7':
@@ -580,25 +580,22 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 inplace=True
             )
             Utility.tools.clearScreen()
-            screenResults = screenResults[screenResults['MA-Signal'].str.contains('Unknown') == False]
-            screenResults = screenResults[screenResults[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
-            menuChoiceHierarchy = menuChoiceHierarchy + f'({configManager.period} period, {configManager.duration} candles.)'
+            screenResults, saveResults = removeUnknowns(screenResults, saveResults)
             print(colorText.BOLD + colorText.FAIL + f'[+] You chose: {menuChoiceHierarchy}\n' + colorText.END)
             tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
             print(tabulated_results)
+            caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
             if len(screenResults) >= 1:
                 if not testing:
                     if len(screenResults) <= 100:
                         # No point sending a photo with more than 50 stocks.
-                        readyForPhoto = saveResults[saveResults['MA-Signal'].str.contains('Unknown') == False]
-                        readyForPhoto = readyForPhoto[readyForPhoto[f'Trend({configManager.daysToLookback}Prds)'].str.contains('Unknown') == False]
-                        menuChoiceHierarchy = f'({len(readyForPhoto)} stocks found). ' + menuChoiceHierarchy
-                        markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='grid')
+                        caption = f'<b>({len(saveResults)}</b> stocks found).</br>{caption}'
+                        markdown_results = tabulate(saveResults, headers='keys', tablefmt='grid')
                         pngName = 'PKScreener-result_' + \
                                 Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"
                         if is_token_telegram_configured():
                             Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
-                            sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
+                            sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
                             try:
                                 os.remove(pngName)
                             except Exception as e:
@@ -617,7 +614,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if len(screenResults) >= 1:
                 filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
                 if filename is not None:
-                    sendMessageToTelegramChannel(document_filePath=filename, caption=menuChoiceHierarchy)
+                    sendMessageToTelegramChannel(document_filePath=filename, caption=caption)
                 print(colorText.BOLD + colorText.WARN +
                     "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
                 try:
@@ -633,6 +630,13 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         elif testing:
             sendMessageToTelegramChannel(message=f'**SUCCESS**: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
         newlyListedOnly = False
+
+def removeUnknowns(screenResults, saveResults):
+    for col in screenResults.keys():
+        screenResults = screenResults[screenResults[col].astype(str).str.contains('Unknown') == False]
+    for col in saveResults.keys():
+        saveResults = saveResults[saveResults[col].astype(str).str.contains('Unknown') == False]
+    return screenResults, saveResults
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
     if message is not None:
