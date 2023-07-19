@@ -14,6 +14,7 @@ with open('msg.log','r') as f:
     lines = f.readlines()
 
 cnt = 0
+commit_hash = ''
 for l in lines:
     if c_msg in l:
         cnt += 1
