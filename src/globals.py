@@ -606,7 +606,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 input('')
         elif testing:
             msg = '<b>SUCCESS</b>' if len(screenResults) >= 1 else '<b>FAIL</b>'
-            sendMessageToTelegramChannel(message=f'msg: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')        newlyListedOnly = False
+            sendMessageToTelegramChannel(message=f'{msg}: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
+            newlyListedOnly = False
 
 def removeUnknowns(screenResults, saveResults):
     for col in screenResults.keys():
