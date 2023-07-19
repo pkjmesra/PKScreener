@@ -572,7 +572,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         menuChoiceHierarchy = f'({len(readyForPhoto)} stocks found). ' + menuChoiceHierarchy
                         markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='grid')
                         pngName = 'PKScreener-result_' + \
-                                datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                                Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"
                         if is_token_telegram_configured():
                             Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
                             sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
@@ -608,7 +608,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if defaultAnswer is None:
                 input('')
         elif testing:
-            sendMessageToTelegramChannel(message=f'SUCCESS: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
+            sendMessageToTelegramChannel(message=f'**SUCCESS**: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
