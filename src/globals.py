@@ -181,7 +181,9 @@ def initDataframes():
                                'Stock', 'Consol.', 'Breakout', 'LTP','%Chng','Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
     return screenResults, saveResults
 
-def getTestBuildChoices():
+def getTestBuildChoices(tickerOption=None, executeOption=None):
+    if tickerOption is not None and executeOption is not None:
+        return tickerOption, executeOption, {'0':'X','1':str(tickerOption),'2':str(executeOption)}
     return 1, 0, {'0':'X','1':'1','2':'0'}
 
 def getDownloadChoices():
@@ -219,13 +221,13 @@ def getTopLevelMenuChoices(startupoptions):
         executeOption = options[2] if len(options) >= 3 else None
     return options, menuOption, tickerOption, executeOption
 
-def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None):
+def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None, tickerOption=None, executeOption=None):
     global selectedChoice
-    executeOption = None
+    executeOption = executeOption
     menuOption = menuOption
-    tickerOption = None
+    tickerOption = tickerOption
     if testBuild:
-        tickerOption, executeOption, selectedChoice = getTestBuildChoices()
+        tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption)
     elif downloadOnly:
         tickerOption, executeOption, selectedChoice = getDownloadChoices()
     else:
@@ -281,7 +283,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
     if menuOption in ['X','T','E','Y','U','H']:
-        menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(testBuild,downloadOnly,startupoptions, menuOption=menuOption)
+        menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(
+            testBuild,downloadOnly,startupoptions, menuOption=menuOption, 
+            tickerOption=tickerOption, executeOption=executeOption)
     else:
         print('Work in progress! Try selecting a different option.')
         sleep(3)
@@ -295,7 +299,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         input(colorText.BOLD + colorText.FAIL +
               "[+] Press any key to Exit!" + colorText.END)
         sys.exit(0)
-    
+    executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
         daysForLowestVolume = handleScannerEXecuteOption4()
@@ -376,7 +380,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         input('')
         main()
         return
-    if (not str(tickerOption).isnumeric() and tickerOption in 'WEMNZ') or (str(tickerOption).isnumeric() and (tickerOption >= 0 and tickerOption < 15)):
+    if (not str(tickerOption).isnumeric() and tickerOption in 'WEMNZ') or (str(tickerOption).isnumeric() and (int(tickerOption) >= 0 and int(tickerOption) < 15)):
         configManager.getConfig(ConfigManager.parser)
         try:
             if tickerOption == 'W':
