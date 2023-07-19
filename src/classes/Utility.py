@@ -262,14 +262,14 @@ class tools:
     def afterMarketStockDataExists():
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
-        cache_date = datetime.date.today()  # for monday to friday
-        weekday = datetime.date.today().weekday()
+        cache_date = curr.today()  # for monday to friday
+        weekday = curr.today().weekday()
         if curr < openTime:  # for monday to friday before 9:15
-            cache_date = datetime.datetime.today() - datetime.timedelta(1)
+            cache_date = curr.today() - datetime.timedelta(1)
         if weekday == 0 and curr < openTime:  # for monday before 9:15
-            cache_date = datetime.datetime.today() - datetime.timedelta(3)
+            cache_date = curr.today() - datetime.timedelta(3)
         if weekday == 5 or weekday == 6:  # for saturday and sunday
-            cache_date = datetime.datetime.today() - datetime.timedelta(days=weekday - 4)
+            cache_date = curr.today() - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
         cache_file = "stock_data_" + str(cache_date) + ".pkl"
         exists = False
@@ -300,6 +300,7 @@ class tools:
 
     def loadStockData(stockDict, configManager, proxyServer=None, downloadOnly=False, defaultAnswer=None,retrial=False):
         exists, cache_file = tools.afterMarketStockDataExists()
+        default_logger().info(f'Stock data cache file:{cache_file} exists ->{str(exists)}')
         stockDataLoaded = False
         if exists:
             with open(cache_file, 'rb') as f:
@@ -331,6 +332,7 @@ class tools:
                 resp = requests.get(cache_url, stream=True, proxies={'https':proxyServer})
             else:
                 resp = requests.get(cache_url, stream=True)
+            default_logger().info(f'Stock data cache file:{cache_file} request status ->{resp.status_code}')
             if resp.status_code == 200:
                 print(colorText.BOLD + colorText.FAIL +
                       "[+] After-Market Stock Data is not cached.." + colorText.END)
@@ -339,18 +341,21 @@ class tools:
                 try:
                     chunksize = 1024*1024*1
                     filesize = int(int(resp.headers.get('content-length'))/chunksize)
-                    bar, spinner = tools.getProgressbarStyle()
-                    f = open(cache_file, 'wb')
-                    dl = 0
-                    with alive_bar(filesize, bar=bar, spinner=spinner, manual=True) as progressbar:
-                        for data in resp.iter_content(chunk_size=chunksize):
-                            dl += 1
-                            f.write(data)
-                            progressbar(dl/filesize)
-                            if dl >= filesize:
-                                progressbar(1.0)
-                    f.close()
-                    stockDataLoaded = True
+                    if filesize > 0:
+                        bar, spinner = tools.getProgressbarStyle()
+                        f = open(cache_file, 'wb')
+                        dl = 0
+                        with alive_bar(filesize, bar=bar, spinner=spinner, manual=True) as progressbar:
+                            for data in resp.iter_content(chunk_size=chunksize):
+                                dl += 1
+                                f.write(data)
+                                progressbar(dl/filesize)
+                                if dl >= filesize:
+                                    progressbar(1.0)
+                        f.close()
+                        stockDataLoaded = True
+                    else:
+                        default_logger().debug(f'Stock data cache file:{cache_file} on server has length ->{filesize}')
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
                     f.close()
