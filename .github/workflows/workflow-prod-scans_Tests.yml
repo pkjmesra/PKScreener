@@ -65,6 +65,12 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
 
+    - name: 2.10 Momentum gainers (Rising bullish momentum)
+      shell: cmd
+      run: |
+        cd src/
+        python pkscreener.py -a Y -p -o X:12:6:3 -e
+
     - name: 2.1 All relevant technical indicators
       shell: cmd
       run: |
@@ -119,12 +125,6 @@ jobs:
         cd src/
         python pkscreener.py -a Y -p -t -o X:12:6:2 -e
   
-    - name: 2.10 Momentum gainers (Rising bullish momentum)
-      shell: cmd
-      run: |
-        cd src/
-        python pkscreener.py -a Y -p -t -o X:12:6:3 -e
-
     - name: 2.11 NR4 daily
       shell: cmd
       run: |
