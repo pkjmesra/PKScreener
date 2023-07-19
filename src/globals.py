@@ -437,11 +437,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = f'({selectedChoice["0"]}){level0MenuDict[selectedChoice["0"]].strip()}>({selectedChoice["1"]}){level1_X_MenuDict[selectedChoice["1"]].strip()}>({selectedChoice["2"]}){level2_X_MenuDict[selectedChoice["2"]].strip()}'
+                    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}> **{level2_X_MenuDict[selectedChoice["2"]].strip()}** '
                     if selectedChoice['2'] == '6':
-                        menuChoiceHierarchy = menuChoiceHierarchy + f'>({selectedChoice["3"]}){level3ReversalMenuDict[selectedChoice["3"]].strip()}'
+                        menuChoiceHierarchy = menuChoiceHierarchy + f'>{level3ReversalMenuDict[selectedChoice["3"]].strip()}'
                     elif selectedChoice['2'] == '7':
-                        menuChoiceHierarchy = menuChoiceHierarchy + f'>({selectedChoice["3"]}){level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
+                        menuChoiceHierarchy = menuChoiceHierarchy + f'>{level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
         except urllib.error.URLError as e:
@@ -595,7 +595,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         menuChoiceHierarchy = f'({len(readyForPhoto)} stocks found). ' + menuChoiceHierarchy
                         markdown_results = tabulate(readyForPhoto, headers='keys', tablefmt='grid')
                         pngName = 'PKScreener-result_' + \
-                                datetime.now().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                                Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"
                         if is_token_telegram_configured():
                             Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
                             sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=menuChoiceHierarchy)
@@ -631,7 +631,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if defaultAnswer is None:
                 input('')
         elif testing:
-            sendMessageToTelegramChannel(message=f'SUCCESS: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
+            sendMessageToTelegramChannel(message=f'**SUCCESS**: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
         newlyListedOnly = False
 
 def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
