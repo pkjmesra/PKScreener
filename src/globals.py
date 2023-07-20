@@ -244,9 +244,13 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
             sys.exit(0)
     return menuOption, tickerOption, executeOption, selectedChoice
 
-def handleScannerEXecuteOption4():
+def handleScannerEXecuteOption4(executeOption,options):
     try:
-        daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 4:
+            daysForLowestVolume = int(options[3])
+        else:
+            daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
                                         '\n[+] The Volume should be lowest since last how many candles? '))
     except ValueError as e:
         default_logger().debug(e, exc_info=True)
@@ -257,6 +261,7 @@ def handleScannerEXecuteOption4():
         main()
         return
     print(colorText.END)
+    return daysForLowestVolume
 
 # Main function
 @tracelog
@@ -302,9 +307,14 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
-        daysForLowestVolume = handleScannerEXecuteOption4()
+        daysForLowestVolume = handleScannerEXecuteOption4(executeOption, options)
     if executeOption == 5:
-        minRSI, maxRSI = Utility.tools.promptRSIValues()
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 5:
+            minRSI = int(options[3])
+            maxRSI = int(options[4])
+        else:
+            minRSI, maxRSI = Utility.tools.promptRSIValues()
         if (not minRSI and not maxRSI):
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for RSI! Values should be in range of 0 to 100. Screening aborted.' + colorText.END)
@@ -464,7 +474,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild)
+                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild)
                  for stock in listStockCodes]
 
         tasks_queue = multiprocessing.JoinableQueue()
@@ -588,11 +598,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if len(screenResults) >= 1:
                 if not testing:
                     if len(screenResults) <= 100:
-                        # No point sending a photo with more than 50 stocks.
-                        caption = f'<b>({len(saveResults)}</b> stocks found).</br>{caption}'
+                        # No point sending a photo with more than 100 stocks.
+                        caption = f'<b>({len(saveResults)}</b> stocks found).{caption}'
                         markdown_results = tabulate(saveResults, headers='keys', tablefmt='grid')
-                        pngName = 'PKScreener-result_' + \
-                                Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                        pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
                         if is_token_telegram_configured():
                             Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
                             sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
@@ -649,12 +658,16 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
     if photo_filePath is not None:
         try:
             send_document(photo_filePath, caption)
+            # Breather for the telegram API to be able to send the heavy photo
+            sleep(2)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             pass
     if document_filePath is not None:
         try:
             send_document(document_filePath, caption)
+            # Breather for the telegram API to be able to send the document
+            sleep(1)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             pass
