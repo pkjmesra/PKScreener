@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import classes.PortfolioTracker as tracker
+from classes.Backtest import backtest
 from time import sleep
 from tabulate import tabulate
 from Telegram import send_message, send_photo, send_document, is_token_telegram_configured
@@ -182,10 +183,10 @@ def initDataframes():
                                'Stock', 'Consol.', 'Breakout', 'LTP','%Chng','Volume', 'MA-Signal', 'RSI', 'Trend', 'Pattern', 'CCI'])
     return screenResults, saveResults
 
-def getTestBuildChoices(tickerOption=None, executeOption=None):
-    if tickerOption is not None and executeOption is not None:
-        return tickerOption, executeOption, {'0':'X','1':str(tickerOption),'2':str(executeOption)}
-    return 1, 0, {'0':'X','1':'1','2':'0'}
+def getTestBuildChoices(tickerOption=None, executeOption=None, menuOption=None):
+    if menuOption is not None and tickerOption is not None and executeOption is not None:
+        return menuOption, tickerOption, executeOption, {'0':'X','1':str(tickerOption),'2':str(executeOption)}
+    return 'X', 1, 0, {'0':'X','1':'1','2':'0'}
 
 def getDownloadChoices():
     exists, cache_file = Utility.tools.afterMarketStockDataExists()
@@ -194,7 +195,7 @@ def getDownloadChoices():
         if shouldReplace == 'N':
             print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
             sys.exit(0)
-    return 12, 2, {'0':'X','1':'12','2':'2'}
+    return 'X', 12, 2, {'0':'X','1':'12','2':'2'}
     
 def handleSecondaryMenuChoices(menuOption):
     if menuOption == 'H':
@@ -210,11 +211,16 @@ def handleSecondaryMenuChoices(menuOption):
     main()
     return
 
-def getTopLevelMenuChoices(startupoptions):
+def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
+    global selectedChoice
     executeOption = None
     menuOption = None
     tickerOption = None
     options =[]
+    if testBuild:
+        menuOption, tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption, menuOption=menuOption)
+    elif downloadOnly:
+        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
     if startupoptions is not None:
         options = startupoptions.split(':')
         menuOption = options[0] if len(options) >= 1 else None
@@ -228,9 +234,9 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
     menuOption = menuOption
     tickerOption = tickerOption
     if testBuild:
-        tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption)
+        menuOption, tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption, menuOption=menuOption)
     elif downloadOnly:
-        tickerOption, executeOption, selectedChoice = getDownloadChoices()
+        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
     else:
         try:
             if menuOption is None:
@@ -286,7 +292,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     daysForLowestVolume = 30
     reversalOption = None
     screenResults, saveResults = initDataframes()
-    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions) 
+    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly) 
     # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
@@ -503,16 +509,20 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 result = results_queue.get()
                 lstscreen = []
                 lstsave = []
+                lstFullData = []
                 default_logger().info(f'Fetched results:\n{result}')
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
+                    lstFullData.append(result[2])
                     df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
                     df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
                     screenResults = pd.concat([screenResults, df_extendedscreen])
                     saveResults = pd.concat([saveResults, df_extendedsave])
                 if testing or (testBuild and len(screenResults) > 2):
                     break
+            # backtest(lstFullData[0],'Momentum',30)
+            # input()
         else:
             for item in items:
                 tasks_queue.put(item)
@@ -527,11 +537,13 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
                     lstscreen = []
                     lstsave = []
+                    lstFullData = []
                     while numStocks:
                         result = results_queue.get()
                         if result is not None:
                             lstscreen.append(result[0])
                             lstsave.append(result[1])
+                            lstFullData.append(result[2])
                         numStocks -= 1
                         progressbar.text(colorText.BOLD + colorText.GREEN +
                                          f'Found {screenResultsCounter.value} Stocks' + colorText.END)
@@ -542,6 +554,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     screenResults = pd.concat([screenResults, df_extendedscreen])
                     saveResults = pd.concat([saveResults, df_extendedsave])
                     # or columns= if identical columns
+                    # backtest(lstFullData[0],'Momentum',30)
             except KeyboardInterrupt:
                 try:
                     keyboardInterruptEvent.set()
