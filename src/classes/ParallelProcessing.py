@@ -22,6 +22,7 @@ from classes.CandlePatterns import CandlePatterns
 from classes.ColorText import colorText
 from classes.SuppressOutput import SuppressOutput
 from classes.log import default_logger, tracelog
+from classes.Backtest import backtest
 
 if sys.platform.startswith('win'):
     import multiprocessing.popen_spawn_win32 as forking
@@ -116,6 +117,7 @@ class StockConsumer(multiprocessing.Process):
             fullData, processedData = screener.preprocessData(
                 data, daysToLookback=configManager.daysToLookback)
             default_logger().info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
+            backtest(fullData,'Momentum',periods=30)
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
                     raise Screener.NotNewlyListed
