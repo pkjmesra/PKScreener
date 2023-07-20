@@ -51,13 +51,16 @@ class tools:
         if np.isnan(hc) or np.isnan(hs):
             saveDict['Breakout'] = 'BO: Unknown'
             screenDict['Breakout'] = colorText.BOLD + colorText.WARN + 'BO: Unknown' + colorText.END
+            default_logger().info(f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({hs}) or max-close ({hc}) are not defined.')
             return False
         if hs > hc:
             if ((hs - hc) <= (hs*2/100)):
                 saveDict['Breakout'] = "BO: " + str(hc)
                 if rc >= hc:
                     screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
+                    default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({hs}) >= max-close ({hc})')
                     return True and self.getCandleType(recent)
+                default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({hs}) < max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return False
             noOfHigherShadows = len(data[data.High > hc])
@@ -65,20 +68,26 @@ class tools:
                 saveDict['Breakout'] = "BO: " + str(hs)
                 if rc >= hs:
                     screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hs) + colorText.END
+                    default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-high ({hs})')
                     return True and self.getCandleType(recent)
+                default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
                 return False
             saveDict['Breakout'] = "BO: " + str(hc) + ", R: " + str(hs)
             if rc >= hc:
+                default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return True and self.getCandleType(recent)
+            default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
             screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
             return False
         else:
             saveDict['Breakout'] = "BO: " + str(hc)
             if rc >= hc:
+                default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
                 return True and self.getCandleType(recent)
+            default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) < max-close ({hc})')
             screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
             return False
 
@@ -545,17 +554,27 @@ class tools:
             data = data.head(3)
             for row in data.iterrows():
                 # All 3 candles should be Green and NOT Circuits
-                if row[1]['Close'].item() <= row[1]['Open'].item():
+                yc = row[1]['Close'].item()
+                yo = row[1]['Open'].item()
+                if yc <= yo:
+                    default_logger().info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because yesterday-close ({yc}) <= yesterday-open ({yo})')
                     return False
             openDesc = data.sort_values(by=['Open'], ascending=False)
             closeDesc = data.sort_values(by=['Close'], ascending=False)
             volDesc = data.sort_values(by=['Volume'], ascending=False)
             try:
                 if data.equals(openDesc) and data.equals(closeDesc) and data.equals(volDesc):
-                    if (data['Open'][0].item() >= data['Close'][1].item()) and (data['Open'][1].item() >= data['Close'][2].item()):
+                    default_logger().info(f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!')
+                    to = data['Open'][0].item()
+                    yc = data['Close'][1].item()
+                    yo = data['Open'][1].item()
+                    dyc = data['Close'][2].item()
+                    if (to >= yc) and (yo >= dyc):
+                        default_logger().info(f'Stock:{saveDict["Stock"]}, is a momentum-gainer because today-open ({to}) >= yesterday-close ({yc}) and yesterday-open({yo}) >= day-before-close({dyc})')
                         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Momentum Gainer' + colorText.END
                         saveDict['Pattern'] = 'Momentum Gainer'
                         return True
+                    default_logger().info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because either today-open ({to}) < yesterday-close ({yc}) or yesterday-open({yo}) < day-before-close({dyc})')
             except IndexError as e:
                 default_logger().debug(e, exc_info=True)
                 pass

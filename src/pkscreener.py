@@ -63,7 +63,8 @@ def setupLogger(shouldLog=False, trace=False):
     print(colorText.BOLD + colorText.GREEN + f'[+] Logs will be written to:' + colorText.END)
     print(colorText.BOLD + colorText.FAIL + f'[+] {log_file_path}' + colorText.END)
     print(colorText.BOLD + colorText.GREEN + f'[+] If you need to share, open this folder, copy and zip the log file to share.' + colorText.END)
-    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None)
+    # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
+    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None, anotherLogger=None)
 
 if __name__ == "__main__":
     if sys.platform.startswith('darwin'):

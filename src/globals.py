@@ -212,7 +212,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
                 sys.exit(0)
         tickerOption, executeOption = 12, 2
-        selectedChoice = {'0':'X','1':'12','2':'2'}
+        selectedChoice = {'0':'X','1':'12','2':'0'}
     else:
         executeOption = None
         menuOption = None
@@ -441,7 +441,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild)
+                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild)
                  for stock in listStockCodes]
 
         tasks_queue = multiprocessing.JoinableQueue()
@@ -626,12 +626,16 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
     if photo_filePath is not None:
         try:
             send_document(photo_filePath, caption)
+            # Breather for the telegram API to be able to send the heavy photo
+            sleep(2)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             pass
     if document_filePath is not None:
         try:
             send_document(document_filePath, caption)
+            # Breather for the telegram API to be able to send the document
+            sleep(1)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             pass

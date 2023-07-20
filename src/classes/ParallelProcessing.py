@@ -74,6 +74,7 @@ class StockConsumer(multiprocessing.Process):
                           'MA-Signal': "", 'Volume': "", 'LTP': 0, '%Chng':0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
 
         try:
+            default_logger().info(f'Beginning the stock screening for stock:{stock}')
             period = configManager.period
             if volumeRatio <= 0:
                 volumeRatio = configManager.volumeRatio
@@ -83,7 +84,7 @@ class StockConsumer(multiprocessing.Process):
                     period = '250d'
                 else:
                     period = configManager.period
-
+            default_logger().info(f'For stock:{stock}, stock exists in stockdict:{self.stockDict.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}')
             if (self.stockDict.get(stock) is None) or (configManager.cacheEnabled is False) or self.isTradingTime or downloadOnly:
                 data = fetcher.fetchStockData(stock,
                                               period,

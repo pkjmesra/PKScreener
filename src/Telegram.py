@@ -128,7 +128,7 @@ def send_photo(photoFilePath, message = "", message_id = None):
         resp = requests.post(botsUrl + method, params, files=files)
     return resp
 
-def send_document(documentFilePath, message="", message_id = None):
+def send_document(documentFilePath, message="", message_id = None, retryCount=0):
     initTelegram()
     if not is_token_telegram_configured():
         return
@@ -146,8 +146,9 @@ def send_document(documentFilePath, message="", message_id = None):
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         from time import sleep
-        sleep(2)
-        resp = requests.post(botsUrl + method, params, files=files)
+        if retryCount <= 3:
+            sleep(2*(retryCount + 1))
+            send_document(documentFilePath, message, message_id, retryCount=retryCount+1)
     return resp
     # content = response.content.decode("utf8")
     # js = json.loads(content)
