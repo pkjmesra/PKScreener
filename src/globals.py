@@ -269,7 +269,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
         try:
-            daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
+            selectedMenu = m2.find(str(executeOption))
+            if len(options) >= 4:
+                daysForLowestVolume = int(options[3])
+            else:
+                daysForLowestVolume = int(input(colorText.BOLD + colorText.WARN +
                                             '\n[+] The Volume should be lowest since last how many candles? '))
         except ValueError as e:
             default_logger().debug(e, exc_info=True)
@@ -281,7 +285,12 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             return
         print(colorText.END)
     if executeOption == 5:
-        minRSI, maxRSI = Utility.tools.promptRSIValues()
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 5:
+            minRSI = int(options[3])
+            maxRSI = int(options[4])
+        else:
+            minRSI, maxRSI = Utility.tools.promptRSIValues()
         if (not minRSI and not maxRSI):
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for RSI! Values should be in range of 0 to 100. Screening aborted.' + colorText.END)
@@ -565,11 +574,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if len(screenResults) >= 1:
                 if not testing:
                     if len(screenResults) <= 100:
-                        # No point sending a photo with more than 50 stocks.
-                        caption = f'<b>({len(saveResults)}</b> stocks found).</br>{caption}'
+                        # No point sending a photo with more than 100 stocks.
+                        caption = f'<b>({len(saveResults)}</b> stocks found).{caption}'
                         markdown_results = tabulate(saveResults, headers='keys', tablefmt='grid')
-                        pngName = 'PKScreener-result_' + \
-                                Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"
+                        pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
                         if is_token_telegram_configured():
                             Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
                             sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
