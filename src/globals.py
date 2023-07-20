@@ -59,6 +59,7 @@ selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
 m0 = menus()
 m1 = menus()
 m2 = menus()
+
 def initExecution(menuOption=None):
     global selectedChoice
     Utility.tools.clearScreen()
@@ -232,8 +233,9 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
         tickerOption, executeOption, selectedChoice = getDownloadChoices()
     else:
         try:
-            selectedMenu = initExecution(menuOption=menuOption)
-            menuOption = selectedMenu.menuKey
+            if menuOption is None:
+                selectedMenu = initExecution(menuOption=menuOption)
+                menuOption = selectedMenu.menuKey
             if menuOption in ['H','U','T','E','Y']:
                 return handleSecondaryMenuChoices(menuOption)
             elif menuOption == 'X':
@@ -285,9 +287,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     reversalOption = None
     screenResults, saveResults = initDataframes()
     options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions) 
+    # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
     if menuOption in ['X','T','E','Y','U','H']:
+        # Print Level 2 menu options
         menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(
             testBuild,downloadOnly,startupoptions, menuOption=menuOption, 
             tickerOption=tickerOption, executeOption=executeOption)
@@ -390,7 +394,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         input('')
         main()
         return
-    if (not str(tickerOption).isnumeric() and tickerOption in 'WEMNZ') or (str(tickerOption).isnumeric() and (int(tickerOption) >= 0 and int(tickerOption) < 15)):
+    if (not str(tickerOption).isnumeric() and tickerOption in ['W','E','M','N','Z']) or (str(tickerOption).isnumeric() and (int(tickerOption) >= 0 and int(tickerOption) < 15)):
         configManager.getConfig(ConfigManager.parser)
         try:
             if tickerOption == 'W':
@@ -453,6 +457,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     elif selectedChoice['2'] == '7':
                         menuChoiceHierarchy = menuChoiceHierarchy + f'>{level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
+                    default_logger().info(menuChoiceHierarchy)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
