@@ -485,7 +485,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild)
+                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,0)
                  for stock in listStockCodes]
 
         tasks_queue = multiprocessing.JoinableQueue()
@@ -560,6 +560,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     screenResults = pd.concat([screenResults, df_extendedscreen])
                     saveResults = pd.concat([saveResults, df_extendedsave])
                 # print(backtest_df)
+                # input()
             except KeyboardInterrupt:
                 try:
                     keyboardInterruptEvent.set()

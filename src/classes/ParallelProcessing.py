@@ -65,7 +65,7 @@ class StockConsumer(multiprocessing.Process):
 
     @tracelog
     def screenStocks(self, executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, totalSymbols,
-                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testbuild=False, printCounter=False):
+                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testbuild=False, printCounter=False,backtestDuration=0):
         screenResults = pd.DataFrame(columns=[
             'Stock', 'Consol.', 'Breakout', 'MA-Signal', 'Volume', 'LTP','%Chng', 'RSI', 'Trend', 'Pattern', 'CCI'])
         screeningDictionary = {'Stock': "", 'Consol.': "",  'Breakout': "",
@@ -114,8 +114,9 @@ class StockConsumer(multiprocessing.Process):
                 data = pd.DataFrame(
                     data['data'], columns=data['columns'], index=data['index'])
             default_logger().info(f'Will pre-process data:\n{data}')
+            reversedData = data[::-1]
             fullData, processedData = screener.preprocessData(
-                data, daysToLookback=configManager.daysToLookback)
+                (data if backtestDuration == 0 else data.iloc[:backtestDuration]), daysToLookback=configManager.daysToLookback)
             default_logger().info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
@@ -216,77 +217,77 @@ class StockConsumer(multiprocessing.Process):
                     default_logger().info(f'Processing results for {stock} in {self.screenResultsCounter.value}th results counter')
                     if executeOption == 0:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if (executeOption == 1 or executeOption == 2) and isBreaking and isVolumeHigh and isLtpValid:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if (executeOption == 1 or executeOption == 3) and (consolidationValue <= configManager.consolidationPercentage and consolidationValue != 0) and isLtpValid:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 4 and isLtpValid and isLowestVolume:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 5 and isLtpValid and isValidRsi:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 6 and isLtpValid:
                         if reversalOption == 1:
                             if saveDictionary['Pattern'] in CandlePatterns.reversalPatternsBullish or isMaReversal > 0:
                                 self.screenResultsCounter.value += 1
-                                return screeningDictionary, saveDictionary, fullData, stock
+                                return screeningDictionary, saveDictionary, reversedData, stock
                         elif reversalOption == 2:
                             if saveDictionary['Pattern'] in CandlePatterns.reversalPatternsBearish or isMaReversal < 0:
                                 self.screenResultsCounter.value += 1
-                                return screeningDictionary, saveDictionary, fullData, stock
+                                return screeningDictionary, saveDictionary, reversedData, stock
                         elif reversalOption == 3 and isMomentum:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         elif reversalOption == 4 and isMaSupport:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         elif reversalOption == 5 and isVSA and saveDictionary['Pattern'] in CandlePatterns.reversalPatternsBullish:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         elif reversalOption == 6 and isNR:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 7 and isLtpValid:
                         if respChartPattern < 3 and isInsideBar:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         if isConfluence:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         if isIpoBase and newlyListedOnly and not respChartPattern < 3:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         if isVCP:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                         if isBuyingTrendline:
                             self.screenResultsCounter.value += 1
-                            return screeningDictionary, saveDictionary, fullData, stock
+                            return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 8 and isLtpValid and isValidCci:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 9 and isVolumeHigh:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 10 and isPriceRisingByAtLeast2Percent:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 11 and isShortTermBullish:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 12 and is15MinutePriceVolumeBreakout:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 13 and isBullishIntradayRSIMACD:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     if executeOption == 14 and isNR4Day:
                         self.screenResultsCounter.value += 1
-                        return screeningDictionary, saveDictionary, fullData, stock
+                        return screeningDictionary, saveDictionary, reversedData, stock
                     
         except KeyboardInterrupt:
             # Capturing Ctr+C Here isn't a great idea
