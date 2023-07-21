@@ -510,11 +510,13 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 lstscreen = []
                 lstsave = []
                 lstFullData = []
+                stocks = []
                 default_logger().info(f'Fetched results:\n{result}')
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
                     lstFullData.append(result[2])
+                    stocks.append(result[3])
                     df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
                     df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
                     screenResults = pd.concat([screenResults, df_extendedscreen])
@@ -533,17 +535,21 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 numStocks = len(listStockCodes)
                 print(colorText.END+colorText.BOLD)
                 bar, spinner = Utility.tools.getProgressbarStyle()
-                
+                backtest_df = None
                 with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
                     lstscreen = []
                     lstsave = []
                     lstFullData = []
+                    stocks = []
                     while numStocks:
                         result = results_queue.get()
                         if result is not None:
                             lstscreen.append(result[0])
                             lstsave.append(result[1])
                             lstFullData.append(result[2])
+                            stocks.append(result[3])
+                            # Backtest for results
+                            # backtest_df = backtest(result[3], result[2],'Momentum',30, backtest_df)
                         numStocks -= 1
                         progressbar.text(colorText.BOLD + colorText.GREEN +
                                          f'Found {screenResultsCounter.value} Stocks' + colorText.END)
@@ -553,8 +559,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
                     screenResults = pd.concat([screenResults, df_extendedscreen])
                     saveResults = pd.concat([saveResults, df_extendedsave])
-                    # or columns= if identical columns
-                    # backtest(lstFullData[0],'Momentum',30)
+                # print(backtest_df)
             except KeyboardInterrupt:
                 try:
                     keyboardInterruptEvent.set()
