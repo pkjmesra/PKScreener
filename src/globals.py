@@ -290,6 +290,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     insideBarToLookback = 7
     respChartPattern = 1
     daysForLowestVolume = 30
+    backtestPeriod= 0
     reversalOption = None
     screenResults, saveResults = initDataframes()
     options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly) 
@@ -670,28 +671,31 @@ def finishScreening(downloadOnly, testing, stockDict, configManager, loadCount, 
     
 def labelDataForPrinting(screenResults,saveResults,configManager,volumeRatio):
     # Publish to gSheet with https://github.com/burnash/gspread 
-    screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-    saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-    screenResults.set_index('Stock', inplace=True)
-    saveResults.set_index('Stock', inplace=True)
-    screenResults.loc[:,'Volume'] = screenResults.loc[:,'Volume'].apply(lambda x: Utility.tools.formatRatio(x, volumeRatio))
-    saveResults.loc[:,'Volume'] = saveResults.loc[:,'Volume'].apply(lambda x: str(x)+"x")
-    screenResults.rename(
-        columns={
-            'Trend': f'Trend({configManager.daysToLookback}Prds)',
-            'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
-            'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
-        },
-        inplace=True
-    )
-    saveResults.rename(
-        columns={
-            'Trend': f'Trend({configManager.daysToLookback}Prds)',
-            'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
-            'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
-        },
-        inplace=True
-    )
+    try:
+        screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+        saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+        screenResults.set_index('Stock', inplace=True)
+        saveResults.set_index('Stock', inplace=True)
+        screenResults.loc[:,'Volume'] = screenResults.loc[:,'Volume'].apply(lambda x: Utility.tools.formatRatio(x, volumeRatio))
+        saveResults.loc[:,'Volume'] = saveResults.loc[:,'Volume'].apply(lambda x: str(x)+"x")
+        screenResults.rename(
+            columns={
+                'Trend': f'Trend({configManager.daysToLookback}Prds)',
+                'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+                'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
+            },
+            inplace=True
+        )
+        saveResults.rename(
+            columns={
+                'Trend': f'Trend({configManager.daysToLookback}Prds)',
+                'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+                'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
+            },
+            inplace=True
+        )
+    except:
+        pass
     return screenResults, saveResults
 
 def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing):
