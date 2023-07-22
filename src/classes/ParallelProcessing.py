@@ -22,6 +22,7 @@ from classes.CandlePatterns import CandlePatterns
 from classes.ColorText import colorText
 from classes.SuppressOutput import SuppressOutput
 from classes.log import default_logger, tracelog
+import classes.Archiver as Archiver
 
 if sys.platform.startswith('win'):
     import multiprocessing.popen_spawn_win32 as forking
@@ -114,9 +115,16 @@ class StockConsumer(multiprocessing.Process):
                 data = pd.DataFrame(
                     data['data'], columns=data['columns'], index=data['index'])
             default_logger().info(f'Will pre-process data:\n{data}')
-            reversedData = data[::-1]
-            fullData, processedData = screener.preprocessData(
-                (data if backtestDuration == 0 else data.iloc[:backtestDuration]), daysToLookback=configManager.daysToLookback)
+            reversedData = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
+            fullData = Archiver.readData(f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
+            processedData = Archiver.readData(f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
+            if reversedData is None or fullData is None or processedData is None:
+                reversedData = data[::-1]
+                fullData, processedData = screener.preprocessData(
+                    (data if backtestDuration == 0 else data.iloc[:backtestDuration]), daysToLookback=configManager.daysToLookback)
+                Archiver.saveData(reversedData, f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                Archiver.saveData(fullData, f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                Archiver.saveData(processedData, f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
             default_logger().info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
@@ -307,6 +315,7 @@ class StockConsumer(multiprocessing.Process):
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             if testbuild or printCounter:
+                print(e)
                 print(colorText.FAIL +
                       ("\n[+] Exception Occured while Screening %s! Skipping this stock.." % stock) + colorText.END)
         return None

@@ -19,6 +19,8 @@ from classes.CandlePatterns import CandlePatterns
 from classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
 from classes.ParallelProcessing import StockConsumer
 from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
+import classes.Archiver as Archiver
+
 from alive_progress import alive_bar
 import urllib
 import numpy as np
@@ -217,15 +219,15 @@ def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
     menuOption = None
     tickerOption = None
     options =[]
-    if testBuild:
-        menuOption, tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption, menuOption=menuOption)
-    elif downloadOnly:
-        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
     if startupoptions is not None:
         options = startupoptions.split(':')
         menuOption = options[0] if len(options) >= 1 else None
         tickerOption = options[1] if len(options) >= 2 else None
         executeOption = options[2] if len(options) >= 3 else None
+    if testBuild:
+        menuOption, tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption, menuOption=menuOption)
+    elif downloadOnly:
+        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
     return options, menuOption, tickerOption, executeOption
 
 def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None, tickerOption=None, executeOption=None):
@@ -233,26 +235,21 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
     executeOption = executeOption
     menuOption = menuOption
     tickerOption = tickerOption
-    if testBuild:
-        menuOption, tickerOption, executeOption, selectedChoice = getTestBuildChoices(tickerOption=tickerOption, executeOption=executeOption, menuOption=menuOption)
-    elif downloadOnly:
-        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
-    else:
-        try:
-            if menuOption is None:
-                selectedMenu = initExecution(menuOption=menuOption)
-                menuOption = selectedMenu.menuKey
-            if menuOption in ['H','U','T','E','Y']:
-                return handleSecondaryMenuChoices(menuOption)
-            elif menuOption == 'X':
-                tickerOption, executeOption = initScannerExecution(tickerOption=tickerOption, executeOption=executeOption)
-        except KeyboardInterrupt:
-            input(colorText.BOLD + colorText.FAIL +
-                "[+] Press any key to Exit!" + colorText.END)
-            sys.exit(0)
+    try:
+        if menuOption is None:
+            selectedMenu = initExecution(menuOption=menuOption)
+            menuOption = selectedMenu.menuKey
+        if menuOption in ['H','U','T','E','Y']:
+            return handleSecondaryMenuChoices(menuOption)
+        elif menuOption == 'X':
+            tickerOption, executeOption = initScannerExecution(tickerOption=tickerOption, executeOption=executeOption)
+    except KeyboardInterrupt:
+        input(colorText.BOLD + colorText.FAIL +
+            "[+] Press any key to Exit!" + colorText.END)
+        sys.exit(0)
     return menuOption, tickerOption, executeOption, selectedChoice
 
-def handleScannerEXecuteOption4(executeOption,options):
+def handleScannerExecuteOption4(executeOption,options):
     try:
         selectedMenu = m2.find(str(executeOption))
         if len(options) >= 4:
@@ -317,7 +314,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
-        daysForLowestVolume = handleScannerEXecuteOption4(executeOption, options)
+        daysForLowestVolume = handleScannerExecuteOption4(executeOption, options)
     if executeOption == 5:
         selectedMenu = m2.find(str(executeOption))
         if len(options) >= 5:
@@ -473,6 +470,18 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             sys.exit(0)
 
         if not downloadOnly and not Utility.tools.isTradingTime() and configManager.cacheEnabled and not loadedStockData and not testing:
+            dfsd = Archiver.readData(f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            dfsc = Archiver.readData(f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            if dfsc is not None and dfsd is not None:
+                print(colorText.BOLD + colorText.WARN +
+                      '[+] Found local results already saved in cache for selected option!\n')
+                printNotifySaveScreenedResults(dfsc,dfsd,selectedChoice,menuChoiceHierarchy,testing)
+                finishScreening(downloadOnly, testing, stockDict, configManager, 
+                        len(screenResults), testBuild, screenResults, saveResults)
+                return
+            else:
+                print(colorText.BOLD + colorText.WARN +
+                      '[+] No local results cache for selected option! Will screen afresh...\n')
             Utility.tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly=downloadOnly, defaultAnswer=defaultAnswer)
             loadedStockData = True
         loadCount = len(stockDict)
@@ -590,80 +599,103 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 default_logger().debug(e, exc_info=True)
                 break
         if not downloadOnly:
-            # Publish to gSheet with https://github.com/burnash/gspread 
-            screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-            saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
-            screenResults.set_index('Stock', inplace=True)
-            saveResults.set_index('Stock', inplace=True)
-            screenResults.loc[:,'Volume'] = screenResults.loc[:,'Volume'].apply(lambda x: Utility.tools.formatRatio(x, volumeRatio))
-            saveResults.loc[:,'Volume'] = saveResults.loc[:,'Volume'].apply(lambda x: str(x)+"x")
-            screenResults.rename(
-                columns={
-                    'Trend': f'Trend({configManager.daysToLookback}Prds)',
-                    'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
-                    'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
-                },
-                inplace=True
-            )
-            saveResults.rename(
-                columns={
-                    'Trend': f'Trend({configManager.daysToLookback}Prds)',
-                    'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
-                    'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
-                },
-                inplace=True
-            )
-            Utility.tools.clearScreen()
+            screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
             screenResults, saveResults = removeUnknowns(screenResults, saveResults)
-            print(colorText.BOLD + colorText.FAIL + f'[+] You chose: {menuChoiceHierarchy}\n' + colorText.END)
-            tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
-            print(tabulated_results)
-            caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
-            if len(screenResults) >= 1:
-                if not testing:
-                    if len(screenResults) <= 100:
-                        # No point sending a photo with more than 100 stocks.
-                        caption = f'<b>({len(saveResults)}</b> stocks found).{caption}'
-                        markdown_results = tabulate(saveResults, headers='keys', tablefmt='grid')
-                        pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
-                        if is_token_telegram_configured():
-                            Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
-                            sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
-                            try:
-                                os.remove(pngName)
-                            except Exception as e:
-                                default_logger().debug(e, exc_info=True)
-                                pass
-                    print(colorText.BOLD + colorText.GREEN +
-                            f"[+] Found {len(screenResults)} Stocks." + colorText.END)
-                    Utility.tools.setLastScreenedResults(screenResults)
+            Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
 
-        if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
-            print(colorText.BOLD + colorText.GREEN +
-                  "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
-            Utility.tools.saveStockData(stockDict, configManager, loadCount)
+        finishScreening(downloadOnly, testing, stockDict, configManager, 
+                        loadCount, testBuild, screenResults, saveResults)
+        newlyListedOnly = False
 
-        if not testBuild and not downloadOnly and not testing:
-            if len(screenResults) >= 1:
-                filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
-                if filename is not None:
-                    sendMessageToTelegramChannel(document_filePath=filename, caption=caption)
-                print(colorText.BOLD + colorText.WARN +
-                    "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
-                try:
-                    if filename is not None:
-                        os.remove(filename)
-                except Exception as e:
-                    default_logger().debug(e, exc_info=True)
-                    pass
+def finishScreening(downloadOnly, testing, stockDict, configManager, loadCount, testBuild, screenResults, saveResults):
+    global defaultAnswer, menuChoiceHierarchy
+    saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount)
+    if not testBuild and not downloadOnly and not testing:
+        saveNotifyResultsFile(screenResults, saveResults, defaultAnswer,menuChoiceHierarchy)
+    elif testing:
+        sendTestStatus(screenResults, menuChoiceHierarchy)
+    
+def labelDataForPrinting(screenResults,saveResults,configManager,volumeRatio):
+    # Publish to gSheet with https://github.com/burnash/gspread 
+    screenResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+    saveResults.sort_values(by=['Volume'], ascending=False, inplace=True)
+    screenResults.set_index('Stock', inplace=True)
+    saveResults.set_index('Stock', inplace=True)
+    screenResults.loc[:,'Volume'] = screenResults.loc[:,'Volume'].apply(lambda x: Utility.tools.formatRatio(x, volumeRatio))
+    saveResults.loc[:,'Volume'] = saveResults.loc[:,'Volume'].apply(lambda x: str(x)+"x")
+    screenResults.rename(
+        columns={
+            'Trend': f'Trend({configManager.daysToLookback}Prds)',
+            'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+            'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
+        },
+        inplace=True
+    )
+    saveResults.rename(
+        columns={
+            'Trend': f'Trend({configManager.daysToLookback}Prds)',
+            'Breakout': f'Breakout ({configManager.daysToLookback}Prds)',
+            'Consol.': f'Consol.({configManager.daysToLookback}Prds)',
+        },
+        inplace=True
+    )
+    return screenResults, saveResults
+
+def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing):
+    Utility.tools.clearScreen()
+    print(colorText.BOLD + colorText.FAIL + f'[+] You chose: {menuChoiceHierarchy}\n' + colorText.END)
+    tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
+    print(tabulated_results)
+    caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
+    if len(screenResults) >= 1:
+        if not testing:
+            if len(screenResults) <= 100:
+                # No point sending a photo with more than 100 stocks.
+                caption = f'<b>({len(saveResults)}</b> stocks found).{caption}'
+                markdown_results = tabulate(saveResults, headers='keys', tablefmt='grid')
+                pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
+                if is_token_telegram_configured():
+                    Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
+                    sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
+                    try:
+                        os.remove(pngName)
+                    except Exception as e:
+                        default_logger().debug(e, exc_info=True)
+                        pass
             print(colorText.BOLD + colorText.GREEN +
-                "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
-            if defaultAnswer is None:
-                input('')
-        elif testing:
-            msg = '<b>SUCCESS</b>' if len(screenResults) >= 1 else '<b>FAIL</b>'
-            sendMessageToTelegramChannel(message=f'{msg}: Found {len(screenResults)} Stocks for {menuChoiceHierarchy}')
-            newlyListedOnly = False
+                    f"[+] Found {len(screenResults)} Stocks." + colorText.END)
+            Utility.tools.setLastScreenedResults(screenResults)
+
+def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
+    if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
+        print(colorText.BOLD + colorText.GREEN +
+                "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
+        Utility.tools.saveStockData(stockDict, configManager, loadCount)
+
+def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy):
+    caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
+    if len(screenResults) >= 1:
+        filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
+        if filename is not None:
+            sendMessageToTelegramChannel(document_filePath=filename, caption=caption)
+        print(colorText.BOLD + colorText.WARN +
+            "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
+        try:
+            if filename is not None:
+                os.remove(filename)
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
+            pass
+    print(colorText.BOLD + colorText.GREEN +
+        "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
+    if defaultAnswer is None:
+        input('')
+
+def sendTestStatus(screenResults, label):
+    msg = '<b>SUCCESS</b>' if len(screenResults) >= 1 else '<b>FAIL</b>'
+    sendMessageToTelegramChannel(message=f'{msg}: Found {len(screenResults)} Stocks for {label}')
 
 def removeUnknowns(screenResults, saveResults):
     for col in screenResults.keys():
@@ -706,6 +738,3 @@ def getProxyServer():
     return proxyServer
 
 proxyServer = getProxyServer()
-
-# https://chartink.com/screener/15-min-price-volume-breakout
-# https://chartink.com/screener/15min-volume-breakout
