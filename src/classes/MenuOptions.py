@@ -139,10 +139,13 @@ class menus:
 
     def fromDictionary(self, rawDictionary={}, 
                        renderStyle=MenuRenderStyle.STANDALONE, 
-                       renderExceptionKeys=[]):
+                       renderExceptionKeys=[],
+                       skip=[]):
         tabLevel = 0
         self.menuDict = {}
         for key in rawDictionary:
+            if key in skip:
+                continue
             m = menu()
             m.create(str(key).upper(), rawDictionary[key], level=self.level)
             if key in renderExceptionKeys:
@@ -162,7 +165,7 @@ class menus:
             menuText = menuText + m.render()
         return menuText
 
-    def renderForMenu(self, selectedMenu=None):
+    def renderForMenu(self, selectedMenu=None, skip=[]):
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
             return self.renderLevel0Menus()
@@ -170,7 +173,7 @@ class menus:
             if selectedMenu.level == 0:
                 self.level = 1
                 # sub-menu of the top level main selected menu
-                return self.renderLevel1_X_Menus()
+                return self.renderLevel1_X_Menus(skip=skip)
             elif selectedMenu.level == 1:
                 self.level = 2
                 # next levelsub-menu of the selected sub-menu
@@ -197,10 +200,13 @@ class menus:
     Enter your choice >  (default is ''' + colorText.WARN + self.find('X').keyTextLabel() + ') ''' + colorText.END
             )
     
-    def renderLevel1_X_Menus(self):
+    def renderLevel1_X_Menus(self,skip=[]):
         print(colorText.BOLD + colorText.WARN +
             '[+] Select an Index for Screening:' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level1_X_MenuDict, renderExceptionKeys=['W','0','M'], renderStyle=MenuRenderStyle.THREE_PER_ROW).render() + '''
+        print(colorText.BOLD + self.fromDictionary(level1_X_MenuDict, 
+                                                   renderExceptionKeys=['W','0','M'], 
+                                                   renderStyle=MenuRenderStyle.THREE_PER_ROW,
+                                                   skip=skip).render() + '''
 
     Enter your choice > (default is ''' + colorText.WARN + self.find('12').keyTextLabel() + ')  ''' + colorText.END
             )

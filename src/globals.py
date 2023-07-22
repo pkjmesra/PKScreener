@@ -108,13 +108,16 @@ def toggleUserConfig():
     input('\nPress any key to Continue...\n')
 
 # Manage Execution flow
-def initScannerExecution(tickerOption=None, executeOption=None):
+def initPostLevel0Execution(menuOption=None, tickerOption=None, executeOption=None, skip=[]):
     global newlyListedOnly, selectedChoice
     Utility.tools.clearScreen()
+    if menuOption is None:
+        print('You must choose an option from the previous menu! Defaulting to "X"...')
+        menuOption = 'X'
     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + colorText.END)
     if tickerOption is None:
-        selectedMenu = m0.find('X')
-        m1.renderForMenu(selectedMenu=selectedMenu)
+        selectedMenu = m0.find(menuOption)
+        m1.renderForMenu(selectedMenu=selectedMenu, skip=skip)
     try:
         if tickerOption is None:
             tickerOption = input(
@@ -143,7 +146,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
         Utility.tools.clearScreen()
-        return initScannerExecution()
+        return initPostLevel0Execution()
     if executeOption is None:
         if tickerOption and tickerOption != 'W':
             Utility.tools.clearScreen()
@@ -175,7 +178,7 @@ def initScannerExecution(tickerOption=None, executeOption=None):
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
         Utility.tools.clearScreen()
-        return initScannerExecution()
+        return initPostLevel0Execution()
     return tickerOption, executeOption
 
 def initDataframes():
@@ -242,7 +245,7 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
         if menuOption in ['H','U','T','E','Y']:
             return handleSecondaryMenuChoices(menuOption)
         elif menuOption == 'X':
-            tickerOption, executeOption = initScannerExecution(tickerOption=tickerOption, executeOption=executeOption)
+            tickerOption, executeOption = initPostLevel0Execution(tickerOption=tickerOption, executeOption=executeOption)
     except KeyboardInterrupt:
         input(colorText.BOLD + colorText.FAIL +
             "[+] Press any key to Exit!" + colorText.END)
@@ -298,6 +301,16 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(
             testBuild,downloadOnly,startupoptions, menuOption=menuOption, 
             tickerOption=tickerOption, executeOption=executeOption)
+    elif menuOption == 'B':
+        # Backtests
+        print(colorText.BOLD + colorText.BLUE +
+                                      "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods.")
+        backtestPeriod = int(input(colorText.BOLD + colorText.BLUE +
+                                      "[+] Enter backtesting period (Default is 30 [days]): "))
+        tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,
+                                                              tickerOption=tickerOption,
+                                                              executeOption=executeOption,
+                                                              skip=['N', 'E'])
     else:
         print('Work in progress! Try selecting a different option.')
         sleep(3)
@@ -469,7 +482,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             input('')
             sys.exit(0)
 
-        if not downloadOnly and not Utility.tools.isTradingTime() and configManager.cacheEnabled and not loadedStockData and not testing:
+        if menuOption =='X' and not downloadOnly and not Utility.tools.isTradingTime() and configManager.cacheEnabled and not loadedStockData and not testing:
             dfsd = Archiver.readData(f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             dfsc = Archiver.readData(f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             if dfsc is not None and dfsd is not None:
@@ -494,7 +507,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,0)
+                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(backtestPeriod if menuOption.upper() =='B' else 0))
                  for stock in listStockCodes]
 
         tasks_queue = multiprocessing.JoinableQueue()
@@ -558,11 +571,19 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                             lstFullData.append(result[2])
                             stocks.append(result[3])
                             # Backtest for results
-                            # backtest_df = backtest(result[3], result[2],'Momentum',30, backtest_df)
+                            if menuOption == 'B':
+                                backtest_df = backtest(result[3], result[2],'Whatever',backtestPeriod, backtest_df)
                         numStocks -= 1
                         progressbar.text(colorText.BOLD + colorText.GREEN +
                                          f'Found {screenResultsCounter.value} Stocks' + colorText.END)
                         progressbar()
+                if menuOption == 'B' and len(backtest_df) > 0:
+                    backtest_df.set_index('Stock', inplace=True)
+                    Utility.tools.clearScreen()
+                    pd.set_option("display.max_rows", 200)
+                    pd.set_option("display.max_columns", 20)
+                    print(backtest_df)
+                    input()
                     # create extension
                     df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
                     df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
