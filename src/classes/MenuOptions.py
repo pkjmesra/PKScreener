@@ -177,11 +177,11 @@ class menus:
             elif selectedMenu.level == 1:
                 self.level = 2
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel2_X_Menus()
+                return self.renderLevel2_X_Menus(skip=skip)
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel3_X_Reversal_Menus() if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus()
+                return self.renderLevel3_X_Reversal_Menus(skip=skip) if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus()
         
     def find(self, key=None):
         if key is not None:
@@ -211,26 +211,35 @@ class menus:
     Enter your choice > (default is ''' + colorText.WARN + self.find('12').keyTextLabel() + ')  ''' + colorText.END
             )
     
-    def renderLevel2_X_Menus(self):
+    def renderLevel2_X_Menus(self,skip=[]):
         print(colorText.BOLD + colorText.WARN +
             '[+] Select a Criterion for Stock Screening: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level2_X_MenuDict, renderExceptionKeys=['0','42','M'], renderStyle=MenuRenderStyle.TWO_PER_ROW).render() + '''
+        print(colorText.BOLD + self.fromDictionary(level2_X_MenuDict, 
+                                                   renderExceptionKeys=['0','42','M'], 
+                                                   renderStyle=MenuRenderStyle.TWO_PER_ROW,
+                                                   skip=skip).render() + '''
 
     ''' + colorText.END
             )
 
-    def renderLevel3_X_Reversal_Menus(self):
+    def renderLevel3_X_Reversal_Menus(self,skip=[]):
         print(colorText.BOLD + colorText.WARN +
             '[+] Select an option: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level3_X_Reversal_MenuDict, renderExceptionKeys=['0'], renderStyle=MenuRenderStyle.STANDALONE).render() + '''
+        print(colorText.BOLD + self.fromDictionary(level3_X_Reversal_MenuDict,
+                                                   renderExceptionKeys=['0'],
+                                                   renderStyle=MenuRenderStyle.STANDALONE,
+                                                   skip=skip).render() + '''
 
     ''' + colorText.END
             )
         
-    def renderLevel3_X_ChartPattern_Menus(self):
+    def renderLevel3_X_ChartPattern_Menus(self,skip=[]):
         print(colorText.BOLD + colorText.WARN +
             '[+] Select an option: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level3_X_ChartPattern_MenuDict, renderExceptionKeys=['0'], renderStyle=MenuRenderStyle.STANDALONE).render() + '''
+        print(colorText.BOLD + self.fromDictionary(level3_X_ChartPattern_MenuDict,
+                                                   renderExceptionKeys=['0'],
+                                                   renderStyle=MenuRenderStyle.STANDALONE,
+                                                   skip=skip).render() + '''
 
     ''' + colorText.END
             )

@@ -75,7 +75,8 @@ def initExecution(menuOption=None):
             print(colorText.END, end='')
         if menuOption == '':
             menuOption = 'X'
-        selectedMenu = m0.find(menuOption.upper())
+        menuOption = menuOption.upper()
+        selectedMenu = m0.find(menuOption)
         if selectedMenu is not None:
             if selectedMenu.menuKey == 'Z':
                 input(colorText.BOLD + colorText.FAIL +
@@ -147,12 +148,16 @@ def initPostLevel0Execution(menuOption=None, tickerOption=None, executeOption=No
         sleep(2)
         Utility.tools.clearScreen()
         return initPostLevel0Execution()
+    return tickerOption, executeOption
+
+def initPostLevel1Execution(tickerOption, executeOption=None, skip=[]):
+    global selectedChoice
     if executeOption is None:
         if tickerOption and tickerOption != 'W':
             Utility.tools.clearScreen()
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1_X_MenuDict[selectedChoice['1']].strip() + colorText.END)
             selectedMenu = m1.find(tickerOption)
-            m2.renderForMenu(selectedMenu=selectedMenu)
+            m2.renderForMenu(selectedMenu=selectedMenu,skip=skip)
     try:
         if tickerOption and tickerOption != 'W':
             if executeOption is None:
@@ -160,7 +165,7 @@ def initPostLevel0Execution(menuOption=None, tickerOption=None, executeOption=No
                     colorText.BOLD + colorText.FAIL + '[+] Select option: ')
                 print(colorText.END, end='')
             if executeOption == '':
-                executeOption = 0
+                _ , executeOption = initPostLevel1Execution(tickerOption, None, skip=skip)
             if not str(executeOption).isnumeric():
                 executeOption = executeOption.upper()
             else:
@@ -178,7 +183,7 @@ def initPostLevel0Execution(menuOption=None, tickerOption=None, executeOption=No
               '\n[+] Please enter a valid numeric option & Try Again!' + colorText.END)
         sleep(2)
         Utility.tools.clearScreen()
-        return initPostLevel0Execution()
+        return initPostLevel1Execution()
     return tickerOption, executeOption
 
 def initDataframes():
@@ -245,7 +250,8 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
         if menuOption in ['H','U','T','E','Y']:
             return handleSecondaryMenuChoices(menuOption)
         elif menuOption == 'X':
-            tickerOption, executeOption = initPostLevel0Execution(tickerOption=tickerOption, executeOption=executeOption)
+            tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,tickerOption=tickerOption, executeOption=executeOption)
+            tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption, executeOption=executeOption)
     except KeyboardInterrupt:
         input(colorText.BOLD + colorText.FAIL +
             "[+] Press any key to Exit!" + colorText.END)
@@ -304,14 +310,22 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             tickerOption=tickerOption, executeOption=executeOption)
     elif menuOption == 'B':
         # Backtests
-        print(colorText.BOLD + colorText.BLUE +
+        print(colorText.BOLD + colorText.GREEN +
                                       "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods.")
-        backtestPeriod = int(input(colorText.BOLD + colorText.BLUE +
+        backtestPeriod = 0
+        try:
+            backtestPeriod = int(input(colorText.BOLD + colorText.FAIL +
                                       "[+] Enter backtesting period (Default is 30 [days]): "))
+        except:
+            pass
+        if backtestPeriod == 0:
+            backtestPeriod = 30
         tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,
                                                               tickerOption=tickerOption,
                                                               executeOption=executeOption,
                                                               skip=['N', 'E'])
+        tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption,
+                                                              skip=['0','15','16','17','18','19','20','21','22','23','24','25','26','42'])
     else:
         print('Work in progress! Try selecting a different option.')
         sleep(3)
@@ -476,6 +490,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                     default_logger().info(menuChoiceHierarchy)
                 listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
+                if menuOption == 'B' and tickerOption == 0:
+                    tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption,
+                                                              skip=['0','15','16','17','18','19','20','21','22','23','24','25','26','42'])
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
@@ -502,15 +519,18 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
 
         if not downloadOnly:
             print(colorText.BOLD + colorText.WARN +
-                "[+] Starting Stock Screening.. Press Ctrl+C to stop!\n")
+                f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!\n")
         else:
             print(colorText.BOLD + colorText.WARN +
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
-        iterations = 5 if menuOption == 'B' else 1
+        iterations = getIterationCount(len(listStockCodes)) if menuOption.upper() == 'B' else 1
         sampleDays = ((iterations + backtestPeriod) if menuOption == 'B' else 0)
         iteration = 0
         backtest_df = None
+        if menuOption.upper() == 'B':
+            print(colorText.BOLD + colorText.WARN +
+                f"[+] A total of {iterations} iterations are planned. It might take {int(50*iterations/60)} minutes.\n")
         while iteration < iterations or not keyboardInterruptEvent.is_set():
             items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(sampleDays-iteration))
@@ -545,12 +565,22 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
                 backtest_df.set_index('Stock', inplace=True)
                 Utility.tools.clearScreen()
-                pd.set_option("display.max_rows", 200)
+                pd.set_option("display.max_rows", 300)
                 # pd.set_option("display.max_columns", 20)
-                backtest_df.sort_values(by=['1-Pd'], ascending=False, inplace=True)
-                print(backtest_df)
+                backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
+                print(tabulate(backtest_df, headers='keys', tablefmt='grid'))
                 input('Press any key to continue...')
         newlyListedOnly = False
+
+def color_negative_red(val):
+    color = 'red' if str(val).startswith('-') else 'green'
+    return 'color: %s' % color
+
+def getIterationCount(numStocks):
+    # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
+    # stocks. We would like the backtest to finish with 3-5 minutes.
+    iterations = (60/numStocks) * 3.5
+    return (5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
 def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,sampleDays,consumers,screenResults,saveResults,backtest_df):
     populateQueues(items,tasks_queue)

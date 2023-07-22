@@ -1,4 +1,5 @@
 import pandas as pd
+from classes.ColorText import colorText
 
 def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = None):
     if stock == '' or data is None:
@@ -23,22 +24,28 @@ def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = 
         backTestedData = pd.DataFrame(columns=['Stock','Base-Date','1-Pd','2-Pd','3-Pd','4-Pd','5-Pd','10-Pd','15-Pd','22-Pd','30-Pd'])
     backTestedStock = {'Stock':'','Base-Date':'','1-Pd':'','2-Pd':'','3-Pd':'','4-Pd':'','5-Pd':'','10-Pd':'','15-Pd':'','22-Pd':'','30-Pd':''}
     backTestedStock['Stock'] = stock
-    backTestedStock['Base-Date'] = previous_recent.iloc[:,0][0] # Date or index column
+    backTestedStock['Base-Date'] = str(previous_recent.iloc[:,0][0]) # Date or index column
     for prd in calcPeriods:
         if abs(prd) <= periods:
-            rolling_pct = (daysback_df['Close'].pct_change(periods=prd) * 100)
-            # print(rolling_pct)
-            pct_change = rolling_pct.iloc[prd]
-            backTestedStock[f'{abs(prd)}-Pd'] = "%.2f%%" % pct_change
+            try:
+                rolling_pct = (daysback_df['Close'].pct_change(periods=prd) * 100)
+                # print(rolling_pct)
+                pct_change = rolling_pct.iloc[prd]
+                backTestedStock[f'{abs(prd)}-Pd'] = (colorText.GREEN if pct_change >= 0 else colorText.FAIL) + "%.2f%%" % pct_change  + colorText.END
+            except:
+                continue
         else:
             del backTestedStock[f'{abs(prd)}-Pd']
             try:
                 backTestedData = backTestedData.drop(f'{abs(prd)}-Pd', axis=1)
             except:
-                pass
+                continue
     allStockBacktestData.append(backTestedStock)
     df = pd.DataFrame(allStockBacktestData, columns=backTestedData.columns)
-    backTestedData = pd.concat([backTestedData, df])
+    try:
+        backTestedData = pd.concat([backTestedData, df])
+    except:
+        pass
     # print(backTestedData)
     # input()
     return backTestedData
