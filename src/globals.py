@@ -510,7 +510,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         sampleDays = ((iterations + backtestPeriod) if menuOption == 'B' else 0)
         iteration = 0
         backtest_df = None
-        while iteration < iterations:
+        while iteration < iterations or not keyboardInterruptEvent.is_set():
             items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(sampleDays-iteration))
                     for stock in listStockCodes]
@@ -545,9 +545,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 backtest_df.set_index('Stock', inplace=True)
                 Utility.tools.clearScreen()
                 pd.set_option("display.max_rows", 200)
-                pd.set_option("display.max_columns", 20)
+                # pd.set_option("display.max_columns", 20)
+                backtest_df.sort_values(by=['1-Pd'], ascending=False, inplace=True)
                 print(backtest_df)
-                input()
+                input('Press any key to continue...')
         newlyListedOnly = False
 
 def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,sampleDays,consumers,screenResults,saveResults,backtest_df):
