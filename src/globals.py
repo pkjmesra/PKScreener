@@ -19,7 +19,7 @@ from classes.CandlePatterns import CandlePatterns
 from classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
 from classes.ParallelProcessing import StockConsumer
 from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
-import classes.Archiver as Archiver
+# import classes.Archiver as Archiver
 
 from alive_progress import alive_bar
 import urllib
@@ -483,8 +483,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             sys.exit(0)
 
         if menuOption =='X' and not downloadOnly and not Utility.tools.isTradingTime() and configManager.cacheEnabled and not loadedStockData and not testing:
-            dfsd = Archiver.readData(f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            dfsc = Archiver.readData(f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            dfsd = None #Archiver.readData(f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            dfsc = None #Archiver.readData(f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             if dfsc is not None and dfsd is not None:
                 print(colorText.BOLD + colorText.WARN +
                       '[+] Found local results already saved in cache for selected option!\n')
@@ -530,8 +530,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if not downloadOnly and menuOption=='X':
                 screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
                 screenResults, saveResults = removeUnknowns(screenResults, saveResults)
-                Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-                Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+                # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+                # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
                 printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
             if menuOption=='X':
                 finishScreening(downloadOnly, testing, stockDict, configManager, 
