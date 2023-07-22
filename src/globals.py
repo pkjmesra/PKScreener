@@ -506,129 +506,158 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             print(colorText.BOLD + colorText.WARN +
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
-        items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                  configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(backtestPeriod if menuOption.upper() =='B' else 0))
-                 for stock in listStockCodes]
+        iterations = 5 if menuOption == 'B' else 1
+        sampleDays = ((iterations + backtestPeriod) if menuOption == 'B' else 0)
+        iteration = 0
+        backtest_df = None
+        while iteration < iterations:
+            items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
+                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(sampleDays-iteration))
+                    for stock in listStockCodes]
+            tasks_queue, results_queue, totalConsumers = initQueues()
+            consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
+                        for _ in range(totalConsumers)]
+            startWorkers(consumers)
+            if testing or testBuild:
+                screenResults, saveResults = runTests(items,tasks_queue,results_queue,screenResults,saveResults)
+            else:
+                screenResults, saveResults,backtest_df = runScanners(menuOption,items,tasks_queue,results_queue,
+                                                        listStockCodes,backtestPeriod,(sampleDays-iteration), consumers,screenResults,
+                                                        saveResults,backtest_df)
+            
+            print(colorText.END)
+            terminateAllWorkers(consumers, tasks_queue)
+            if not downloadOnly and menuOption=='X':
+                screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
+                screenResults, saveResults = removeUnknowns(screenResults, saveResults)
+                Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+                Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+                printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
+            if menuOption=='X':
+                finishScreening(downloadOnly, testing, stockDict, configManager, 
+                            loadCount, testBuild, screenResults, saveResults)
+            iteration = iteration + 1
+            if menuOption == 'B' and backtest_df is not None and len(backtest_df) >= 100:
+                iteration = iterations
+                break
 
-        tasks_queue = multiprocessing.JoinableQueue()
-        results_queue = multiprocessing.Queue()
+        if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
+                backtest_df.set_index('Stock', inplace=True)
+                Utility.tools.clearScreen()
+                pd.set_option("display.max_rows", 200)
+                pd.set_option("display.max_columns", 20)
+                print(backtest_df)
+                input()
+        newlyListedOnly = False
 
-        totalConsumers = multiprocessing.cpu_count()
-        if totalConsumers == 1:
-            totalConsumers = 2      # This is required for single core machine
-        if configManager.cacheEnabled is True and multiprocessing.cpu_count() > 2:
-            totalConsumers -= 1
-        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
-                     for _ in range(totalConsumers)]
-
-        for worker in consumers:
-            worker.daemon = True
-            worker.start()
-
-        if testing or testBuild:
-            for item in items:
-                tasks_queue.put(item)
+def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,sampleDays,consumers,screenResults,saveResults,backtest_df):
+    populateQueues(items,tasks_queue)
+    try:
+        numStocks = len(listStockCodes)
+        print(colorText.END+colorText.BOLD)
+        bar, spinner = Utility.tools.getProgressbarStyle()
+        with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
+            lstscreen = []
+            lstsave = []
+            lstFullData = []
+            stocks = []
+            while numStocks:
                 result = results_queue.get()
-                lstscreen = []
-                lstsave = []
-                lstFullData = []
-                stocks = []
-                default_logger().info(f'Fetched results:\n{result}')
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
                     lstFullData.append(result[2])
                     stocks.append(result[3])
-                    df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
-                    df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
-                    screenResults = pd.concat([screenResults, df_extendedscreen])
-                    saveResults = pd.concat([saveResults, df_extendedsave])
-                if testing or (testBuild and len(screenResults) > 2):
-                    break
-            # backtest(lstFullData[0],'Momentum',30)
-            # input()
-        else:
-            for item in items:
-                tasks_queue.put(item)
-            # Append exit signal for each process indicated by None
-            for _ in range(multiprocessing.cpu_count()):
-                tasks_queue.put(None)
-            try:
-                numStocks = len(listStockCodes)
-                print(colorText.END+colorText.BOLD)
-                bar, spinner = Utility.tools.getProgressbarStyle()
-                backtest_df = None
-                with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
-                    lstscreen = []
-                    lstsave = []
-                    lstFullData = []
-                    stocks = []
-                    while numStocks:
-                        result = results_queue.get()
-                        if result is not None:
-                            lstscreen.append(result[0])
-                            lstsave.append(result[1])
-                            lstFullData.append(result[2])
-                            stocks.append(result[3])
-                            # Backtest for results
-                            if menuOption == 'B':
-                                backtest_df = backtest(result[3], result[2],'Whatever',backtestPeriod, backtest_df)
-                        numStocks -= 1
-                        progressbar.text(colorText.BOLD + colorText.GREEN +
-                                         f'Found {screenResultsCounter.value} Stocks' + colorText.END)
-                        progressbar()
-                if menuOption == 'B' and len(backtest_df) > 0:
-                    backtest_df.set_index('Stock', inplace=True)
-                    Utility.tools.clearScreen()
-                    pd.set_option("display.max_rows", 200)
-                    pd.set_option("display.max_columns", 20)
-                    print(backtest_df)
-                    input()
-                    # create extension
-                    df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
-                    df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
-                    screenResults = pd.concat([screenResults, df_extendedscreen])
-                    saveResults = pd.concat([saveResults, df_extendedsave])
-                # print(backtest_df)
-                # input()
-            except KeyboardInterrupt:
-                try:
-                    keyboardInterruptEvent.set()
-                except KeyboardInterrupt:
-                    pass
-                print(colorText.BOLD + colorText.FAIL +
-                      "\n[+] Terminating Script, Please wait..." + colorText.END)
-                for worker in consumers:
-                    worker.terminate()
-
-        print(colorText.END)
-        # Exit all processes. Without this, it threw error in next screening session
+                    # Backtest for results
+                    if menuOption == 'B':
+                        backtest_df = backtest(result[3], result[2],'Whatever',backtestPeriod,sampleDays,backtest_df)
+                numStocks -= 1
+                progressbar.text(colorText.BOLD + colorText.GREEN +
+                                    f'Found {screenResultsCounter.value} Stocks' + colorText.END)
+                progressbar()
+        
+        if menuOption == 'X':
+            # create extension
+            df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
+            df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
+            screenResults = pd.concat([screenResults, df_extendedscreen])
+            saveResults = pd.concat([saveResults, df_extendedsave])
+    except KeyboardInterrupt:
+        try:
+            keyboardInterruptEvent.set()
+        except KeyboardInterrupt:
+            pass
+        print(colorText.BOLD + colorText.FAIL +
+                "\n[+] Terminating Script, Please wait..." + colorText.END)
         for worker in consumers:
-            try:
-                worker.terminate()
-            except OSError as e:
-                default_logger().debug(e, exc_info=True)
-                if e.winerror == 5:
-                    pass
+            worker.terminate()
+    return screenResults, saveResults,backtest_df
 
-        # Flush the queue so depending processes will end
-        from queue import Empty
-        while True:
-            try:
-                _ = tasks_queue.get(False)
-            except Exception as e:
-                default_logger().debug(e, exc_info=True)
-                break
-        if not downloadOnly:
-            screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
-            screenResults, saveResults = removeUnknowns(screenResults, saveResults)
-            Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
+def populateQueues(items,tasks_queue):
+    for item in items:
+        tasks_queue.put(item)
+    # Append exit signal for each process indicated by None
+    for _ in range(multiprocessing.cpu_count()):
+        tasks_queue.put(None)
 
-        finishScreening(downloadOnly, testing, stockDict, configManager, 
-                        loadCount, testBuild, screenResults, saveResults)
-        newlyListedOnly = False
+def runTests(items,tasks_queue,results_queue,screenResults,saveResults):
+    for item in items:
+        tasks_queue.put(item)
+        result = results_queue.get()
+        lstscreen = []
+        lstsave = []
+        lstFullData = []
+        stocks = []
+        default_logger().info(f'Fetched results:\n{result}')
+        if result is not None:
+            lstscreen.append(result[0])
+            lstsave.append(result[1])
+            lstFullData.append(result[2])
+            stocks.append(result[3])
+            df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
+            df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
+            screenResults = pd.concat([screenResults, df_extendedscreen])
+            saveResults = pd.concat([saveResults, df_extendedsave])
+        if len(screenResults) >= 2:
+            break
+    # backtest(lstFullData[0],'Momentum',30)
+    # input()
+    return screenResults, saveResults
+
+def startWorkers(consumers):
+    for worker in consumers:
+        worker.daemon = True
+        worker.start()
+
+def initQueues():
+    tasks_queue = multiprocessing.JoinableQueue()
+    results_queue = multiprocessing.Queue()
+
+    totalConsumers = multiprocessing.cpu_count()
+    if totalConsumers == 1:
+        totalConsumers = 2      # This is required for single core machine
+    if configManager.cacheEnabled is True and multiprocessing.cpu_count() > 2:
+        totalConsumers -= 1
+    return tasks_queue, results_queue, totalConsumers
+
+def terminateAllWorkers(consumers, tasks_queue):
+    # Exit all processes. Without this, it threw error in next screening session
+    for worker in consumers:
+        try:
+            worker.terminate()
+        except OSError as e:
+            default_logger().debug(e, exc_info=True)
+            if e.winerror == 5:
+                pass
+
+    # Flush the queue so depending processes will end
+    from queue import Empty
+    while True:
+        try:
+            _ = tasks_queue.get(False)
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
+            break
 
 def finishScreening(downloadOnly, testing, stockDict, configManager, loadCount, testBuild, screenResults, saveResults):
     global defaultAnswer, menuChoiceHierarchy
