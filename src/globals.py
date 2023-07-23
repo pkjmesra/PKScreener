@@ -153,19 +153,19 @@ def initPostLevel0Execution(menuOption=None, tickerOption=None, executeOption=No
 def initPostLevel1Execution(tickerOption, executeOption=None, skip=[]):
     global selectedChoice
     if executeOption is None:
-        if tickerOption and tickerOption != 'W':
+        if tickerOption is not None and tickerOption != 'W':
             Utility.tools.clearScreen()
             print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + level0MenuDict[selectedChoice['0']].strip() + ' > ' + level1_X_MenuDict[selectedChoice['1']].strip() + colorText.END)
             selectedMenu = m1.find(tickerOption)
             m2.renderForMenu(selectedMenu=selectedMenu,skip=skip)
     try:
-        if tickerOption and tickerOption != 'W':
+        if tickerOption is not None and tickerOption != 'W':
             if executeOption is None:
                 executeOption = input(
                     colorText.BOLD + colorText.FAIL + '[+] Select option: ')
                 print(colorText.END, end='')
             if executeOption == '':
-                _ , executeOption = initPostLevel1Execution(tickerOption, None, skip=skip)
+                executeOption = 1
             if not str(executeOption).isnumeric():
                 executeOption = executeOption.upper()
             else:
@@ -298,6 +298,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     daysForLowestVolume = 30
     backtestPeriod= 0
     reversalOption = None
+    listStockCodes = None
     screenResults, saveResults = initDataframes()
     options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly) 
     # Print Level 1 menu options
@@ -310,22 +311,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             tickerOption=tickerOption, executeOption=executeOption)
     elif menuOption == 'B':
         # Backtests
-        print(colorText.BOLD + colorText.GREEN +
-                                      "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods.")
-        backtestPeriod = 0
-        try:
-            backtestPeriod = int(input(colorText.BOLD + colorText.FAIL +
-                                      "[+] Enter backtesting period (Default is 30 [days]): "))
-        except:
-            pass
-        if backtestPeriod == 0:
-            backtestPeriod = 30
-        tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,
-                                                              tickerOption=tickerOption,
-                                                              executeOption=executeOption,
-                                                              skip=['N', 'E'])
-        tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption,
-                                                              skip=['0','15','16','17','18','19','20','21','22','23','24','25','26','42'])
+        tickerOption, executeOption, backtestPeriod = takeBacktestInputs(menuOption,tickerOption, executeOption)
     else:
         print('Work in progress! Try selecting a different option.')
         sleep(3)
@@ -335,6 +321,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     if tickerOption == 'M' or executeOption == 'M':
         main()
         return
+    if tickerOption == 0:
+        if len(options) >= 4:
+            listStockCodes = str(options[3]).split(',')
     if executeOption == 'Z':
         input(colorText.BOLD + colorText.FAIL +
               "[+] Press any key to Exit!" + colorText.END)
@@ -489,10 +478,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         menuChoiceHierarchy = menuChoiceHierarchy + f'>{level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
                     print(colorText.BOLD + colorText.FAIL + '[+] You chose: ' + menuChoiceHierarchy + colorText.END)
                     default_logger().info(menuChoiceHierarchy)
-                listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
-                if menuOption == 'B' and tickerOption == 0:
-                    tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption,
-                                                              skip=['0','15','16','17','18','19','20','21','22','23','24','25','26','42'])
+                if listStockCodes is None or len(listStockCodes) == 0:
+                    listStockCodes = fetcher.fetchStockCodes(tickerOption, proxyServer=proxyServer, stockCode=None)
+                if tickerOption == 0:
+                    selectedChoice['3']='.'.join(listStockCodes)
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
@@ -624,6 +613,25 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
         for worker in consumers:
             worker.terminate()
     return screenResults, saveResults,backtest_df
+
+def takeBacktestInputs(menuOption=None,tickerOption=None,executeOption=None,backtestPeriod=0):
+    print(colorText.BOLD + colorText.GREEN +
+                                      "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods.")
+    backtestPeriod = 0
+    try:
+        backtestPeriod = int(input(colorText.BOLD + colorText.FAIL +
+                                    "[+] Enter backtesting period (Default is 30 [days]): "))
+    except:
+        pass
+    if backtestPeriod == 0:
+        backtestPeriod = 30
+    tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,
+                                                            tickerOption=tickerOption,
+                                                            executeOption=executeOption,
+                                                            skip=['N', 'E'])
+    tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption,
+                                                            skip=['0','15','16','17','18','19','20','21','22','23','24','25','26','42'])
+    return tickerOption, executeOption, backtestPeriod
 
 def populateQueues(items,tasks_queue):
     for item in items:
