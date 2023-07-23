@@ -10,13 +10,22 @@ def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = 
         return
     calcPeriods = [1,2,3,4,5,10,15,22,30]
     allStockBacktestData = []
-    daysback_df = data.head(400-sampleDays+periods)
-    # print(daysback_df)
-    daysback_df = daysback_df.tail(periods+1) 
-    # print(daysback_df)
-    previous_recent = daysback_df.head(1)
+    # Take the data based on which the result set for a strategy may have been arrived at
+    # The results must have been arrived at with data based on 400-sampleDays
+    # but we also need the periods days to be able to calculate the next few days' returns
+    # s1    d0      
+    # s1    d1 
+    # s1    d2  <----------------On this day the recommendation was made
+    # s1    d3  ^
+    #   ....    |
+    # s1    dn  |----------------We need to make calculations upto 30 day period from d2
+    futureRows = periods
+    # if sampleDays <= periods:
+    #     futureRows = 0
+    daysback_df = data.head(400-sampleDays+futureRows)     # print(daysback_df)
+    daysback_df = daysback_df.tail(futureRows+1) # +1 to include the actual date on which the recommendation was made
+    previous_recent = daysback_df.head(1) # This is the row which has the date for which the recommendation is valid
     previous_recent.reset_index(inplace=True)
-    # print(previous_recent)
     if len(previous_recent) <= 0:
         return backTestedData
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
@@ -29,7 +38,6 @@ def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = 
         if abs(prd) <= periods:
             try:
                 rolling_pct = (daysback_df['Close'].pct_change(periods=prd) * 100)
-                # print(rolling_pct)
                 pct_change = rolling_pct.iloc[prd]
                 backTestedStock[f'{abs(prd)}-Pd'] = (colorText.GREEN if pct_change >= 0 else colorText.FAIL) + "%.2f%%" % pct_change  + colorText.END
             except:
@@ -46,6 +54,4 @@ def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = 
         backTestedData = pd.concat([backTestedData, df])
     except:
         pass
-    # print(backTestedData)
-    # input()
     return backTestedData

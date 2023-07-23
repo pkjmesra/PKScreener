@@ -555,19 +555,31 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
                 backtest_df.set_index('Stock', inplace=True)
                 showBacktestResults(backtest_df)
-                input('Press any key to continue...')
+                sorting = False if defaultAnswer == 'Y' else True
+                sortKeys ={'S':'Stock','D': 'Base-Date','1':'1-Pd','2':'2-Pd','3':'3-Pd','4':'4-Pd',
+                           '5':'5-Pd','10':'10-Pd','15':'15-Pd','22':'22-Pd','30':'30-Pd'}
+                while sorting:
+                    choice = input(colorText.BOLD + colorText.FAIL +
+                        f"[+] Would you like to sort the results? Press :\n [+] s : sort by stocks\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\nPlease enter:")
+                    print(colorText.END, end='')
+                    if choice.upper() in sortKeys.keys():
+                        showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                    else:
+                        sorting = False
+                if defaultAnswer != 'Y':
+                    input('Press any key to return to the main menu...')
         newlyListedOnly = False
 
 def color_negative_red(val):
     color = 'red' if str(val).startswith('-') else 'green'
     return 'color: %s' % color
 
-def showBacktestResults(backtest_df):
+def showBacktestResults(backtest_df, sortKey='Base-Date'):
     Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
     backtest_df = backtest_df.drop_duplicates()
-    backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
+    backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
     tabulated_text = tabulate(backtest_df, headers='keys', tablefmt='grid')
     print(tabulated_text)
     print('\n')
