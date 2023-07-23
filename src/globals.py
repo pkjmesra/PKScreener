@@ -519,45 +519,41 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         backtest_df = None
         if menuOption.upper() == 'B':
             print(colorText.BOLD + colorText.WARN +
-                f"[+] A total of {iterations} iterations are planned. It might take {int(50*iterations/60)} minutes.\n")
-        while iteration < iterations or not keyboardInterruptEvent.is_set():
-            items = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,(sampleDays-iteration))
+                f"[+] A total of {iterations} iterations are planned.\n")
+        items = []
+        historicalDays = sampleDays - iteration
+        while historicalDays >= 0:
+            moreItems = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
+                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,historicalDays)
                     for stock in listStockCodes]
-            tasks_queue, results_queue, totalConsumers = initQueues()
-            consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
-                        for _ in range(totalConsumers)]
-            startWorkers(consumers)
-            if testing or testBuild:
-                screenResults, saveResults = runTests(items,tasks_queue,results_queue,screenResults,saveResults)
-            else:
-                screenResults, saveResults,backtest_df = runScanners(menuOption,items,tasks_queue,results_queue,
-                                                        listStockCodes,backtestPeriod,(sampleDays-iteration), consumers,screenResults,
-                                                        saveResults,backtest_df)
-            
-            print(colorText.END)
-            terminateAllWorkers(consumers, tasks_queue)
-            if not downloadOnly and menuOption=='X':
-                screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
-                screenResults, saveResults = removeUnknowns(screenResults, saveResults)
-                # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-                # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-                printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
-            if menuOption=='X':
-                finishScreening(downloadOnly, testing, stockDict, configManager, 
-                            loadCount, testBuild, screenResults, saveResults)
+            items.extend(moreItems)
             iteration = iteration + 1
-            if menuOption == 'B' and backtest_df is not None and len(backtest_df) >= 100:
-                iteration = iterations
-                break
+            historicalDays = sampleDays - iteration
+        tasks_queue, results_queue, totalConsumers = initQueues()
+        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
+                    for _ in range(totalConsumers)]
+        startWorkers(consumers)
+        if testing or testBuild:
+            screenResults, saveResults = runTests(items,tasks_queue,results_queue,screenResults,saveResults)
+        else:
+            screenResults, saveResults,backtest_df = runScanners(menuOption,items,tasks_queue,results_queue,
+                                                    listStockCodes,backtestPeriod,sampleDays, consumers,screenResults,
+                                                    saveResults,backtest_df)
+        
+        print(colorText.END)
+        terminateAllWorkers(consumers, tasks_queue)
+        if not downloadOnly and menuOption=='X':
+            screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
+            screenResults, saveResults = removeUnknowns(screenResults, saveResults)
+            # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
+            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
+        if menuOption=='X':
+            finishScreening(downloadOnly, testing, stockDict, configManager, 
+                        loadCount, testBuild, screenResults, saveResults)
 
         if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
-                backtest_df.set_index('Stock', inplace=True)
-                Utility.tools.clearScreen()
-                pd.set_option("display.max_rows", 300)
-                # pd.set_option("display.max_columns", 20)
-                backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
-                print(tabulate(backtest_df, headers='keys', tablefmt='grid'))
+                showBacktestResults(backtest_df)
                 input('Press any key to continue...')
         newlyListedOnly = False
 
@@ -565,16 +561,29 @@ def color_negative_red(val):
     color = 'red' if str(val).startswith('-') else 'green'
     return 'color: %s' % color
 
+def showBacktestResults(backtest_df):
+    backtest_df.set_index('Stock', inplace=True)
+    Utility.tools.clearScreen()
+    pd.set_option("display.max_rows", 300)
+    # pd.set_option("display.max_columns", 20)
+    backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
+    print(tabulate(backtest_df, headers='keys', tablefmt='grid'))
+    print('\n')
+    filename = 'PKScreener-backtest_result_' + \
+                Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".html"
+    pd.DataFrame().to_html(filename)
+
 def getIterationCount(numStocks):
     # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
     # stocks. We would like the backtest to finish with 3-5 minutes.
-    iterations = (60/numStocks) * 3.5
-    return (5 if iterations < 5 else (100 if iterations > 100 else iterations))
+    # iterations = (1900/numStocks) * 3.5
+    return 240 #(5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
-def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,sampleDays,consumers,screenResults,saveResults,backtest_df):
+def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,iterations,consumers,screenResults,saveResults,backtest_df):
     populateQueues(items,tasks_queue)
     try:
-        numStocks = len(listStockCodes)
+        numStocks = len(listStockCodes) * iterations
+        dumpFreq = 1
         print(colorText.END+colorText.BOLD)
         bar, spinner = Utility.tools.getProgressbarStyle()
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
@@ -589,9 +598,14 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                     lstsave.append(result[1])
                     lstFullData.append(result[2])
                     stocks.append(result[3])
+                    sampleDays = result[4]
                     # Backtest for results
                     if menuOption == 'B':
                         backtest_df = backtest(result[3], result[2],'Whatever',backtestPeriod,sampleDays,backtest_df)
+                        if screenResultsCounter.value >= 50*dumpFreq:
+                            # Dump results on the screen and into a file every 50 results
+                            showBacktestResults(backtest_df)
+                            dumpFreq = dumpFreq + 1
                 numStocks -= 1
                 progressbar.text(colorText.BOLD + colorText.GREEN +
                                     f'Found {screenResultsCounter.value} Stocks' + colorText.END)
