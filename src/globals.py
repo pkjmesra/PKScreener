@@ -553,6 +553,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                         loadCount, testBuild, screenResults, saveResults)
 
         if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
+                backtest_df.set_index('Stock', inplace=True)
                 showBacktestResults(backtest_df)
                 input('Press any key to continue...')
         newlyListedOnly = False
@@ -562,16 +563,17 @@ def color_negative_red(val):
     return 'color: %s' % color
 
 def showBacktestResults(backtest_df):
-    backtest_df.set_index('Stock', inplace=True)
     Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
     backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
-    print(tabulate(backtest_df, headers='keys', tablefmt='grid'))
+    tabulated_text = tabulate(backtest_df, headers='keys', tablefmt='grid')
+    print(tabulated_text)
     print('\n')
     filename = 'PKScreener-backtest_result_' + \
                 Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".html"
-    pd.DataFrame().to_html(filename)
+    with open(filename, 'a') as f:
+        f.write(tabulated_text)
 
 def getIterationCount(numStocks):
     # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
