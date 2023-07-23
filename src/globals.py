@@ -514,8 +514,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         iterations = getIterationCount(len(listStockCodes)) if menuOption.upper() == 'B' else 1
-        sampleDays = ((iterations + backtestPeriod) if menuOption == 'B' else 0)
-        iteration = 0
+        sampleDays = ((iterations + backtestPeriod + 1) if menuOption == 'B' else 1)
+        iteration = 1
         backtest_df = None
         if menuOption.upper() == 'B':
             print(colorText.BOLD + colorText.WARN +
