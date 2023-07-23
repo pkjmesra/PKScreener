@@ -566,6 +566,7 @@ def showBacktestResults(backtest_df):
     Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
+    backtest_df = backtest_df.drop_duplicates()
     backtest_df.sort_values(by=['Base-Date'], ascending=False, inplace=True)
     tabulated_text = tabulate(backtest_df, headers='keys', tablefmt='grid')
     print(tabulated_text)
