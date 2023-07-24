@@ -1,12 +1,12 @@
 import pandas as pd
 from classes.ColorText import colorText
 
-def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = None):
+def backtest(stock, data, screenedDict=None, periods=30,sampleDays=365, backTestedData = None):
     if stock == '' or data is None:
         print(f'No data/stock{(stock)} received for backtesting!')
         return
-    if strategy is None or strategy == '':
-        print(f'{(stock)}No backtesting strategy name received!')
+    if screenedDict is None or len(screenedDict) == 0:
+        print(f'{(stock)}No backtesting strategy or screened dictionary received!')
         return
     calcPeriods = [1,2,3,4,5,10,15,22,30]
     allStockBacktestData = []
@@ -30,10 +30,13 @@ def backtest(stock, data, strategy, periods=30,sampleDays=365, backTestedData = 
         return backTestedData
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
     if backTestedData is None:
-        backTestedData = pd.DataFrame(columns=['Stock','Base-Date','1-Pd','2-Pd','3-Pd','4-Pd','5-Pd','10-Pd','15-Pd','22-Pd','30-Pd'])
-    backTestedStock = {'Stock':'','Base-Date':'','1-Pd':'','2-Pd':'','3-Pd':'','4-Pd':'','5-Pd':'','10-Pd':'','15-Pd':'','22-Pd':'','30-Pd':''}
+        backTestedData = pd.DataFrame(columns=['Stock','Base-Date','Volume','Trend','MA-Signal','1-Pd','2-Pd','3-Pd','4-Pd','5-Pd','10-Pd','15-Pd','22-Pd','30-Pd'])
+    backTestedStock = {'Stock':'','Base-Date':'','Volume':'','Trend':'','MA-Signal':'','1-Pd':'','2-Pd':'','3-Pd':'','4-Pd':'','5-Pd':'','10-Pd':'','15-Pd':'','22-Pd':'','30-Pd':''}
     backTestedStock['Stock'] = stock
     backTestedStock['Base-Date'] = str(previous_recent.iloc[:,0][0]) # Date or index column
+    backTestedStock['Volume'] = screenedDict['Volume']
+    backTestedStock['Trend'] = screenedDict['Trend']
+    backTestedStock['MA-Signal'] = screenedDict['MA-Signal']
     for prd in calcPeriods:
         if abs(prd) <= periods:
             try:

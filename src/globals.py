@@ -557,10 +557,11 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 showBacktestResults(backtest_df)
                 sorting = False if defaultAnswer == 'Y' else True
                 sortKeys ={'S':'Stock','D': 'Base-Date','1':'1-Pd','2':'2-Pd','3':'3-Pd','4':'4-Pd',
-                           '5':'5-Pd','10':'10-Pd','15':'15-Pd','22':'22-Pd','30':'30-Pd'}
+                           '5':'5-Pd','10':'10-Pd','15':'15-Pd','22':'22-Pd','30':'30-Pd','T':'Trend',
+                           'V':'Volume','M':'MA-Signal'}
                 while sorting:
                     choice = input(colorText.BOLD + colorText.FAIL +
-                        f"[+] Would you like to sort the results? Press :\n [+] s : sort by stocks\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\nPlease enter:")
+                        f"[+] Would you like to sort the results? Press :\n [+] s, v, t, m : sort by Stocks, Volume, trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\nPlease enter:")
                     print(colorText.END, end='')
                     if choice.upper() in sortKeys.keys():
                         showBacktestResults(backtest_df, sortKeys[choice.upper()])
@@ -616,7 +617,7 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == 'B':
-                        backtest_df = backtest(result[3], result[2],'Whatever',backtestPeriod,sampleDays,backtest_df)
+                        backtest_df = backtest(result[3], result[2],result[0],backtestPeriod,sampleDays,backtest_df)
                         if screenResultsCounter.value >= 50*dumpFreq:
                             # Dump results on the screen and into a file every 50 results
                             showBacktestResults(backtest_df)
