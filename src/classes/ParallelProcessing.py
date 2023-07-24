@@ -115,16 +115,20 @@ class StockConsumer(multiprocessing.Process):
                 data = pd.DataFrame(
                     data['data'], columns=data['columns'], index=data['index'])
             default_logger().info(f'Will pre-process data:\n{data}')
-            # data = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
-            fullData = Archiver.readData(f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
-            processedData = Archiver.readData(f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
-            if data is None or fullData is None or processedData is None:
-                inputData = (data if backtestDuration == 0 else data.head(400-backtestDuration))
+            if backtestDuration == 0:
                 fullData, processedData = screener.preprocessData(
-                    inputData, daysToLookback=configManager.daysToLookback)
-                Archiver.saveData(data, f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
-                Archiver.saveData(fullData, f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
-                Archiver.saveData(processedData, f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                    data, daysToLookback=configManager.daysToLookback)
+            else:
+                # data = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                fullData = Archiver.readData(f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                processedData = Archiver.readData(f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                if data is None or fullData is None or processedData is None:
+                    inputData = (data if backtestDuration == 0 else data.head(400-backtestDuration))
+                    fullData, processedData = screener.preprocessData(
+                        inputData, daysToLookback=configManager.daysToLookback)
+                    Archiver.saveData(data, f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                    Archiver.saveData(fullData, f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                    Archiver.saveData(processedData, f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
             default_logger().info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
