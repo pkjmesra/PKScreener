@@ -17,7 +17,7 @@ from classes.log import default_logger
 parser = configparser.ConfigParser(strict=False)
 
 # Default attributes for Downloading Cache from Git repo
-default_period = '365d'
+default_period = '400d'
 default_duration = '1d'
 
 # This Class manages read/write of user configuration
@@ -28,7 +28,7 @@ class tools:
         self.volumeRatio = 2.5
         self.minLTP = 20.0
         self.maxLTP = 50000
-        self.period = '365d'
+        self.period = '400d'
         self.duration = '1d'
         self.daysToLookback = 30
         self.shuffleEnabled = True
@@ -191,7 +191,7 @@ class tools:
             self.duration = '1m'
             self.cacheEnabled = False
         else:
-            self.period = '365d'
+            self.period = '400d'
             self.duration = '1d'
             self.cacheEnabled = True
         self.setConfig(parser, default=True, showFileCreatedText=False)

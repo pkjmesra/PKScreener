@@ -134,7 +134,7 @@ def test_option_U(mocker, capsys):
 def test_option_X_0(mocker):
     try:
         cleanup()
-        mocker.patch('builtins.input', side_effect=['X', '0', globals.TEST_STKCODE, 'y'])
+        mocker.patch('builtins.input', side_effect=['X', '0','0', globals.TEST_STKCODE, 'y'])
         main(testing=True)
         assert globals.screenResults is not None
         assert len(globals.screenResults) == 1 

@@ -205,7 +205,22 @@ class tools:
         draw.text((colPixelRunValue, rowPixelRunValue), repoText, font=font, fill=menuColor)
         im.save(filename, format='png', bitmap_format='png')
         # im.show()
-    
+
+    def tradingDate(simulate=False, day=None):
+        curr = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+        if simulate:
+            return curr.replace(day=day)
+        else:
+            if tools.isTradingWeekday() and tools.ispreMarketTime():
+                # Monday to Friday but before 9:15AM.So the date should be yesterday
+                return (curr - datetime.timedelta(days=1)).date()
+            if tools.isTradingTime() or tools.ispostMarketTime():
+                # Monday to Friday but after 9:15AM or after 15:30.So the date should be today
+                return curr.date()
+            if not tools.isTradingWeekday():
+                # Weekends .So the date should be last Friday
+                return (curr - datetime.timedelta(days=(curr.weekday()-4))).date()
+            
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
         if simulate:
@@ -217,13 +232,27 @@ class tools:
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         closeTime = curr.replace(hour=15, minute=30)
-        return ((openTime <= curr <= closeTime) and (0 <= curr.weekday() <= 4))
+        return ((openTime <= curr <= closeTime) and tools.isTradingWeekday())
 
+    def isTradingWeekday():
+        curr = tools.currentDateTime()
+        return (0 <= curr.weekday() <= 4)
+    
+    def ispreMarketTime():
+        curr = tools.currentDateTime()
+        openTime = curr.replace(hour=9, minute=15)
+        return ((openTime > curr) and tools.isTradingWeekday())
+    
+    def ispostMarketTime():
+        curr = tools.currentDateTime()
+        closeTime = curr.replace(hour=15, minute=30)
+        return ((closeTime < curr) and tools.isTradingWeekday())
+    
     def isClosingHour():
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=15, minute=00)
         closeTime = curr.replace(hour=15, minute=30)
-        return ((openTime <= curr <= closeTime) and (0 <= curr.weekday() <= 4))
+        return ((openTime <= curr <= closeTime) and tools.isTradingWeekday())
 
     def secondsAfterCloseTime():
         curr = tools.currentDateTime() #(simulate=True,day=7,hour=8,minute=14)
