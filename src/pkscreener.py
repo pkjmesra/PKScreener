@@ -31,7 +31,7 @@ import classes.Utility as Utility
 import classes.log as log
 from classes.log import default_logger
 from classes.ColorText import colorText
-from globals import main, getProxyServer
+from globals import main
 from time import sleep
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
