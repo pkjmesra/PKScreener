@@ -30,9 +30,9 @@ configManager = ConfigManager.tools()
 disableSysOut(input=False)
 
 def cleanup():
-    # configManager.deleteStockData(pattern='*.pkl')
-    configManager.deleteStockData(pattern='*.png')
-    configManager.deleteStockData(pattern='*.xlsx')
+    # configManager.deleteFileWithPattern(pattern='*.pkl')
+    configManager.deleteFileWithPattern(pattern='*.png')
+    configManager.deleteFileWithPattern(pattern='*.xlsx')
 
 # Generate default configuration if not exist
 def test_generate_default_config(mocker, capsys):
