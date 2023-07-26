@@ -20,8 +20,14 @@ def backtest(stock, data, screenedDict=None, periods=30,sampleDays=365, backTest
     #   ....    |
     # s1    dn  |----------------We need to make calculations upto 30 day period from d2
     futureRows = periods
-    # if sampleDays <= periods:
-    #     futureRows = 0
+    if sampleDays <= periods:
+        f1 = 0
+        t1 = sampleDays
+    else:
+        f1 = periods
+        t1 = periods
+    daysback_df = data.head(400-sampleDays+f1)     # print(daysback_df)
+    daysback_df = daysback_df.tail(t1+1) # +1 to include the actual date on which the recommendation was made
     daysback_df = data.head(400-sampleDays+futureRows)     # print(daysback_df)
     daysback_df = daysback_df.tail(futureRows+1) # +1 to include the actual date on which the recommendation was made
     previous_recent = daysback_df.head(1) # This is the row which has the date for which the recommendation is valid
@@ -33,7 +39,7 @@ def backtest(stock, data, screenedDict=None, periods=30,sampleDays=365, backTest
         backTestedData = pd.DataFrame(columns=['Stock','Base-Date','Volume','Trend','MA-Signal','1-Pd','2-Pd','3-Pd','4-Pd','5-Pd','10-Pd','15-Pd','22-Pd','30-Pd'])
     backTestedStock = {'Stock':'','Base-Date':'','Volume':'','Trend':'','MA-Signal':'','1-Pd':'','2-Pd':'','3-Pd':'','4-Pd':'','5-Pd':'','10-Pd':'','15-Pd':'','22-Pd':'','30-Pd':''}
     backTestedStock['Stock'] = stock
-    backTestedStock['Base-Date'] = str(previous_recent.iloc[:,0][0]) # Date or index column
+    backTestedStock['Base-Date'] = str(previous_recent.iloc[:,0][0]).split(' ')[0] # Date or index column
     backTestedStock['Volume'] = screenedDict['Volume']
     backTestedStock['Trend'] = screenedDict['Trend']
     backTestedStock['MA-Signal'] = screenedDict['MA-Signal']

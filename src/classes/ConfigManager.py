@@ -36,10 +36,11 @@ class tools:
         self.stageTwo = False
         self.useEMA = True
         self.logsEnabled = False
+        self.logger = None
 
     @property
     def default_logger(self):
-        return self.logger
+        return self.logger if self.logger is not None else default_logger()
 
     @default_logger.setter
     def default_logger(self, logger):
@@ -144,7 +145,7 @@ class tools:
             parser.set('config', 'logsEnabled', self.logsEnabledPrompt)
 
             # delete stock data due to config change
-            self.deleteStockData()
+            self.deleteFileWithPattern()
             print(colorText.BOLD + colorText.FAIL + "[+] Cached Stock Data Deleted." + colorText.END)
 
             try:
