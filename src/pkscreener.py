@@ -31,7 +31,7 @@ import classes.Utility as Utility
 import classes.log as log
 from classes.log import default_logger
 from classes.ColorText import colorText
-from globals import main
+from globals import main, getProxyServer
 from time import sleep
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -113,10 +113,9 @@ if __name__ == "__main__":
                     cronInterval = None
                 if args.exit:
                     break
-            sys.exit(0)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            sys.exit(0)
+            raise e
             # if isDevVersion == OTAUpdater.developmentVersion:
             #     raise(e)
             # input(colorText.BOLD + colorText.FAIL +

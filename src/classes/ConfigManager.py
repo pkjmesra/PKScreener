@@ -37,7 +37,7 @@ class tools:
         self.useEMA = True
         self.logsEnabled = False
 
-    def deleteFileWithPattern(self, pattern='stock_data*.pkl', excludeFile=None):
+    def deleteStockData(self, pattern='stock_data*.pkl', excludeFile=None):
         for f in glob.glob(pattern):
             try:
                 if excludeFile is not None:
@@ -136,7 +136,7 @@ class tools:
             parser.set('config', 'logsEnabled', self.logsEnabledPrompt)
 
             # delete stock data due to config change
-            self.deleteFileWithPattern()
+            self.deleteStockData()
             print(colorText.BOLD + colorText.FAIL + "[+] Cached Stock Data Deleted." + colorText.END)
 
             try:
