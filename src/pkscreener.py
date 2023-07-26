@@ -113,9 +113,10 @@ if __name__ == "__main__":
                     cronInterval = None
                 if args.exit:
                     break
+            sys.exit(0)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            raise e
+            sys.exit(0)
             # if isDevVersion == OTAUpdater.developmentVersion:
             #     raise(e)
             # input(colorText.BOLD + colorText.FAIL +
