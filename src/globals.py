@@ -206,6 +206,8 @@ def getDownloadChoices():
         if shouldReplace == 'N':
             print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
             sys.exit(0)
+        else:
+            configManager.deleteFileWithPattern()
     return 'X', 12, 2, {'0':'X','1':'12','2':'2'}
     
 def handleSecondaryMenuChoices(menuOption):
@@ -516,7 +518,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
 
         iterations = getIterationCount(len(listStockCodes)) if menuOption.upper() == 'B' else 1
         sampleDays = ((iterations + backtestPeriod + 1) if menuOption == 'B' else 2)
-        iteration = 1
+        iteration = 1 if menuOption == 'B' else 2
         backtest_df = None
         if menuOption.upper() == 'B':
             print(colorText.BOLD + colorText.WARN +
