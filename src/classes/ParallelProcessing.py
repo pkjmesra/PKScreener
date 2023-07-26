@@ -121,9 +121,9 @@ class StockConsumer(multiprocessing.Process):
                 data = self.stockDict.get(stock)
                 data = pd.DataFrame(
                     data['data'], columns=data['columns'], index=data['index'])
-            self.default_logger.info(f'Will pre-process data:\n{data}')
-            # if len(data) == 0:
-            #     return None
+            if len(data) == 0:
+                return None
+            self.default_logger.info(f'Will pre-process data:\n{data.tail(10)}')
             if backtestDuration == 0:
                 fullData, processedData = screener.preprocessData(
                     data, daysToLookback=configManager.daysToLookback)

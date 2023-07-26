@@ -144,7 +144,7 @@ class tools:
             parser.set('config', 'logsEnabled', self.logsEnabledPrompt)
 
             # delete stock data due to config change
-            self.deleteFileWithPattern()
+            self.deleteStockData()
             print(colorText.BOLD + colorText.FAIL + "[+] Cached Stock Data Deleted." + colorText.END)
 
             try:

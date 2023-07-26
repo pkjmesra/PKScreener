@@ -540,7 +540,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             screenResults, saveResults = runTests(items,tasks_queue,results_queue,screenResults,saveResults)
         else:
             screenResults, saveResults,backtest_df = runScanners(menuOption,items,tasks_queue,results_queue,
-                                                    listStockCodes,backtestPeriod,sampleDays-1, consumers,screenResults,
+                                                    listStockCodes,backtestPeriod,sampleDays, consumers,screenResults,
                                                     saveResults,backtest_df)
         
         print(colorText.END)
@@ -563,10 +563,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                            '5':'5-Pd','10':'10-Pd','15':'15-Pd','22':'22-Pd','30':'30-Pd','T':'Trend',
                            'V':'Volume','M':'MA-Signal'}
                 while sorting:
-                    print(colorText.BOLD + colorText.FAIL +
-                        f"[+] Would you like to sort the results?" + colorText.END)
-                    print(colorText.BOLD + colorText.GREEN + "[+] Press :\n [+] s, v, t, m : sort by Stocks, Volume, Trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\n" + colorText.END)
-                    choice = input(colorText.BOLD + colorText.FAIL + "[+] Select option:")
+                    choice = input(colorText.BOLD + colorText.FAIL +
+                        f"[+] Would you like to sort the results? Press :\n [+] s, v, t, m : sort by Stocks, Volume, trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\nPlease enter:")
                     print(colorText.END, end='')
                     if choice.upper() in sortKeys.keys():
                         showBacktestResults(backtest_df, sortKeys[choice.upper()])
@@ -593,13 +591,12 @@ def showBacktestResults(backtest_df, sortKey='Base-Date'):
                 Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".html"
     with open(filename, 'a') as f:
         f.write(tabulated_text)
-    configManager.deleteFileWithPattern(pattern='PKScreener-backtest_result_*.html', excludeFile=filename)
 
 def getIterationCount(numStocks):
     # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
     # stocks. We would like the backtest to finish with 3-5 minutes.
     # iterations = (1900/numStocks) * 3.5
-    return 10 #(5 if iterations < 5 else (100 if iterations > 100 else iterations))
+    return 240 #(5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
 def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backtestPeriod,iterations,consumers,screenResults,saveResults,backtest_df):
     populateQueues(items,tasks_queue)
