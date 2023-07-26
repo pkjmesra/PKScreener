@@ -26,12 +26,10 @@ def disableSysOut(input=True):
     sys.stdout = open(os.devnull, 'w')
     sys.__stdout__ = open(os.devnull, 'w')
 
-import classes.ConfigManager as ConfigManager
-import classes.Utility as Utility
 import classes.log as log
 from classes.log import default_logger
 from classes.ColorText import colorText
-from globals import main
+import classes.ConfigManager as ConfigManager
 from time import sleep
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -64,17 +62,23 @@ def setupLogger(shouldLog=False, trace=False):
     print(colorText.BOLD + colorText.FAIL + f'[+] {log_file_path}' + colorText.END)
     print(colorText.BOLD + colorText.GREEN + f'[+] If you need to share, open this folder, copy and zip the log file to share.' + colorText.END)
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
-    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None, anotherLogger=None)
+    log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None)
 
 if __name__ == "__main__":
     if sys.platform.startswith('darwin'):
         multiprocessing.set_start_method('fork')
-    
-    Utility.tools.clearScreen()
+    configManager.getConfig(ConfigManager.parser)
+
     if args.log or configManager.logsEnabled:
         setupLogger(shouldLog=True, trace=args.testbuild)
         if not args.prodbuild:
             input(f'Press any key to continue...')
+    from globals import main
+    import classes.Utility as Utility
+    
+    configManager.default_logger = default_logger()
+    Utility.tools.clearScreen()
+
     if args.prodbuild:
         disableSysOut()
 
@@ -86,6 +90,7 @@ if __name__ == "__main__":
     elif args.download:
         print(colorText.BOLD + colorText.FAIL +"[+] Download ONLY mode! Stocks will not be screened!" + colorText.END)
         main(downloadOnly=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault)
+        sys.exit(0)
     else:
         try:
             startupOptions= args.options

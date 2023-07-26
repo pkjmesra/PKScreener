@@ -4,6 +4,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
+import logging
 # import dataframe_image as dfi
 # import df2img
 
@@ -55,7 +56,7 @@ newlyListedOnly = False
 
 configManager = ConfigManager.tools()
 fetcher = Fetcher.tools(configManager)
-screener = Screener.tools(configManager)
+screener = Screener.tools(configManager, default_logger())
 candlePatterns = CandlePatterns()
 
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
@@ -524,13 +525,13 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         historicalDays = sampleDays - iteration
         while historicalDays >= 0:
             moreItems = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,historicalDays)
+                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,historicalDays, default_logger().level)
                     for stock in listStockCodes]
             items.extend(moreItems)
             iteration = iteration + 1
             historicalDays = sampleDays - iteration
         tasks_queue, results_queue, totalConsumers = initQueues()
-        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
+        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger())
                     for _ in range(totalConsumers)]
         startWorkers(consumers)
         if testing or testBuild:
@@ -629,6 +630,7 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                 progressbar.text(colorText.BOLD + colorText.GREEN +
                                     f'Found {screenResultsCounter.value} Stocks' + colorText.END)
                 progressbar()
+                # default_logger().flush()
         
         if menuOption == 'X':
             # create extension
@@ -645,6 +647,7 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                 "\n[+] Terminating Script, Please wait..." + colorText.END)
         for worker in consumers:
             worker.terminate()
+        logging.shutdown()
     return screenResults, saveResults,backtest_df
 
 def takeBacktestInputs(menuOption=None,tickerOption=None,executeOption=None,backtestPeriod=0):

@@ -37,6 +37,14 @@ class tools:
         self.useEMA = True
         self.logsEnabled = False
 
+    @property
+    def default_logger(self):
+        return self.logger
+
+    @default_logger.setter
+    def default_logger(self, logger):
+        self.logger = logger
+
     def deleteFileWithPattern(self, pattern='stock_data*.pkl', excludeFile=None):
         for f in glob.glob(pattern):
             try:
@@ -46,7 +54,7 @@ class tools:
                 else:
                     os.remove(f)
             except Exception as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 pass
 
     # Handle user input and save config
@@ -56,7 +64,7 @@ class tools:
             try:
                 parser.remove_section('config')
             except Exception as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 pass
             parser.add_section('config')
             parser.set('config', 'period', self.period)
@@ -86,7 +94,7 @@ class tools:
                     input('')
                     sys.exit(0)
             except IOError as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 print(colorText.BOLD + colorText.FAIL +
                       '[+] Failed to save user config. Exiting..' + colorText.END)
                 input('')
@@ -150,7 +158,7 @@ class tools:
                 input('')
                 sys.exit(0)
             except IOError as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 print(colorText.BOLD + colorText.FAIL +
                       '[+] Failed to save user config. Exiting..' + colorText.END)
                 input('')
@@ -175,7 +183,7 @@ class tools:
                 self.useEMA = False if 'y' not in str(parser.get('config', 'useEMA')).lower() else True
                 self.logsEnabled = False if 'y' not in str(parser.get('config', 'logsEnabled')).lower() else True
             except configparser.NoOptionError as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
                 parser.remove_section('config')
@@ -209,7 +217,7 @@ class tools:
             f.close()
             input('')
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +
                   "[+] User Configuration not found!" + colorText.END)
             print(colorText.BOLD + colorText.WARN +
@@ -224,5 +232,5 @@ class tools:
             self.getConfig(parser)
             return True
         except FileNotFoundError as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             self.setConfig(parser,default=True,showFileCreatedText=False)
