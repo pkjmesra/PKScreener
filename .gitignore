@@ -13,7 +13,6 @@ Help
 *.ini
 *.env
 *.dev
-*.png
 *.pyc
 src/__pycache__
 src/classes/__pycache__
