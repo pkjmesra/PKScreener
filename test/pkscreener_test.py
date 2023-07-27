@@ -228,7 +228,7 @@ def test_option_X_12_6_3(mocker):
     try:
         cleanup()
         mocker.patch('builtins.input', side_effect=['X', '12', '6','3','y'])
-        main(testing=True)
+        main(testing=True, startupoptions='X:12:6:3', defaultConsoleAnswer='Y')
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
     except StopIteration:

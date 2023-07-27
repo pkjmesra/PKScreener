@@ -52,7 +52,7 @@ setup(
 	zip_safe=False,
 	entry_points='''
 	[console_scripts]
-	pkscreener=src.pkscreener:__main__
+	pkscreener=src.pkscreener:pkscreenercli
 	''',
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[

@@ -566,14 +566,20 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     print(colorText.BOLD + colorText.FAIL +
                         f"[+] Would you like to sort the results?" + colorText.END)
                     print(colorText.BOLD + colorText.GREEN + "[+] Press :\n [+] s, v, t, m : sort by Stocks, Volume, Trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\n" + colorText.END)
-                    choice = input(colorText.BOLD + colorText.FAIL + "[+] Select option:")
-                    print(colorText.END, end='')
-                    if choice.upper() in sortKeys.keys():
-                        showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                    if defaultAnswer != 'Y':
+                        choice = input(colorText.BOLD + colorText.FAIL + "[+] Select option:")
+                        print(colorText.END, end='')
+                        if choice.upper() in sortKeys.keys():
+                            showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                        else:
+                            sorting = False
                     else:
+                        print('Finished backtesting!')
                         sorting = False
                 if defaultAnswer != 'Y':
                     input('Press any key to return to the main menu...')
+        elif menuOption == 'B':
+            print('Finished backtesting with no results to show!')
         newlyListedOnly = False
 
 def color_negative_red(val):
@@ -804,6 +810,9 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
         print(colorText.BOLD + colorText.GREEN +
                 "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
         Utility.tools.saveStockData(stockDict, configManager, loadCount)
+    else:
+        print(colorText.BOLD + colorText.GREEN +
+                "[+] Skipped Saving!" + colorText.END, end='')
 
 def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy):
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'

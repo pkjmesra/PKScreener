@@ -64,7 +64,7 @@ def setupLogger(shouldLog=False, trace=False):
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
     log.setup_custom_logger('pkscreener', log.logging.DEBUG, trace=trace, log_file_path=log_file_path, filter=None)
 
-if __name__ == "__main__":
+def pkscreenercli():
     if sys.platform.startswith('darwin'):
         multiprocessing.set_start_method('fork')
     configManager.getConfig(ConfigManager.parser)
@@ -127,3 +127,6 @@ if __name__ == "__main__":
             # input(colorText.BOLD + colorText.FAIL +
             #     "[+] Press any key to Exit!" + colorText.END)
             # sys.exit(0)
+
+if __name__ == "__main__":
+    pkscreenercli()
