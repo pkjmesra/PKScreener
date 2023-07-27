@@ -10,6 +10,7 @@
 * The application now runs without TA-Lib as well.
 
 1. First release - v0.01
+
 ## Downloads
 | Operating System | Executable File |
 | :-: | --- |
