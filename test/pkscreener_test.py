@@ -41,7 +41,7 @@ def cleanup():
 def test_generate_default_config(mocker, capsys):
     mocker.patch('builtins.input', side_effect=['5','0', '\n'])
     with pytest.raises(SystemExit):
-        configManager.setConfig(ConfigManager.parser, default=True)
+        configManager.setConfig(ConfigManager.parser, default=True,showFileCreatedText=False)
     out, err = capsys.readouterr()
     assert err == ''
 

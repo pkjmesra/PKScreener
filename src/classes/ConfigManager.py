@@ -190,7 +190,7 @@ class tools:
                 parser.remove_section('config')
                 self.setConfig(parser, default=True,showFileCreatedText=False)
         else:
-            self.setConfig(parser, default=True)
+            self.setConfig(parser, default=True,showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
     def toggleConfig(self):
@@ -223,7 +223,7 @@ class tools:
                   "[+] User Configuration not found!" + colorText.END)
             print(colorText.BOLD + colorText.WARN +
                   "[+] Configure the limits to continue." + colorText.END)
-            self.setConfig(parser)
+            self.setConfig(parser,default=True,showFileCreatedText=False)
 
     # Check if config file exists
     def checkConfigFile(self):
