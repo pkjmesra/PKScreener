@@ -4,6 +4,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
+import logging
 # import dataframe_image as dfi
 # import df2img
 
@@ -55,7 +56,7 @@ newlyListedOnly = False
 
 configManager = ConfigManager.tools()
 fetcher = Fetcher.tools(configManager)
-screener = Screener.tools(configManager)
+screener = Screener.tools(configManager, default_logger())
 candlePatterns = CandlePatterns()
 
 selectedChoice = {'0':'', '1':'','2':'','3':'','4':''}
@@ -205,6 +206,8 @@ def getDownloadChoices():
         if shouldReplace == 'N':
             print(cache_file + colorText.END + ' already exists. Exiting as user chose not to replace it!')
             sys.exit(0)
+        else:
+            configManager.deleteFileWithPattern()
     return 'X', 12, 2, {'0':'X','1':'12','2':'2'}
     
 def handleSecondaryMenuChoices(menuOption):
@@ -514,8 +517,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 "[+] Starting download.. Press Ctrl+C to stop!\n")
 
         iterations = getIterationCount(len(listStockCodes)) if menuOption.upper() == 'B' else 1
-        sampleDays = ((iterations + backtestPeriod + 1) if menuOption == 'B' else 1)
-        iteration = 1
+        sampleDays = ((iterations + backtestPeriod + 1) if menuOption == 'B' else 2)
+        iteration = 1 if menuOption == 'B' else 2
         backtest_df = None
         if menuOption.upper() == 'B':
             print(colorText.BOLD + colorText.WARN +
@@ -524,20 +527,20 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         historicalDays = sampleDays - iteration
         while historicalDays >= 0:
             moreItems = [(executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, len(listStockCodes),
-                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,historicalDays)
+                    configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testBuild, testBuild,historicalDays, default_logger().level)
                     for stock in listStockCodes]
             items.extend(moreItems)
             iteration = iteration + 1
             historicalDays = sampleDays - iteration
         tasks_queue, results_queue, totalConsumers = initQueues()
-        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent)
+        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger())
                     for _ in range(totalConsumers)]
         startWorkers(consumers)
         if testing or testBuild:
             screenResults, saveResults = runTests(items,tasks_queue,results_queue,screenResults,saveResults)
         else:
             screenResults, saveResults,backtest_df = runScanners(menuOption,items,tasks_queue,results_queue,
-                                                    listStockCodes,backtestPeriod,sampleDays, consumers,screenResults,
+                                                    listStockCodes,backtestPeriod,sampleDays-1, consumers,screenResults,
                                                     saveResults,backtest_df)
         
         print(colorText.END)
@@ -560,15 +563,23 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                            '5':'5-Pd','10':'10-Pd','15':'15-Pd','22':'22-Pd','30':'30-Pd','T':'Trend',
                            'V':'Volume','M':'MA-Signal'}
                 while sorting:
-                    choice = input(colorText.BOLD + colorText.FAIL +
-                        f"[+] Would you like to sort the results? Press :\n [+] s, v, t, m : sort by Stocks, Volume, trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\nPlease enter:")
-                    print(colorText.END, end='')
-                    if choice.upper() in sortKeys.keys():
-                        showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                    print(colorText.BOLD + colorText.FAIL +
+                        f"[+] Would you like to sort the results?" + colorText.END)
+                    print(colorText.BOLD + colorText.GREEN + "[+] Press :\n [+] s, v, t, m : sort by Stocks, Volume, Trend, MA-Signal\n [+] d : sort by date\n [+] 1,2,3...30 : sort by period\n [+] n : Exit sorting\n" + colorText.END)
+                    if defaultAnswer != 'Y':
+                        choice = input(colorText.BOLD + colorText.FAIL + "[+] Select option:")
+                        print(colorText.END, end='')
+                        if choice.upper() in sortKeys.keys():
+                            showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                        else:
+                            sorting = False
                     else:
+                        print('Finished backtesting!')
                         sorting = False
                 if defaultAnswer != 'Y':
                     input('Press any key to return to the main menu...')
+        elif menuOption == 'B':
+            print('Finished backtesting with no results to show!')
         newlyListedOnly = False
 
 def color_negative_red(val):
@@ -588,6 +599,7 @@ def showBacktestResults(backtest_df, sortKey='Base-Date'):
                 Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".html"
     with open(filename, 'a') as f:
         f.write(tabulated_text)
+    configManager.deleteFileWithPattern(pattern='PKScreener-backtest_result_*.html', excludeFile=filename)
 
 def getIterationCount(numStocks):
     # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
@@ -626,6 +638,7 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                 progressbar.text(colorText.BOLD + colorText.GREEN +
                                     f'Found {screenResultsCounter.value} Stocks' + colorText.END)
                 progressbar()
+                # default_logger().flush()
         
         if menuOption == 'X':
             # create extension
@@ -642,6 +655,7 @@ def runScanners(menuOption,items,tasks_queue,results_queue,listStockCodes,backte
                 "\n[+] Terminating Script, Please wait..." + colorText.END)
         for worker in consumers:
             worker.terminate()
+        logging.shutdown()
     return screenResults, saveResults,backtest_df
 
 def takeBacktestInputs(menuOption=None,tickerOption=None,executeOption=None,backtestPeriod=0):
@@ -796,6 +810,9 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
         print(colorText.BOLD + colorText.GREEN +
                 "[+] Caching Stock Data for future use, Please Wait... " + colorText.END, end='')
         Utility.tools.saveStockData(stockDict, configManager, loadCount)
+    else:
+        print(colorText.BOLD + colorText.GREEN +
+                "[+] Skipped Saving!" + colorText.END, end='')
 
 def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy):
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'

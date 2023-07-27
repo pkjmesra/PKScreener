@@ -5,6 +5,7 @@ import sys
 import time
 import warnings
 import inspect
+import tempfile
 
 from functools import wraps
 # from inspect import getcallargs, getfullargspec
@@ -78,8 +79,7 @@ class filterlogger:
 
   @property
   def isDebugging(self):
-    global __DEBUG__
-    return __DEBUG__
+    return self.level == logging.DEBUG
 
   @level.setter
   def level(self, level):
@@ -93,10 +93,34 @@ class filterlogger:
     # else:
     #   return logger
 
+  def flush(self):
+    for h in self.logger.handlers:
+      h.flush()
+
+  def addHandlers(self, log_file_path=None, levelname=logging.NOTSET):
+    if log_file_path is None:
+      log_file_path = os.path.join(tempfile.gettempdir(),'pkscreener-logs.txt')
+    trace_formatter = logging.Formatter(fmt='\n%(asctime)s - %(name)s - %(levelname)s - %(filename)s - %(module)s - %(funcName)s - %(lineno)d\n%(message)s\n')
+  
+    consolehandler = None
+    filehandler = logging.FileHandler(log_file_path)
+    filehandler.setFormatter(trace_formatter)
+    filehandler.setLevel(levelname)
+    self.logger.addHandler(filehandler)
+    if levelname == logging.DEBUG:
+      consolehandler = logging.StreamHandler()
+      consolehandler.setFormatter(trace_formatter)
+      consolehandler.setLevel(levelname)
+      self.logger.addHandler(consolehandler)
+      global __DEBUG__
+      __DEBUG__ = True
+      self.logger.debug('Logging started. Filter:{}'.format(filter))
+    return consolehandler, filehandler
+
   def debug(self, e, exc_info=False):
     global __filter__
-    global __DEBUG__
-    if not __DEBUG__:
+    __DEBUG__ = self.level == logging.DEBUG
+    if not self.level == logging.DEBUG:
       return
     line = str(e)
     try:
@@ -118,8 +142,8 @@ class filterlogger:
 
   def info(self, line):
     global __filter__
-    global __DEBUG__
-    if not __DEBUG__:
+    __DEBUG__ = self.level == logging.DEBUG 
+    if not self.logger.level == logging.DEBUG:
       return
     frame = inspect.stack()[1]
     # filename = (frame[0].f_code.co_filename).rsplit('/', 1)[1]
@@ -156,35 +180,22 @@ class filterlogger:
   def removeHandler(self, hdl):
     self.logger.removeHandler(hdl)
 
-def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_path='pkscreener-logs.txt', filter=None, anotherLogger=None):
-  trace_formatter = logging.Formatter(fmt='\n%(asctime)s - %(name)s - %(levelname)s - %(filename)s - %(module)s - %(funcName)s - %(lineno)d\n%(message)s\n')
+  logging.shutdown()
+
+def setup_custom_logger(name, levelname=logging.DEBUG, trace=False, log_file_path='pkscreener-logs.txt', filter=None):
   # console_info_formatter = logging.Formatter(fmt='\n%(levelname)s - %(filename)s(%(funcName)s - %(lineno)d)\n%(message)s\n')
   global __trace__
   __trace__ = trace
 
   global __filter__
   __filter__ = filter if filter is None else filter.upper()
-
   logger = logging.getLogger(name)
   logger.setLevel(levelname)
 
-  filehandler = logging.FileHandler(log_file_path)
-  filehandler.setFormatter(trace_formatter)
-  filehandler.setLevel(levelname)
-  logger.addHandler(filehandler)
-  if anotherLogger is not None:
-    anotherLogger.addHandler(filehandler)
+  consolehandler, filehandler = default_logger().addHandlers(log_file_path=log_file_path, levelname=levelname)
   if levelname == logging.DEBUG:
-    consolehandler = logging.StreamHandler()
-    consolehandler.setFormatter(trace_formatter)
-    consolehandler.setLevel(levelname)
-    logger.addHandler(consolehandler)
-    if anotherLogger is not None:
-      anotherLogger.addHandler(consolehandler)
-    global __DEBUG__
-    __DEBUG__ = True
-    logger.debug('Logging started. Filter:{}'.format(filter))
-
+      global __DEBUG__
+      __DEBUG__ = True
   if trace:
     tracelogger = logging.getLogger('pkscreener_file_logger')
     tracelogger.setLevel(levelname)
@@ -206,7 +217,7 @@ def file_logger():
 
 def trace_log(line):
   global __trace__
-  if __trace__:
+  if default_logger().level == logging.DEBUG:
     default_logger().info(line)
   else:
     file_logger().info(line)

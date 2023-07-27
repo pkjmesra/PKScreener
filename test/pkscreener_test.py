@@ -23,16 +23,19 @@ import classes.ConfigManager as ConfigManager
 from classes import VERSION
 from classes.Changelog import changelog
 from classes.OtaUpdater import OTAUpdater
-import globals 
+from classes.log import default_logger
+import globals
+from globals import main
 from pkscreener import *
 last_release = 0
 configManager = ConfigManager.tools()
+configManager.default_logger = default_logger()
 disableSysOut(input=False)
 
 def cleanup():
-    # configManager.deleteStockData(pattern='*.pkl')
-    configManager.deleteStockData(pattern='*.png')
-    configManager.deleteStockData(pattern='*.xlsx')
+    # configManager.deleteFileWithPattern(pattern='*.pkl')
+    configManager.deleteFileWithPattern(pattern='*.png')
+    configManager.deleteFileWithPattern(pattern='*.xlsx')
 
 # Generate default configuration if not exist
 def test_generate_default_config(mocker, capsys):
@@ -225,7 +228,7 @@ def test_option_X_12_6_3(mocker):
     try:
         cleanup()
         mocker.patch('builtins.input', side_effect=['X', '12', '6','3','y'])
-        main(testing=True)
+        main(testing=True, startupoptions='X:12:6:3', defaultConsoleAnswer='Y')
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
     except StopIteration:

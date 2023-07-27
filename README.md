@@ -1,12 +1,13 @@
 
 # PKScreener
 
+[![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.exe) [![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.bin) [![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.run) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/releases/latest) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![GitHub](https://img.shields.io/github/license/pkjmesra/PKScreener?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/blob/main/LICENSE) [![CodeFactor](https://www.codefactor.io/repository/github/pkjmesra/PKScreener/badge?style=for-the-badge)](https://www.codefactor.io/repository/github/pkjmesra/PKScreener) [![BADGE](https://img.shields.io/badge/PULL%20REQUEST-GUIDELINES-red?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/blob/new-features/CONTRIBUTING.md)
+
 ![main workflow](https://img.shields.io/github/actions/workflow/status/pkjmesra/pkscreener/workflow-prod-scans_2.1.yml?logo=github)
 ![github license](https://img.shields.io/pypi/l/gspread?logo=github)
 ![latest download](https://img.shields.io/github/downloads-pre/pkjmesra/pkscreener/latest/total?logo=github)
-[![Documentation](https://readthedocs.org/projects/pkscreener/badge/?version=latest)](https://pkscreener.readthedocs.io/en/latest/?badge=latest)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/releases/latest) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![GitHub](https://img.shields.io/github/license/pkjmesra/PKScreener?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/blob/main/LICENSE) [![CodeFactor](https://www.codefactor.io/repository/github/pkjmesra/PKScreener/badge?style=for-the-badge)](https://www.codefactor.io/repository/github/pkjmesra/PKScreener) [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![BADGE](https://img.shields.io/badge/PULL%20REQUEST-GUIDELINES-red?style=for-the-badge)](https://github.com/pkjmesra/PKScreener/blob/new-features/CONTRIBUTING.md)
- [![Screenipy Test - New Features](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml/badge.svg?branch=new-features)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml) [![Screenipy Build - New Release](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml) [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.exe) [![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.bin) [![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000)](https://github.com/pkjmesra/PKScreener/releases/download/0.01/pkscreener.run)
+[![Documentation](https://readthedocs.org/projects/pkscreener/badge/?version=latest)](https://pkscreener.readthedocs.io/en/latest/?badge=latest) [![3. Production Scan Tests On Dev](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml) [![4. After-Market Data Gen](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml) 
+ [![PKScreener Test - New Features](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml/badge.svg?branch=new-features)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml) [![PKScreener Build - New Release](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml)
 [![Docker Build](https://github.com/pkjmesra/pkscreener/workflows/Docker%20Image%20CI/badge.svg)](https://github.com/pkjmesra/pkscreener/actions/workflows/docker-image.yml?query=workflow%3ADocker)
 [![Docker Status](https://img.shields.io/docker/automated/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
 [![Docker Pulls](https://img.shields.io/docker/pulls/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
@@ -35,21 +36,21 @@ https://t.me/PKScreeners (or scan the QR code to join)
 ## Receiving Scheduled Scan results
 If you would like to receive the scan results, please join the telegram channel and group above. 
 You may receive the following scan results:
-1. Next day Nifty/Market AI prediction by 4pm IST, Monday - Friday
-2. For all Nifty stocks at/by 9:45-10:15am and 4pm IST, Monday - Friday
+1. [![1. Next day Nifty/Market AI prediction](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_1.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_1.yml) by 4pm IST, Monday - Friday
+2. For all Nifty stocks at/by 9:45-10:15am and by 4pm IST, Monday - Friday
 
-    * 2.1 Scan result containing all relevant technical indicators 
-    * 2.2 Scan result with probable breakouts
-    * 2.3 Scan result with recent breakouts and volumes
-    * 2.4 Scan result with volume gainers/shockers
-    * 2.5 Scan result with stocks gaining at least 2% since last 3 sessions
-    * 2.6 Scan result with short term bullish stocks
-    * 2.7 Scan result with CCI outside the -100,+150 range
-    * 2.8 Scan result with buy signals(Bullish reversals)
-    * 2.9 Scan result with sell signals(bearish reversals)
-    * 2.10 Scan result with momentum gainers (Rising bullish momentum)
-    * 2.11 Scan result for NR4 daily
-
+    * [![2.1 All relevant technical indicators](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.1.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.1.yml) 
+    * [![2.2 Probable breakouts](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.2.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.2.yml)
+    * [![2.3 Recent breakouts and volumes](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.3.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.3.yml)
+    * [![2.4 Volume gainers/shockers](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.4.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.4.yml)
+    * [![2.5 Stocks gaining at least 2% since last 3 sessions](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.5.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.5.yml)
+    * [![2.6 Short term bullish stocks](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.6.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.6.yml)
+    * [![2.7 CCI outside the -100,+150 range](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.7.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.7.yml)
+    * [![2.8 Buy signals(Bullish reversals)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.8.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.8.yml)
+    * [![2.9 Sell signals(bearish reversals)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.9.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.9.yml)
+    * [![2.10 Momentum gainers (Rising bullish momentum)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.10.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.10.yml)
+    * [![2.11 NR4 daily](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml) 
+    
 ## Scanners
 
 Screening options to choose from:
@@ -113,6 +114,12 @@ Followin scanners are already implemented. Others are `In Progress`
 
 * Once done, you can also save the results in an excel file.
 
+## Backtests
+You can now use the *Backtests* menu to backtest any of the selected strategies.
+![backtest](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/backtest.png)
+
+* Once done, you can also view the output html file saved at the same location from where you launched the app.
+
 ## Scanning as a scheduled job once or at regular intervals
 * Running it once with pre-defined inputs
 You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreener.py -a Y -o X:12:10 -e` (or `pkscreener.exe -a Y -o X:12:10 -e` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreener.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreener.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreener.py -h`.
@@ -151,6 +158,7 @@ shuffle = y
 cachestockdata = y
 onlystagetwostocks = y
 useema = n
+logsEnabled = n
 ```
 Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well. You can use the toggle menu option `T` to toggle between long term and intraday config before you begin the scanners.
 
@@ -164,6 +172,9 @@ TOKEN=Your_Bot_Token_Here
 chat_idADMIN=Your_Own_ID_Here
 ```
 3. From now on, you will begin to receive your own alerts on your telegram channel.
+
+## Troubleshooting and Logs:
+If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreener.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. After you have finished the run, go to that copied path, zip the contents of the file `pkscreener-logs.txt` and create an issue at https://github.com/pkjmesra/PKScreener/issues. Please do not forget to attach the log files in the issue.
 
 ## Contributing:
 * Please feel free to Suggest improvements bugs by creating an issue.

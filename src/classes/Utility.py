@@ -311,7 +311,7 @@ class tools:
     def saveStockData(stockDict, configManager, loadCount):
         exists, cache_file = tools.afterMarketStockDataExists()
         if exists:
-            configManager.deleteStockData(excludeFile=cache_file)
+            configManager.deleteFileWithPattern(excludeFile=cache_file)
 
         if not os.path.exists(cache_file) or len(stockDict) > (loadCount+1):
             with open(cache_file, 'wb') as f:
@@ -347,14 +347,14 @@ class tools:
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Error while Reading Stock Cache." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
-                        configManager.deleteStockData()
+                        configManager.deleteFileWithPattern()
                 except EOFError as e:
                     default_logger().debug(e, exc_info=True)
                     f.close()
                     print(colorText.BOLD + colorText.FAIL +
                           "[+] Stock Cache Corrupted." + colorText.END)
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == 'Y':
-                        configManager.deleteStockData()
+                        configManager.deleteFileWithPattern()
         if not stockDataLoaded and ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
             cache_url = "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/" + cache_file
             if proxyServer is not None:

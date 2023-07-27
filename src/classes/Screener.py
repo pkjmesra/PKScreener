@@ -36,8 +36,9 @@ class StockDataNotAdequate(Exception):
 # This Class contains methods for stock analysis and screening validation
 class tools:
 
-    def __init__(self, configManager) -> None:
+    def __init__(self, configManager, default_logger) -> None:
         self.configManager = configManager
+        self.default_logger = default_logger
 
     # Find accurate breakout value
     def findBreakout(self, data, screenDict, saveDict, daysToLookback):
@@ -51,16 +52,16 @@ class tools:
         if np.isnan(hc) or np.isnan(hs):
             saveDict['Breakout'] = 'BO: Unknown'
             screenDict['Breakout'] = colorText.BOLD + colorText.WARN + 'BO: Unknown' + colorText.END
-            default_logger().info(f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({hs}) or max-close ({hc}) are not defined.')
+            self.default_logger.info(f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({hs}) or max-close ({hc}) are not defined.')
             return False
         if hs > hc:
             if ((hs - hc) <= (hs*2/100)):
                 saveDict['Breakout'] = "BO: " + str(hc)
                 if rc >= hc:
                     screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
-                    default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({hs}) >= max-close ({hc})')
+                    self.default_logger.info(f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({hs}) >= max-close ({hc})')
                     return True and self.getCandleType(recent)
-                default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({hs}) < max-close ({hc})')
+                self.default_logger.info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({hs}) < max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return False
             noOfHigherShadows = len(data[data.High > hc])
@@ -68,26 +69,26 @@ class tools:
                 saveDict['Breakout'] = "BO: " + str(hs)
                 if rc >= hs:
                     screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hs) + colorText.END
-                    default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-high ({hs})')
+                    self.default_logger.info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-high ({hs})')
                     return True and self.getCandleType(recent)
-                default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
+                self.default_logger.info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
                 return False
             saveDict['Breakout'] = "BO: " + str(hc) + ", R: " + str(hs)
             if rc >= hc:
-                default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
+                self.default_logger.info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
                 return True and self.getCandleType(recent)
-            default_logger().info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
+            self.default_logger.info(f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})')
             screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + " R: " + str(hs) + colorText.END
             return False
         else:
             saveDict['Breakout'] = "BO: " + str(hc)
             if rc >= hc:
-                default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
+                self.default_logger.info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})')
                 screenDict['Breakout'] = colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
                 return True and self.getCandleType(recent)
-            default_logger().info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) < max-close ({hc})')
+            self.default_logger.info(f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) < max-close ({hc})')
             screenDict['Breakout'] = colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
             return False
 
@@ -165,7 +166,7 @@ class tools:
                     raise StockDataNotAdequate
                 slope,c = np.polyfit(data.index[data.tops > 0], data['tops'][data.tops > 0], 1)
             except Exception as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 slope,c = 0,0
             angle = np.rad2deg(np.arctan(slope))
             if (angle == 0):
@@ -187,7 +188,7 @@ class tools:
                 screenDict['Trend'] = colorText.BOLD + colorText.FAIL + "Strong Down" + colorText.END
                 saveDict['Trend'] = 'Strong Down'
         except np.linalg.LinAlgError as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             screenDict['Trend'] = colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
             saveDict['Trend'] = 'Unknown'
         return saveDict['Trend']
@@ -216,7 +217,7 @@ class tools:
             try:
                 slope, intercept, r_value, p_value, std_err = linregress(x=data_low['Number'], y=data_low['Low'])
             except Exception as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 continue
             data_low = data_low.loc[data_low['Low'] < slope * data_low['Number'] + intercept]
         
@@ -333,7 +334,7 @@ class tools:
                 try:
                     condition = last_signal[data_list[cnt]][0]['SL'][0]
                 except KeyError as e:
-                    default_logger().debug(e, exc_info=True)
+                    self.default_logger.debug(e, exc_info=True)
                     condition = last_signal[data_list[cnt]]['SL'][0]
                 # if last_signal[data_list[cnt]] is not final:          # Debug - Shows all conditions
                 if condition != final['SL'][0]:
@@ -354,7 +355,7 @@ class tools:
                             ], axis=0)
                         result_df.reset_index(drop=True, inplace=True)
                     except Exception as e:
-                        default_logger().debug(e, exc_info=True)
+                        self.default_logger.debug(e, exc_info=True)
                         pass
                     # Then update
                     last_signal[data_list[cnt]] = [final]
@@ -364,6 +365,7 @@ class tools:
 
     # Preprocess the acquired data
     def preprocessData(self, data, daysToLookback=None):
+        self.default_logger.info(f'Preprocessing data:\n{data.head(1)}\n')
         if daysToLookback is None:
             daysToLookback = self.configManager.daysToLookback
         if self.configManager.useEMA:
@@ -557,30 +559,30 @@ class tools:
                 yc = row[1]['Close'].item()
                 yo = row[1]['Open'].item()
                 if yc <= yo:
-                    default_logger().info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because yesterday-close ({yc}) <= yesterday-open ({yo})')
+                    self.default_logger.info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because yesterday-close ({yc}) <= yesterday-open ({yo})')
                     return False
             openDesc = data.sort_values(by=['Open'], ascending=False)
             closeDesc = data.sort_values(by=['Close'], ascending=False)
             volDesc = data.sort_values(by=['Volume'], ascending=False)
             try:
                 if data.equals(openDesc) and data.equals(closeDesc) and data.equals(volDesc):
-                    default_logger().info(f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!')
+                    self.default_logger.info(f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!')
                     to = data['Open'][0].item()
                     yc = data['Close'][1].item()
                     yo = data['Open'][1].item()
                     dyc = data['Close'][2].item()
                     if (to >= yc) and (yo >= dyc):
-                        default_logger().info(f'Stock:{saveDict["Stock"]}, is a momentum-gainer because today-open ({to}) >= yesterday-close ({yc}) and yesterday-open({yo}) >= day-before-close({dyc})')
+                        self.default_logger.info(f'Stock:{saveDict["Stock"]}, is a momentum-gainer because today-open ({to}) >= yesterday-close ({yc}) and yesterday-open({yo}) >= day-before-close({dyc})')
                         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Momentum Gainer' + colorText.END
                         saveDict['Pattern'] = 'Momentum Gainer'
                         return True
-                    default_logger().info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because either today-open ({to}) < yesterday-close ({yc}) or yesterday-open({yo}) < day-before-close({dyc})')
+                    self.default_logger.info(f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because either today-open ({to}) < yesterday-close ({yc}) or yesterday-open({yo}) < day-before-close({dyc})')
             except IndexError as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 pass
             return False
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             return False
 
     # Validate Moving averages and look for buy/sell signals
@@ -740,7 +742,7 @@ class tools:
             df_new['cloud_green'] = df_new['ISA_9'][0] > df_new['ISB_26'][0]
             df_new['cloud_red'] = df_new['ISB_26'][0] > df_new['ISA_9'][0]
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             pass
         aboveCloudTop = False
         # baseline > cloud top (cloud is bound by span a and span b) and close is > cloud top
@@ -796,7 +798,7 @@ class tools:
                     saveDict['Pattern'] = f'VCP (BO: {highestTop})'
                     return True
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
         return False      
 
     # Validate if volume of last day is higher than avg
@@ -838,11 +840,11 @@ class tools:
                         saveDict['Pattern'] = 'Demand Rise'
                         return True
             except IndexError as e:
-                default_logger().debug(e, exc_info=True)
+                self.default_logger.debug(e, exc_info=True)
                 pass
             return False
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             return False
 
 

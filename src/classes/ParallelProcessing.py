@@ -12,6 +12,7 @@ import numpy as np
 import sys
 import os
 import pytz
+import logging
 from queue import Empty
 from datetime import datetime
 from classes import Imports
@@ -31,7 +32,7 @@ else:
 
 class StockConsumer(multiprocessing.Process):
 
-    def __init__(self, task_queue, result_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent):
+    def __init__(self, task_queue, result_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger):
         multiprocessing.Process.__init__(self)
         self.multiprocessingForWindows()
         self.task_queue = task_queue
@@ -42,6 +43,8 @@ class StockConsumer(multiprocessing.Process):
         self.proxyServer = proxyServer
         self.keyboardInterruptEvent = keyboardInterruptEvent
         self.isTradingTime = Utility.tools.isTradingTime()
+        self.default_logger = default_logger
+        self.default_logger.info('StockConsumer initialized.')
 
     def run(self):
         # while True:
@@ -50,23 +53,23 @@ class StockConsumer(multiprocessing.Process):
                 try:
                     next_task = self.task_queue.get()
                 except Empty as e:
-                    default_logger().debug(e, exc_info=True)
+                    self.default_logger.debug(e, exc_info=True)
                     continue
                 if next_task is None:
-                    default_logger().info('No next task in queue')
+                    self.default_logger.info('No next task in queue')
                     self.task_queue.task_done()
                     break
                 answer = self.screenStocks(*(next_task))
                 self.task_queue.task_done()
-                default_logger().info(f'Task done. Result:{answer}')
+                self.default_logger.info(f'Task done. Result:{answer}')
                 self.result_queue.put(answer)
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             sys.exit(0)
 
     @tracelog
     def screenStocks(self, executeOption, reversalOption, maLength, daysForLowestVolume, minRSI, maxRSI, respChartPattern, insideBarToLookback, totalSymbols,
-                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testbuild=False, printCounter=False,backtestDuration=0):
+                     configManager, fetcher, screener, candlePatterns, stock, newlyListedOnly, downloadOnly, volumeRatio, testbuild=False, printCounter=False,backtestDuration=0, logLevel=logging.NOTSET):
         screenResults = pd.DataFrame(columns=[
             'Stock', 'Consol.', 'Breakout', 'MA-Signal', 'Volume', 'LTP','%Chng', 'RSI', 'Trend', 'Pattern', 'CCI'])
         screeningDictionary = {'Stock': "", 'Consol.': "",  'Breakout': "",
@@ -75,7 +78,11 @@ class StockConsumer(multiprocessing.Process):
                           'MA-Signal': "", 'Volume': "", 'LTP': 0, '%Chng':0, 'RSI': 0, 'Trend': "", 'Pattern': "", 'CCI': 0}
 
         try:
-            default_logger().info(f'Beginning the stock screening for stock:{stock}')
+            self.default_logger.level = logLevel
+            screener.default_logger.level = logLevel
+            self.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
+            screener.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
+            self.default_logger.info(f'Beginning the stock screening for stock:{stock}')
             period = configManager.period
             if volumeRatio <= 0:
                 volumeRatio = configManager.volumeRatio
@@ -85,7 +92,7 @@ class StockConsumer(multiprocessing.Process):
                     period = '250d'
                 else:
                     period = configManager.period
-            default_logger().info(f'For stock:{stock}, stock exists in stockdict:{self.stockDict.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}')
+            self.default_logger.info(f'For stock:{stock}, stock exists in stockdict:{self.stockDict.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}')
             if (self.stockDict.get(stock) is None) or (configManager.cacheEnabled is False) or self.isTradingTime or downloadOnly:
                 data = fetcher.fetchStockData(stock,
                                               period,
@@ -94,10 +101,10 @@ class StockConsumer(multiprocessing.Process):
                                               self.screenResultsCounter,
                                               self.screenCounter,
                                               totalSymbols)
-                default_logger().info(f'Fetcher fetched stock data:\n{data}')
+                self.default_logger.info(f'Fetcher fetched stock data:\n{data}')
                 if configManager.cacheEnabled is True and not self.isTradingTime and (self.stockDict.get(stock) is None) or downloadOnly:
                     self.stockDict[stock] = data.to_dict('split')
-                    default_logger().info(f'Stock data saved:\n{self.stockDict[stock]}')
+                    self.default_logger.info(f'Stock data saved:\n{self.stockDict[stock]}')
                     if downloadOnly:
                         raise Screener.DownloadDataOnly
             else:
@@ -108,13 +115,15 @@ class StockConsumer(multiprocessing.Process):
                         print(colorText.BOLD + colorText.GREEN + "=> Done!" +
                               colorText.END, end='\r', flush=True)
                     except ZeroDivisionError as e:
-                        default_logger().debug(e, exc_info=True)
+                        self.default_logger.debug(e, exc_info=True)
                         pass
                     sys.stdout.write("\r\033[K")
                 data = self.stockDict.get(stock)
                 data = pd.DataFrame(
                     data['data'], columns=data['columns'], index=data['index'])
-            default_logger().info(f'Will pre-process data:\n{data}')
+            if len(data) == 0:
+                return None
+            self.default_logger.info(f'Will pre-process data:\n{data.tail(10)}')
             if backtestDuration == 0:
                 fullData, processedData = screener.preprocessData(
                     data, daysToLookback=configManager.daysToLookback)
@@ -129,14 +138,14 @@ class StockConsumer(multiprocessing.Process):
                     Archiver.saveData(data, f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
                     Archiver.saveData(fullData, f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
                     Archiver.saveData(processedData, f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
-            default_logger().info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
+            self.default_logger.info(f'Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n')
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
                     raise Screener.NotNewlyListed
 
             with self.screenCounter.get_lock():
                 self.screenCounter.value += 1
-                default_logger().info(f'Processing {stock} in {self.screenCounter.value}th counter')
+                self.default_logger.info(f'Processing {stock} in {self.screenCounter.value}th counter')
             if not processedData.empty:
                 screeningDictionary['Stock'] = colorText.BOLD + \
                      colorText.BLUE + f'\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\' + colorText.END
@@ -171,7 +180,7 @@ class StockConsumer(multiprocessing.Process):
                             daysToLookback=configManager.daysToLookback,
                             stockName=stock)
                 except np.RankWarning as e:
-                    default_logger().debug(e, exc_info=True)
+                    self.default_logger.debug(e, exc_info=True)
                     screeningDictionary['Trend'] = 'Unknown'
                     saveDictionary['Trend'] = 'Unknown'
                 isValidCci = screener.validateCCI(
@@ -186,7 +195,7 @@ class StockConsumer(multiprocessing.Process):
                     isCandlePattern = candlePatterns.findPattern(
                     processedData, screeningDictionary, saveDictionary)
                 except Exception as e:
-                    default_logger().debug(e, exc_info=True)
+                    self.default_logger.debug(e, exc_info=True)
                     screeningDictionary['Pattern'] = ''
                     saveDictionary['Pattern'] = ''
                 isConfluence = False
@@ -226,7 +235,7 @@ class StockConsumer(multiprocessing.Process):
                             isBuyingTrendline = screener.findTrendlines(fullData, screeningDictionary, saveDictionary)
 
                 with self.screenResultsCounter.get_lock():
-                    default_logger().info(f'Processing results for {stock} in {self.screenResultsCounter.value}th results counter')
+                    self.default_logger.info(f'Processing results for {stock} in {self.screenResultsCounter.value}th results counter')
                     if executeOption == 0:
                         self.screenResultsCounter.value += 1
                         return screeningDictionary, saveDictionary, data, stock, backtestDuration 
@@ -305,19 +314,19 @@ class StockConsumer(multiprocessing.Process):
             # Capturing Ctr+C Here isn't a great idea
             pass
         except Fetcher.StockDataEmptyException as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             pass
         except Screener.NotNewlyListed as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             pass
         except Screener.DownloadDataOnly as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             pass
         except KeyError as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             pass
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            self.default_logger.debug(e, exc_info=True)
             if testbuild or printCounter:
                 print(e)
                 print(colorText.FAIL +
