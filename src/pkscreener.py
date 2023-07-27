@@ -31,6 +31,8 @@ from classes.log import default_logger
 from classes.ColorText import colorText
 import classes.ConfigManager as ConfigManager
 from time import sleep
+import multiprocessing
+multiprocessing.freeze_support()
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
