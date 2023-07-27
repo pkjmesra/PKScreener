@@ -12,7 +12,7 @@ on:
         required: false
         default: 'Data Download'
   schedule:
-  - cron: '02 10 * * 1-5'
+  - cron: '58 9 * * 1-5'
 
 jobs:
 
