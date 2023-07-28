@@ -90,8 +90,8 @@ Followin scanners are already implemented. Others are `In Progress`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .
 * (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well.
-* `cd src`
-* Finally, from within the `src` directory, run `python pkscreener.py`. You are all set.
+* `cd pkscreener`
+* Finally, from within the `pkscreener` directory, run `python pkscreener.py`. You are all set.
 
 # Running the executables
 * Download the suitable file according to your OS.
@@ -167,7 +167,7 @@ Try to tweak this parameters as per your trading styles. For example, If you're 
 ## Creating your own Telegram channel to receive your own alerts:
 You can create your own telegram channel to receive alerts wherenevr you run it locally on your laptop either from a command line interface console or run it as a scheduler. Simply, go ahead and 
 1. Create a bot for yourself, then a channel and get their IDs. Follow the steps in https://medium.com/codex/using-python-to-send-telegram-messages-in-3-simple-steps-419a8b5e5e2 and https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token
-2. After you have created the bot using `botFather` and have received/verified your bot id/token and channel ID using `get id bot`, simply go to `src` folder in the source code directory and create a `.env.dev` file with the following (If you are instead using the .exe or .bin or .run file from release, just create this file in the same folder where the executable (.exe or .bin or .run) is placed.)
+2. After you have created the bot using `botFather` and have received/verified your bot id/token and channel ID using `get id bot`, simply go to `pkscreener` folder in the source code directory and create a `.env.dev` file with the following (If you are instead using the .exe or .bin or .run file from release, just create this file in the same folder where the executable (.exe or .bin or .run) is placed.)
 ```
 CHAT_ID=Your_Channel_Id_Here_Without_A_Hyphen_or_Minus_Sign
 TOKEN=Your_Bot_Token_Here

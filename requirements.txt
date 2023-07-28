@@ -13,7 +13,7 @@ pep517
 pip
 pip-chill
 progress
-pyinstaller #==5.6.2
+# pyinstaller #==5.6.2
 pytest-mock
 python-dotenv
 telegram
@@ -50,9 +50,9 @@ pandas_ta
 pefile # Installed as dependency for pyinstaller
 pluggy # Installed as dependency for pytest
 py # Installed as dependency for pytest
-pyinstaller-hooks-contrib # Installed as dependency for pyinstaller
+# pyinstaller-hooks-contrib # Installed as dependency for pyinstaller
 pyparsing # Installed as dependency for packaging, matplotlib
-pytest # Installed as dependency for pytest-mock
+# pytest # Installed as dependency for pytest-mock
 python-dateutil # Installed as dependency for dateutils, matplotlib, pandas
 pytz # Installed as dependency for dateutils, pandas
 pywin32-ctypes # Installed as dependency for pyinstaller

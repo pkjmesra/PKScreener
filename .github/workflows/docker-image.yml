@@ -29,7 +29,7 @@ jobs:
         GITHUB_REF=${GITHUB_REF#refs/tags/}
         echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-        CURRENT_VERSION=`grep -o "'.*'" src/classes/__init__.py | sed "s/'//g"`
+        CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
         THIS_VERSION=${CURRENT_VERSION}.${{github.run_number}}
         echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
     - name: Login to Docker Hub
