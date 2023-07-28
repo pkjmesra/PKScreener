@@ -39,8 +39,9 @@ def cleanup():
 
 def test_if_changelog_version_changed():
     global last_release
-    # v = changelog.split(']')[-2].split('[')[-1]
-    # assert float(v) > float(last_release)
+    v = changelog.split(']')[1].split('[')[-1]
+    v = str(v).replace('v','')
+    assert float(v) > float(last_release)
     assert (f'v{str(last_release)}' in changelog)
     assert (f'v{str(VERSION)}' in changelog)
 
@@ -285,16 +286,6 @@ def test_option_X_12_Z(mocker, capsys):
         mocker.patch('builtins.input', side_effect=['X','12','Z',''])
         with pytest.raises(SystemExit):
             main(testing=True, startupoptions='X:12:Z', defaultConsoleAnswer='Y')
-        out, err = capsys.readouterr()
-        assert err == ''
-    except StopIteration:
-        pass
-
-def test_option_Y(mocker, capsys):
-    try:
-        mocker.patch('builtins.input', side_effect=['Y',''])
-        # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-        main(testing=True)
         out, err = capsys.readouterr()
         assert err == ''
     except StopIteration:

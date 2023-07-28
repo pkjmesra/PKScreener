@@ -1,13 +1,13 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 
 ## What's New?
-3. v0.3 release
+3. [v0.3] release
 
 1. Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
 2. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
 3. Intraday scans added -
 
-2. v0.2 release
+2. [v0.2] release
 
 * Backtests are now enabled. You can now choose any strategy and backtest for the past 1 year's data.
 * Logging with option `-l` is now enabled for troubleshooting
@@ -15,7 +15,7 @@
 * Includes an option to create user's own telegram channel and receive alerts there.
 * The application now runs without TA-Lib as well.
 
-1. First release - v0.01
+1. First release - [v0.01]
 
 ## Downloads
 | Operating System | Executable File |
