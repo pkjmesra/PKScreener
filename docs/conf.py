@@ -19,7 +19,7 @@ from datetime import date
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(".."))
 
-from src.classes import VERSION  # noqa: E402
+from pkscreener.classes import VERSION  # noqa: E402
 
 # -- General configuration -----------------------------------------------------
 

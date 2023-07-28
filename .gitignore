@@ -15,9 +15,8 @@ Help
 *.dev
 *.png
 *.pyc
-src/__pycache__
-src/classes/__pycache__
+pkscreener/__pycache__
+pkscreener/classes/__pycache__
 *.egg-*/*
 *.json
 *.html
-*.txt

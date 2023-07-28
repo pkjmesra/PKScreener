@@ -8,7 +8,7 @@ This is a temporary script file.
 import sys
 import setuptools  # noqa
 from distutils.core import setup
-from src.classes import VERSION
+from pkscreener.classes import VERSION
 
 __USERNAME__ = 'pkjmesra'
 
@@ -38,7 +38,7 @@ setup(
 	name = 'pkscreener',
 	packages=setuptools.find_packages(where=".", exclude=["docs", "test"]),
 	include_package_data = True,    # include everything in source control
-	package_data={'src': ['pkscreener.ini']},
+	package_data={'pkscreener': ['pkscreener.ini']},
 	# ...but exclude README.txt from all packages
 	exclude_package_data = { '': ['*.yml'] },
 	version = VERSION,
@@ -52,7 +52,7 @@ setup(
 	zip_safe=False,
 	entry_points='''
 	[console_scripts]
-	pkscreener=src.pkscreener:pkscreenercli
+	pkscreener=pkscreener.pkscreener:pkscreenercli
 	''',
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[
