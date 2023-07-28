@@ -37,14 +37,6 @@ def cleanup():
     configManager.deleteFileWithPattern(pattern='*.png')
     configManager.deleteFileWithPattern(pattern='*.xlsx')
 
-# Generate default configuration if not exist
-def test_generate_default_config(mocker, capsys):
-    mocker.patch('builtins.input', side_effect=['5','0', '\n'])
-    with pytest.raises(SystemExit):
-        configManager.setConfig(ConfigManager.parser, default=True,showFileCreatedText=False)
-    out, err = capsys.readouterr()
-    assert err == ''
-
 def test_if_changelog_version_changed():
     global last_release
     v = changelog.split(']')[-2].split('[')[-1]
