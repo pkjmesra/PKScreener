@@ -82,7 +82,7 @@ rm updater.sh
 
     # Parse changelog from release.md
     def showWhatsNew():
-        url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/src/release.md"
+        url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/release.md"
         md = requests.get(url)
         txt = md.text
         txt = txt.split("New?")[1]
