@@ -6,11 +6,10 @@
 ![main workflow](https://img.shields.io/github/actions/workflow/status/pkjmesra/pkscreener/workflow-prod-scans_2.1.yml?logo=github)
 ![github license](https://img.shields.io/pypi/l/gspread?logo=github)
 ![latest download](https://img.shields.io/github/downloads-pre/pkjmesra/pkscreener/latest/total?logo=github)
-[![Documentation](https://readthedocs.org/projects/pkscreener/badge/?version=latest)](https://pkscreener.readthedocs.io/en/latest/?badge=latest) [![3. Production Scan Tests On Dev](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml) [![4. After-Market Data Gen](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml) 
+[![Documentation](https://readthedocs.org/projects/pkscreener/badge/?version=latest)](https://pkscreener.readthedocs.io/en/latest/?badge=latest) [![Docker Status](https://img.shields.io/docker/automated/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
+[![Docker Pulls](https://img.shields.io/docker/pulls/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian) [![3. Production Scan Tests On Dev](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml) [![4. After-Market Data Gen](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml) 
  [![PKScreener Test - New Features](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml/badge.svg?branch=new-features)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml) [![PKScreener Build - New Release](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml)
 [![Docker Build](https://github.com/pkjmesra/pkscreener/workflows/Docker%20Image%20CI/badge.svg)](https://github.com/pkjmesra/pkscreener/actions/workflows/docker-image.yml?query=workflow%3ADocker)
-[![Docker Status](https://img.shields.io/docker/automated/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
-[![Docker Pulls](https://img.shields.io/docker/pulls/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
 
 ## What is PKScreener?
 
@@ -20,16 +19,10 @@
 pkscreener is totally customizable and it can screen stocks with the settings that you have provided.
 
 You can get daily scan results/alerts at scheduled times by subscribing to the following Telegram channel:
-
-https://t.me/PKScreener (or scan the QR code to join)
-
-<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>
-
-For any discussion related to PKScreener, you may like to join the following related Telegram group:
-
-https://t.me/PKScreeners (or scan the QR code to join)
-
-<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>
+| Purpose | Description/link | QR Code |
+|:---:|:---:|:---|
+|Alerts Channel| https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions.|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>|
+|Discussions|https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>|
 
 ![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
 
@@ -92,6 +85,15 @@ Followin scanners are already implemented. Others are `In Progress`
 * Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `12` is `Scanners.`. `10` `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
 
 # Building from source repo
+* Install python 3.9 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
+* Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
+* `cd PKScreener`
+* `pip install -r requirements.txt` .
+* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well.
+* `cd src`
+* Finally, from within the `src` directory, run `python pkscreener.py`. You are all set.
+
+# Running the executables
 * Download the suitable file according to your OS.
 * Linux & Mac users should make sure that the `pkscreener.bin or pkscreener.run` is having `execute` permission.
 * **Run** the file. Following window will appear after a brief delay.
@@ -174,14 +176,16 @@ chat_idADMIN=Your_Own_ID_Here
 3. From now on, you will begin to receive your own alerts on your telegram channel.
 
 ## Troubleshooting and Logs:
-If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreener.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. After you have finished the run, go to that copied path, zip the contents of the file `pkscreener-logs.txt` and create an issue at https://github.com/pkjmesra/PKScreener/issues. Please do not forget to attach the log files in the issue.
+If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreener.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the `logsEnabled` value to `y`, save & close it and then run `python pkscreener.py`.
+
+After you have finished the run, go to that copied path, zip the contents of the file `pkscreener-logs.txt` and create an issue at https://github.com/pkjmesra/PKScreener/issues. Please do not forget to attach the log files in the issue.
 
 ## Contributing:
 * Please feel free to Suggest improvements bugs by creating an issue.
 * Please follow the [Guidelines for Contributing](https://github.com/pkjmesra/PKScreener/blob/main/CONTRIBUTING.md) while making a Pull Request.
 
 ## Disclaimer:
-* DO NOT use the result provided by the software 'solely' to make your trading decisions.
+* DO NOT use the results provided by the software 'solely' to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
-* The Author and the software will not be held liable for your losses.
-* A lot of this work is based on the original work of https://github.com/pranjal-joshi/Screeni-py. A big thank you!
+* The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
+* A lot of this work is based on the work of https://github.com/pranjal-joshi/Screeni-py. A big thank you!
