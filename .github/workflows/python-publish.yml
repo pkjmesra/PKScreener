@@ -95,7 +95,7 @@ jobs:
       run: |
         sudo rm -rf build
         sudo rm -rf dist
-        sudo rm -rf nseta/__init__.py
+        sudo rm -rf pkscreener/__init__.py
         echo "VERSION='${{ steps.vars.outputs.THIS_VERSION }}'" >> pkscreener/__init__.py
         sudo python3 setup.py clean build install sdist bdist_wheel
         twine upload --repository-url https://test.pypi.org/legacy/ dist/*
