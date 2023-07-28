@@ -1,0 +1,119 @@
+# This workflows will upload a Python Package using Twine when a commit is pushed
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+name: PyPi Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'PyPi Publish'
+        required: false
+        default: 'PyPi Publish'
+
+jobs:
+  deploy:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/Library/Caches/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Update git buffer
+      run: |
+        # Somehow the brew install fails when running action. Let's try and increment buffer size.
+        git config --global http.postBuffer 524288000
+    - name: Update or Install Homebrew
+      run: |
+        # sudo rm -rf /usr/local/homebrew
+        # Check if brew is already installed. If not, update or install it now
+        which brew || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+        brew install python3
+    - name: Install setuptools
+      run: |
+        sudo pip3 install setuptools wheel twine
+    - name: Install project dependencies
+      run: |
+        brew install ta-lib
+        pip3 install ta-lib==0.4.19
+        pip3 install -r requirements.txt
+    - name: Declare env variables
+      id: vars
+      shell: bash
+      run: |
+        GITHUB_REF=${GITHUB_REF#refs/tags/}
+        echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        CURRENT_VERSION=`grep -o "'.*'" pkscreener/__init__.py | sed "s/'//g"`
+        THIS_VERSION=${CURRENT_VERSION}.${{github.run_number}}
+        echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
+    # - name: Generate test coverage report
+    #   run: |
+    #     pip3 install timeout-decorator
+    #     pip3 install coverage
+    #     sudo python3 setup.py clean build install
+    #     coverage run -m unittest discover -s tests -p 'test_*.py'
+    #     coverage report -m
+    #     coverage html
+    #     coverage xml
+    #     bash <(curl -s https://codecov.io/bash)
+    # - name: "Upload test coverage to Codecov"
+    #   uses: codecov/codecov-action@v1
+    #   with:
+    #     token: ${{ secrets.CODECOV_TOKEN }}
+    #     # files: ./coverage1.xml,./coverage2.xml
+    #     # directory: ./coverage/reports/
+    #     flags: unittests
+    #     env_vars: THIS_VERSION,GITHUB_REF
+    #     name: codecov-umbrella
+    #     fail_ci_if_error: false
+    #     # path_to_write_report: ./coverage/codecov_report.txt
+    #     verbose: true
+    # - name: "Upload test coverage to Codacy"
+    #   env:
+    #     CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+    #   run: |
+    #     coverage xml
+    #     bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Python -r coverage.xml
+    - name: Build and publish distribution 📦 to Test PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.TESTPYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+        repository_url: https://test.pypi.org/legacy/
+      run: |
+        sudo rm -rf build
+        sudo rm -rf dist
+        sudo rm -rf nseta/__init__.py
+        echo "VERSION='${{ steps.vars.outputs.THIS_VERSION }}'" >> pkscreener/__init__.py
+        sudo python3 setup.py clean build install sdist bdist_wheel
+        twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    - name: Publish distribution 📦 to PyPI
+      if: startsWith(github.ref, 'refs/tags')
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        repository_url: https://upload.pypi.org/legacy/
+      run: |
+        sudo rm -rf build
+        sudo rm -rf dist
+        sudo python3 setup.py clean build install sdist bdist_wheel
+        twine upload dist/*
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheel-egg-code-tar-${{ steps.vars.outputs.THIS_VERSION }}-${{ steps.vars.outputs.branch }}-${{ steps.vars.outputs.sha_short }}
+        path: |
+          dist
+
