@@ -6,10 +6,10 @@
 '''
 
 from classes.ColorText import colorText
+from classes.OtaUpdater import OTAUpdater
 
-changelog = colorText.BOLD + '[ChangeLog]\n' + colorText.END + colorText.BLUE + '''
-[0.01]
-1. First release
+whatsNew = OTAUpdater.showWhatsNew()
+changelog = colorText.BOLD + '[ChangeLog]\n' + colorText.END + colorText.BLUE + whatsNew + '''
 
 --- END ---
 ''' + colorText.END
