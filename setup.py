@@ -3,6 +3,9 @@
 Spyder Editor
 
 This is a temporary script file.
+
+python setup.py clean build install sdist bdist_wheel
+
 """
 # import atexit, os
 import sys
@@ -57,7 +60,9 @@ setup(
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[
 	"License :: OSI Approved :: MIT License",
-	"Operating System :: Windows, MacOS, Linux",
+	"Operating System :: Microsoft :: Windows",
+	"Operating System :: MacOS",
+	"Operating System :: POSIX :: Linux",
 	'Programming Language :: Python',
 	'Programming Language :: Python :: 3',
 	'Programming Language :: Python :: 3.9',
