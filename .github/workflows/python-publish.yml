@@ -65,6 +65,7 @@ jobs:
         TWINE_USERNAME: ${{ secrets.TESTPYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         repository_url: https://test.pypi.org/legacy/
+      shell: cmd
       run: |
         rmdir /s /q build
         rmdir /s /q dist
@@ -78,6 +79,7 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         repository_url: https://upload.pypi.org/legacy/
+      shell: cmd
       run: |
         rmdir /s /q build
         rmdir /s /q dist
