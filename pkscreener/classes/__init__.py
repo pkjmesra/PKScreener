@@ -1,5 +1,5 @@
 from importlib.util import find_spec
-VERSION='0.3'
+VERSION='0.4'
 
 Imports = {
     "scipy": find_spec("scipy") is not None,

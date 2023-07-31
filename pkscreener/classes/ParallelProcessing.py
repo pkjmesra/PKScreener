@@ -34,7 +34,9 @@ try:
     else:
         import multiprocessing.popen_fork as forking
 except ImportError:
-    import multiprocessing.forking as forking
+    print('Contact developer! Your platform does not support multiprocessing!')
+    input('Press any key to exit...')
+    sys.exit(0)
 
 # usage: pkscreener.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
 # pkscreener.exe: error: unrecognized arguments: --multiprocessing-fork parent_pid=4620 pipe_handle=708
