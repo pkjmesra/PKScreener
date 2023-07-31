@@ -1,7 +1,7 @@
 from enum import Enum
-from classes.ColorText import colorText
-import classes.ConfigManager as ConfigManager
-from classes.log import default_logger
+from pkscreener.classes.ColorText import colorText
+import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes.log import default_logger
 
 configManager = ConfigManager.tools()
 

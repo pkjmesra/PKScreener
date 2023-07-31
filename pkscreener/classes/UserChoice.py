@@ -1,6 +1,6 @@
 
-from classes.MenuOptions import menu, menus
-from classes.ColorText import colorText
+from pkscreener.classes.MenuOptions import menu, menus
+from pkscreener.classes.ColorText import colorText
 
 # This Class manages user menu choices
 class choices:

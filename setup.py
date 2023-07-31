@@ -17,7 +17,7 @@ __USERNAME__ = 'pkjmesra'
 
 with open('README.md', 'r') as fh:
 	long_description = fh.read()
-with open('requirements-alpine.txt', 'r') as fh:
+with open('requirements.txt', 'r') as fh:
 	install_requires = fh.read().splitlines()
 
 SYS_MAJOR_VERSION = str(sys.version_info.major)
@@ -55,7 +55,7 @@ setup(
 	zip_safe=False,
 	entry_points='''
 	[console_scripts]
-	pkscreener=pkscreener.pkscreener:pkscreenercli
+	pkscreener=pkscreener.pkscreenercli:pkscreenercli
 	''',
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[

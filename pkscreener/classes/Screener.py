@@ -10,16 +10,16 @@ import math
 import numpy as np
 import pandas as pd
 import joblib
-import classes.Utility as Utility
-from classes.Pktalib import pktalib
-from classes import Imports
-from classes.log import default_logger, tracelog
+import pkscreener.classes.Utility as Utility
+from pkscreener.classes.Pktalib import pktalib
+from pkscreener.classes import Imports
+from pkscreener.classes.log import default_logger, tracelog
 # from sklearn.preprocessing import StandardScaler
 if Imports['scipy']:
     from scipy.signal import argrelextrema
     from scipy.stats import linregress
-from classes.ColorText import colorText
-from classes.SuppressOutput import SuppressOutput
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.SuppressOutput import SuppressOutput
 
 # Exception for only downloading stock data and not screening
 class DownloadDataOnly(Exception):

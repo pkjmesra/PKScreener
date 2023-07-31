@@ -8,18 +8,18 @@ import logging
 # import dataframe_image as dfi
 # import df2img
 
-import classes.Fetcher as Fetcher
-import classes.ConfigManager as ConfigManager
-from classes.OtaUpdater import OTAUpdater
-from classes import VERSION
-from classes.log import default_logger, tracelog
-import classes.Screener as Screener
-import classes.Utility as Utility
-from classes.ColorText import colorText
-from classes.CandlePatterns import CandlePatterns
-from classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
-from classes.ParallelProcessing import StockConsumer
-from classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
+import pkscreener.classes.Fetcher as Fetcher
+import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes.OtaUpdater import OTAUpdater
+from pkscreener.classes import VERSION
+from pkscreener.classes.log import default_logger, tracelog
+import pkscreener.classes.Screener as Screener
+import pkscreener.classes.Utility as Utility
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.CandlePatterns import CandlePatterns
+from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
+from pkscreener.classes.ParallelProcessing import StockConsumer
+from pkscreener.classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 # import classes.Archiver as Archiver
 
 from alive_progress import alive_bar
@@ -27,11 +27,11 @@ import urllib
 import numpy as np
 import pandas as pd
 from datetime import datetime
-import classes.PortfolioTracker as tracker
-from classes.Backtest import backtest
+import pkscreener.classes.PortfolioTracker as tracker
+from pkscreener.classes.Backtest import backtest
 from time import sleep
 from tabulate import tabulate
-from Telegram import send_message, send_photo, send_document, is_token_telegram_configured
+from pkscreener.Telegram import send_message, send_photo, send_document, is_token_telegram_configured
 import multiprocessing
 multiprocessing.freeze_support()
 

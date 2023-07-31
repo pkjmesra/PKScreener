@@ -14,9 +14,9 @@ import os
 import yfinance as yf
 import pandas as pd
 from nsetools import Nse
-from classes.ColorText import colorText
-from classes.SuppressOutput import SuppressOutput
-from classes.log import default_logger
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.SuppressOutput import SuppressOutput
+from pkscreener.classes.log import default_logger
 
 nse = Nse()
 

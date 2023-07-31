@@ -19,8 +19,8 @@ import pickle
 import requests
 import time
 import joblib
-from classes import Imports
-from classes.log import default_logger
+from pkscreener.classes import Imports
+from pkscreener.classes.log import default_logger
 
 if Imports['keras']:
     import keras
@@ -30,11 +30,11 @@ import pandas as pd
 from alive_progress import alive_bar
 from tabulate import tabulate
 from time import sleep
-from classes.ColorText import colorText
-from classes import VERSION
-from classes.Changelog import changelog
-import classes.ConfigManager as ConfigManager
-from classes.MenuOptions import menus, menu, MenuRenderStyle
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes import VERSION
+from pkscreener.classes.Changelog import changelog
+import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes.MenuOptions import menus, menu, MenuRenderStyle
 
 artText = '''
     $$$$$$      $$   $$      $$$$$                                                        

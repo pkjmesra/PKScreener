@@ -11,8 +11,8 @@ import string
 import glob
 import configparser
 from datetime import date
-from classes.ColorText import colorText
-from classes.log import default_logger
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
 

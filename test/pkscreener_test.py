@@ -19,14 +19,14 @@ import shutil
 
 shutil.copyfile('../pkscreener/.env.dev', '.env.dev')
 sys.path.append(os.path.abspath('../pkscreener'))
-import classes.ConfigManager as ConfigManager
-from classes import VERSION
-from classes.Changelog import changelog
-from classes.OtaUpdater import OTAUpdater
-from classes.log import default_logger
-import globals
-from globals import main
-from pkscreener import *
+import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes import VERSION
+from pkscreener.classes.Changelog import changelog
+from pkscreener.classes.OtaUpdater import OTAUpdater
+from pkscreener.classes.log import default_logger
+import pkscreener.globals
+from pkscreener.globals import main
+from pkscreener.pkscreenercli import *
 last_release = 0
 configManager = ConfigManager.tools()
 configManager.default_logger = default_logger()

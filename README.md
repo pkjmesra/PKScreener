@@ -77,6 +77,11 @@ Followin scanners are already implemented. Others are `In Progress`
     13 > Bullish RSI & MACD Intraday            14 > NR4 Daily Today
 ```
 ## How to use on your own local Windows/Linux/Macbook laptop?
+# Installing the latest version from PyPi.
+* Go ahead and install using `pip install pkscreener`
+* This should install all of the major dependencies, except maybe, TA-Lib. 
+* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
+* Now launch your favorite command line CLI and issue `pkscreener`. This will launch the pkscreener executable.
 
 # Using docker, running within docker container
 * Download and install docker desktop: https://docs.docker.com/get-docker/
@@ -91,7 +96,7 @@ Followin scanners are already implemented. Others are `In Progress`
 * `pip install -r requirements.txt` .
 * (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well.
 * `cd pkscreener`
-* Finally, from within the `pkscreener` directory, run `python pkscreener.py`. You are all set.
+* Finally, from within the `pkscreener` directory, run `python pkscreenercli.py`. You are all set.
 
 # Running the executables
 * Download the suitable file according to your OS.
@@ -124,10 +129,10 @@ You can now use the *Backtests* menu to backtest any of the selected strategies.
 
 ## Scanning as a scheduled job once or at regular intervals
 * Running it once with pre-defined inputs
-You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreener.py -a Y -o X:12:10 -e` (or `pkscreener.exe -a Y -o X:12:10 -e` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreener.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreener.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreener.py -h`.
+You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreenercli.py -a Y -o X:12:10 -e` (or `pkscreener.exe -a Y -o X:12:10 -e` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreenercli.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreenercli.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreenercli.py -h`.
 
 * Running it at regular intervals
-If you want to runn it at regular intervals, you can just pass the interval in `-c` command line option. For example, `./pkscreener.py -a Y -o X:12:6:1 -c 180` will run it every `180` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the `-p` parameter. For example, `./pkscreener.py -a Y -p -o X:12:6:1 -c 180`
+If you want to runn it at regular intervals, you can just pass the interval in `-c` command line option. For example, `./pkscreenercli.py -a Y -o X:12:6:1 -c 180` will run it every `180` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the `-p` parameter. For example, `./pkscreenercli.py -a Y -p -o X:12:6:1 -c 180`
 
 ## Understanding the Result Table:
 
@@ -176,7 +181,7 @@ chat_idADMIN=Your_Own_ID_Here
 3. From now on, you will begin to receive your own alerts on your telegram channel.
 
 ## Troubleshooting and Logs:
-If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreener.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the `logsEnabled` value to `y`, save & close it and then run `python pkscreener.py`.
+If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreenercli.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the `logsEnabled` value to `y`, save & close it and then run `python pkscreenercli.py`.
 
 After you have finished the run, go to that copied path, zip the contents of the file `pkscreener-logs.txt` and create an issue at https://github.com/pkjmesra/PKScreener/issues. Please do not forget to attach the log files in the issue.
 

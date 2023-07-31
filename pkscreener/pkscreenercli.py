@@ -10,6 +10,7 @@ import multiprocessing
 import argparse
 import builtins
 import tempfile
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def decorator(func):
     def new_func(*args,**kwargs):
@@ -26,10 +27,10 @@ def disableSysOut(input=True):
     sys.stdout = open(os.devnull, 'w')
     sys.__stdout__ = open(os.devnull, 'w')
 
-import classes.log as log
-from classes.log import default_logger
-from classes.ColorText import colorText
-import classes.ConfigManager as ConfigManager
+from pkscreener.classes import log as log
+from pkscreener.classes.log import default_logger
+from pkscreener.classes.ColorText import colorText
+import pkscreener.classes.ConfigManager as ConfigManager
 from time import sleep
 import multiprocessing
 multiprocessing.freeze_support()
@@ -75,8 +76,8 @@ def pkscreenercli():
         setupLogger(shouldLog=True, trace=args.testbuild)
         if not args.prodbuild:
             input(f'Press any key to continue...')
-    from globals import main
-    import classes.Utility as Utility
+    from pkscreener.globals import main
+    import pkscreener.classes.Utility as Utility
     
     configManager.default_logger = default_logger()
     Utility.tools.clearScreen()

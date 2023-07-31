@@ -1,5 +1,5 @@
 import pandas as pd
-from classes.ColorText import colorText
+from pkscreener.classes.ColorText import colorText
 
 def backtest(stock, data, screenedDict=None, periods=30,sampleDays=365, backTestedData = None):
     if stock == '' or data is None:

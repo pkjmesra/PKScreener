@@ -15,15 +15,15 @@ import pytz
 import logging
 from queue import Empty
 from datetime import datetime
-from classes import Imports
-import classes.Fetcher as Fetcher
-import classes.Screener as Screener
-import classes.Utility as Utility
-from classes.CandlePatterns import CandlePatterns
-from classes.ColorText import colorText
-from classes.SuppressOutput import SuppressOutput
-from classes.log import default_logger, tracelog
-import classes.Archiver as Archiver
+from pkscreener.classes import Imports
+import pkscreener.classes.Fetcher as Fetcher
+import pkscreener.classes.Screener as Screener
+import pkscreener.classes.Utility as Utility
+from pkscreener.classes.CandlePatterns import CandlePatterns
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.SuppressOutput import SuppressOutput
+from pkscreener.classes.log import default_logger, tracelog
+import pkscreener.classes.Archiver as Archiver
 
 # https://github.com/pyinstaller/pyinstaller/wiki/Recipe-Multiprocessing
 # Module multiprocessing is organized differently in Python 3.4+

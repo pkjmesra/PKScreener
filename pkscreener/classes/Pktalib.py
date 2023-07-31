@@ -1,6 +1,6 @@
 import numpy as np
-from classes import Imports
-from classes.log import default_logger
+from pkscreener.classes import Imports
+from pkscreener.classes.log import default_logger
 
 if Imports['talib']:
     import talib

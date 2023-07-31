@@ -18,7 +18,7 @@ import pandas as pd
 from datetime import datetime
 
 from telegram.constants import ParseMode
-from classes.log import default_logger
+from pkscreener.classes.log import default_logger
 
 TOKEN = "00000000xxxxxxx"
 # URL_TELE = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
