@@ -80,13 +80,15 @@ def send_exception(ex, extra_mes = ""):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_idADMIN}&text={message_aler}"
 
 
-def send_message(message, parse_type = ParseMode.HTML, list_png = None):
+def send_message(message, parse_type = ParseMode.HTML, list_png = None,userID=None):
     initTelegram()
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
     if not is_token_telegram_configured():
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
+    if userID is not None:
+        LIST_PEOPLE_IDS_CHAT = [userID]
     if list_png is None or any(elem is None for elem in list_png):
         resp = None
         for people_id in LIST_PEOPLE_IDS_CHAT:
@@ -108,7 +110,7 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None):
     #     # print(telegram_msg)
     #     # print(telegram_msg.content)
 
-def send_photo(photoFilePath, message = "", message_id = None):
+def send_photo(photoFilePath, message = "", message_id = None,userID=None):
     initTelegram()
     if not is_token_telegram_configured():
         return
@@ -130,7 +132,7 @@ def send_photo(photoFilePath, message = "", message_id = None):
         resp = requests.post(botsUrl + method, params, files=files)
     return resp
 
-def send_document(documentFilePath, message="", message_id = None, retryCount=0):
+def send_document(documentFilePath, message="", message_id = None, retryCount=0,userID=None):
     initTelegram()
     if not is_token_telegram_configured():
         return
@@ -138,9 +140,9 @@ def send_document(documentFilePath, message="", message_id = None, retryCount=0)
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
     if message_id is not None:
-        params = {'chat_id': Channel_Id, 'caption' : message,'parse_mode':ParseMode.HTML, 'reply_to_message_id':message_id}
+        params = {'chat_id': (userID if userID is not None else Channel_Id), 'caption' : message,'parse_mode':ParseMode.HTML, 'reply_to_message_id':message_id}
     else:
-        params = {'chat_id': Channel_Id, 'caption': message, 'parse_mode': ParseMode.HTML}
+        params = {'chat_id': (userID if userID is not None else Channel_Id), 'caption': message, 'parse_mode': ParseMode.HTML}
     files={'document': document}
     method = "/sendDocument"
     resp = None

@@ -158,17 +158,20 @@ class menus:
             self.menuDict[str(key).upper()] = m
         return self
     
-    def render(self):
-        menuText = ''
+    def render(self, asList=False):
+        menuText = ([] if asList else '')
         for k in self.menuDict.keys():
             m = self.menuDict[k]
-            menuText = menuText + m.render()
+            if asList:
+                menuText.append(m.render())
+            else:
+                menuText = menuText + m.render()
         return menuText
 
-    def renderForMenu(self, selectedMenu=None, skip=[]):
+    def renderForMenu(self, selectedMenu=None, skip=[], asList=False):
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
-            return self.renderLevel0Menus()
+            return self.renderLevel0Menus(asList=asList)
         elif selectedMenu is not None:
             if selectedMenu.level == 0:
                 self.level = 1
@@ -192,13 +195,17 @@ class menus:
                 return None
         return None
 
-    def renderLevel0Menus(self):
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select a menu option:' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U']).render() + '''
+    def renderLevel0Menus(self, asList=False):
+        menuText = self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U']).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                '[+] Select a menu option:' + colorText.END)
+            print(colorText.BOLD + menuText + '''
 
-    Enter your choice >  (default is ''' + colorText.WARN + self.find('X').keyTextLabel() + ') ''' + colorText.END
-            )
+        Enter your choice >  (default is ''' + colorText.WARN + self.find('X').keyTextLabel() + ') ''' + colorText.END
+                )
     
     def renderLevel1_X_Menus(self,skip=[]):
         print(colorText.BOLD + colorText.WARN +

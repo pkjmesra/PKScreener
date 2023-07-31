@@ -46,6 +46,7 @@ argParser.add_argument('-e', '--exit', action='store_true', help='Exit right aft
 argParser.add_argument('-o', '--options', help='Pass selected options in the <MainMenu>:<SubMenu>:<SubMenu>:etc. format. For example: ./pkscreenercli.py -a Y -o X:12:10 -e will run the screener with answer Y as default choice to questions and scan with menu choices: Scanners > Nifty (All Stocks) > Closing at least 2%% up since last 3 day', required=False)
 argParser.add_argument('-p', '--prodbuild', action='store_true', help='Run in production-build mode', required=False)
 argParser.add_argument('-t', '--testbuild', action='store_true', help='Run in test-build mode', required=False)
+argParser.add_argument('-u', '--user', help='Telegram user ID to whom the results must be sent.', required=False)
 argParser.add_argument('-l', '--log', action='store_true', help='Run with full logging enabled', required=False)
 argParser.add_argument('-v', action='store_true')        # Dummy Arg for pytest -v
 args = argParser.parse_args()
@@ -89,10 +90,10 @@ def pkscreenercli():
         configManager.setConfig(ConfigManager.parser, default=True, showFileCreatedText=False)
     if args.testbuild and not args.prodbuild:
         print(colorText.BOLD + colorText.FAIL +"[+] Started in TestBuild mode!" + colorText.END)
-        main(testBuild=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault)
+        main(testBuild=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault, user=args.user)
     elif args.download:
         print(colorText.BOLD + colorText.FAIL +"[+] Download ONLY mode! Stocks will not be screened!" + colorText.END)
-        main(downloadOnly=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault)
+        main(downloadOnly=True, startupoptions=args.options, defaultConsoleAnswer=args.answerdefault, user=args.user)
         sys.exit(0)
     else:
         try:
@@ -113,9 +114,9 @@ def pkscreenercli():
                     print(colorText.BOLD + colorText.GREEN +
                       "=> Going to fetch again!" + colorText.END, end='\r', flush=True)
                     sleep(3)
-                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild))
+                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild), user=args.user)
                 else:
-                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild))
+                    main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild), user=args.user)
                     startupOptions= None
                     defaultAnswer = None
                     cronInterval = None

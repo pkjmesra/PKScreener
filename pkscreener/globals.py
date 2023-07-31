@@ -282,7 +282,7 @@ def handleScannerExecuteOption4(executeOption,options):
 
 # Main function
 @tracelog
-def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None):
+def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None, defaultConsoleAnswer=None, user=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     defaultAnswer = defaultConsoleAnswer
     options = []
@@ -318,11 +318,15 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     else:
         print('Work in progress! Try selecting a different option.')
         sleep(3)
-        main()
+        main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
         return
 
     if tickerOption == 'M' or executeOption == 'M':
-        main()
+        main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
         return
     if tickerOption == 0:
         if len(options) >= 4:
@@ -346,7 +350,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for RSI! Values should be in range of 0 to 100. Screening aborted.' + colorText.END)
             input('')
-            main()
+            main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
             return
     if executeOption == 6:
         selectedMenu = m2.find(str(executeOption))
@@ -360,7 +366,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         else:
             reversalOption, maLength = Utility.tools.promptReversalScreening(selectedMenu)
         if reversalOption is None or reversalOption == 0:
-            main()
+            main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
             return
         else:
             selectedChoice['3'] = str(reversalOption)
@@ -379,7 +387,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             else:
                 respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(selectedMenu)
         if respChartPattern is None or insideBarToLookback is None:
-            main()
+            main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
             return
         else:
             selectedChoice['3'] = str(respChartPattern)
@@ -393,7 +403,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for CCI! Values should be in range of -300 to 500. Screening aborted.' + colorText.END)
             input('')
-            main()
+            main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
             return
     if executeOption == 9:
         if len(options) >= 4:
@@ -404,18 +416,24 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             print(colorText.BOLD + colorText.FAIL +
                   '\n[+] Error: Invalid values for Volume Ratio! Value should be a positive number. Screening aborted.' + colorText.END)
             input('')
-            main()
+            main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
             return
         else:
             configManager.volumeRatio = float(volumeRatio)
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
-        main()
+        main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
         return
     if executeOption >= 15 and executeOption <= 39:
         print(colorText.BOLD + colorText.FAIL + '\n[+] Error: Option 15 to 39 Not implemented yet! Press any key to continue.' + colorText.END) 
         input('')
-        main()
+        main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+             startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+             user=user)
         return
     if (not str(tickerOption).isnumeric() and tickerOption in ['W','E','M','N','Z']) or (str(tickerOption).isnumeric() and (int(tickerOption) >= 0 and int(tickerOption) < 15)):
         configManager.getConfig(ConfigManager.parser)
@@ -432,12 +450,14 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=proxyServer), 
                     proxyServer=proxyServer
                 )
-                sendMessageToTelegramChannel(message=f'Nifty AI prediction for the next day: {pText}. {sText}')
+                sendMessageToTelegramChannel(message=f'Nifty AI prediction for the next day: {pText}. {sText}',user=user)
                 if defaultAnswer is None:
                     input('\nPress any key to Continue...\n')
                 return
             elif tickerOption == 'M':
-                main()
+                main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
+                    startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
+                    user=user)
                 return
             elif tickerOption == 'Z':
                 input(colorText.BOLD + colorText.FAIL + "[+] Press any key to Exit!" + colorText.END)
@@ -505,9 +525,9 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if dfsc is not None and dfsd is not None:
                 print(colorText.BOLD + colorText.WARN +
                       '[+] Found local results already saved in cache for selected option!\n')
-                printNotifySaveScreenedResults(dfsc,dfsd,selectedChoice,menuChoiceHierarchy,testing)
+                printNotifySaveScreenedResults(dfsc,dfsd,selectedChoice,menuChoiceHierarchy,testing,user)
                 finishScreening(downloadOnly, testing, stockDict, configManager, 
-                        len(screenResults), testBuild, screenResults, saveResults)
+                        len(screenResults), testBuild, screenResults, saveResults,user)
                 return
             else:
                 print(colorText.BOLD + colorText.WARN +
@@ -557,10 +577,10 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             screenResults, saveResults = removeUnknowns(screenResults, saveResults)
             # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing)
+            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing,user)
         if menuOption=='X':
             finishScreening(downloadOnly, testing, stockDict, configManager, 
-                        loadCount, testBuild, screenResults, saveResults)
+                        loadCount, testBuild, screenResults, saveResults,user)
 
         if menuOption == 'B' and backtest_df is not None and len(backtest_df) > 0:
                 backtest_df.set_index('Stock', inplace=True)
@@ -752,13 +772,13 @@ def terminateAllWorkers(consumers, tasks_queue):
             default_logger().debug(e, exc_info=True)
             break
 
-def finishScreening(downloadOnly, testing, stockDict, configManager, loadCount, testBuild, screenResults, saveResults):
+def finishScreening(downloadOnly, testing, stockDict, configManager, loadCount, testBuild, screenResults, saveResults,user=None):
     global defaultAnswer, menuChoiceHierarchy
     saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount)
     if not testBuild and not downloadOnly and not testing:
-        saveNotifyResultsFile(screenResults, saveResults, defaultAnswer,menuChoiceHierarchy)
+        saveNotifyResultsFile(screenResults, saveResults, defaultAnswer,menuChoiceHierarchy,user=user)
     # elif testing:
-    #     sendTestStatus(screenResults, menuChoiceHierarchy)
+    #     sendTestStatus(screenResults, menuChoiceHierarchy,user=user)
     
 def labelDataForPrinting(screenResults,saveResults,configManager,volumeRatio):
     # Publish to gSheet with https://github.com/burnash/gspread 
@@ -789,7 +809,7 @@ def labelDataForPrinting(screenResults,saveResults,configManager,volumeRatio):
         pass
     return screenResults, saveResults
 
-def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing):
+def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing,user=None):
     Utility.tools.clearScreen()
     print(colorText.BOLD + colorText.FAIL + f'[+] You chose: {menuChoiceHierarchy}\n' + colorText.END)
     tabulated_results = tabulate(screenResults, headers='keys', tablefmt='grid')
@@ -804,7 +824,7 @@ def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menu
                 pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
                 if is_token_telegram_configured():
                     Utility.tools.tableToImage(markdown_results,tabulated_results,pngName,menuChoiceHierarchy)
-                    sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption)
+                    sendMessageToTelegramChannel(message=None, photo_filePath=pngName, caption=caption, user=user)
                     try:
                         os.remove(pngName)
                     except Exception as e:
@@ -823,12 +843,12 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
         print(colorText.BOLD + colorText.GREEN +
                 "[+] Skipped Saving!" + colorText.END, end='')
 
-def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy):
+def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy,user=None):
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
         filename = Utility.tools.promptSaveResults(saveResults, defaultAnswer = defaultAnswer)
         if filename is not None:
-            sendMessageToTelegramChannel(document_filePath=filename, caption=caption)
+            sendMessageToTelegramChannel(document_filePath=filename, caption=caption,user=user)
         print(colorText.BOLD + colorText.WARN +
             "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration." + colorText.END)
         try:
@@ -842,9 +862,9 @@ def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceH
     if defaultAnswer is None:
         input('')
 
-def sendTestStatus(screenResults, label):
+def sendTestStatus(screenResults, label,user=None):
     msg = '<b>SUCCESS</b>' if len(screenResults) >= 1 else '<b>FAIL</b>'
-    sendMessageToTelegramChannel(message=f'{msg}: Found {len(screenResults)} Stocks for {label}')
+    sendMessageToTelegramChannel(message=f'{msg}: Found {len(screenResults)} Stocks for {label}',user=user)
 
 def removeUnknowns(screenResults, saveResults):
     for col in screenResults.keys():
@@ -853,16 +873,16 @@ def removeUnknowns(screenResults, saveResults):
         saveResults = saveResults[saveResults[col].astype(str).str.contains('Unknown') == False]
     return screenResults, saveResults
 
-def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None):
+def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_filePath=None, caption=None, user=None):
     if message is not None:
         try:
-            send_message(message)
+            send_message(message,userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             pass
     if photo_filePath is not None:
         try:
-            send_document(photo_filePath, caption)
+            send_document(photo_filePath, caption,userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
         except Exception as e:
@@ -870,7 +890,7 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
             pass
     if document_filePath is not None:
         try:
-            send_document(document_filePath, caption)
+            send_document(document_filePath, caption,userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
         except Exception as e:

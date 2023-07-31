@@ -56,6 +56,7 @@ setup(
 	entry_points='''
 	[console_scripts]
 	pkscreener=pkscreener.pkscreenercli:pkscreenercli
+	pkbot=pkscreener.pkscreenerbot:main
 	''',
 	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
 	classifiers=[
