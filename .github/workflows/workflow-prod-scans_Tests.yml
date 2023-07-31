@@ -69,70 +69,70 @@ jobs:
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -o X:12:6:3 -e
+        python pkscreenercli.py -a Y -p -o X:12:6:3 -e
 
     - name: 2.1 All relevant technical indicators
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:0 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:0 -e
 
     - name: 2.2 Probable breakouts
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:1 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:1 -e
 
     - name: 2.3 Recent breakouts and volumes
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:2 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:2 -e
 
     - name: 2.4 Volume gainers/shockers
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:9:2.5 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:9:2.5 -e
   
     - name: 2.5 Stocks gaining at least 2% since last 3 sessions
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:10 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:10 -e
 
     - name: 2.6 Short term bullish stocks
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:11 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:11 -e
 
     - name: 2.7 CCI outside the -100,+150 range
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:8:-100:150 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:8:-100:150 -e
 
     - name: 2.8 Buy signals(Bullish reversals)
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:6:1 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:6:1 -e
 
     - name: 2.9 Sell signals(bearish reversals)
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:6:2 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:6:2 -e
   
     - name: 2.11 NR4 daily
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:12:14 -e
+        python pkscreenercli.py -a Y -p -t -o X:12:14 -e
 
     - name: 1. Next day Nifty/Market AI prediction
       shell: cmd
       run: |
         cd pkscreener/
-        python pkscreener.py -a Y -p -t -o X:N -e
+        python pkscreenercli.py -a Y -p -t -o X:N -e

@@ -24,7 +24,7 @@ jobs:
           - os: windows-latest
             TARGET: Windows
             CMD_BUILD: |
-              pyinstaller --onefile --icon=pkscreener\icon.ico pkscreener\pkscreener.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress --hidden-import yfinance
+              pyinstaller --onefile --icon=pkscreener\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress --hidden-import yfinance
             DEP_BUILD: |
               python -m pip install --upgrade pip
               echo Installing TA-lib...
@@ -44,7 +44,7 @@ jobs:
           - os: ubuntu-20.04
             TARGET: Linux
             CMD_BUILD: |
-              pyinstaller --onefile --icon=pkscreener/icon.ico pkscreener/pkscreener.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
+              pyinstaller --onefile --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreener /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin
             DEP_BUILD: |
@@ -68,7 +68,7 @@ jobs:
           - os: macos-latest
             TARGET: MacOS
             CMD_BUILD: |
-              pyinstaller --onefile --windowed --icon=pkscreener/icon.ico pkscreener/pkscreener.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
+              pyinstaller --onefile --windowed --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreener /Users/runner/work/PKScreener/PKScreener/dist/pkscreener.run
             DEP_BUILD: |
               brew install ta-lib

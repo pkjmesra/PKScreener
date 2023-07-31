@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['pkscreener\\pkscreener.py'],
+    ['pkscreener\\pkscreenercli.py'],
     pathex=[],
     binaries=[],
     datas=[],
