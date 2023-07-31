@@ -48,8 +48,8 @@ jobs:
     - name: Install Python Dependencies
       run: |
         pip3 install -r requirements.txt
-
-
+        pip3 install .
+        
     - name: Configure env.dev file
       run: |
         python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
