@@ -29,5 +29,6 @@ RUN pip install --upgrade setuptools
 RUN apk add py3-scipy
 RUN apk add py3-scikit-learn
 RUN pip3 install -r requirements-alpine.txt
+RUN pip3 install .
 WORKDIR pkscreener
 # RUN python3 pkscreenercli.py
