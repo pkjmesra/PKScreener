@@ -1,11 +1,14 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 
 ## What's New?
+4. [v0.4] release
+
+1. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
+2. Intraday scans added -
+
 3. [v0.3] release
 
 1. Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
-2. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
-3. Intraday scans added -
 
 2. [v0.2] release
 
