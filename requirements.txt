@@ -64,4 +64,4 @@ webencodings # Installed as dependency for html5lib
 xlsxwriter
 gspread
 scipy>=1.7.3
-ta-lib
+# ta-lib # Install this separately
