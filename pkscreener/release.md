@@ -23,9 +23,9 @@
 ## Downloads
 | Operating System | Executable File |
 | :-: | --- |
- | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreener.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.exe)** |
-| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) | **[pkscreener.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.bin)** |
-| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000) | **[pkscreener.run](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
+ | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreener.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.exe)** |
+| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) | **[pkscreener.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.bin)** |
+| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000) | **[pkscreener.run](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
 
 ## How to use?
 
