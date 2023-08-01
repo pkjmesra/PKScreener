@@ -21,7 +21,7 @@ git merge pkscreener_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_B
 
 * This project uses [**TA-Lib**](https://github.com/mrjbq7/ta-lib). Please visit the hyperlink for the official guide of installation.
 * This Project requires Python 3.9 environment setup. [Click Here to Download](https://www.python.org/downloads/)
-* Install python dependencies by running `pip install -r requirements.txt` in the root directory of this project.
+* Install python dependencies by running `pip install -r requirements.txt` in the root directory of this project. If you would also like to have technical indicators evaluated from ta-lib, install ta-lib as well :`pip3 install ta-lib`
 
 ## 3. Create Dependency Requirements
 

@@ -48,6 +48,7 @@ jobs:
     - name: Install Python Dependencies
       run: |
         pip3 install -r requirements.txt
+        pip3 install ta-lib
         pip3 install .
         
     - name: Configure env.dev file

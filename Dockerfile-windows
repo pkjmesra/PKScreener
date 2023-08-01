@@ -17,6 +17,7 @@ RUN tar -xf ./.github/dependencies/ta-lib-0.4.0-msvc.zip
 RUN pip3 install --upgrade pip
 RUN pip install ./.github/dependencies/TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 RUN pip3 install -r requirements.txt
+RUN pip3 install ta-lib
 RUN pip3 install .
 
 RUN cd pkscreener

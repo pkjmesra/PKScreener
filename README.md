@@ -94,7 +94,7 @@ Followin scanners are already implemented. Others are `In Progress`
 * Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .
-* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well.
+* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. `pip3 install ta-lib`
 * `cd pkscreener`
 * Finally, from within the `pkscreener` directory, run `python pkscreenercli.py`. You are all set.
 
