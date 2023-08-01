@@ -1,11 +1,14 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 
 ## What's New?
+4. [v0.4] release
+
+1. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
+2. Intraday scans added -
+
 3. [v0.3] release
 
 1. Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
-2. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
-3. Intraday scans added -
 
 2. [v0.2] release
 
@@ -20,9 +23,9 @@
 ## Downloads
 | Operating System | Executable File |
 | :-: | --- |
- | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreener.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.exe)** |
-| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) | **[pkscreener.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.bin)** |
-| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000) | **[pkscreener.run](https://github.com/pkjmesra/PKScreener/releases/download/0.3/pkscreener.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
+ | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreener.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.exe)** |
+| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) | **[pkscreener.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.bin)** |
+| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000) | **[pkscreener.run](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreener.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
 
 ## How to use?
 
