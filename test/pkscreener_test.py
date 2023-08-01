@@ -24,7 +24,7 @@ from pkscreener.classes import VERSION
 from pkscreener.classes.Changelog import changelog
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.log import default_logger
-import pkscreener.globals
+import pkscreener.globals as globals
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import *
 last_release = 0
