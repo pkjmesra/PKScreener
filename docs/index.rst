@@ -1,7 +1,7 @@
 What is PKScreener
 ------------------
  .. image:: https://static.pepy.tech/personalized-badge/pkscreener?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=PyPi%20Downloads
-         :width: 100%
+         :width: 15%
          :alt: PyPi Downloads
 
 A Python-based stock screener for NSE, India.
