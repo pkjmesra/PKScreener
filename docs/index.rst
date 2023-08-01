@@ -12,21 +12,28 @@ You can get daily scan results/alerts at scheduled times by subscribing to the f
    :widths: 25 50 25
    :header-rows: 1
 
-   * - Purpose
+   * - QR Code
+     - Purpose
      - Description/link
-     - QR Code
-   * - Alerts Channel
-     - https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions.
-     - .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg
+   * - .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg
          :width: 100%
          :alt: Telegram Channel
-   * - Discussions
-     - https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group
-     - .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg
+     - Alerts Channel
+     - https://t.me/PKScreener > You wil receive all the major alerts on this 
+       telegram channel. These alerts are sent for all major strategy scans daily 
+       around 9:30am-10:15am and then around 4pm. You will also receive the next 
+       day's market predictions.
+     
+   * - .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg
          :width: 100%
          :alt: Telegram Group
+     - Discussions
+     - https://t.me/PKScreeners > For any discussion related to PKScreener, you may 
+       like to join this related Telegram group
 
-![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png
+         :width: 100%
+         :alt: Telegram Channel
 
 Installation
 ------------
@@ -71,28 +78,46 @@ Configuration
 -------------
 * :guilabel:`Configure` the parameters as per your requirement using ``Option > E``.
 
-![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/config.png)
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/config.png
+         :width: 100%
+         :alt: Configuration
 
 Scanners
 --------
 * :guilabel:`Scanner Menus` the scanner menus for each level/sub-level
 
-![menulevel1](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu.png)
-![menulevel2](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level2.png)
-![menulevel3](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level3.png)
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu.png
+         :width: 100%
+         :alt: MenuLevel1
+
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level2.png
+         :width: 100%
+         :alt: MenuLevel2
+
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level3.png
+         :width: 100%
+         :alt: MenuLevel3
 
 
 * Following are the screenshots of screening and output results.
 
-![screening](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/screening.png)
-![results](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/results.png)
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/screening.png
+         :width: 100%
+         :alt: Screening
+
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/results.png
+         :width: 100%
+         :alt: Screening results
 
 * Once done, you can also save the results in an excel file.
 
 Backtests
 ---------
 You can now use the *Backtests* menu to backtest any of the selected strategies.
-![backtest](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/backtest.png)
+
+.. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/backtest.png
+         :width: 100%
+         :alt: Backtests
 
 * Once done, you can also view the output html file saved at the same location from where you launched the app.
 
@@ -120,15 +145,21 @@ The Result table contains a lot of different parameters which can be pretty over
      - Example
    * - 1
      - :guilabel:`Stock`
-     - This is a NSE scrip symbol. If your OS/Terminal supports unicode, You can directly open :guilabel:`[TradingView](https://in.tradingview.com/)` charts by pressing ``Ctrl+Click`` on the stock name.
+     - This is a NSE scrip symbol. If your OS/Terminal supports unicode, 
+       You can directly open :guilabel:`[TradingView](https://in.tradingview.com/)` 
+       charts by pressing ``Ctrl+Click`` on the stock name.
      - [TATAMOTORS](https://in.tradingview.com/chart?symbol=NSE%3ATATAMOTORS)
    * - 2
      - :guilabel:`Consolidating`
-     - It gives the price range in which stock is trading since last ``N`` days. ``N`` is configurable and can be modified by executing ``Edit User Configuration`` option.
+     - It gives the price range in which stock is trading since last ``N`` days.
+       ``N`` is configurable and can be modified by executing ``Edit User Configuration`` 
+       option.
      - If stock is trading between price 100-120 in last 30 days, Output will be ``Range:20.0 %``
    * - 3
      - :guilabel:`Breakout (N Days)`
-     - This is pure magic! The ``BO`` is Breakout level in last N days while ``R`` is the next resistance level if available. Investor should consider both BO & R level to decide entry/exits in their trades.
+     - This is pure magic! The ``BO`` is Breakout level in last N days while ``R`` 
+       is the next resistance level if available. Investor should consider both BO & R 
+       level to decide entry/exits in their trades.
      - ``BO:302, R:313`` (Breakout level is 302 & Next resistance is 313)
    * - 4
      - :guilabel:`LTP`
@@ -136,23 +167,30 @@ The Result table contains a lot of different parameters which can be pretty over
      - ``298.7`` (Stock is trading at this price)
    * - 5
      - :guilabel:`Volume`
-     - Volume shows the relative volume of the recent candle with respect to 20 period MA of Volume. It could be ``Unknown`` for newly listed stocks.
+     - Volume shows the relative volume of the recent candle with respect to 20 period 
+       MA of Volume. It could be ``Unknown`` for newly listed stocks.
      - if 20MA(Volume) is 1M and todays Volume is 2.8M, then ``Volume = 2.8x``
    * - 6
      - :guilabel:`MA-Signal`
-     - It describes the price trend of an asset by analysing various 50-200 MA/EMA crossover strategies.
+     - It describes the price trend of an asset by analysing various 50-200 MA/EMA 
+       crossover strategies.
      - ``200MA-Support``,``BullCross-50MA`` etc
    * - 7
      - :guilabel:`RSI`
-     - For the momentum traders, it describes 14-period RSI for quick decision making about their trading plans
+     - For the momentum traders, it describes 14-period RSI for quick decision 
+       making about their trading plans
      - ``0 to 100``
    * - 8
      - :guilabel:`Trend`
-     - By using advance algorithms, the average trendlines are computed for ``N`` days and their strenght is displayed depending on steepness of trendlines. (This does NOT show any trendline on chart, it is calculated internally)
+     - By using advance algorithms, the average trendlines are computed for ``N`` days 
+       and their strenght is displayed depending on steepness of trendlines. (This does 
+       NOT show any trendline on chart, it is calculated internally)
      - ``Strong Up``, ``Weak Down`` etc.
    * - 9
      - :guilabel:`Pattern`
-     - If the chart or the candle itself forming any important pattern in the recent timeframe or as per the selected screening option, various important patterns will be indicated here.
+     - If the chart or the candle itself forming any important pattern in the recent 
+       timeframe or as per the selected screening option, various important patterns 
+       will be indicated here.
      - ``Momentum Gainer``, ``Inside Bar (N)``,``Bullish Engulfing`` etc.
 
 Hack it your way
@@ -189,6 +227,7 @@ You can create your own telegram channel to receive alerts wherenevr you run it 
 
 .. code-block::
    :caption: .env.dev
+
     CHAT_ID=Your_Channel_Id_Here_Without_A_Hyphen_or_Minus_Sign
     TOKEN=Your_Bot_Token_Here
     chat_idADMIN=Your_Own_ID_Here
