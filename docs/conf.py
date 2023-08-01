@@ -10,6 +10,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# https://github.com/readthedocs/readthedocs.org/blob/752cfeb64efed81b898d0d7ed5932629cb5d2996/docs/user/tutorial/index.rst?plain=1
+
 import os
 import sys
 from datetime import date

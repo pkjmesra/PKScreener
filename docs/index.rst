@@ -1,11 +1,13 @@
-Features
---------
+What is PKScreener
+------------------
 
 A Python-based stock screener for NSE, India.
 
 `pkscreener` is an advanced stock screener to find potential breakout stocks from NSE and tell it's possible breakout values. It also helps to find the stocks which are consolidating and may breakout, or the particular chart patterns that you're looking specifically to make your decisions.
 pkscreener is totally customizable and it can screen stocks with the settings that you have provided.
 
+Alerts on Telegram Channel
+--------------------------
 You can get daily scan results/alerts at scheduled times by subscribing to the following Telegram channel:
 
 .. list-table:: Telegram Channel and Discussion groups
@@ -123,11 +125,13 @@ You can now use the *Backtests* menu to backtest any of the selected strategies.
 
 Scanning as a scheduled job once or at regular intervals
 --------------------------------------------------------
-* Running it once with pre-defined inputs
+Running it once with pre-defined inputs
+---------------------------------------
 
 You can also run it as a one time job in any scheduler with pre-defined options. For example ``./pkscreenercli.py -a Y -o X:12:10 -e`` (or ``pkscreener.exe -a Y -o X:12:10 -e`` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. ``./pkscreenercli.py -a Y -o X:12:9:2.5 -e`` will run the scanner (menu option ``X``) for all Nifty stocks (menu option ``12``) to find volume gainers (menu option ``9``) with at least the volume multiplier of 2.5 (input variable ``2.5``), save the results in xlsx file and exit (menu option ``-e``). Passing in the ``-p`` option for example ``pkscreenercli.py -a Y -p -o X:12:6:1 -e`` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with ``./pkscreenercli.py -h``.
 
-* Running it at regular intervals
+Running it at regular intervals
+-------------------------------
 
 If you want to runn it at regular intervals, you can just pass the interval in ``-c`` command line option. For example, ``./pkscreenercli.py -a Y -o X:12:6:1 -c 180`` will run it every ``180`` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the ``-p`` parameter. For example, ``./pkscreenercli.py -a Y -p -o X:12:6:1 -c 180``
 
@@ -201,7 +205,7 @@ Feel free to Edit the parameters in the ``pkscreener.ini`` file which will be ge
    :caption: pkscreener.ini
 
     [config]
-    period = 300d
+    period = 400d
     daystolookback = 30
     duration = 1d
     minprice = 30
