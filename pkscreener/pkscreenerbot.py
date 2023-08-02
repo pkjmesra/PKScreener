@@ -157,7 +157,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     selection.extend(['',''])
     elif len(selection) == 4:
         preSelection = query.data
-    
+    optionChoices = ''
     if len(selection) <= 3:
         for mnu in mns:
             inlineMenus.append(InlineKeyboardButton(mnu.menuKey, callback_data=str(f'{preSelection}_{mnu.menuKey}')))
@@ -182,11 +182,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await query.edit_message_text(
             text=menuText.replace('     ','').replace('    ','').replace('\t',''), reply_markup=reply_markup
         )
-        await context.bot.send_message(
-            chat_id=chat_idADMIN, text=f'Name: <b>{user.first_name}</b>, Username:@{user.username} with ID: <b>{str(user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
-        )
+        if optionChoices != '':
+            await context.bot.send_message(
+                chat_id=chat_idADMIN, text=f'Name: <b>{user.first_name}</b>, Username:@{user.username} with ID: <b>{str(user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
+            )
     except:
-        return start(update,context)
+        await start(update,context)
     return START_ROUTES
 
 async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
