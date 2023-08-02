@@ -150,7 +150,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     selection.extend(['-100','150'])
                 elif selection[2] == '9': # Vol gainer ratio
                     selection.extend(['2.5',''])
-                elif selection[2] in ['10','11','12','13','14']: # Vol gainer ratio
+                elif selection[2] in ['1','2','3','10','11','12','13','14']: # Vol gainer ratio
                     selection.extend(['',''])
     elif len(selection) == 4:
         preSelection = query.data
