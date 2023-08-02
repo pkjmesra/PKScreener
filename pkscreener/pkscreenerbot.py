@@ -18,9 +18,13 @@ import html
 import json
 import logging
 import traceback
+import sys
 from subprocess import Popen
 from telegram import __version__ as TG_VER
 from telegram.constants import ParseMode
+from datetime import datetime
+start_time=datetime.now()
+MINUTES_30_IN_SECONDS = 1800
 
 from pkscreener.Telegram import get_secrets
 from pkscreener.classes.MenuOptions import menus, MenuRenderStyle, menu
@@ -86,9 +90,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
     await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option by selecting a button from below.\n\nPlease note that this bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!", reply_markup=reply_markup)
-    await context.bot.send_message(
-            chat_id=chat_idADMIN, text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
-        )
+    try:
+        await context.bot.send_message(
+                chat_id=chat_idADMIN, text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
+            )
+    except:
+        pass
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
@@ -229,7 +236,16 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     # list of strings rather than a single string, so we have to join them together.
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
     tb_string = "".join(tb_list)
-
+    global start_time
+    timeSinceStarted = datetime.now() - start_time
+    if 'telegram.error.Conflict' in tb_string: # A newer 2nd instance was registered. We should politely shutdown.
+        if timeSinceStarted.total_seconds() >= MINUTES_30_IN_SECONDS: # shutdown only if we have been running for over 30 minutes
+            print(f'Stopping due to conflict after running for {timeSinceStarted.total_seconds()/60} minutes.')
+            context.application.stop()
+            sys.exit(0)
+        else:
+            print(f'Trying to run polling again!')
+            context.application.run_polling(allowed_updates=Update.ALL_TYPES)
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
@@ -248,9 +264,12 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
             chat_id=chat_idADMIN, text=message, parse_mode=ParseMode.HTML
         )
     except:
-        await context.bot.send_message(
-            chat_id=chat_idADMIN, text=tb_string, parse_mode=ParseMode.HTML
-        )
+        try:
+            await context.bot.send_message(
+                chat_id=chat_idADMIN, text=tb_string, parse_mode=ParseMode.HTML
+            )
+        except:
+            pass
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
