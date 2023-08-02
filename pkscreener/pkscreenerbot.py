@@ -183,6 +183,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             text=menuText.replace('     ','').replace('    ','').replace('\t',''), reply_markup=reply_markup
         )
         if optionChoices != '':
+            user = query.from_user
             await context.bot.send_message(
                 chat_id=chat_idADMIN, text=f'Name: <b>{user.first_name}</b>, Username:@{user.username} with ID: <b>{str(user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
             )
