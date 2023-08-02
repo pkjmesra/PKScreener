@@ -241,11 +241,15 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if 'telegram.error.Conflict' in tb_string: # A newer 2nd instance was registered. We should politely shutdown.
         if timeSinceStarted.total_seconds() >= MINUTES_5_IN_SECONDS: # shutdown only if we have been running for over 5 minutes
             print(f'Stopping due to conflict after running for {timeSinceStarted.total_seconds()/60} minutes.')
-            context.application.stop()
+            try:
+                context.application.stop()
+                sys.exit(0)
+            except RuntimeError:
+                context.application.shutdown()
             sys.exit(0)
         else:
-            print(f'Trying to run polling again!')
-            context.application.run_polling(allowed_updates=Update.ALL_TYPES)
+            print(f'Other instance running!')
+            # context.application.run_polling(allowed_updates=Update.ALL_TYPES)
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
@@ -273,7 +277,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send! \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!")
+    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send! \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!")
 
 def main() -> None:
     """Run the bot."""

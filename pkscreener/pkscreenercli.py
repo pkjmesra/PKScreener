@@ -117,6 +117,8 @@ def pkscreenercli():
                     main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild), user=args.user)
                 else:
                     main(startupoptions=startupOptions, defaultConsoleAnswer=defaultAnswer, testing=(args.testbuild and args.prodbuild), user=args.user)
+                    if args.user is not None or args.exit:
+                        sys.exit(0)
                     startupOptions= None
                     defaultAnswer = None
                     cronInterval = None
