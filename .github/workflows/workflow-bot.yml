@@ -21,6 +21,9 @@ on:
         required: true
         type: string
         default: 'new-features'
+  schedule:
+    - cron: '59 * * * *'
+
 jobs:
 
   Prod_Telegram_Bot:
@@ -68,6 +71,7 @@ jobs:
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
 
     - name: Telegram Bot
+      timeout-minutes: 59
       shell: cmd
       run: |
         cd pkscreener/

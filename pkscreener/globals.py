@@ -833,6 +833,8 @@ def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menu
             print(colorText.BOLD + colorText.GREEN +
                     f"[+] Found {len(screenResults)} Stocks." + colorText.END)
             Utility.tools.setLastScreenedResults(screenResults)
+    elif user is not None:
+        sendMessageToTelegramChannel(message=f'No scan results found for {menuChoiceHierarchy}', user=user)
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
     if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):

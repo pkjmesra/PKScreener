@@ -85,7 +85,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option", reply_markup=reply_markup)
+    await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option by selecting a button from below. Please note that this bot restarts every hour starting at 8:30am IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!", reply_markup=reply_markup)
+    await context.bot.send_message(
+            chat_id=chat_idADMIN, text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
+        )
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
@@ -163,7 +166,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
     elif len(selection) >= 4:
-        menuText = f'You chose {selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}. You will receive the results soon! Since it is running on a free server, it might take upto 5-6 minutes. You will get notified here when the results arrrive!'
+        menuText = f'You chose {selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}. You will receive the results soon! Since it is running on a free server, it might take from 1 minute up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrrive!'
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
             if mnu.menuKey in ['X','B','Z']:
@@ -245,7 +248,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send!")
+    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send! This bot restarts every hour starting at 8:30am IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!")
 
 def main() -> None:
     """Run the bot."""
