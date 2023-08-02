@@ -43,7 +43,12 @@ You may receive the following scan results:
     * [![2.9 Sell signals(bearish reversals)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.9.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.9.yml)
     * [![2.10 Momentum gainers (Rising bullish momentum)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.10.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.10.yml)
     * [![2.11 NR4 daily](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml) 
-    
+
+## Receiving On-Demand Scan results
+You can now run the `pkscreenerbot` on your local machine or if it's running on the server, you can use the `pkscreener Bot` to get on-demand scan results.
+
+![bot](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/bot.gif)
+
 ## Scanners
 
 Screening options to choose from:

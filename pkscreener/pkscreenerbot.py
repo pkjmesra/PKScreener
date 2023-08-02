@@ -14,11 +14,16 @@ ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
+import html
+import json
 import logging
-
+import traceback
+from subprocess import Popen
 from telegram import __version__ as TG_VER
+from telegram.constants import ParseMode
+
 from pkscreener.Telegram import get_secrets
-from pkscreener.classes.MenuOptions import menus
+from pkscreener.classes.MenuOptions import menus, MenuRenderStyle, menu
 
 try:
     from telegram import __version_info__
@@ -38,6 +43,8 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     ConversationHandler,
+    MessageHandler,
+    filters
 )
 
 # Enable logging
@@ -54,6 +61,10 @@ START_ROUTES, END_ROUTES = range(2)
 # Callback data
 ONE, TWO, THREE, FOUR = range(4)
 
+m0 = menus()
+m1 = menus()
+m2 = menus()
+m3 = menus()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Send message on `/start`."""
@@ -64,114 +75,128 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # and a string as callback_data
     # The keyboard is a list of button rows, where each row is in turn
     # a list (hence `[[...]]`).
-    m = menus()
-    menus = m.renderForMenu(asList=True)
+    mns = m0.renderForMenu(asList=True)
     inlineMenus = []
-    for menu in menus:
-        inlineMenus.append(InlineKeyboardButton(menu, callback_data=str(ONE)))
+    for mnu in mns:
+        if mnu.menuKey in ['X','B','Z']:
+            inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data=str(mnu.menuKey)))
     keyboard = [
         inlineMenus
-        # [
-        #     InlineKeyboardButton("1", callback_data=str(ONE)),
-        #     InlineKeyboardButton("2", callback_data=str(TWO)),
-        # ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    await update.message.reply_text(f"Welcome {user}! Please choose a menu option", reply_markup=reply_markup)
+    await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option", reply_markup=reply_markup)
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
-
-async def start_over(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Prompt same text & keyboard as `start` does but not as new message"""
-    # Get CallbackQuery from Update
+async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Show new choice of buttons"""
     query = update.callback_query
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    if query.data not in ['X','B']:
+        return start(update,context)
+    menuText = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'],renderStyle=MenuRenderStyle.STANDALONE)
+    mns = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'], asList=True)
+    inlineMenus = []
     await query.answer()
+    for mnu in mns:
+        inlineMenus.append(InlineKeyboardButton(mnu.menuKey, callback_data=str(f'{query.data}_{mnu.menuKey}')))
     keyboard = [
-        [
-            InlineKeyboardButton("1", callback_data=str(ONE)),
-            InlineKeyboardButton("2", callback_data=str(TWO)),
-        ]
+        inlineMenus
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # Instead of sending a new message, edit the message that
-    # originated the CallbackQuery. This gives the feeling of an
-    # interactive menu.
-    await query.edit_message_text(text="Start handler, Choose a route", reply_markup=reply_markup)
+    await query.edit_message_text(
+        text=menuText, reply_markup=reply_markup
+    )
     return START_ROUTES
 
+async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Show new choice of buttons"""
+    inlineMenus = []
+    menuText = 'Something went wrong! Please try again...'
+    mns = []
+    query = update.callback_query
+    await query.answer()
+    preSelection = query.data
+    selection = preSelection.split('_')
+    preSelection = f'{selection[0]}_{selection[1]}'
+    if selection[0] != 'X':
+        return start(update, context)
+    if len(selection) == 2 or (len(selection) == 3 and selection[2]=='P'):
+        if str(selection[1]).isnumeric():
+            # It's only level 2
+            menuText = m2.renderForMenu(m1.find(selection[1]),skip=['0','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],renderStyle=MenuRenderStyle.STANDALONE)
+            menuText = menuText + '\nN > More options'
+            mns = m2.renderForMenu(m1.find(selection[1]),skip=['0','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True,renderStyle=MenuRenderStyle.STANDALONE)
+            mns.append(menu().create('N','More Options',2))
+        elif selection[1] == 'N':
+            selection.extend(['',''])
+    elif len(selection) == 3:
+        if selection[2]=='N':
+            menuText = m2.renderForMenu(m1.find(selection[1]),skip=['0','1','2','3','4','5','6','7','15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],renderStyle=MenuRenderStyle.STANDALONE)
+            menuText = menuText + '\nP > Previous Options'
+            mns = m2.renderForMenu(m1.find(selection[1]),skip=['0','1','2','3','4','5','6','7','15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True,renderStyle=MenuRenderStyle.STANDALONE)
+            mns.append(menu().create('P','Previous Options',2))
+        elif str(selection[2]).isnumeric():
+            preSelection = f'{selection[0]}_{selection[1]}_{selection[2]}'
+            if selection[2] in ['6','7']:
+                menuText = m3.renderForMenu(m2.find(selection[2]),renderStyle=MenuRenderStyle.STANDALONE, skip=['0'])
+                mns = m3.renderForMenu(m2.find(selection[2]),asList=True,renderStyle=MenuRenderStyle.STANDALONE, skip=['0'])
+            else:
+                if selection[2] == '4': # Last N days
+                    selection.extend(['4',''])
+                elif selection[2] == '5': # RSI range
+                    selection.extend(['30','70'])
+                elif selection[2] == '8': # CCI range
+                    selection.extend(['-100','150'])
+                elif selection[2] == '9': # Vol gainer ratio
+                    selection.extend(['2.5',''])
+                elif selection[2] in ['10','11','12','13','14']: # Vol gainer ratio
+                    selection.extend(['',''])
+    elif len(selection) == 4:
+        preSelection = query.data
+    
+    if len(selection) <= 3:
+        for mnu in mns:
+            inlineMenus.append(InlineKeyboardButton(mnu.menuKey, callback_data=str(f'{preSelection}_{mnu.menuKey}')))
+        keyboard = [
+            inlineMenus
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+    elif len(selection) >= 4:
+        menuText = f'You chose {selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}. You will receive the results soon!'
+        mns = m0.renderForMenu(asList=True)
+        for mnu in mns:
+            if mnu.menuKey in ['X','B','Z']:
+                inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data=str(mnu.menuKey)))
+        keyboard = [
+            inlineMenus
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        options = ':'.join(selection)
+        Popen(['pkscreener','-a','Y','-p','-e','-o', str(options), '-u', str(query.from_user.id)])
+    try:
+        await query.edit_message_text(
+            text=menuText, reply_markup=reply_markup
+        )
+    except:
+        return start(update,context)
+    return START_ROUTES
 
-async def one(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
     await query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("3", callback_data=str(THREE)),
-            InlineKeyboardButton("4", callback_data=str(FOUR)),
+            InlineKeyboardButton("Try Scanners", callback_data=str('X')),
+            InlineKeyboardButton("Exit", callback_data=str('Z')),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(
-        text="First CallbackQueryHandler, Choose a route", reply_markup=reply_markup
+        text="Backtesting NOT implemented yet in this Bot!\n\n\nYou can use backtesting by downloading the software from https://github.com/pkjmesra/PKScreener/", reply_markup=reply_markup
     )
     return START_ROUTES
-
-
-async def two(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Show new choice of buttons"""
-    query = update.callback_query
-    await query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("1", callback_data=str(ONE)),
-            InlineKeyboardButton("3", callback_data=str(THREE)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text="Second CallbackQueryHandler, Choose a route", reply_markup=reply_markup
-    )
-    return START_ROUTES
-
-
-async def three(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Show new choice of buttons. This is the end point of the conversation."""
-    query = update.callback_query
-    await query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("Yes, let's do it again!", callback_data=str(ONE)),
-            InlineKeyboardButton("Nah, I've had enough ...", callback_data=str(TWO)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text="Third CallbackQueryHandler. Do want to start over?", reply_markup=reply_markup
-    )
-    # Transfer to conversation state `SECOND`
-    return END_ROUTES
-
-
-async def four(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Show new choice of buttons"""
-    query = update.callback_query
-    await query.answer()
-    keyboard = [
-        [
-            InlineKeyboardButton("2", callback_data=str(TWO)),
-            InlineKeyboardButton("3", callback_data=str(THREE)),
-        ]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text="Fourth CallbackQueryHandler, Choose a route", reply_markup=reply_markup
-    )
-    return START_ROUTES
-
 
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Returns `ConversationHandler.END`, which tells the
@@ -179,13 +204,53 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="See you next time!")
+    await query.edit_message_text(text="See you next time! \n\n\nSee https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener")
     return ConversationHandler.END
 
+# This can be your own ID, or one for a developer group/channel.
+# You can use the /start command of this bot to see your chat id.
+chat_idADMIN = 123456789
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
+    # Log the error before we do anything else, so we can see it even if something breaks.
+    logger.error("Exception while handling an update:", exc_info=context.error)
+
+    # traceback.format_exception returns the usual python message about an exception, but as a
+    # list of strings rather than a single string, so we have to join them together.
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+
+    # Build the message with some markup and additional information about what happened.
+    # You might need to add some logic to deal with messages longer than the 4096 character limit.
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"An exception was raised while handling an update\n"
+        f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+        "</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>"
+    )
+
+    try:
+        # Finally, send the message
+        await context.bot.send_message(
+            chat_id=chat_idADMIN, text=message, parse_mode=ParseMode.HTML
+        )
+    except:
+        await context.bot.send_message(
+            chat_id=chat_idADMIN, text=tb_string, parse_mode=ParseMode.HTML
+        )
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send a message when the command /help is issued."""
+    await update.message.reply_text("You can begin by typing in /start and hit send! \n\n\nSee https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .")
 
 def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
+    global chat_idADMIN
     Channel_Id, TOKEN, chat_idADMIN = get_secrets()
     application = Application.builder().token(TOKEN).build()
 
@@ -199,21 +264,25 @@ def main() -> None:
         entry_points=[CommandHandler("start", start)],
         states={
             START_ROUTES: [
-                CallbackQueryHandler(one, pattern="^" + str(ONE) + "$"),
-                CallbackQueryHandler(two, pattern="^" + str(TWO) + "$"),
-                CallbackQueryHandler(three, pattern="^" + str(THREE) + "$"),
-                CallbackQueryHandler(four, pattern="^" + str(FOUR) + "$"),
+                CallbackQueryHandler(XScanners, pattern="^" + str('X') + "$"),
+                CallbackQueryHandler(BBacktests, pattern="^" + str('B') + "$"),
+                CallbackQueryHandler(Level2, pattern="^" + str('X_')),
+                CallbackQueryHandler(Level2, pattern="^" + str('B_')),
+                CallbackQueryHandler(end, pattern="^" + str('Z') + "$"),
+                CallbackQueryHandler(start, pattern="^")
             ],
             END_ROUTES: [
-                CallbackQueryHandler(start_over, pattern="^" + str(ONE) + "$"),
-                CallbackQueryHandler(end, pattern="^" + str(TWO) + "$"),
+                
             ],
         },
         fallbacks=[CommandHandler("start", start)],
     )
-
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, help_command))
     # Add ConversationHandler to application that will be used for handling updates
     application.add_handler(conv_handler)
+    # ...and the error handler
+    application.add_error_handler(error_handler)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)

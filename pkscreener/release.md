@@ -5,6 +5,7 @@
 
 1. Integration with Google Spreadsheets. Now track the recommendations from each major strategy on the Google spreadsheets.
 2. Intraday scans added -
+3. The pkscreener Telegram bot can now respond to your on-demand requests for selected scan results.
 
 3. [v0.3] release
 

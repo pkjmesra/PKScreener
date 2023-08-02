@@ -102,6 +102,7 @@ class menu:
         self.menuText = text
         self.level = level
         self.isException = isException
+        return self
     
     def keyTextLabel(self):
         return f'{self.menuKey} > {self.menuText}'
@@ -163,28 +164,28 @@ class menus:
         for k in self.menuDict.keys():
             m = self.menuDict[k]
             if asList:
-                menuText.append(m.render())
+                menuText.append(m)
             else:
                 menuText = menuText + m.render()
         return menuText
 
-    def renderForMenu(self, selectedMenu=None, skip=[], asList=False):
+    def renderForMenu(self, selectedMenu=None, skip=[], asList=False,renderStyle=None):
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
-            return self.renderLevel0Menus(asList=asList)
+            return self.renderLevel0Menus(asList=asList, renderStyle=renderStyle)
         elif selectedMenu is not None:
             if selectedMenu.level == 0:
                 self.level = 1
                 # sub-menu of the top level main selected menu
-                return self.renderLevel1_X_Menus(skip=skip)
+                return self.renderLevel1_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle)
             elif selectedMenu.level == 1:
                 self.level = 2
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel2_X_Menus(skip=skip)
+                return self.renderLevel2_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle)
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel3_X_Reversal_Menus(skip=skip) if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus()
+                return self.renderLevel3_X_Reversal_Menus(skip=skip,asList=asList, renderStyle=renderStyle) if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus(asList=asList, renderStyle=renderStyle)
         
     def find(self, key=None):
         if key is not None:
@@ -195,8 +196,9 @@ class menus:
                 return None
         return None
 
-    def renderLevel0Menus(self, asList=False):
-        menuText = self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U']).render(asList=asList)
+    def renderLevel0Menus(self, asList=False,renderStyle=None):
+        menuText = self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U'],
+                                       renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE).render(asList=asList)
         if asList:
             return menuText
         else:
@@ -206,47 +208,68 @@ class menus:
 
         Enter your choice >  (default is ''' + colorText.WARN + self.find('X').keyTextLabel() + ') ''' + colorText.END
                 )
+            return menuText
     
-    def renderLevel1_X_Menus(self,skip=[]):
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select an Index for Screening:' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level1_X_MenuDict, 
+    def renderLevel1_X_Menus(self,skip=[], asList=False,renderStyle=None):
+        menuText = self.fromDictionary(level1_X_MenuDict, 
                                                    renderExceptionKeys=['W','0','M'], 
-                                                   renderStyle=MenuRenderStyle.THREE_PER_ROW,
-                                                   skip=skip).render() + '''
+                                                   renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.THREE_PER_ROW,
+                                                   skip=skip).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                '[+] Select an Index for Screening:' + colorText.END)
+            print(colorText.BOLD + menuText + '''
 
-    Enter your choice > (default is ''' + colorText.WARN + self.find('12').keyTextLabel() + ')  ''' + colorText.END
-            )
+        Enter your choice > (default is ''' + colorText.WARN + self.find('12').keyTextLabel() + ')  ''' + colorText.END
+                )
+            return menuText
     
-    def renderLevel2_X_Menus(self,skip=[]):
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select a Criterion for Stock Screening: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level2_X_MenuDict, 
+    def renderLevel2_X_Menus(self,skip=[], asList=False,renderStyle=None):
+        menuText = self.fromDictionary(level2_X_MenuDict, 
                                                    renderExceptionKeys=['0','42','M'], 
-                                                   renderStyle=MenuRenderStyle.TWO_PER_ROW,
-                                                   skip=skip).render() + '''
+                                                   renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.TWO_PER_ROW,
+                                                   skip=skip).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                '[+] Select a Criterion for Stock Screening: ' + colorText.END)
+            print(colorText.BOLD + menuText + '''
 
-    ''' + colorText.END
-            )
+        ''' + colorText.END
+                )
+            return menuText
 
-    def renderLevel3_X_Reversal_Menus(self,skip=[]):
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select an option: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level3_X_Reversal_MenuDict,
+    def renderLevel3_X_Reversal_Menus(self,skip=[], asList=False,renderStyle=None):
+        menuText = self.fromDictionary(level3_X_Reversal_MenuDict,
                                                    renderExceptionKeys=['0'],
-                                                   renderStyle=MenuRenderStyle.STANDALONE,
-                                                   skip=skip).render() + '''
+                                                   renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE,
+                                                   skip=skip).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                '[+] Select an option: ' + colorText.END)
+            print(colorText.BOLD + menuText + '''
 
-    ''' + colorText.END
-            )
+        ''' + colorText.END
+                )
+            return menuText
         
-    def renderLevel3_X_ChartPattern_Menus(self,skip=[]):
-        print(colorText.BOLD + colorText.WARN +
-            '[+] Select an option: ' + colorText.END)
-        print(colorText.BOLD + self.fromDictionary(level3_X_ChartPattern_MenuDict,
+    def renderLevel3_X_ChartPattern_Menus(self,skip=[], asList=False,renderStyle=MenuRenderStyle.STANDALONE):
+        menuText = self.fromDictionary(level3_X_ChartPattern_MenuDict,
                                                    renderExceptionKeys=['0'],
-                                                   renderStyle=MenuRenderStyle.STANDALONE,
-                                                   skip=skip).render() + '''
+                                                   renderStyle=renderStyle,
+                                                   skip=skip).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(colorText.BOLD + colorText.WARN +
+                '[+] Select an option: ' + colorText.END)
+            print(colorText.BOLD + menuText + '''
 
-    ''' + colorText.END
-            )
+        ''' + colorText.END
+                )
+            return menuText

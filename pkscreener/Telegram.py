@@ -118,9 +118,9 @@ def send_photo(photoFilePath, message = "", message_id = None,userID=None):
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     photo = open(photoFilePath, "rb")
     if message_id is not None:
-        params = {'chat_id': Channel_Id, 'caption' : message,'parse_mode':ParseMode.HTML, 'reply_to_message_id':message_id}
+        params = {'chat_id': (userID if userID is not None else Channel_Id), 'caption' : message,'parse_mode':ParseMode.HTML, 'reply_to_message_id':message_id}
     else:
-        params = {'chat_id': Channel_Id, 'caption': message, 'parse_mode': ParseMode.HTML}
+        params = {'chat_id': (userID if userID is not None else Channel_Id), 'caption': message, 'parse_mode': ParseMode.HTML}
     files = {'photo': photo}
     resp = None
     try:

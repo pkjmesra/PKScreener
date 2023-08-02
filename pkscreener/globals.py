@@ -525,7 +525,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             if dfsc is not None and dfsd is not None:
                 print(colorText.BOLD + colorText.WARN +
                       '[+] Found local results already saved in cache for selected option!\n')
-                printNotifySaveScreenedResults(dfsc,dfsd,selectedChoice,menuChoiceHierarchy,testing,user)
+                printNotifySaveScreenedResults(dfsc,dfsd,selectedChoice,menuChoiceHierarchy,testing,user=user)
                 finishScreening(downloadOnly, testing, stockDict, configManager, 
                         len(screenResults), testBuild, screenResults, saveResults,user)
                 return
@@ -577,7 +577,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             screenResults, saveResults = removeUnknowns(screenResults, saveResults)
             # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing,user)
+            printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing,user=user)
         if menuOption=='X':
             finishScreening(downloadOnly, testing, stockDict, configManager, 
                         loadCount, testBuild, screenResults, saveResults,user)

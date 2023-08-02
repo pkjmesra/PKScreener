@@ -40,6 +40,15 @@ You can get daily scan results/alerts at scheduled times by subscribing to the f
          :width: 100%
          :alt: Telegram Channel
 
+Receiving On-Demand Scan results
+--------------------------------
+
+You can now run the ``pkscreenerbot`` on your local machine or if it's running on the server, you can use the ``pkscreener Bot`` to get on-demand scan results.
+
+ .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/bot.gif
+         :width: 50%
+         :alt: Telegram bot
+
 Installation
 ------------
 Requirements: Python 3.9+.
