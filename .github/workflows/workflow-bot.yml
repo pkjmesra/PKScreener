@@ -22,7 +22,7 @@ on:
         type: string
         default: 'new-features'
   schedule:
-    - cron: '59 0-17 * * *'
+    - cron: '59 * * * *'
 
 jobs:
 
