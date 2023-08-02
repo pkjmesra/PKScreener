@@ -24,7 +24,7 @@ from telegram import __version__ as TG_VER
 from telegram.constants import ParseMode
 from datetime import datetime
 start_time=datetime.now()
-MINUTES_30_IN_SECONDS = 1800
+MINUTES_5_IN_SECONDS = 300
 
 from pkscreener.Telegram import get_secrets
 from pkscreener.classes.MenuOptions import menus, MenuRenderStyle, menu
@@ -239,7 +239,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     global start_time
     timeSinceStarted = datetime.now() - start_time
     if 'telegram.error.Conflict' in tb_string: # A newer 2nd instance was registered. We should politely shutdown.
-        if timeSinceStarted.total_seconds() >= MINUTES_30_IN_SECONDS: # shutdown only if we have been running for over 30 minutes
+        if timeSinceStarted.total_seconds() >= MINUTES_5_IN_SECONDS: # shutdown only if we have been running for over 5 minutes
             print(f'Stopping due to conflict after running for {timeSinceStarted.total_seconds()/60} minutes.')
             context.application.stop()
             sys.exit(0)
