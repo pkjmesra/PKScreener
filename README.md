@@ -45,7 +45,7 @@ You may receive the following scan results:
     * [![2.11 NR4 daily](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_2.11.yml) 
 
 ## Receiving On-Demand Scan results
-You can now run the `pkscreenerbot` on your local machine or if it's running on the server, you can use the `pkscreener Bot` to get on-demand scan results.
+You can now run the `pkscreenerbot` on your local machine or if it's running on the GitHub server under a GitHub Actions workflow, you can use the `pkscreener Bot`(@nse_pkscreener_bot on Telegram) to get on-demand scan results.
 
 ![bot](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/bot.gif)
 

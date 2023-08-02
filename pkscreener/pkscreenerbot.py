@@ -94,7 +94,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     if query.data not in ['X','B']:
         return start(update,context)
-    menuText = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'],renderStyle=MenuRenderStyle.STANDALONE)
+    menuText = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'],renderStyle=MenuRenderStyle.STANDALONE).replace('     ','').replace('    ','').replace('\t','')
     mns = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'], asList=True)
     inlineMenus = []
     await query.answer()
@@ -163,7 +163,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
     elif len(selection) >= 4:
-        menuText = f'You chose {selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}. You will receive the results soon!'
+        menuText = f'You chose {selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}. You will receive the results soon! Since it is running on a free server, it might take upto 5-6 minutes. You will get notified here when the results arrrive!'
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
             if mnu.menuKey in ['X','B','Z']:
@@ -176,7 +176,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         Popen(['pkscreener','-a','Y','-p','-e','-o', str(options), '-u', str(query.from_user.id)])
     try:
         await query.edit_message_text(
-            text=menuText, reply_markup=reply_markup
+            text=menuText.replace('     ','').replace('    ','').replace('\t',''), reply_markup=reply_markup
         )
     except:
         return start(update,context)
@@ -204,7 +204,7 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="See you next time! \n\n\nSee https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener")
+    await query.edit_message_text(text="See https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener. \n\n\nSee you next time!")
     return ConversationHandler.END
 
 # This can be your own ID, or one for a developer group/channel.
@@ -245,7 +245,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("You can begin by typing in /start and hit send! \n\n\nSee https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .")
+    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send!")
 
 def main() -> None:
     """Run the bot."""
