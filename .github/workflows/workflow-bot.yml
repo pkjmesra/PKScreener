@@ -71,7 +71,7 @@ jobs:
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
 
     - name: Telegram Bot
-      timeout-minutes: 70
+      timeout-minutes: 100
       shell: cmd
       run: |
         cd pkscreener/
