@@ -96,17 +96,37 @@ class menu:
         self.level = 0
         self.isException = None
         self.hasLeftSibling = False
+        self.parent = None
 
-    def create(self, key, text, level=0, isException=False):
+    def create(self, key, text, level=0, isException=False,parent=None):
         self.menuKey = str(key)
         self.menuText = text
         self.level = level
         self.isException = isException
+        self.parent = parent
         return self
     
     def keyTextLabel(self):
         return f'{self.menuKey} > {self.menuText}'
-    
+        
+    def commandTextKey(self, hasChildren=False):
+        cmdText=''
+        if self.parent is None:
+            cmdText = f'/{self.menuKey}'
+            return cmdText
+        else:
+            cmdText =  f'{self.parent.commandTextKey(hasChildren=True)}_{self.menuKey}'
+            return cmdText
+
+    def commandTextLabel(self, hasChildren=False):
+        cmdText=''
+        if self.parent is None:
+            cmdText = f'{self.menuText}' if hasChildren else f'{self.menuText}'
+            return cmdText
+        else:
+            cmdText =  f'{self.parent.commandTextLabel(hasChildren=True)} > {self.menuText}'
+            return f'{cmdText}'
+
     def render(self):
         t = ''
         if self.isException:
@@ -141,14 +161,15 @@ class menus:
     def fromDictionary(self, rawDictionary={}, 
                        renderStyle=MenuRenderStyle.STANDALONE, 
                        renderExceptionKeys=[],
-                       skip=[]):
+                       skip=[],
+                       parent=None):
         tabLevel = 0
         self.menuDict = {}
         for key in rawDictionary:
             if key in skip:
                 continue
             m = menu()
-            m.create(str(key).upper(), rawDictionary[key], level=self.level)
+            m.create(str(key).upper(), rawDictionary[key], level=self.level,parent=parent)
             if key in renderExceptionKeys:
                 m.isException = True
             elif str(key).isnumeric():
@@ -172,20 +193,20 @@ class menus:
     def renderForMenu(self, selectedMenu=None, skip=[], asList=False,renderStyle=None):
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
-            return self.renderLevel0Menus(asList=asList, renderStyle=renderStyle)
+            return self.renderLevel0Menus(skip=skip,asList=asList, renderStyle=renderStyle,parent=selectedMenu)
         elif selectedMenu is not None:
             if selectedMenu.level == 0:
                 self.level = 1
                 # sub-menu of the top level main selected menu
-                return self.renderLevel1_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle)
+                return self.renderLevel1_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle,parent=selectedMenu)
             elif selectedMenu.level == 1:
                 self.level = 2
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel2_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle)
+                return self.renderLevel2_X_Menus(skip=skip,asList=asList, renderStyle=renderStyle,parent=selectedMenu)
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
-                return self.renderLevel3_X_Reversal_Menus(skip=skip,asList=asList, renderStyle=renderStyle) if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus(asList=asList, renderStyle=renderStyle)
+                return self.renderLevel3_X_Reversal_Menus(skip=skip,asList=asList, renderStyle=renderStyle,parent=selectedMenu) if selectedMenu.menuKey == '6' else self.renderLevel3_X_ChartPattern_Menus(skip=skip, asList=asList, renderStyle=renderStyle,parent=selectedMenu)
         
     def find(self, key=None):
         if key is not None:
@@ -196,9 +217,12 @@ class menus:
                 return None
         return None
 
-    def renderLevel0Menus(self, asList=False,renderStyle=None):
-        menuText = self.fromDictionary(level0MenuDict, renderExceptionKeys=['T','E','U'],
-                                       renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE).render(asList=asList)
+    def renderLevel0Menus(self, asList=False,renderStyle=None,parent=None,skip=None):
+        menuText = self.fromDictionary(level0MenuDict, 
+                                       renderExceptionKeys=['T','E','U'],
+                                       renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE,
+                                       skip=skip,
+                                       parent=parent).render(asList=asList)
         if asList:
             return menuText
         else:
@@ -210,11 +234,11 @@ class menus:
                 )
             return menuText
     
-    def renderLevel1_X_Menus(self,skip=[], asList=False,renderStyle=None):
+    def renderLevel1_X_Menus(self,skip=[], asList=False,renderStyle=None,parent=None):
         menuText = self.fromDictionary(level1_X_MenuDict, 
                                                    renderExceptionKeys=['W','0','M'], 
                                                    renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.THREE_PER_ROW,
-                                                   skip=skip).render(asList=asList)
+                                                   skip=skip,parent=parent).render(asList=asList)
         if asList:
             return menuText
         else:
@@ -226,11 +250,11 @@ class menus:
                 )
             return menuText
     
-    def renderLevel2_X_Menus(self,skip=[], asList=False,renderStyle=None):
+    def renderLevel2_X_Menus(self,skip=[], asList=False,renderStyle=None,parent=None):
         menuText = self.fromDictionary(level2_X_MenuDict, 
                                                    renderExceptionKeys=['0','42','M'], 
                                                    renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.TWO_PER_ROW,
-                                                   skip=skip).render(asList=asList)
+                                                   skip=skip,parent=parent).render(asList=asList)
         if asList:
             return menuText
         else:
@@ -242,11 +266,11 @@ class menus:
                 )
             return menuText
 
-    def renderLevel3_X_Reversal_Menus(self,skip=[], asList=False,renderStyle=None):
+    def renderLevel3_X_Reversal_Menus(self,skip=[], asList=False,renderStyle=None,parent=None):
         menuText = self.fromDictionary(level3_X_Reversal_MenuDict,
                                                    renderExceptionKeys=['0'],
                                                    renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE,
-                                                   skip=skip).render(asList=asList)
+                                                   skip=skip,parent=parent).render(asList=asList)
         if asList:
             return menuText
         else:
@@ -258,11 +282,11 @@ class menus:
                 )
             return menuText
         
-    def renderLevel3_X_ChartPattern_Menus(self,skip=[], asList=False,renderStyle=MenuRenderStyle.STANDALONE):
+    def renderLevel3_X_ChartPattern_Menus(self,skip=[], asList=False,renderStyle=MenuRenderStyle.STANDALONE,parent=None):
         menuText = self.fromDictionary(level3_X_ChartPattern_MenuDict,
                                                    renderExceptionKeys=['0'],
                                                    renderStyle=renderStyle,
-                                                   skip=skip).render(asList=asList)
+                                                   skip=skip,parent=parent).render(asList=asList)
         if asList:
             return menuText
         else:

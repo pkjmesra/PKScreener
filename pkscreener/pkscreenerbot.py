@@ -14,6 +14,7 @@ ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
+import re
 import html
 import json
 import logging
@@ -174,7 +175,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         reply_markup = InlineKeyboardMarkup(keyboard)
     elif len(selection) >= 4:
         optionChoices = f'{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}'
-        menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from 1 minute up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrrive!'
+        menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!'
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
             if mnu.menuKey in ['X','B','Z']:
@@ -184,19 +185,30 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         options = ':'.join(selection)
-        Popen(['pkscreener','-a','Y','-p','-e','-o', str(options), '-u', str(query.from_user.id)])
+        await launchScreener(options=options, user=query.from_user,context=context, optionChoices=optionChoices, update=update)
     try:
-        await query.edit_message_text(
+        if optionChoices != '':
+            await context.bot.send_message(
+                chat_id=chat_idADMIN, text=f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
+            )
+    except Exception as e:
+        await start(update,context)
+    await sendUpdatedMenu(menuText=menuText, update=update, context=context, reply_markup=reply_markup)
+    return START_ROUTES
+
+async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
+    try:
+        await update.callback_query.edit_message_text(
             text=menuText.replace('     ','').replace('    ','').replace('\t',''), reply_markup=reply_markup
         )
-        if optionChoices != '':
-            user = query.from_user
-            await context.bot.send_message(
-                chat_id=chat_idADMIN, text=f'Name: <b>{user.first_name}</b>, Username:@{user.username} with ID: <b>{str(user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
-            )
     except:
         await start(update,context)
-    return START_ROUTES
+
+async def launchScreener(options, user, context,optionChoices, update):
+    try:
+        Popen(['pkscreener','-a','Y','-p','-e','-o', str(options.upper()), '-u', str(user.id)])
+    except:
+        await start(update,context)
 
 async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
@@ -226,7 +238,8 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # This can be your own ID, or one for a developer group/channel.
 # You can use the /start command of this bot to see your chat id.
 chat_idADMIN = 123456789
-
+Channel_Id = 12345678
+GROUP_CHAT_ID= 1001907892864
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a telegram message to notify the developer."""
     # Log the error before we do anything else, so we can see it even if something breaks.
@@ -275,17 +288,113 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         except:
             pass
 
+async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message is not None and abs(update.message.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
+        # We want to avoid sending any help message back to channel or group.
+        return START_ROUTES
+    msg = update.effective_message
+    m = re.match('\s*/([0-9a-zA-Z_-]+)\s*(.*)', msg.text)
+    cmd = m.group(1).lower()
+    args = [arg for arg in re.split('\s+', m.group(2)) if len(arg)]
+    if cmd == 'start':
+        await start(update=update, context=context)
+        return START_ROUTES
+    if cmd == 'help':
+        await help_command(update=update, context=context)
+        return START_ROUTES
+    if cmd == 'x':
+        m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], renderStyle=MenuRenderStyle.STANDALONE)
+        selectedMenu = m0.find(cmd.upper())
+        cmdText = ''
+        cmds = m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+        for cmd in cmds:
+            cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
+        cmdText = f'{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN and hit send where SBIN is the NSE stock code.'
+        """Send a message when the command /help is issued."""
+        await update.message.reply_text(f"Choose an option:\n{cmdText}")
+        return START_ROUTES
+
+    if update.message is None:
+        await help_command(update=update,context=context)
+        return START_ROUTES
+    
+    if 'x_' in cmd:
+        selection = cmd.split('_')
+        if len(selection) == 2:
+            m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], renderStyle=MenuRenderStyle.STANDALONE)
+            selectedMenu = m0.find(selection[0].upper())
+            m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+            selectedMenu = m1.find(selection[1].upper())
+            if selectedMenu.menuKey == 'N': # Nifty prediction
+                options = ':'.join(selection)
+                await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
+                await sendRequestSubmitted(cmd.upper(),update=update,context=context)
+                return START_ROUTES
+            cmds = m2.renderForMenu(selectedMenu=selectedMenu, skip=['15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+            cmdText = ''
+            for cmd in cmds:
+                cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
+            await update.message.reply_text(f"Choose an option:\n{cmdText}")
+            return START_ROUTES
+        elif len(selection) == 3:
+            m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], renderStyle=MenuRenderStyle.STANDALONE)
+            selectedMenu = m0.find(selection[0].upper())
+            m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+            selectedMenu = m1.find(selection[1].upper())
+            m2.renderForMenu(selectedMenu=selectedMenu, skip=['15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+            if selection[2] in ['6','7']:
+                selectedMenu = m2.find(selection[2].upper())
+                cmds = m3.renderForMenu(selectedMenu=selectedMenu,asList=True,renderStyle=MenuRenderStyle.STANDALONE, skip=['0'])
+                cmdText=''
+                for cmd in cmds:
+                    cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
+                await update.message.reply_text(f"Choose an option:\n{cmdText}")
+                return START_ROUTES
+            else:
+                if selection[2] == '4': # Last N days
+                    selection.extend(['4',''])
+                elif selection[2] == '5': # RSI range
+                    selection.extend(['30','70'])
+                elif selection[2] == '8': # CCI range
+                    selection.extend(['-100','150'])
+                elif selection[2] == '9': # Vol gainer ratio
+                    selection.extend(['2.5',''])
+                elif selection[2] in ['1','2','3','10','11','12','13','14']: # Vol gainer ratio
+                    selection.extend(['',''])
+        if len(selection) >= 4:
+            options = ':'.join(selection)
+            await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
+            await sendRequestSubmitted(cmd.upper(),update=update,context=context)
+            return START_ROUTES
+    await update.message.reply_text(f"{cmd.upper()} : Not implemented yet!")
+    await help_command(update=update,context=context)
+
+async def sendRequestSubmitted(optionChoices,update,context):
+    menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!'
+    await update.message.reply_text(menuText)
+    await help_command(update=update, context=context)
+
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.callback_query is not None and abs(update.callback_query.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
+        # We want to avoid sending any help message back to channel or group.
+        return
+    if update.message is not None and abs(update.message.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
+        # We want to avoid sending any help message back to channel or group.
+        return
+    cmds = m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z','S','Y','H'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+    cmdText = ''
+    for cmd in cmds:
+        cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("See https://github.com/pkjmesra/PKScreener/ for details or join https://t.me/PKScreener .\n\n\nYou can begin by typing in /start and hit send! \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!")
+    await update.message.reply_text(f"Join https://t.me/PKScreener .\n\nYou can begin by typing in /start and hit send!\n\nOR\nChoose an option:\n{cmdText}") #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
 
 def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
-    global chat_idADMIN
+    global chat_idADMIN, Channel_Id
     Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+    # TOKEN = '12345678'
     application = Application.builder().token(TOKEN).build()
-
     # Setup conversation handler with the states FIRST and SECOND
     # Use the pattern parameter to pass CallbackQueries with specific
     # data pattern to the corresponding handlers.
@@ -311,6 +420,7 @@ def main() -> None:
     )
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, help_command))
+    application.add_handler(MessageHandler(filters.COMMAND, command_handler))
     # Add ConversationHandler to application that will be used for handling updates
     application.add_handler(conv_handler)
     # ...and the error handler
