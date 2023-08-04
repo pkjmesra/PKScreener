@@ -27,10 +27,10 @@ RUN pip install --upgrade setuptools
 RUN pip install packages
 RUN pip3 install -r requirements.txt
 RUN pip3 install ta-lib
-RUN CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+ENV CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
 RUN echo VERSION=\'`echo ${CURRENT_VERSION}`\'
-RUN TODAY=`date +%Y%m%d`
-RUN THIS_VERSION=${CURRENT_VERSION}.${TODAY}
+ENV TODAY=`date +%Y%m%d`
+ENV THIS_VERSION=${CURRENT_VERSION}.${TODAY}
 RUN rm -rf pkscreener/classes/__init__.py
 RUN echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
 RUN echo VERSION=\'`echo ${THIS_VERSION}`\'
