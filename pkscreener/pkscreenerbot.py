@@ -391,6 +391,10 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
             await sendRequestSubmitted(cmd.upper(),update=update,context=context)
             return START_ROUTES
+    if cmd == 'y' or cmd == 'h':
+        await launchScreener(options=f'{cmd.upper()}:', user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
+        await sendRequestSubmitted(cmd.upper(),update=update,context=context)
+        return START_ROUTES
     await update.message.reply_text(f"{cmd.upper()} : Not implemented yet!")
     await help_command(update=update,context=context)
     
