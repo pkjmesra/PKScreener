@@ -325,8 +325,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 if not str(selection[3]).isnumeric():
                     shouldScan = True
         elif len(selection) >=3 and not str(selection[2]).isnumeric():
-            selection[3]=selection[2]
-            selection[2]=selection[1]
+            selection = ['X','0','0',selection[2]]
             shouldScan = True
         if shouldScan:
             options = ':'.join(selection)
