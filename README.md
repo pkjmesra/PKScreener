@@ -91,7 +91,7 @@ Followin scanners are already implemented. Others are `In Progress`
 # Using docker, running within docker container
 * Download and install docker desktop: https://docs.docker.com/get-docker/
 * After installation, launch/run docker desktop and if it asks, login using your docker credentials.
-* Launch any command line and type `docker pull pkjmesra/pkscreener-debian:latest`. Then type `docker run pkjmesra/pkscreener-debian:latest python3 pkscreener -a Y -o X:12:10 -e` ow whatever -o options you'd like executed.
+* Launch any command line and type `docker pull pkjmesra/pkscreener-debian:latest`. Then type `docker run pkjmesra/pkscreener-debian:latest python3 pkscreenercli -a Y -o X:12:10 -e` ow whatever -o options you'd like executed.
 * Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `12` is `Scanners.`. `10` `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
 
 # Building from source repo
