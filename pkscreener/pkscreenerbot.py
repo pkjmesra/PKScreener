@@ -460,9 +460,9 @@ def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id
-    # Channel_Id, TOKEN, chat_idADMIN = get_secrets()
-    TOKEN = '6392133622:AAEn52GqZw_V6pLRFoP4aCl8cfCosGjp8rE'
-    Channel_Id = 1001785195297
+    Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+    # TOKEN = '1234567'
+    # Channel_Id = 1001785195297
     application = Application.builder().token(TOKEN).build()
     # Setup conversation handler with the states FIRST and SECOND
     # Use the pattern parameter to pass CallbackQueries with specific
