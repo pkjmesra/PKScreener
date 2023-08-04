@@ -64,7 +64,7 @@ jobs:
         THIS_VERSION=${CURRENT_VERSION}.${TODAY}.${{github.run_number}}
         echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
         rm -rf pkscreener/classes/__init__.py
-        echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
+        echo VERSION='${{ THIS_VERSION }}' >> pkscreener/classes/__init__.py
     - name: Build and publish distribution 📦 to Test PyPI
       env:
         TWINE_USERNAME: ${{ secrets.TESTPYPI_USERNAME }}
