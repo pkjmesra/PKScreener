@@ -189,7 +189,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         if optionChoices != '':
             await context.bot.send_message(
-                chat_id=chat_idADMIN, text=f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
+                chat_id=int(f'-{Channel_Id}'), text=f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
             )
     except Exception as e:
         await start(update,context)
@@ -278,12 +278,12 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     try:
         # Finally, send the message
         await context.bot.send_message(
-            chat_id=chat_idADMIN, text=message, parse_mode=ParseMode.HTML
+            chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
         )
     except:
         try:
             await context.bot.send_message(
-                chat_id=chat_idADMIN, text=tb_string, parse_mode=ParseMode.HTML
+                chat_id=int(f'-{Channel_Id}'), text=tb_string, parse_mode=ParseMode.HTML
             )
         except:
             pass
@@ -406,7 +406,7 @@ async def sendRequestSubmitted(optionChoices,update,context):
         query = update.message
         message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!'
         await context.bot.send_message(
-               chat_id=f'-100{chat_idADMIN}', text=message, parse_mode=ParseMode.HTML
+               chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
             )
     except:
         pass
