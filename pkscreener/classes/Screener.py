@@ -12,7 +12,7 @@ import pandas as pd
 import joblib
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes.Pktalib import pktalib
-from pkscreener.classes import Imports
+from pkscreener import Imports
 from pkscreener.classes.log import default_logger, tracelog
 # from sklearn.preprocessing import StandardScaler
 if Imports['scipy']:

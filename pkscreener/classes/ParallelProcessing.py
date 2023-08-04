@@ -15,7 +15,7 @@ import pytz
 import logging
 from queue import Empty
 from datetime import datetime
-from pkscreener.classes import Imports
+from pkscreener import Imports
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility

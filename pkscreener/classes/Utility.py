@@ -19,7 +19,7 @@ import pickle
 import requests
 import time
 import joblib
-from pkscreener.classes import Imports
+from pkscreener import Imports
 from pkscreener.classes.log import default_logger
 
 if Imports['keras']:
