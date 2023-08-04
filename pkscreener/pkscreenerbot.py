@@ -309,7 +309,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmds = m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
         for cmd in cmds:
             cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
-        cmdText = f'{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN and hit send where SBIN is the NSE stock code.'
+        cmdText = f'{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
         """Send a message when the command /help is issued."""
         await update.message.reply_text(f"Choose an option:\n{cmdText}")
         return START_ROUTES
@@ -317,7 +317,28 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if update.message is None:
         await help_command(update=update,context=context)
         return START_ROUTES
-    
+    if 'x_0' in cmd:
+        selection = cmd.split('_')
+        shouldScan = False
+        if 'x_0_0' in cmd:
+            if len(selection) >=4:
+                if not str(selection[3]).isnumeric():
+                    shouldScan = True
+        elif not str(selection[2]).isnumeric():
+            selection[3]=selection[2]
+            selection[2]=selection[1]
+            shouldScan = True
+        if shouldScan:
+            options = ':'.join(selection)
+            await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
+            await sendRequestSubmitted(cmd.upper(),update=update,context=context)
+            return START_ROUTES
+        else:
+            cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
+            """Send a message when the command /help is issued."""
+            await update.message.reply_text(f"Choose an option:\n{cmdText}")
+            return START_ROUTES
+
     if 'x_' in cmd:
         selection = cmd.split('_')
         if len(selection) == 2:
@@ -329,6 +350,11 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 options = ':'.join(selection)
                 await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
                 await sendRequestSubmitted(cmd.upper(),update=update,context=context)
+                return START_ROUTES
+            elif selectedMenu.menuKey == '0': # a specific stock by name
+                cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
+                """Send a message when the command /help is issued."""
+                await update.message.reply_text(f"Choose an option:\n{cmdText}")
                 return START_ROUTES
             cmds = m2.renderForMenu(selectedMenu=selectedMenu, skip=['15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
             cmdText = ''
