@@ -39,9 +39,9 @@ jobs:
               pip3 install ta-lib
               pip3 install .
             TEST_BUILD: |
-              ./dist/pkscreener.exe --testbuild
+              dist\pkscreener.exe --testbuild
               exit $?
-            OUT_PATH: .\dist\pkscreener.exe
+            OUT_PATH: dist\pkscreener.exe
             FILE_NAME: pkscreener.exe
           
           - os: ubuntu-20.04
