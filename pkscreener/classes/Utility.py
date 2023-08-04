@@ -76,22 +76,30 @@ class tools:
         print(art)
 
     # Print about developers and repository
-    def showDevInfo():
+    def showDevInfo(defaultAnswer=None):
         print('\n'+changelog)
+        devInfo = "\n[+] Developer: PK (PKScreener)"
+        versionInfo = ("[+] Version: %s" % VERSION)
+        homePage = "[+] Home Page: https://github.com/pkjmesra/PKScreener\nTelegram Bot:@nse_pkscreener_bot\nChannel:https://t.me/PKScreener\nDiscussions:https://t.me/PKScreeners"
+        issuesInfo = "[+] Read/Post Issues here: https://github.com/pkjmesra/PKScreener/issues"
+        communityInfo = "[+] Join Community Discussions: https://github.com/pkjmesra/PKScreener/discussions"
+        latestInfo = "[+] Download latest software from https://github.com/pkjmesra/PKScreener/releases/latest"
         print(colorText.BOLD + colorText.WARN +
-              "\n[+] Developer: PK (PKScreener)" + colorText.END)
+              devInfo + colorText.END)
         print(colorText.BOLD + colorText.WARN +
-              ("[+] Version: %s" % VERSION) + colorText.END)
+              versionInfo + colorText.END)
         print(colorText.BOLD +
-              "[+] Home Page: https://github.com/pkjmesra/PKScreener" + colorText.END)
+              homePage + colorText.END)
         print(colorText.BOLD + colorText.FAIL +
-              "[+] Read/Post Issues here: https://github.com/pkjmesra/PKScreener/issues" + colorText.END)
+              issuesInfo + colorText.END)
         print(colorText.BOLD + colorText.GREEN +
-              "[+] Join Community Discussions: https://github.com/pkjmesra/PKScreener/discussions" + colorText.END)
+              communityInfo + colorText.END)
         print(colorText.BOLD + colorText.BLUE +
-              "[+] Download latest software from https://github.com/pkjmesra/PKScreener/releases/latest" + colorText.END)
-        input(colorText.BOLD + colorText.FAIL +
+              latestInfo + colorText.END)
+        if defaultAnswer is None:
+            input(colorText.BOLD + colorText.FAIL +
                     "[+] Press any key to continue!" + colorText.END)
+        return f'\n{changelog}\n\n{devInfo}\n{versionInfo}\n\n{homePage}\n{issuesInfo}\n{communityInfo}\n{latestInfo}'
 
     # Save last screened result to pickle file
     def setLastScreenedResults(df):

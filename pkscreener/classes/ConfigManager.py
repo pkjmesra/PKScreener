@@ -209,14 +209,18 @@ class tools:
         return self.period == '1d' and self.duration[-1] == 'm' and not self.cacheEnabled
             
     # Print config file
-    def showConfigFile(self):
+    def showConfigFile(self,defaultAnswer=None):
         try:
+            prompt = '[+] PKScreener User Configuration:'
             f = open('pkscreener.ini', 'r')
             print(colorText.BOLD + colorText.GREEN +
-                  '[+] PKScreener User Configuration:' + colorText.END)
-            print("\n"+f.read())
+                  prompt + colorText.END)
+            configData = f.read()
             f.close()
-            input('')
+            print("\n"+configData)
+            if defaultAnswer is None:
+                input('')
+            return f'{prompt}\n{configData}'
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)
             print(colorText.BOLD + colorText.FAIL +

@@ -406,12 +406,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if update.message is not None and abs(update.message.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
         # We want to avoid sending any help message back to channel or group.
         return
-    cmds = m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z','S','Y','H'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+    cmds = m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z','S','B'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
     cmdText = ''
     for cmd in cmds:
         cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
     """Send a message when the command /help is issued."""
-    await update.message.reply_text(f"Join https://t.me/PKScreener .\n\nYou can begin by typing in /start and hit send!\n\nOR\nChoose an option:\n{cmdText}") #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
+    await update.message.reply_text(f"You can begin by typing in /start and hit send!\n\nOR\n\nChoose an option:\n{cmdText}") #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
 
 def main() -> None:
     """Run the bot."""

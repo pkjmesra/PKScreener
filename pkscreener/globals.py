@@ -210,9 +210,12 @@ def getDownloadChoices():
             configManager.deleteFileWithPattern()
     return 'X', 12, 2, {'0':'X','1':'12','2':'2'}
     
-def handleSecondaryMenuChoices(menuOption, testing=False):
+def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user=None):
     if menuOption == 'H':
-        Utility.tools.showDevInfo()
+        helpData = Utility.tools.showDevInfo(defaultAnswer=defaultAnswer)
+        if user is not None:
+            sendMessageToTelegramChannel(messaage=helpData,user=user)
+            return
     elif menuOption == 'U':
         OTAUpdater.checkForUpdate(getProxyServer(), VERSION, skipDownload=testing)
     elif menuOption == 'T':
@@ -220,8 +223,11 @@ def handleSecondaryMenuChoices(menuOption, testing=False):
     elif menuOption == 'E':
         configManager.setConfig(ConfigManager.parser)
     elif menuOption == 'Y':
-        configManager.showConfigFile()
-    main()
+        confData = configManager.showConfigFile(defaultAnswer=defaultAnswer)
+        if user is not None:
+            sendMessageToTelegramChannel(messaage=configData,user=user)
+            return
+    # main()
     return
 
 def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
@@ -241,7 +247,7 @@ def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
         menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
     return options, menuOption, tickerOption, executeOption
 
-def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None, tickerOption=None, executeOption=None):
+def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None, menuOption=None, tickerOption=None, executeOption=None,defaultAnswer=None,user=None):
     global selectedChoice
     executeOption = executeOption
     menuOption = menuOption
@@ -251,7 +257,7 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
             selectedMenu = initExecution(menuOption=menuOption)
             menuOption = selectedMenu.menuKey
         if menuOption in ['H','U','T','E','Y']:
-            return handleSecondaryMenuChoices(menuOption, testBuild)
+            return handleSecondaryMenuChoices(menuOption, testBuild,defaultAnswer=defaultAnswer,user=user)
         elif menuOption == 'X':
             tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,tickerOption=tickerOption, executeOption=executeOption)
             tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption, executeOption=executeOption)
@@ -311,7 +317,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         # Print Level 2 menu options
         menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(
             testBuild or testing,downloadOnly,startupoptions, menuOption=menuOption, 
-            tickerOption=tickerOption, executeOption=executeOption)
+            tickerOption=tickerOption, executeOption=executeOption,defaultAnswer=defaultAnswer,user=user)
     elif menuOption == 'B':
         # Backtests
         tickerOption, executeOption, backtestPeriod = takeBacktestInputs(menuOption,tickerOption, executeOption)
