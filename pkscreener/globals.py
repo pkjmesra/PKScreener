@@ -214,7 +214,7 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
     if menuOption == 'H':
         helpData = Utility.tools.showDevInfo(defaultAnswer=defaultAnswer)
         if user is not None:
-            sendMessageToTelegramChannel(messaage=helpData,user=user)
+            sendMessageToTelegramChannel(messaage=helpData.replace('\n','|'),user=user)
             return
         else:
             print('Not sending DevInfo to telegram as User is empty or none.')
@@ -227,7 +227,7 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
     elif menuOption == 'Y':
         configData = configManager.showConfigFile(defaultAnswer=defaultAnswer)
         if user is not None:
-            sendMessageToTelegramChannel(messaage=configData,user=user)
+            sendMessageToTelegramChannel(messaage=configData.replace('\n','|'),user=user)
             return
         else:
             print('Not sending Config to telegram as User is empty or none.')
