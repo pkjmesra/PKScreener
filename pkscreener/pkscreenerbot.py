@@ -297,16 +297,16 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     m = re.match('\s*/([0-9a-zA-Z_-]+)\s*(.*)', msg.text)
     cmd = m.group(1).lower()
     args = [arg for arg in re.split('\s+', m.group(2)) if len(arg)]
-    if cmd.startswith('CX_') or cmd.startswith('CB_'):
+    if cmd.startswith('cx_') or cmd.startswith('cb_'):
         await Level2(update=update,context=context)
         return START_ROUTES
-    if cmd.startswith('CX'):
+    if cmd.startswith('cx'):
         await XScanners(update=update,context=context)
         return START_ROUTES
-    if cmd.startswith('CB'):
+    if cmd.startswith('cb'):
         await BBacktests(update=update,context=context)
         return START_ROUTES
-    if cmd.startswith('CZ'):
+    if cmd.startswith('cz'):
         await end(update=update,context=context)
         return END_ROUTES
     
