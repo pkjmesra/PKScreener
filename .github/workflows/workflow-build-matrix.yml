@@ -117,6 +117,21 @@ jobs:
       - name: Install dependencies for ${{ matrix.TARGET }}
         run: ${{ matrix.DEP_BUILD }}
 
+      - name: Declare env variables
+        id: vars
+        shell: bash
+        run: |
+          GITHUB_REF=${GITHUB_REF#refs/tags/}
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          TODAY=`date +%Y%m%d`
+          THIS_VERSION=${CURRENT_VERSION}.${TODAY}.${{github.run_number}}
+          rm -rf pkscreener/classes/__init__.py
+          echo VERSION=\'`echo ${THIS_VERSION}`\'' >> pkscreener/classes/__init__.py
+          echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
+          echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
+
       - name: Build for ${{ matrix.TARGET }}
         run: ${{ matrix.CMD_BUILD }}
 
@@ -139,6 +154,7 @@ jobs:
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"
           r="${r//$'\r'/'%0D'}"
+          r="${r//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
           echo "::set-output name=RELEASE_BODY::$r"
 
       - name: Upload Binaries to Release
