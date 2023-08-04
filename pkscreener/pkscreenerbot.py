@@ -324,7 +324,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             if len(selection) >=4:
                 if not str(selection[3]).isnumeric():
                     shouldScan = True
-        elif not str(selection[2]).isnumeric():
+        elif len(selection) >=3 and not str(selection[2]).isnumeric():
             selection[3]=selection[2]
             selection[2]=selection[1]
             shouldScan = True
