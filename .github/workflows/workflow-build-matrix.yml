@@ -10,6 +10,12 @@ on:
     #branches: [ pre-main ]
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      branch-name:
+        description: 'Branch name'
+        required: false
+        default: 'main'
   schedule:
     - cron: '30 9 * * 5'
 
@@ -156,6 +162,18 @@ jobs:
           r="${r//$'\r'/'%0D'}"
           r="${r//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
           echo "::set-output name=RELEASE_BODY::$r"
+          rme=$(cat README.md)
+          rme="${rme//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
+          echo $r >> pkscreener/release.md
+          echo $rme >> README.md
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          git remote update
+          git fetch
+          git add *.md --force
+          git commit -m "GitHub Action Workflow - Updating version to latest"
+          git push -v
 
       - name: Upload Binaries to Release
         uses: svenstaro/upload-release-action@v2
