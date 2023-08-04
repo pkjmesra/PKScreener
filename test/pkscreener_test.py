@@ -314,10 +314,10 @@ def test_release_readme_urls():
     f = open('../pkscreener/release.md', 'r')
     contents = f.read()
     f.close()
-    failUrl = [f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreener.bin",
-               f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreener.exe"]
-    passUrl = [f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreener.bin",
-               f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreener.exe"]
+    failUrl = [f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli.bin",
+               f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli.exe"]
+    passUrl = [f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.bin",
+               f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.exe"]
     for url in failUrl:
         assert not url in contents
     for url in passUrl:

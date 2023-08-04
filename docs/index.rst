@@ -85,7 +85,7 @@ Usage
 Running the executables
 -----------------------
 * Download the suitable file according to your OS.
-* Linux & Mac users should make sure that the ``pkscreener.bin or pkscreener.run`` is having ``execute`` permission.
+* Linux & Mac users should make sure that the ``pkscreenercli.bin or pkscreenercli.run`` is having ``execute`` permission.
 * :guilabel:`Run` the file.
 
 Configuration
@@ -140,7 +140,7 @@ Scanning as a scheduled job once or at regular intervals
 Running it once with pre-defined inputs
 ---------------------------------------
 
-You can also run it as a one time job in any scheduler with pre-defined options. For example ``./pkscreenercli.py -a Y -o X:12:10 -e`` (or ``pkscreener.exe -a Y -o X:12:10 -e`` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. ``./pkscreenercli.py -a Y -o X:12:9:2.5 -e`` will run the scanner (menu option ``X``) for all Nifty stocks (menu option ``12``) to find volume gainers (menu option ``9``) with at least the volume multiplier of 2.5 (input variable ``2.5``), save the results in xlsx file and exit (menu option ``-e``). Passing in the ``-p`` option for example ``pkscreenercli.py -a Y -p -o X:12:6:1 -e`` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with ``./pkscreenercli.py -h``.
+You can also run it as a one time job in any scheduler with pre-defined options. For example ``./pkscreenercli.py -a Y -o X:12:10 -e`` (or ``pkscreenercli.exe -a Y -o X:12:10 -e`` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. ``./pkscreenercli.py -a Y -o X:12:9:2.5 -e`` will run the scanner (menu option ``X``) for all Nifty stocks (menu option ``12``) to find volume gainers (menu option ``9``) with at least the volume multiplier of 2.5 (input variable ``2.5``), save the results in xlsx file and exit (menu option ``-e``). Passing in the ``-p`` option for example ``pkscreenercli.py -a Y -p -o X:12:6:1 -e`` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with ``./pkscreenercli.py -h``.
 
 Running it at regular intervals
 -------------------------------

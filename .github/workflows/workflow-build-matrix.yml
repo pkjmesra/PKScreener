@@ -10,6 +10,8 @@ on:
     #branches: [ pre-main ]
     tags:
       - '*'
+  schedule:
+    - cron: '30 9 * * 5'
 
 jobs:
 
@@ -39,17 +41,17 @@ jobs:
               pip3 install ta-lib
               pip3 install .
             TEST_BUILD: |
-              dist\pkscreener.exe --testbuild
+              ./dist/pkscreenercli.exe --testbuild
               exit $?
-            OUT_PATH: dist\pkscreener.exe
-            FILE_NAME: pkscreener.exe
+            OUT_PATH: .\dist\pkscreenercli.exe
+            FILE_NAME: pkscreenercli.exe
           
           - os: ubuntu-20.04
             TARGET: Linux
             CMD_BUILD: |
               pyinstaller --onefile --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
-              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreener /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin
-              chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin
+              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreener /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
+              chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
             DEP_BUILD: |
               cd .github/dependencies/
               pwd
@@ -65,16 +67,16 @@ jobs:
               pip3 install ta-lib==0.4.24
               pip3 install .
             TEST_BUILD: |
-              /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin --testbuild
+              /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin --testbuild
               exit $?
-            OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreener.bin
-            FILE_NAME: pkscreener.bin
+            OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
+            FILE_NAME: pkscreenercli.bin
 
           - os: macos-latest
             TARGET: MacOS
             CMD_BUILD: |
               pyinstaller --onefile --windowed --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
-              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreener /Users/runner/work/PKScreener/PKScreener/dist/pkscreener.run
+              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreener /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
             DEP_BUILD: |
               brew install ta-lib
               python -m pip install --upgrade pip
@@ -83,10 +85,10 @@ jobs:
               pip3 install ta-lib==0.4.24
               pip3 install .
             TEST_BUILD: |
-              /Users/runner/work/PKScreener/PKScreener/dist/pkscreener.run --testbuild
+              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run --testbuild
               exit $?
-            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreener.run
-            FILE_NAME: pkscreener.run
+            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
+            FILE_NAME: pkscreenercli.run
           
     steps:
       - uses: actions/checkout@v2

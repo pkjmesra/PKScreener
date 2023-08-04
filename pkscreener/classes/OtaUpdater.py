@@ -26,9 +26,9 @@ color a
 echo [+] pkscreener Software Updater!
 echo [+] Downloading Software Update...
 echo [+] This may take some time as per your Internet Speed, Please Wait...
-curl -o pkscreener.exe -L """ + url + """
+curl -o pkscreenercli.exe -L """ + url + """
 echo [+] Newly downloaded file saved in %cd%
-echo [+] Software Update Completed! Run'pkscreener.exe' again as usual to continue..
+echo [+] Software Update Completed! Run'pkscreenercli.exe' again as usual to continue..
 pause
 del updater.bat & exit
         """
@@ -47,10 +47,10 @@ sleep 3
 echo "[+] pkscreener Software Updater!"
 echo "[+] Downloading Software Update..."
 echo "[+] This may take some time as per your Internet Speed, Please Wait..."
-wget -q """ + url + """ -O pkscreener.bin
+wget -q """ + url + """ -O pkscreenercli.bin
 echo "[+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreener.bin
-echo "[+] Update Completed! Run 'pkscreener.bin' again as usual to continue.."
+chmod +x pkscreenercli.bin
+echo "[+] Update Completed! Run 'pkscreenercli.bin' again as usual to continue.."
 rm updater.sh
         """
         f = open("updater.sh",'w')
@@ -68,10 +68,10 @@ sleep 3
 echo "[+] pkscreener Software Updater!"
 echo "[+] Downloading Software Update..."
 echo "[+] This may take some time as per your Internet Speed, Please Wait..."
-curl -o pkscreener.run -L """ + url + """
+curl -o pkscreenercli.run -L """ + url + """
 echo "[+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreener.run
-echo "[+] Update Completed! Run 'pkscreener.run' again as usual to continue.."
+chmod +x pkscreenercli.run
+echo "[+] Update Completed! Run 'pkscreenercli.run' again as usual to continue.."
 rm updater.sh
         """
         f = open("updater.sh",'w')

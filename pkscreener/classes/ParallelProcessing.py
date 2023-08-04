@@ -38,8 +38,8 @@ except ImportError:
     input('Press any key to exit...')
     sys.exit(0)
 
-# usage: pkscreener.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
-# pkscreener.exe: error: unrecognized arguments: --multiprocessing-fork parent_pid=4620 pipe_handle=708
+# usage: pkscreenercli.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
+# pkscreenercli.exe: error: unrecognized arguments: --multiprocessing-fork parent_pid=4620 pipe_handle=708
 class StockConsumer(multiprocessing.Process):
 
     def __init__(self, task_queue, result_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger):
