@@ -96,7 +96,7 @@ class tools:
               communityInfo + colorText.END)
         print(colorText.BOLD + colorText.BLUE +
               latestInfo + colorText.END)
-        if defaultAnswer is None:
+        if defaultAnswer !='Y':
             input(colorText.BOLD + colorText.FAIL +
                     "[+] Press any key to continue!" + colorText.END)
         return f'\n{changelog}\n\n{devInfo}\n{versionInfo}\n\n{homePage}\n{issuesInfo}\n{communityInfo}\n{latestInfo}'

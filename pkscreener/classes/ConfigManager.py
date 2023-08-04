@@ -218,8 +218,8 @@ class tools:
             configData = f.read()
             f.close()
             print("\n"+configData)
-            if defaultAnswer is None:
-                input('')
+            if defaultAnswer !='Y':
+                input('Press any key to continue...')
             return f'{prompt}\n{configData}'
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)

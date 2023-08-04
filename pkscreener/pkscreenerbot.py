@@ -207,7 +207,7 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 
 async def launchScreener(options, user, context,optionChoices, update):
     try:
-        Popen(['pkscreener','-a','Y','-p','-e','-o', str(options.upper()), '-u', str(user.id)])
+        Popen(['pkscreener','-a','Y','-e','-o', str(options.upper()), '-u', str(user.id)])
     except:
         await start(update,context)
 
@@ -323,7 +323,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmds = m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
         for cmd in cmds:
             cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
-        cmdText = f'{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
+        cmdText = f'{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,).'
         """Send a message when the command /help is issued."""
         await update.message.reply_text(f"Choose an option:\n{cmdText}")
         return START_ROUTES
@@ -331,23 +331,18 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if update.message is None:
         await help_command(update=update,context=context)
         return START_ROUTES
-    if 'x_0' in cmd:
-        selection = cmd.split('_')
+    if 'x_0' in cmd or 'x_0_0' in cmd:
         shouldScan = False
-        if 'x_0_0' in cmd:
-            if len(selection) >=4:
-                if not str(selection[3]).isnumeric():
-                    shouldScan = True
-        elif len(selection) >=3 and not str(selection[2]).isnumeric():
-            selection = ['X','0','0',selection[2]]
+        if len(args) > 0:
             shouldScan = True
+            selection = ['X','0','0',f"{','.join(args)}".replace(' ','')]
         if shouldScan:
             options = ':'.join(selection)
             await launchScreener(options=options, user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
             await sendRequestSubmitted(cmd.upper(),update=update,context=context)
             return START_ROUTES
         else:
-            cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
+            cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,).'
             """Send a message when the command /help is issued."""
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
@@ -365,7 +360,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 await sendRequestSubmitted(cmd.upper(),update=update,context=context)
                 return START_ROUTES
             elif selectedMenu.menuKey == '0': # a specific stock by name
-                cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0_SBIN or /X_0_0_SBIN and hit send where SBIN is the NSE stock code.'
+                cmdText = f'For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,).'
                 """Send a message when the command /help is issued."""
                 await update.message.reply_text(f"Choose an option:\n{cmdText}")
                 return START_ROUTES
@@ -439,12 +434,35 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Send a message when the command /help is issued."""
     await update.message.reply_text(f"You can begin by typing in /start and hit send!\n\nOR\n\nChoose an option:\n{cmdText}") #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
 
+def addCommandsForMenuItems(application):
+    cmds0 = m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], asList=True,renderStyle=MenuRenderStyle.STANDALONE)
+    for mnu0 in cmds0:
+        p0=mnu0.menuKey.upper()
+        application.add_handler(CommandHandler(p0, command_handler))
+        selectedMenu = m0.find(p0)
+        cmds1=m1.renderForMenu(selectedMenu=selectedMenu, skip=['W','E','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+        for mnu1 in cmds1:
+            p1=mnu1.menuKey.upper()
+            application.add_handler(CommandHandler(f'{p0}_{p1}', command_handler))
+            selectedMenu = m1.find(p1)
+            cmds2=m2.renderForMenu(selectedMenu=selectedMenu, skip=['15','16','17','18','19','20','21','22','23','24','25','26','42','M','Z'],asList=True, renderStyle=MenuRenderStyle.STANDALONE)
+            for mnu2 in cmds2:
+                p2=mnu2.menuKey.upper()
+                application.add_handler(CommandHandler(f'{p0}_{p1}_{p2}', command_handler))
+                if p2 in ['6','7']:
+                    selectedMenu = m2.find(p2)
+                    cmds3 = m3.renderForMenu(selectedMenu=selectedMenu,asList=True,renderStyle=MenuRenderStyle.STANDALONE, skip=['0'])
+                    for mnu3 in cmds3:
+                        p3=mnu3.menuKey.upper()
+                        application.add_handler(CommandHandler(f'{p0}_{p1}_{p2}_{p3}', command_handler))
+                
 def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id
-    Channel_Id, TOKEN, chat_idADMIN = get_secrets()
-    # TOKEN = '12345678'
+    # Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+    TOKEN = '6392133622:AAEn52GqZw_V6pLRFoP4aCl8cfCosGjp8rE'
+    Channel_Id = 1001785195297
     application = Application.builder().token(TOKEN).build()
     # Setup conversation handler with the states FIRST and SECOND
     # Use the pattern parameter to pass CallbackQueries with specific
@@ -471,8 +489,10 @@ def main() -> None:
     )
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, help_command))
-    application.add_handler(MessageHandler(filters.COMMAND, command_handler))
+    # application.add_handler(MessageHandler(filters.TEXT & filters.COMMAND, command_handler))
+    # application.add_handler(MessageHandler(filters.COMMAND, command_handler))
     # Add ConversationHandler to application that will be used for handling updates
+    addCommandsForMenuItems(application)
     application.add_handler(conv_handler)
     # ...and the error handler
     application.add_error_handler(error_handler)

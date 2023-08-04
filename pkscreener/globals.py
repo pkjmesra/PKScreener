@@ -216,6 +216,8 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
         if user is not None:
             sendMessageToTelegramChannel(messaage=helpData,user=user)
             return
+        else:
+            print('Not sending DevInfo to telegram as User is empty or none.')
     elif menuOption == 'U':
         OTAUpdater.checkForUpdate(getProxyServer(), VERSION, skipDownload=testing)
     elif menuOption == 'T':
@@ -223,10 +225,12 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
     elif menuOption == 'E':
         configManager.setConfig(ConfigManager.parser)
     elif menuOption == 'Y':
-        confData = configManager.showConfigFile(defaultAnswer=defaultAnswer)
+        configData = configManager.showConfigFile(defaultAnswer=defaultAnswer)
         if user is not None:
             sendMessageToTelegramChannel(messaage=configData,user=user)
             return
+        else:
+            print('Not sending Config to telegram as User is empty or none.')
     # main()
     return
 
