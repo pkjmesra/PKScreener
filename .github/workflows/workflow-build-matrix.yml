@@ -50,7 +50,7 @@ jobs:
             TARGET: Linux
             CMD_BUILD: |
               pyinstaller --onefile --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
-              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreener /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
+              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
             DEP_BUILD: |
               cd .github/dependencies/
@@ -76,7 +76,7 @@ jobs:
             TARGET: MacOS
             CMD_BUILD: |
               pyinstaller --onefile --windowed --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress
-              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreener /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
+              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
             DEP_BUILD: |
               brew install ta-lib
               python -m pip install --upgrade pip
