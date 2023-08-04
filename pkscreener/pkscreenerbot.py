@@ -84,7 +84,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     inlineMenus = []
     for mnu in mns:
         if mnu.menuKey in ['X','B','Z']:
-            inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data=str(mnu.menuKey)))
+            inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data='C'+str(mnu.menuKey)))
     keyboard = [
         inlineMenus
     ]
@@ -93,7 +93,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option by selecting a button from below.\n\nPlease note that this bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!", reply_markup=reply_markup)
     try:
         await context.bot.send_message(
-                chat_id=chat_idADMIN, text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
+                chat_id=int(f'-{Channel_Id}'), text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
             )
     except:
         pass
@@ -103,10 +103,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
-    if query.data not in ['X','B']:
+    data = query.data.upper().replace('CX','X').replace('CB','B')
+    if data not in ['X','B']:
         return start(update,context)
-    menuText = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'],renderStyle=MenuRenderStyle.STANDALONE).replace('     ','').replace('    ','').replace('\t','')
-    mns = m1.renderForMenu(m0.find(query.data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'], asList=True)
+    menuText = m1.renderForMenu(m0.find(data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'],renderStyle=MenuRenderStyle.STANDALONE).replace('     ','').replace('    ','').replace('\t','')
+    mns = m1.renderForMenu(m0.find(data),skip=['W','E','M','Z','0','2','1','3','4','6','7','9','10','13'], asList=True)
     inlineMenus = []
     await query.answer()
     for mnu in mns:
@@ -127,7 +128,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = []
     query = update.callback_query
     await query.answer()
-    preSelection = query.data
+    preSelection = query.data.upper().replace('CX','X').replace('CB','B')
     selection = preSelection.split('_')
     preSelection = f'{selection[0]}_{selection[1]}'
     if selection[0] != 'X':
@@ -164,11 +165,11 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 elif selection[2] in ['1','2','3','10','11','12','13','14']: # Vol gainer ratio
                     selection.extend(['',''])
     elif len(selection) == 4:
-        preSelection = query.data
+        preSelection = query.data.upper().replace('CX','X').replace('CB','B')
     optionChoices = ''
     if len(selection) <= 3:
         for mnu in mns:
-            inlineMenus.append(InlineKeyboardButton(mnu.menuKey, callback_data=str(f'{preSelection}_{mnu.menuKey}')))
+            inlineMenus.append(InlineKeyboardButton(mnu.menuKey, callback_data='C'+str(f'{preSelection}_{mnu.menuKey}')))
         keyboard = [
             inlineMenus
         ]
@@ -179,7 +180,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
             if mnu.menuKey in ['X','B','Z']:
-                inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data=str(mnu.menuKey)))
+                inlineMenus.append(InlineKeyboardButton(mnu.keyTextLabel().split('(')[0], callback_data='C'+str(mnu.menuKey)))
         keyboard = [
             inlineMenus
         ]
@@ -216,8 +217,8 @@ async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.answer()
     keyboard = [
         [
-            InlineKeyboardButton("Try Scanners", callback_data=str('X')),
-            InlineKeyboardButton("Exit", callback_data=str('Z')),
+            InlineKeyboardButton("Try Scanners", callback_data=str('CX')),
+            InlineKeyboardButton("Exit", callback_data=str('CZ')),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -296,6 +297,19 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     m = re.match('\s*/([0-9a-zA-Z_-]+)\s*(.*)', msg.text)
     cmd = m.group(1).lower()
     args = [arg for arg in re.split('\s+', m.group(2)) if len(arg)]
+    if cmd.startswith('CX_') or cmd.startswith('CB_'):
+        await Level2(update=update,context=context)
+        return START_ROUTES
+    if cmd.startswith('CX'):
+        await XScanners(update=update,context=context)
+        return START_ROUTES
+    if cmd.startswith('CB'):
+        await BBacktests(update=update,context=context)
+        return START_ROUTES
+    if cmd.startswith('CZ'):
+        await end(update=update,context=context)
+        return END_ROUTES
+    
     if cmd == 'start':
         await start(update=update, context=context)
         return START_ROUTES
@@ -442,11 +456,11 @@ def main() -> None:
         entry_points=[CommandHandler("start", start)],
         states={
             START_ROUTES: [
-                CallbackQueryHandler(XScanners, pattern="^" + str('X') + "$"),
-                CallbackQueryHandler(BBacktests, pattern="^" + str('B') + "$"),
-                CallbackQueryHandler(Level2, pattern="^" + str('X_')),
-                CallbackQueryHandler(Level2, pattern="^" + str('B_')),
-                CallbackQueryHandler(end, pattern="^" + str('Z') + "$"),
+                CallbackQueryHandler(XScanners, pattern="^" + str('CX') + "$"),
+                CallbackQueryHandler(BBacktests, pattern="^" + str('CB') + "$"),
+                CallbackQueryHandler(Level2, pattern="^" + str('CX_')),
+                CallbackQueryHandler(Level2, pattern="^" + str('CB_')),
+                CallbackQueryHandler(end, pattern="^" + str('CZ') + "$"),
                 CallbackQueryHandler(start, pattern="^")
             ],
             END_ROUTES: [
