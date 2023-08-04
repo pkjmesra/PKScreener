@@ -393,12 +393,20 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return START_ROUTES
     await update.message.reply_text(f"{cmd.upper()} : Not implemented yet!")
     await help_command(update=update,context=context)
-
+    
 async def sendRequestSubmitted(optionChoices,update,context):
     menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!'
     await update.message.reply_text(menuText)
     await help_command(update=update, context=context)
-
+    try:
+        query = update.message
+        message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!'
+        await context.bot.send_message(
+               chat_id=f'-100{chat_idADMIN}', text=message, parse_mode=ParseMode.HTML
+            )
+    except:
+        pass
+    
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.callback_query is not None and abs(update.callback_query.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
         # We want to avoid sending any help message back to channel or group.
