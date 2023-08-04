@@ -207,7 +207,7 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 
 async def launchScreener(options, user, context,optionChoices, update):
     try:
-        Popen(['pkscreener','-a','Y','-e','-o', str(options.upper()), '-u', str(user.id)])
+        Popen(['pkscreener','-a','Y','-e','-p','-o', str(options.upper()), '-u', str(user.id)])
     except:
         await start(update,context)
 
