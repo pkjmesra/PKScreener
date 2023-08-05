@@ -139,9 +139,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-talib
 
-      - name: Install dependencies for ${{ matrix.TARGET }}
-        run: ${{ matrix.DEP_BUILD }}
-
       - name: Declare env variables
         id: vars
         shell: bash
@@ -150,29 +147,17 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          VERSION_ARR=(${CURRENT_VERSION//./ })
+          MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
           TODAY=`date +%Y%m%d`
-          THIS_VERSION=${CURRENT_VERSION}.${TODAY}.${{github.run_number}}
+          THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
           rm -rf pkscreener/classes/__init__.py
           echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
           echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
           echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
 
-      - name: Build for ${{ matrix.TARGET }}
-        run: ${{ matrix.CMD_BUILD }}
-
-      - name: Test Built Binary for ${{ matrix.TARGET }}
-        shell: bash
-        run: ${{ matrix.TEST_BUILD }}
-        continue-on-error: false
-
-      - name: Save Binaries as Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.FILE_NAME }}
-          path: ${{ matrix.OUT_PATH }}
-
       - name: Update ReadME release.md and library version
-        if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
+        if: startsWith(runner.os, 'Linux') && (startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }})
         id: read_release
         shell: bash
         run: |
@@ -197,6 +182,23 @@ jobs:
           git commit -m "GitHub Action Workflow - Updating version to latest"
           git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
           git push -v --tags
+
+      - name: Install dependencies for ${{ matrix.TARGET }}
+        run: ${{ matrix.DEP_BUILD }}
+
+      - name: Build for ${{ matrix.TARGET }}
+        run: ${{ matrix.CMD_BUILD }}
+
+      - name: Test Built Binary for ${{ matrix.TARGET }}
+        shell: bash
+        run: ${{ matrix.TEST_BUILD }}
+        continue-on-error: false
+
+      - name: Save Binaries as Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.FILE_NAME }}
+          path: ${{ matrix.OUT_PATH }}
 
       - name: Upload Binaries to Release
         if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
