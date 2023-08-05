@@ -46,7 +46,7 @@ Receiving On-Demand Scan results
 You can now run the ``pkscreenerbot`` on your local machine or if it's running on the GitHub server under a GitHub Actions workflow, you can use the ``pkscreener Bot`` (@nse_pkscreener_bot on Telegram) to get on-demand scan results.
 
  .. image:: https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/bot.gif
-         :width: 50%
+         :width: 100%
          :alt: Telegram bot
 
 Installation
