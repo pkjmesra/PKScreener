@@ -118,6 +118,38 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Declare env variables
+        id: vars
+        shell: bash
+        run: |
+          GITHUB_REF=${GITHUB_REF#refs/tags/}
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          VERSION_ARR=(${CURRENT_VERSION//./ })
+          MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
+          TODAY=`date +%Y%m%d`
+          THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
+          rm -rf pkscreener/classes/__init__.py
+          echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
+          echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
+          echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
+
+      - name: Create Tag
+        if: startsWith(runner.os, 'Linux')
+        run: |
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+            git remote update
+            git fetch
+            git pull
+            # git add *.md --force
+            git add pkscreener/classes/__init__.py --force
+            git commit -m "GitHub Action Workflow - Updating version to latest"
+            git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
+            git push -v --tags
+
       - name: Get the GitHub Tag version
         id: get_version
         shell: bash
@@ -139,25 +171,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-talib
 
-      - name: Declare env variables
-        id: vars
-        shell: bash
-        run: |
-          GITHUB_REF=${GITHUB_REF#refs/tags/}
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
-          VERSION_ARR=(${CURRENT_VERSION//./ })
-          MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
-          TODAY=`date +%Y%m%d`
-          THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
-          rm -rf pkscreener/classes/__init__.py
-          echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
-          echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
-          echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
-
       - name: Update ReadME release.md and library version
-        if: startsWith(runner.os, 'Linux') && (startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }})
+        if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
         id: read_release
         shell: bash
         run: |
@@ -165,23 +180,7 @@ jobs:
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"
           r="${r//$'\r'/'%0D'}"
-          # r="${r//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
           echo "::set-output name=RELEASE_BODY::$r"
-          # rme=$(cat README.md)
-          # rme="${rme//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
-          # echo $r >> pkscreener/release.md
-          # echo $rme >> README.md
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-          git remote update
-          git fetch
-          git pull
-          # git add *.md --force
-          git add pkscreener/classes/__init__.py --force
-          git commit -m "GitHub Action Workflow - Updating version to latest"
-          git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
-          git push -v --tags
 
       - name: Install dependencies for ${{ matrix.TARGET }}
         run: ${{ matrix.DEP_BUILD }}
