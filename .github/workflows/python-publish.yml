@@ -11,7 +11,7 @@ on:
         required: false
         default: 'PyPi Publish'
   schedule:
-    - cron: '30 9 * * 5'
+    - cron: '30 7 * * 6'
 jobs:
   check_should_run:
       runs-on: windows-latest
