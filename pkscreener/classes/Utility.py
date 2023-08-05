@@ -132,6 +132,14 @@ class tools:
             return colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
         return colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
     
+    def removeAllColorStyles(styledText):
+        styles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR,
+                  colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]
+        cleanedUpStyledValue = styledText
+        for style in styles:
+            cleanedUpStyledValue = cleanedUpStyledValue.replace(style,'')
+        return cleanedUpStyledValue
+
     def getCellColor(cellStyledValue=''):
         otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
         mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]

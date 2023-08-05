@@ -69,7 +69,7 @@ def is_token_telegram_configured():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     initTelegram()
     if TOKEN == "00000000xxxxxxx":
-        print("There is not value for the telegram TOKEN, telegram is required to telegram one, see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token")
+        print("[+] There is no value for the telegram TOKEN. It is required to telegram someone.\n[+] see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token")
         return False
     return  True
 
@@ -85,6 +85,7 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None,userID=No
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
     if not is_token_telegram_configured():
+        print('No ')
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if userID is not None:
@@ -114,6 +115,7 @@ def send_photo(photoFilePath, message = "", message_id = None,userID=None):
     initTelegram()
     if not is_token_telegram_configured():
         return
+    print(f'Sending message:{message}')
     method = "/sendPhoto"
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     photo = open(photoFilePath, "rb")

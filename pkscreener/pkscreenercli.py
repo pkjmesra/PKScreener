@@ -75,7 +75,7 @@ def pkscreenercli():
 
     if args.log or configManager.logsEnabled:
         setupLogger(shouldLog=True, trace=args.testbuild)
-        if not args.prodbuild:
+        if not args.prodbuild and args.answerdefault is None:
             input(f'Press any key to continue...')
     from pkscreener.globals import main
     import pkscreener.classes.Utility as Utility

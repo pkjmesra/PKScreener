@@ -214,10 +214,8 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
     if menuOption == 'H':
         helpData = Utility.tools.showDevInfo(defaultAnswer=defaultAnswer)
         if user is not None:
-            sendMessageToTelegramChannel(messaage=helpData.replace('\n','|'),user=user)
+            sendMessageToTelegramChannel(message=Utility.tools.removeAllColorStyles(helpData),user=user)
             return
-        else:
-            print('Not sending DevInfo to telegram as User is empty or none.')
     elif menuOption == 'U':
         OTAUpdater.checkForUpdate(getProxyServer(), VERSION, skipDownload=testing)
     elif menuOption == 'T':
@@ -227,10 +225,8 @@ def handleSecondaryMenuChoices(menuOption, testing=False,defaultAnswer=None,user
     elif menuOption == 'Y':
         configData = configManager.showConfigFile(defaultAnswer=defaultAnswer)
         if user is not None:
-            sendMessageToTelegramChannel(messaage=configData.replace('\n','|'),user=user)
+            sendMessageToTelegramChannel(message=Utility.tools.removeAllColorStyles(configData),user=user)
             return
-        else:
-            print('Not sending Config to telegram as User is empty or none.')
     # main()
     return
 
@@ -261,7 +257,7 @@ def getScannerMenuChoices(testBuild=False,downloadOnly=False,startupoptions=None
             selectedMenu = initExecution(menuOption=menuOption)
             menuOption = selectedMenu.menuKey
         if menuOption in ['H','U','T','E','Y']:
-            return handleSecondaryMenuChoices(menuOption, testBuild,defaultAnswer=defaultAnswer,user=user)
+            handleSecondaryMenuChoices(menuOption, testBuild,defaultAnswer=defaultAnswer,user=user)
         elif menuOption == 'X':
             tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,tickerOption=tickerOption, executeOption=executeOption)
             tickerOption, executeOption = initPostLevel1Execution(tickerOption=tickerOption, executeOption=executeOption)
@@ -322,6 +318,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         menuOption, tickerOption, executeOption, selectedChoice = getScannerMenuChoices(
             testBuild or testing,downloadOnly,startupoptions, menuOption=menuOption, 
             tickerOption=tickerOption, executeOption=executeOption,defaultAnswer=defaultAnswer,user=user)
+        if menuOption in ['H','U','T','E','Y']:
+            return
     elif menuOption == 'B':
         # Backtests
         tickerOption, executeOption, backtestPeriod = takeBacktestInputs(menuOption,tickerOption, executeOption)
@@ -345,6 +343,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
         input(colorText.BOLD + colorText.FAIL +
               "[+] Press any key to Exit!" + colorText.END)
         sys.exit(0)
+    if executeOption is None:
+        executeOption = 0
     executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 4:
