@@ -7,7 +7,7 @@ FROM scratch
 # RUN apt-get update
 
 COPY --from=base-image ["/", "/"]
-
+ARG GIT_RUN_NUMBER
 RUN apt-get -y install libc-dev
 RUN apt-get update && apt-get -y install build-essential
 
@@ -30,7 +30,7 @@ RUN pip3 install ta-lib
 RUN export CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"` \
     && echo VERSION=\'`echo ${CURRENT_VERSION}`\' \
     && export TODAY=`date +%Y%m%d` \
-    && export THIS_VERSION=${CURRENT_VERSION}.${TODAY} \
+    && export THIS_VERSION=${CURRENT_VERSION}.${TODAY}.${GIT_RUN_NUMBER} \
     && rm -rf pkscreener/classes/__init__.py \
     && echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py \
     && echo VERSION=\'`echo ${THIS_VERSION}`\'
