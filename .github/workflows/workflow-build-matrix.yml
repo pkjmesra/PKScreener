@@ -6,10 +6,10 @@
 name: pkscreener Build - New Release
 
 on:
-  push:
-    #branches: [ pre-main ]
-    tags:
-      - '*'
+  # push:
+  #   #branches: [ pre-main ]
+  #   tags:
+  #     - '*'
   workflow_dispatch:
     inputs:
       branch-name:
