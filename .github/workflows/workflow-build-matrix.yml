@@ -21,9 +21,28 @@ on:
 
 jobs:
 
+  check_should_run:
+    runs-on: windows-latest
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+
+      - id: should_run
+        continue-on-error: true
+        name: check latest commit is less than a week
+        if: ${{ github.event_name == 'schedule' }} || ${{ github.event_name == 'workflow_dispatch' }}
+        run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+
   # Job for builing packages
   Build:
     name: Build Packages
+    needs: check_should_run
     #needs: Create-Release
     runs-on: ${{ matrix.os }}
     strategy:
@@ -153,6 +172,7 @@ jobs:
           path: ${{ matrix.OUT_PATH }}
 
       - name: Read release.md
+        if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
         id: read_release
         shell: bash
         run: |
@@ -174,15 +194,19 @@ jobs:
           git add *.md --force
           git commit -m "GitHub Action Workflow - Updating version to latest"
           git push -v
+          git tag -a -f -m `echo Release v${{ steps.vars.outputs.THIS_VERSION }}` ${{ steps.vars.outputs.THIS_VERSION }}
 
       - name: Upload Binaries to Release
+        if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ matrix.OUT_PATH }}
           asset_name: ${{ matrix.FILE_NAME }}
           tag: ${{ github.ref }}
-          release_name: pkscreener - v${{ steps.get_version.outputs.VERSION }}
+          release_name: pkscreener - v${{ steps.vars.outputs.THIS_VERSION }}
           body: |
             ${{ steps.read_release.outputs.RELEASE_BODY }}
           overwrite: true
+          prerelease: true
+          make_latest: true
