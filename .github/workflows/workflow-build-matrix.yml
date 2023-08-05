@@ -167,7 +167,7 @@ jobs:
             ${{ runner.os }}-talib
 
       - name: Update ReadME release.md and library version
-        if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
+        if: startsWith(runner.os, 'Linux')
         id: read_release
         shell: bash
         run: |
