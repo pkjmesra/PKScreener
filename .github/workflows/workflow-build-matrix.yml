@@ -17,7 +17,7 @@ on:
         required: false
         default: 'main'
   schedule:
-    - cron: '30 4 * * 6'
+    - cron: '55 2 * * 6'
 
 jobs:
 
@@ -180,23 +180,23 @@ jobs:
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"
           r="${r//$'\r'/'%0D'}"
-          r="${r//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
+          # r="${r//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
           echo "::set-output name=RELEASE_BODY::$r"
-          rme=$(cat README.md)
-          rme="${rme//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
-          echo $r >> pkscreener/release.md
-          echo $rme >> README.md
+          # rme=$(cat README.md)
+          # rme="${rme//$'/download/'`echo ${{ steps.vars.outputs.CURRENT_VERSION }}`/'/download/'`echo ${{ steps.vars.outputs.THIS_VERSION }}`}"
+          # echo $r >> pkscreener/release.md
+          # echo $rme >> README.md
           git config user.name github-actions
           git config user.email github-actions@github.com
           git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
           git remote update
           git fetch
           git pull
-          git add *.md --force
+          # git add *.md --force
           git add pkscreener/classes/__init__.py --force
           git commit -m "GitHub Action Workflow - Updating version to latest"
-          git push -v
-          git tag -a -f -m `echo Release v${{ steps.vars.outputs.THIS_VERSION }}` ${{ steps.vars.outputs.THIS_VERSION }}
+          git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
+          git push -v --tags
 
       - name: Upload Binaries to Release
         if: startsWith(github.ref, 'refs/tags') || ${{ needs.check_should_run.outputs.should_run != 'false' }}
