@@ -90,7 +90,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
-    await update.message.reply_text(f"Welcome {user.first_name},{(user.username)}! Please choose a menu option by selecting a button from below.\n\nPlease note that this bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in 2-3 minutes to avoid the restart duration!", reply_markup=reply_markup)
+    await update.message.reply_text(f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X ", reply_markup=reply_markup)
     try:
         await context.bot.send_message(
                 chat_id=int(f'-{Channel_Id}'), text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
