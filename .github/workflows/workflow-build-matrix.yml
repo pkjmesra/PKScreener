@@ -191,6 +191,7 @@ jobs:
           git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
           git remote update
           git fetch
+          git pull
           git add *.md --force
           git commit -m "GitHub Action Workflow - Updating version to latest"
           git push -v
