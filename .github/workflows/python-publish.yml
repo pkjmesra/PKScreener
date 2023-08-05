@@ -77,7 +77,7 @@ jobs:
         rmdir /s /q dist
         # del /s /q pkscreener/classes/__init__.py
         # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
-        python setup.py clean build install sdist bdist_wheel
+        python setup.py clean build sdist bdist_wheel
         twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.ref, 'refs/tags')
@@ -91,7 +91,7 @@ jobs:
         rmdir /s /q dist
         # del /s /q pkscreener/classes/__init__.py
         # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
-        python setup.py clean build install sdist bdist_wheel
+        python setup.py clean build sdist bdist_wheel
         twine upload --verbose dist/*
     - name: Archive artifacts
       uses: actions/upload-artifact@v2

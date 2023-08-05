@@ -27,13 +27,13 @@ RUN pip install --upgrade setuptools
 RUN pip install packages
 RUN pip3 install -r requirements.txt
 RUN pip3 install ta-lib
-ENV CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
-RUN echo VERSION=\'`echo ${CURRENT_VERSION}`\'
-ENV TODAY=`date +%Y%m%d`
-ENV THIS_VERSION=${CURRENT_VERSION}.${TODAY}
-RUN rm -rf pkscreener/classes/__init__.py
-RUN echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
-RUN echo VERSION=\'`echo ${THIS_VERSION}`\'
+# ENV CURRENT_VERSION='grep -o "\'.*\'" pkscreener/classes/__init__.py | sed "s/\'//g"'
+# RUN echo VERSION=\'`echo $($CURRENT_VERSION)`\'
+# ENV TODAY='eval date +%Y%m%d'
+# ENV THIS_VERSION='eval $($CURRENT_VERSION).$($TODAY)
+# RUN rm -rf pkscreener/classes/__init__.py
+# RUN echo VERSION=\'`echo $($THIS_VERSION)`\' >> pkscreener/classes/__init__.py
+# RUN echo VERSION=\'`echo $($THIS_VERSION)`\'
 RUN pip3 install .
 RUN wget https://github.com/taveevut/Windows-10-Fonts-Default/raw/master/courbd.ttf && \
   cp courbd.ttf /usr/local/share/fonts/courbd.ttf
