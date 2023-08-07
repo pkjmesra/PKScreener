@@ -90,9 +90,13 @@ jobs:
       run: |
         # note: the following also installs "coverage"
         python -m pip install coveralls
+        del /s /q C:\Users\runneradmin\AppData\Local\Temp\*.py
     - name: Get coverage report
+      shell: bash
       run: |
+        rm -rf .pytest_cache
         cd test
+        # find . -name "*.pyc" -exec rm -rf {} \;
         coverage run --source=${package_name} --append -m pytest -v
         # coverage run --source=${package_name} --append -m test.specification --ignore-known
         # quick local report output to console:
