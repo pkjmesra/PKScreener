@@ -793,7 +793,7 @@ class tools:
                 lowPoints.sort(reverse=True)
                 lowPointsSorted = lowPoints
                 ltp = data.head(1)['Close'][0]
-                if lowPointsOrg == lowPointsSorted and  ltp < highestTop and ltp > lowPoints[0]:
+                if lowPointsOrg == lowPointsSorted and ltp < highestTop and ltp > lowPoints[0]:
                     screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'VCP (BO: {highestTop})' + colorText.END
                     saveDict['Pattern'] = f'VCP (BO: {highestTop})'
                     return True

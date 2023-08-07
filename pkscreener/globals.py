@@ -702,8 +702,8 @@ def takeBacktestInputs(menuOption=None,tickerOption=None,executeOption=None,back
     try:
         backtestPeriod = int(input(colorText.BOLD + colorText.FAIL +
                                     "[+] Enter backtesting period (Default is 30 [days]): "))
-    except:
-        pass
+    except Exception as e:
+         default_logger().debug(e, exc_info=True)
     if backtestPeriod == 0:
         backtestPeriod = 30
     tickerOption, executeOption = initPostLevel0Execution(menuOption=menuOption,
@@ -771,7 +771,8 @@ def terminateAllWorkers(consumers, tasks_queue):
         except OSError as e:
             default_logger().debug(e, exc_info=True)
             if e.winerror == 5:
-                pass
+                 default_logger().debug(e, exc_info=True)
+                 continue
 
     # Flush the queue so depending processes will end
     from queue import Empty
@@ -815,8 +816,8 @@ def labelDataForPrinting(screenResults,saveResults,configManager,volumeRatio):
             },
             inplace=True
         )
-    except:
-        pass
+    except Exception as e:
+         default_logger().debug(e, exc_info=True)
     return screenResults, saveResults
 
 def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menuChoiceHierarchy,testing,user=None):
@@ -839,7 +840,6 @@ def printNotifySaveScreenedResults(screenResults,saveResults,selectedChoice,menu
                         os.remove(pngName)
                     except Exception as e:
                         default_logger().debug(e, exc_info=True)
-                        pass
             print(colorText.BOLD + colorText.GREEN +
                     f"[+] Found {len(screenResults)} Stocks." + colorText.END)
             Utility.tools.setLastScreenedResults(screenResults)
@@ -868,7 +868,6 @@ def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceH
                 os.remove(filename)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            pass
     print(colorText.BOLD + colorText.GREEN +
         "[+] Screening Completed! Press Enter to Continue.." + colorText.END)
     if defaultAnswer is None:
@@ -891,7 +890,6 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
             send_message(message,userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            pass
     if photo_filePath is not None:
         try:
             send_document(photo_filePath, caption,userID=user)
@@ -899,7 +897,6 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
             sleep(2)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            pass
     if document_filePath is not None:
         try:
             send_document(document_filePath, caption,userID=user)
@@ -907,7 +904,6 @@ def sendMessageToTelegramChannel(message=None,photo_filePath=None,document_fileP
             sleep(1)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            pass
 
 def getProxyServer():
     # Get system wide proxy for networking
