@@ -87,12 +87,15 @@ jobs:
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
 
     - name: Install coveralls
+      shell: cmd
+      continue-on-error: true
       run: |
         # note: the following also installs "coverage"
         python -m pip install coveralls
         del /s /q C:\Users\runneradmin\AppData\Local\Temp\*.py
     - name: Get coverage report
       shell: bash
+      continue-on-error: true
       run: |
         rm -rf .pytest_cache
         cd test
