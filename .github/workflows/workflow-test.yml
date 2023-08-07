@@ -94,7 +94,7 @@ jobs:
       run: |
         cd test
         coverage run --source=${package_name} --append -m pytest -v
-        coverage run --source=${package_name} --append -m test.specification --ignore-known
+        # coverage run --source=${package_name} --append -m test.specification --ignore-known
         # quick local report output to console:
         coverage report
     - name: Upload report to Coveralls

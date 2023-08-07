@@ -66,3 +66,4 @@ webencodings # Installed as dependency for html5lib
 xlsxwriter
 gspread
 coveralls
+mistletoe
