@@ -5,7 +5,8 @@
 
 
 name: 0. New Features - Tests
-
+env:
+  package_name: pkscreener
 on:
   push:
     branches: [ new-features ]
@@ -17,6 +18,10 @@ on:
           description: 'Run Details'
           required: false
           default: 'New Features Tests'
+        branch-name:
+          description: 'Branch name'
+          required: false
+          default: 'new-features'
 
 jobs:
 
@@ -28,7 +33,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: new-features
+        ref: ${{ inputs.branch-name }}
         
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -61,6 +66,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-mock
         pip3 install -r requirements.txt
+        pip3 install -r requirements-dev.txt
         pip3 install ta-lib
         pip3 install .
         
@@ -80,20 +86,33 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
 
-    - name: Run Tests with pytest
+    - name: Install coveralls
       run: |
-        cd test/
-        pytest -v
+        # note: the following also installs "coverage"
+        python -m pip install coveralls
+    - name: Get coverage report
+      run: |
+        cd test
+        coverage run --source=${package_name} --append -m pytest -v
+        coverage run --source=${package_name} --append -m test.specification --ignore-known
+        # quick local report output to console:
+        coverage report
+    - name: Upload report to Coveralls
+      # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        coveralls --service=github
 
   Call-prod-scan-test-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
     with:
-      branch-name: 'new-features'
+      branch-name: ${{ inputs.branch-name }}
     secrets: inherit
 
   # Job to create PR
   Create-Pull-Request:
-
+    if: ${{ inputs.branch-name }} != 'main'
     runs-on: ubuntu-latest
     needs: [Test-Source, call-prod-scan-test-workflow]
 
@@ -101,11 +120,11 @@ jobs:
     - name: Checkout Repo before PR
       uses: actions/checkout@v2
     
-    - name: Create Pull Request (new-features -> main)
+    - name: Create Pull Request ( ${{ inputs.branch-name }} -> main)
       id: create_pr
       uses: repo-sync/pull-request@v2
       with:
-        source_branch: "new-features"
+        source_branch: ${{ inputs.branch-name }}
         destination_branch: "main"
         pr_title: "[pkscreener Test] New Features Added - Test Passed"
         pr_body: |

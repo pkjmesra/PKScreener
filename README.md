@@ -5,7 +5,7 @@
 
 ![main workflow](https://img.shields.io/github/actions/workflow/status/pkjmesra/pkscreener/workflow-prod-scans_2.1.yml?logo=github)
 ![github license](https://img.shields.io/pypi/l/gspread?logo=github) [![Downloads](https://static.pepy.tech/personalized-badge/pkscreener?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=PyPi%20Downloads)](https://pepy.tech/project/pkscreener)
-![latest download](https://img.shields.io/github/downloads-pre/pkjmesra/pkscreener/latest/total?logo=github)
+![latest download](https://img.shields.io/github/downloads-pre/pkjmesra/pkscreener/latest/total?logo=github) [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][cover-badge]][coveralls]
 [![Documentation](https://readthedocs.org/projects/pkscreener/badge/?version=latest)](https://pkscreener.readthedocs.io/en/latest/?badge=latest) [![Docker Status](https://img.shields.io/docker/automated/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian)
 [![Docker Pulls](https://img.shields.io/docker/pulls/pkjmesra/pkscreener-debian.svg)](https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian) [![3. Production Scan Tests On Dev](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-prod-scans_Tests.yml) [![4. After-Market Data Gen](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-download-data.yml) 
  [![PKScreener Test - New Features](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml/badge.svg?branch=new-features)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-test.yml) [![PKScreener Build - New Release](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/workflow-build-matrix.yml)
@@ -199,3 +199,8 @@ After you have finished the run, go to that copied path, zip the contents of the
 * Always backtest and analyze the stocks manually before you trade.
 * The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
 * A lot of this work is based on the work of https://github.com/pranjal-joshi/Screeni-py. A big thank you!
+
+[pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
+[wheel-badge]: https://img.shields.io/pypi/wheel/pkscreener.svg?style=flat-square
+[pypi]: https://pypi.python.org/pypi/pkscreener
+[coveralls]: https://coveralls.io/github/pkjmesra/pkscreener?branch=main

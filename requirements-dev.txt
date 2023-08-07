@@ -65,3 +65,4 @@ urllib3 # Installed as dependency for requests
 webencodings # Installed as dependency for html5lib
 xlsxwriter
 gspread
+coveralls
