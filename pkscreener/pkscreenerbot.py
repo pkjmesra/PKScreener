@@ -412,11 +412,11 @@ async def sendRequestSubmitted(optionChoices,update,context):
     menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!'
     await update.message.reply_text(menuText)
     await help_command(update=update, context=context)
-    await shareUpdateWithChannel(update=update,context=context)
+    await shareUpdateWithChannel(update=update,context=context,optionChoices=optionChoices)
 
-async def shareUpdateWithChannel(update,context):
+async def shareUpdateWithChannel(update,context,optionChoices=''):
     query = update.message
-    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using the bot!'
+    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using ({optionChoices}) the bot!'
     await context.bot.send_message(
             chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
         )
