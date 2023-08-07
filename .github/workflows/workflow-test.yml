@@ -100,6 +100,7 @@ jobs:
         rm -rf .pytest_cache
         cd test
         # find . -name "*.pyc" -exec rm -rf {} \;
+        coverage erase
         coverage run --source=${package_name} --append -m pytest -v
         # coverage run --source=${package_name} --append -m test.specification --ignore-known
         # quick local report output to console:
