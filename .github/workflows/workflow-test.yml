@@ -105,6 +105,8 @@ jobs:
         # coverage run --source=${package_name} --append -m test.specification --ignore-known
         # quick local report output to console:
         coverage report
+        coverage html
+        coverage xml
     - name: Upload report to Coveralls
       # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       env:
