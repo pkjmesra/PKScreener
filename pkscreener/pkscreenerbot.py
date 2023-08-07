@@ -91,12 +91,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
     await update.message.reply_text(f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X ", reply_markup=reply_markup)
-    try:
-        await context.bot.send_message(
-                chat_id=int(f'-{Channel_Id}'), text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
-            )
-    except:
-        pass
+    await context.bot.send_message(
+            chat_id=int(f'-{Channel_Id}'), text=f'Name: {user.first_name}, Username:@{user.username} with ID: {str(user.id)} started using the bot!', parse_mode=ParseMode.HTML
+        )
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
@@ -192,7 +189,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await context.bot.send_message(
                 chat_id=int(f'-{Channel_Id}'), text=f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!', parse_mode=ParseMode.HTML
             )
-    except Exception as e:
+    except Exception:
         await start(update,context)
     await sendUpdatedMenu(menuText=menuText, update=update, context=context, reply_markup=reply_markup)
     return START_ROUTES
@@ -202,13 +199,13 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
         await update.callback_query.edit_message_text(
             text=menuText.replace('     ','').replace('    ','').replace('\t',''), reply_markup=reply_markup
         )
-    except:
+    except Exception:
         await start(update,context)
 
 async def launchScreener(options, user, context,optionChoices, update):
     try:
         Popen(['pkscreener','-a','Y','-e','-p','-o', str(options.upper()), '-u', str(user.id)])
-    except:
+    except Exception:
         await start(update,context)
 
 async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -281,13 +278,13 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         await context.bot.send_message(
             chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
         )
-    except:
+    except Exception:
         try:
             await context.bot.send_message(
                 chat_id=int(f'-{Channel_Id}'), text=tb_string, parse_mode=ParseMode.HTML
             )
-        except:
-            pass
+        except Exception:
+            print(tb_string)
 
 async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message is not None and abs(update.message.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
@@ -317,6 +314,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await help_command(update=update, context=context)
         return START_ROUTES
     if cmd == 'x':
+        await shareUpdateWithChannel(update=update,context=context)
         m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], renderStyle=MenuRenderStyle.STANDALONE)
         selectedMenu = m0.find(cmd.upper())
         cmdText = ''
@@ -332,6 +330,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await help_command(update=update,context=context)
         return START_ROUTES
     if 'x_0' in cmd or 'x_0_0' in cmd:
+        await shareUpdateWithChannel(update=update,context=context)
         shouldScan = False
         if len(args) > 0:
             shouldScan = True
@@ -348,6 +347,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return START_ROUTES
 
     if 'x_' in cmd:
+        await shareUpdateWithChannel(update=update,context=context)
         selection = cmd.split('_')
         if len(selection) == 2:
             m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], renderStyle=MenuRenderStyle.STANDALONE)
@@ -401,6 +401,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await sendRequestSubmitted(cmd.upper(),update=update,context=context)
             return START_ROUTES
     if cmd == 'y' or cmd == 'h':
+        await shareUpdateWithChannel(update=update,context=context)
         await launchScreener(options=f'{cmd.upper()}:', user=update.message.from_user,context=context, optionChoices=cmd.upper(), update=update)
         await sendRequestSubmitted(cmd.upper(),update=update,context=context)
         return START_ROUTES
@@ -411,14 +412,14 @@ async def sendRequestSubmitted(optionChoices,update,context):
     menuText = f'You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!'
     await update.message.reply_text(menuText)
     await help_command(update=update, context=context)
-    try:
-        query = update.message
-        message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!'
-        await context.bot.send_message(
-               chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
-            )
-    except:
-        pass
+    await shareUpdateWithChannel(update=update,context=context)
+
+async def shareUpdateWithChannel(update,context):
+    query = update.message
+    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!'
+    await context.bot.send_message(
+            chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
+        )
     
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.callback_query is not None and abs(update.callback_query.from_user.id) in [Channel_Id, GROUP_CHAT_ID]:
@@ -433,7 +434,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         cmdText = f'{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}'
     """Send a message when the command /help is issued."""
     await update.message.reply_text(f"You can begin by typing in /start and hit send!\n\nOR\n\nChoose an option:\n{cmdText}") #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
-
+    query = update.message
+    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using the bot!'
+    await context.bot.send_message(
+            chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
+        )
+    
 def addCommandsForMenuItems(application):
     cmds0 = m0.renderForMenu(selectedMenu=None, skip=['S','T','E','U','Z'], asList=True,renderStyle=MenuRenderStyle.STANDALONE)
     for mnu0 in cmds0:
