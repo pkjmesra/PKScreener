@@ -416,7 +416,7 @@ async def sendRequestSubmitted(optionChoices,update,context):
 
 async def shareUpdateWithChannel(update,context):
     query = update.message
-    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!'
+    message =f'Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using the bot!'
     await context.bot.send_message(
             chat_id=int(f'-{Channel_Id}'), text=message, parse_mode=ParseMode.HTML
         )
