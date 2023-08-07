@@ -11,6 +11,8 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+  push:
+    branches: [ main ]
   # workflow_run:
   #   workflows: ["0. New Features - Tests"]
   #   types:
