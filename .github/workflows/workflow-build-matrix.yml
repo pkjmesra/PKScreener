@@ -146,7 +146,8 @@ jobs:
             python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
             python .github/workflows/updateVersion.py -p README.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
             git add pkscreener/classes/__init__.py --force
-            git add *.md --force
+            git add pkscreener/release.md --force
+            git add README.md --force
             git commit -m "GitHub Action Workflow - Updating version to latest"
             git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
             git push -v --tags
