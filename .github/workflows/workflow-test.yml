@@ -109,7 +109,7 @@ jobs:
         coverage xml
         curl -s https://codecov.io/bash | bash
         ls
-        cd.. 
+        cd .. 
         ls
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
@@ -123,10 +123,13 @@ jobs:
         verbose: true
     - name: Upload report to Coveralls
       continue-on-error: true
+      shell: bash
       # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cp test/coverage.xml coverage.xml
+        cp test/htmlcov htmlcov
         coveralls --service=github
 
   Call-prod-scan-test-workflow:
