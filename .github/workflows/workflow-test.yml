@@ -93,30 +93,31 @@ jobs:
         # note: the following also installs "coverage"
         python -m pip install coveralls
         del /s /q C:\Users\runneradmin\AppData\Local\Temp\*.py
+
+    - name: Clean up previous runs
+      shell: bash
+      continue-on-error: true
+      run: |
+        rm -rf .pytest_cache
+        rm -rf pkscreener/__pycache__
+        rm -rf test/__pycache__
+        find . -name "*.pyc" -exec rm -rf {} \;
+
     - name: Get coverage report
       shell: bash
       continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        rm -rf .pytest_cache
-        cd test
-        # find . -name "*.pyc" -exec rm -rf {} \;
         coverage erase
-        coverage run --source=${package_name} --append -m pytest -v
-        # coverage run --source=${package_name} --append -m test.specification --ignore-known
+        coverage run --source=${package_name} --append --branch -m pytest -v
         # quick local report output to console:
         coverage report
         coverage html
         coverage xml
         curl -s https://codecov.io/bash | bash
-        ls
-        cd .. 
-        ls
-        cp test/coverage.xml coverage.xml
-        cp -r test/htmlcov htmlcov
-        ls
         coveralls --service=github
+
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       continue-on-error: true
@@ -125,8 +126,8 @@ jobs:
         env_vars: THIS_VERSION,GITHUB_REF
         name: codecov-umbrella
         fail_ci_if_error: false
-        # path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
+        
     - name: Upload report to Coveralls
       uses: coverallsapp/github-action@v2
       continue-on-error: true

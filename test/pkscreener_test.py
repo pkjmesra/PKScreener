@@ -16,9 +16,11 @@ import requests
 import json
 import platform
 import shutil
-
-shutil.copyfile('../pkscreener/.env.dev', '.env.dev')
-sys.path.append(os.path.abspath('../pkscreener'))
+try:
+    shutil.copyfile('pkscreener/.env.dev', '.env.dev')
+    sys.path.append(os.path.abspath('pkscreener'))
+except:
+    print('This test must be run from the root of the project!')
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes import VERSION
 from pkscreener.classes.Changelog import changelog
@@ -311,7 +313,7 @@ def test_ota_updater():
 
 def test_release_readme_urls():
     global last_release
-    f = open('../pkscreener/release.md', 'r')
+    f = open('pkscreener/release.md', 'r')
     contents = f.read()
     f.close()
     failUrl = [f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli.bin",
