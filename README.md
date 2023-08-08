@@ -203,4 +203,5 @@ After you have finished the run, go to that copied path, zip the contents of the
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
 [wheel-badge]: https://img.shields.io/pypi/wheel/pkscreener.svg?style=flat-square
 [pypi]: https://pypi.python.org/pypi/pkscreener
-[coveralls]: https://coveralls.io/github/pkjmesra/pkscreener?branch=main
+[coveralls]: https://coveralls.io/github/pkjmesra/PKScreener?branch=main
+[cover-badge]: https://coveralls.io/repos/github/pkjmesra/PKScreener/badge.svg?branch=main
