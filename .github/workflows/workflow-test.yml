@@ -128,8 +128,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        coveralls --service=github
         cp test/coverage.xml coverage.xml
-        cp test/htmlcov htmlcov
+        coveralls --service=github
+        cp -r test/htmlcov htmlcov
         coveralls --service=github
 
   Call-prod-scan-test-workflow:
