@@ -107,12 +107,13 @@ jobs:
         coverage report
         coverage html
         coverage xml
+        cd ..
     - name: Upload report to Coveralls
       # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        coveralls --service=github
+        coveralls --service=github --finish
 
   Call-prod-scan-test-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
