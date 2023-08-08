@@ -102,6 +102,7 @@ jobs:
         rm -rf pkscreener/__pycache__
         rm -rf test/__pycache__
         find . -name "*.pyc" -exec rm -rf {} \;
+        find . -name ".coverage.*" -exec rm -rf {} \;
 
     - name: Get coverage report
       shell: bash
@@ -111,7 +112,8 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         coverage erase
-        coverage run --source=${package_name} --append --branch -m pytest -v
+        coverage run --source=${package_name} --branch -m pytest -v
+        coverage combine
         # quick local report output to console:
         coverage report
         coverage html
