@@ -111,6 +111,9 @@ jobs:
         ls
         cd .. 
         ls
+        cp test/coverage.xml coverage.xml
+        cp -r test/htmlcov htmlcov
+        ls
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       continue-on-error: true
@@ -122,18 +125,9 @@ jobs:
         # path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
     - name: Upload report to Coveralls
+      uses: coverallsapp/github-action@v2
       continue-on-error: true
-      shell: bash
-      # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        coveralls --service=github
-        cp test/coverage.xml coverage.xml
-        coveralls --service=github
-        cp -r test/htmlcov htmlcov
-        coveralls --service=github
-
+      
   Call-prod-scan-test-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
     with:
