@@ -144,8 +144,8 @@ jobs:
             git commit -m "GitHub Action Workflow - Updating version to latest"
             git tag ${{ steps.vars.outputs.THIS_VERSION }} -a -f -m 'Release v${{ steps.vars.outputs.THIS_VERSION }}'
             pip3 install mistletoe
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.THIS_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
-            python .github/workflows/updateVersion.py -p README.md -f /${{ steps.vars.outputs.THIS_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+            python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+            python .github/workflows/updateVersion.py -p README.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
             git push -v --tags
 
       - name: Get the GitHub Tag version
@@ -175,7 +175,7 @@ jobs:
         shell: bash
         run: |
           pip install mistletoe
-          python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.THIS_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+          python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
           r=$(cat pkscreener/release.md)
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"

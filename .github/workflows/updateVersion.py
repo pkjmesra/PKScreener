@@ -36,7 +36,7 @@ def update_block(token: BlockToken):
             update_text(child)
 
     for child in token.children:
-        if isinstance(child, BlockToken):
+        if isinstance(child, Paragraph, SetextHeading, Heading, BlockToken, Quote, BlockCode, CodeFence, List, ListItem, Table, TableRow, TableCell,Footnote, ThematicBreak,HTMLBlock):
             update_block(child)
 
 with open(args.path, "r+") as f:
