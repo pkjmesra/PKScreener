@@ -107,8 +107,22 @@ jobs:
         coverage report
         coverage html
         coverage xml
-        cd ..
+        curl -s https://codecov.io/bash | bash
+        ls
+        cd.. 
+        ls
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      continue-on-error: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        env_vars: THIS_VERSION,GITHUB_REF
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        # path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
     - name: Upload report to Coveralls
+      continue-on-error: true
       # documentation for GitHub setup: https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
