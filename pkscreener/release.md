@@ -4,6 +4,7 @@
 1. [v0.4] release
 
 * The pkscreener Telegram bot (@nse_pkscreener_bot) can now respond to your on-demand requests for almost all scan results.
+* Many other bug fixes and improvement in [v0.4.x] weekly releases
 
 2. [v0.3] release
 
