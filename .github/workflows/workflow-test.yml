@@ -113,7 +113,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        coveralls --service=github --finish
+        coveralls --service=github
 
   Call-prod-scan-test-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
