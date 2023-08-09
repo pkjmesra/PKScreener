@@ -152,3 +152,21 @@ jobs:
         name: wheel-egg-code-tar-${{ steps.vars.outputs.THIS_VERSION }}-${{ steps.vars.outputs.branch }}-${{ steps.vars.outputs.sha_short }}
         path: |
           dist
+    - name: Configure .env.dev file
+      shell: bash
+      env:
+        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+      run: |
+        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+      
+    - name: Send notification about new release
+      shell: bash
+      env:
+        RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
+      run: |
+        cd pkscreener
+        python -c "import os; from Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener(v' + os.environ['RELEASE_VERSION'] + ') just got released.\nCheck it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases or \n\nhttps://pypi.org/project/pkscreener/')"
+       
+      
