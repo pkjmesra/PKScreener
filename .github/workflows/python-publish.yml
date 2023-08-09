@@ -110,7 +110,7 @@ jobs:
         if [ "${{ inputs.version }}" == "x.y.z" ]; then
           echo "default version x.y.z cannot be used"
         else
-          THIS_VERSION = ${{ inputs.version }}
+          THIS_VERSION="${{ inputs.version }}"
         fi
         rm -rf pkscreener/classes/__init__.py
         echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
