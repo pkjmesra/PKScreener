@@ -166,7 +166,7 @@ jobs:
       env:
         RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
       run: |
-        cd pkscreener
-        python -c "import os; from Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener(v' + os.environ['RELEASE_VERSION'] + ') just got released.\nCheck it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases or \n\nhttps://pypi.org/project/pkscreener/')"
+        pip install .
+        python -c "import os; from pkscreener.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener(v' + os.environ['RELEASE_VERSION'] + ') just got released.\nCheck it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases or \n\nhttps://pypi.org/project/pkscreener/')"
        
       
