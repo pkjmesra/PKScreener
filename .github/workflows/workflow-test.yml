@@ -150,6 +150,8 @@ jobs:
     steps:
     - name: Checkout Repo before PR
       uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.branch-name }}
     
     - name: Create Pull Request ( ${{ inputs.branch-name }} -> main)
       id: create_pr

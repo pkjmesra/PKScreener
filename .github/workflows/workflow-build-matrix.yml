@@ -117,6 +117,8 @@ jobs:
           
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch-name }}
 
       - name: Declare env variables
         id: vars
@@ -217,3 +219,11 @@ jobs:
           overwrite: true
           prerelease: true
           make_latest: false
+
+  Call-python-publish-workflow:
+      uses: pkjmesra/PKScreener/.github/workflows/python-publish.yml@main
+      needs: [check_should_run, Build]
+      with:
+        branch-name: $(echo refs/tags/${{ steps.vars.outputs.THIS_VERSION }})"
+        version: ${{ steps.vars.outputs.THIS_VERSION }}
+      secrets: inherit

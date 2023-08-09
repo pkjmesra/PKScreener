@@ -10,8 +10,32 @@ on:
         description: 'PyPi Publish'
         required: false
         default: 'PyPi Publish'
-  schedule:
-    - cron: '30 7 * * 6'
+
+      branch-name:
+        description: 'branch-name'
+        required: true
+        type: string
+        default: 'main'
+        
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+        default: 'x.y.z'
+
+  # schedule:
+  #   - cron: '30 7 * * 6'
+  workflow_call:
+    inputs:
+      branch-name:
+        required: true
+        type: string
+        default: 'main'
+      version:
+        required: true
+        type: string
+        default: 'x.y.z'
+
 jobs:
   check_should_run:
       runs-on: windows-latest
@@ -38,7 +62,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: main
+        ref: ${{ inputs.branch-name }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -82,6 +106,12 @@ jobs:
         MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
         TODAY=`date +%Y%m%d`
         THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
+        echo ${THIS_VERSION}
+        if [ "${{ inputs.version }}" == "x.y.z" ]; then
+          echo "default version x.y.z cannot be used"
+        else
+          THIS_VERSION = ${{ inputs.version }}
+        fi
         rm -rf pkscreener/classes/__init__.py
         echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
         echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
