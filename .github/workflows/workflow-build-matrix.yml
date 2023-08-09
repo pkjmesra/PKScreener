@@ -222,8 +222,8 @@ jobs:
 
   Call-python-publish-workflow:
       uses: pkjmesra/PKScreener/.github/workflows/python-publish.yml@main
-      needs: [check_should_run, Build]
+      needs: [Build]
       with:
         branch-name: $(echo refs/tags/${{ steps.vars.outputs.THIS_VERSION }})"
-        version: ${{ steps.vars.outputs.THIS_VERSION }}
+        version: ${{ Build.steps.vars.outputs.THIS_VERSION }}
       secrets: inherit
