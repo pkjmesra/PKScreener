@@ -225,5 +225,5 @@ jobs:
       needs: [Build]
       with:
         branch-name: $(echo refs/tags/${{ steps.vars.outputs.THIS_VERSION }})"
-        version: ${{ Build.steps.vars.outputs.THIS_VERSION }}
+        version: ${{ jobs.Build.steps.vars.outputs.THIS_VERSION }}
       secrets: inherit
