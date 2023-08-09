@@ -47,7 +47,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     outputs:
         version: ${{ steps.vars.outputs.THIS_VERSION }}
-        tag: tags/${{ steps.vars.outputs.THIS_VERSION }}
+        tag: refs/tags/${{ steps.vars.outputs.THIS_VERSION }}
     strategy:
       matrix:
         include:
