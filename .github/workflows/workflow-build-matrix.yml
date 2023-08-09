@@ -45,6 +45,9 @@ jobs:
     needs: check_should_run
     #needs: Create-Release
     runs-on: ${{ matrix.os }}
+    outputs:
+        version: ${{ steps.vars.outputs.THIS_VERSION }}
+        tag: $(echo refs/tags/${{ steps.vars.outputs.THIS_VERSION }})
     strategy:
       matrix:
         include:
@@ -224,6 +227,6 @@ jobs:
       uses: pkjmesra/PKScreener/.github/workflows/python-publish.yml@main
       needs: [Build]
       with:
-        branch-name: $(echo refs/tags/${{ steps.vars.outputs.THIS_VERSION }})"
-        version: ${{ needs.Build.steps.vars.outputs.THIS_VERSION }}
+        branch-name: ${{ needs.Build.outputs.tag }}
+        version: ${{ needs.Build.outputs.version }}
       secrets: inherit
