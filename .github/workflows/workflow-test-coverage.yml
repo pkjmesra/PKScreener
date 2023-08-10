@@ -57,8 +57,8 @@ jobs:
               coverage xml -i
               curl -s https://codecov.io/bash | bash
               coveralls --service=github
-              coverage run --source=${package_name} --branch -m pytest --cov=pkscreener test/
-              coveralls --service=github
+              # coverage run --source=${package_name} --branch -m pytest --cov=pkscreener test/
+              # coveralls --service=github
               exit $?
     steps:
       - uses: actions/checkout@v2
@@ -107,13 +107,4 @@ jobs:
         run: ${{ matrix.TEST_BUILD }}
         continue-on-error: false
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        continue-on-error: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-          env_vars: GITHUB_REF
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
 

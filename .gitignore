@@ -21,6 +21,7 @@ pkscreener/classes/__pycache__
 *.json
 *.html
 .coverage.*
+.coverage
 *.exe
 *.bin
 *.run
