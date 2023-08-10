@@ -26,6 +26,8 @@ jobs:
               rm -rf .pytest_cache
               rm -rf pkscreener/__pycache__
               rm -rf test/__pycache__
+              rm -rf test/.coverage
+              rm -rf .coverage
               find . -name "*.pyc" -exec rm -rf {} \;
               sudo find /tmp/ -name "*.py" -exec rm -rf {} \;
               find . -name ".coverage.*" -exec rm -rf {} \;
@@ -50,9 +52,9 @@ jobs:
               coverage run --source=${package_name} --branch -m pytest -v
               coverage combine
               # quick local report output to console:
-              coverage report
-              coverage html
-              coverage xml
+              coverage report -i
+              coverage html -i
+              coverage xml -i
               curl -s https://codecov.io/bash | bash
               coveralls --service=github
               pytest --cov=pkscreener test/
