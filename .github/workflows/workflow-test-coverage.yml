@@ -3,7 +3,7 @@
 # Created             :   10/108/2023
 # Description         :   Workflow for testing pkscreener and updating coverage
 
-name: pkscreener Test Coverage
+name: 10. pkscreener Test Coverage
 
 on:
   workflow_dispatch:

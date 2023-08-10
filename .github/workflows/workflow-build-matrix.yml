@@ -3,7 +3,7 @@
 # Created             :   30/04/2021
 # Description         :   Workflow for building pkscreener on pushing a tag
 
-name: pkscreener Build - New Release
+name: 9. pkscreener Build - New Release
 
 on:
   # push:
