@@ -12,6 +12,12 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+  workflow_call:
+    inputs:
+      branch-name:
+        required: true
+        type: string
+        default: 'new-features'
 jobs:
   # Job for testing coverage
   Build:

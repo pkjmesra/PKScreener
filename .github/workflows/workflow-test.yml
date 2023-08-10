@@ -25,8 +25,8 @@ on:
 
 jobs:
 
-  # Test the source-code
-  Test-Source:
+  # Lint the source-code
+  Lint-Source:
 
     runs-on: windows-latest
 
@@ -47,28 +47,6 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-
-    - name: Install dependencies for TA-Lib
-      run: |
-        python -m pip install --upgrade pip
-        cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-
-    # - name: Install Numpy-MKL for Windows
-    #   run: |
-    #     echo Downloading Numpy-MKL (212MB), Please wait!
-    #     powershell.exe -Command (new-object System.Net.WebClient).DownloadFile('https://download.lfd.uci.edu/pythonlibs/w4tscw6k/numpy-1.20.2+mkl-cp39-cp39-win_amd64.whl','numpy-1.20.2+mkl-cp39-cp39-win_amd64.whl')
-    #     pip install numpy-1.20.2+mkl-cp39-cp39-win_amd64.whl
-
-    - name: Install dependencies using pip
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-mock
-        pip3 install -r requirements.txt
-        pip3 install -r requirements-dev.txt
-        pip3 install ta-lib
-        pip3 install .
         
     - name: Lint with flake8
       run: |
@@ -77,64 +55,12 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Configure .env.dev file
-      run: |
-        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
-      shell: bash
-      env:
-        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+  Test-Source:
+    uses: pkjmesra/PKScreener/.github/workflows/workflow-test-coverage.yml@main
+    with:
+      branch-name: ${{ inputs.branch-name }}
+    secrets: inherit
 
-    - name: Install coveralls
-      shell: cmd
-      continue-on-error: true
-      run: |
-        # note: the following also installs "coverage"
-        python -m pip install coveralls
-        del /s /q C:\Users\runneradmin\AppData\Local\Temp\*.py
-
-    - name: Clean up previous runs
-      shell: bash
-      continue-on-error: true
-      run: |
-        rm -rf .pytest_cache
-        rm -rf pkscreener/__pycache__
-        rm -rf test/__pycache__
-        find . -name "*.pyc" -exec rm -rf {} \;
-        find . -name ".coverage.*" -exec rm -rf {} \;
-
-    - name: Get coverage report
-      shell: bash
-      continue-on-error: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      run: |
-        coverage erase
-        coverage run --source=${package_name} --branch -m pytest -v
-        coverage combine
-        # quick local report output to console:
-        coverage report
-        coverage html
-        coverage xml
-        curl -s https://codecov.io/bash | bash
-        coveralls --service=github
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      continue-on-error: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        env_vars: THIS_VERSION,GITHUB_REF
-        name: codecov-umbrella
-        fail_ci_if_error: false
-        verbose: true
-        
-    - name: Upload report to Coveralls
-      uses: coverallsapp/github-action@v2
-      continue-on-error: true
-      
   Call-prod-scan-test-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
     with:
@@ -145,7 +71,7 @@ jobs:
   Create-Pull-Request:
     if: ${{ inputs.branch-name }} != 'main' && ${{ github.ref != 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    needs: [Test-Source, call-prod-scan-test-workflow]
+    needs: [Test-Source, Lint-Source, call-prod-scan-test-workflow]
 
     steps:
     - name: Checkout Repo before PR
