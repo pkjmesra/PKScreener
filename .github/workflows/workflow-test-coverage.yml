@@ -27,7 +27,7 @@ jobs:
               rm -rf pkscreener/__pycache__
               rm -rf test/__pycache__
               find . -name "*.pyc" -exec rm -rf {} \;
-              find /tmp/ -name "*.py" -exec rm -rf {} \;
+              sudo find /tmp/ -name "*.py" -exec rm -rf {} \;
               find . -name ".coverage.*" -exec rm -rf {} \;
             DEP_BUILD: |
               cd .github/dependencies/
