@@ -220,8 +220,8 @@ jobs:
           body: |
             ${{ steps.read_release.outputs.RELEASE_BODY }}
           overwrite: true
-          prerelease: true
-          make_latest: false
+          prerelease: false
+          make_latest: true
 
   Call-python-publish-workflow:
       uses: pkjmesra/PKScreener/.github/workflows/python-publish.yml@main
