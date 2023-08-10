@@ -71,16 +71,6 @@ jobs:
           python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
-          VERSION_ARR=(${CURRENT_VERSION//./ })
-          MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
-          TODAY=`date +%Y%m%d`
-          THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
-          rm -rf pkscreener/classes/__init__.py
-          echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
-          echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
-          echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -117,7 +107,7 @@ jobs:
         continue-on-error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-          env_vars: THIS_VERSION,GITHUB_REF
+          env_vars: GITHUB_REF
           name: codecov-umbrella
           fail_ci_if_error: false
           verbose: true
