@@ -62,8 +62,13 @@ jobs:
 
       - name: Declare env variables
         id: vars
+        env:
+          CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
         shell: bash
         run: |
+          python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
