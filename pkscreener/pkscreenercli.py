@@ -49,7 +49,8 @@ argParser.add_argument('-t', '--testbuild', action='store_true', help='Run in te
 argParser.add_argument('-u', '--user', help='Telegram user ID to whom the results must be sent.', required=False)
 argParser.add_argument('-l', '--log', action='store_true', help='Run with full logging enabled', required=False)
 argParser.add_argument('-v', action='store_true')        # Dummy Arg for pytest -v
-args = argParser.parse_args()
+args = argParser.parse_known_args()
+args = args[0]
 
 configManager = ConfigManager.tools()
 

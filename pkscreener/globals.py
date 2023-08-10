@@ -581,7 +581,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                                                     saveResults,backtest_df)
         
         print(colorText.END)
-        terminateAllWorkers(consumers, tasks_queue)
+        terminateAllWorkers(consumers, tasks_queue, testing)
         if not downloadOnly and menuOption=='X':
             screenResults, saveResults = labelDataForPrinting(screenResults,saveResults,configManager, volumeRatio)
             screenResults, saveResults = removeUnknowns(screenResults, saveResults)
@@ -748,6 +748,13 @@ def runTests(items,tasks_queue,results_queue,screenResults,saveResults):
     return screenResults, saveResults
 
 def startWorkers(consumers):
+    try:
+        from pytest_cov.embed import cleanup_on_sigterm, cleanup_on_signal
+    except ImportError:
+        pass
+    else:
+        import signal
+        cleanup_on_signal(signal.SIGBREAK)
     for worker in consumers:
         worker.daemon = True
         worker.start()
@@ -763,10 +770,20 @@ def initQueues():
         totalConsumers -= 1
     return tasks_queue, results_queue, totalConsumers
 
-def terminateAllWorkers(consumers, tasks_queue):
+def shutdown(frame, signum):
+    # your app's shutdown or whatever
+    print('Shutting down for test coverage')
+
+def terminateAllWorkers(consumers, tasks_queue, testing):
     # Exit all processes. Without this, it threw error in next screening session
     for worker in consumers:
         try:
+            if testing:
+                import signal
+                signal.signal(signal.SIGBREAK, shutdown)
+                sleep(1)
+                # worker.join()  # necessary so that the Process exists before the test suite exits (thus coverage is collected)
+            # else:
             worker.terminate()
         except OSError as e:
             default_logger().debug(e, exc_info=True)

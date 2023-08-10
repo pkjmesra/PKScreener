@@ -95,11 +95,29 @@ rm updater.sh
         OTAUpdater.checkForUpdate.url = None
         resp = None
         try:
-            now = float(VERSION)
+            now_components = str(VERSION).split('.')
+            now_major_minor = '.'.join([now_components[0],now_components[1]])
+            now = float(now_major_minor)
             if proxyServer:
                 resp = requests.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",proxies={'https':proxyServer})
             else:
                 resp = requests.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+            tag = resp.json()['tag_name']
+            version_components = tag.split('.')
+            major_minor = '.'.join([version_components[0],version_components[1]])
+            last_release = float(major_minor)
+            prod_update = False
+            if last_release > now:
+                prod_update = True
+            elif last_release == now and (len(now_components) < len(version_components)):
+                # Must be the weekly update over the last major.minor update
+                prod_update = True
+            elif last_release == now and (len(now_components) == len(version_components)):
+                if float(now_components[2]) < float(version_components[2]):
+                    prod_update = True
+                elif float(now_components[2]) == float(version_components[2]):
+                    if float(now_components[3]) < float(version_components[3]):
+                        prod_update = True
             if 'Windows' in platform.system():
                 OTAUpdater.checkForUpdate.url = resp.json()['assets'][1]['browser_download_url']
                 size = int(resp.json()['assets'][1]['size']/(1024*1024))
@@ -109,11 +127,11 @@ rm updater.sh
             else:
                 OTAUpdater.checkForUpdate.url = resp.json()['assets'][0]['browser_download_url']
                 size = int(resp.json()['assets'][0]['size']/(1024*1024))
-            if(float(resp.json()['tag_name']) > now):
+            if prod_update:
                 print(colorText.BOLD + colorText.WARN + "[+] What's New in this Update?\n" + OTAUpdater.showWhatsNew() + colorText.END)
                 if skipDownload:
                     return
-                action = str(input(colorText.BOLD + colorText.WARN + ('\n[+] New Software update (v%s) available. Download Now (Size: %dMB)? [Y/N]: ' % (str(resp.json()['tag_name']),size)))).lower()
+                action = str(input(colorText.BOLD + colorText.GREEN + ('\n[+] New Software update (v%s) available. Download Now (Size: %dMB)? [Y/N]: ' % (str(resp.json()['tag_name']),size)))).lower()
                 if(action == 'y'):
                     try:
                         if 'Windows' in platform.system():
@@ -126,7 +144,7 @@ rm updater.sh
                         default_logger().debug(e, exc_info=True)
                         print(colorText.BOLD + colorText.WARN + '[+] Error occured while updating!' + colorText.END)
                         raise(e)
-            elif(float(resp.json()['tag_name']) < now):
+            elif not prod_update:
                 print(colorText.BOLD + colorText.FAIL + ('[+] This version (v%s) is in Development mode and unreleased!' % VERSION) + colorText.END)
                 return OTAUpdater.developmentVersion
         except Exception as e:

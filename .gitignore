@@ -20,4 +20,7 @@ pkscreener/classes/__pycache__
 *.egg-*/*
 *.json
 *.html
-*.coverage
+.coverage.*
+*.exe
+*.bin
+*.run
