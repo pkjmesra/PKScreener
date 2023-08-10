@@ -57,7 +57,7 @@ jobs:
               coverage xml -i
               curl -s https://codecov.io/bash | bash
               coveralls --service=github
-              pytest --cov=pkscreener test/
+              coverage run --source=${package_name} --branch -m pytest --cov=pkscreener test/
               coveralls --service=github
               exit $?
     steps:
@@ -116,6 +116,4 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           verbose: true
-          
-      - name: Upload report to Coveralls
-        uses: coverallsapp/github-action@v2
+
