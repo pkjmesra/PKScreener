@@ -4,7 +4,8 @@ branch = True
 concurrency=multiprocessing
 parallel = True
 
-# [report]
+[report]
+show_missing = True
 # Regexes for lines to exclude from consideration
 # exclude_also =
     # Don't complain about missing debug-only code:

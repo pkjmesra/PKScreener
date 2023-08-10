@@ -52,7 +52,10 @@ def test_if_release_version_increamented():
     r = requests.get(
         "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
     try:
-        last_release = float(r.json()['tag_name'])
+        tag = r.json()['tag_name']
+        version_components = tag.split('.')
+        major_minor = '.'.join([version_components[0],version_components[1]])
+        last_release = float(major_minor)
     except:
         if r.json()['message'] == 'Not Found':
             last_release = 0
@@ -126,7 +129,7 @@ def test_option_U(mocker, capsys):
     try:
         mocker.patch('builtins.input', side_effect=['U','Z','Y','\n'])
         # with pytest.raises(SystemExit):
-        main(testing=True,startupoptions='U:Z', defaultConsoleAnswer='Y')
+        main(testing=True,startupoptions='U', defaultConsoleAnswer='N')
         out, err = capsys.readouterr()
         assert err == ''
     except StopIteration:
@@ -305,7 +308,7 @@ def test_option_Z(mocker, capsys):
 
 def test_ota_updater():
     try:
-        OTAUpdater.checkForUpdate(globals.proxyServer,VERSION)
+        OTAUpdater.checkForUpdate(globals.proxyServer,VERSION,skipDownload=True)
         assert (
             "exe" in OTAUpdater.checkForUpdate.url or "bin" in OTAUpdater.checkForUpdate.url)
     except StopIteration:
