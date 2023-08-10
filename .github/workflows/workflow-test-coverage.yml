@@ -1,0 +1,121 @@
+# Project             :   PKScreener
+# Author              :   pkjmesra
+# Created             :   10/108/2023
+# Description         :   Workflow for testing pkscreener and updating coverage
+
+name: pkscreener Test Coverage
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch-name:
+        description: 'Branch name'
+        required: false
+        default: 'main'
+jobs:
+  # Job for testing coverage
+  Build:
+    name: Build and test/update coverage
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            TARGET: Linux
+            CMD_BUILD: |
+              rm -rf .pytest_cache
+              rm -rf pkscreener/__pycache__
+              rm -rf test/__pycache__
+              find . -name "*.pyc" -exec rm -rf {} \;
+              find . -name ".coverage.*" -exec rm -rf {} \;
+            DEP_BUILD: |
+              cd .github/dependencies/
+              pwd
+              tar -xzf ta-lib-0.4.0-src.tar.gz
+              cd ta-lib/
+              ./configure --prefix=/usr
+              make
+              sudo make install
+              cd /home/runner/work/PKScreener/PKScreener/
+              python -m pip install --upgrade pip
+              pip3 install -r requirements.txt
+              pip3 install -r requirements-dev.txt
+              pip3 install ta-lib==0.4.24
+              pip3 install .
+              # note: the following also installs "coverage"
+              python -m pip install coveralls
+            TEST_BUILD: |
+              coverage erase
+              coverage run --source=${package_name} --branch -m pytest -v
+              coverage combine
+              # quick local report output to console:
+              coverage report
+              coverage html
+              coverage xml
+              curl -s https://codecov.io/bash | bash
+              coveralls --service=github
+              exit $?
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch-name }}
+
+      - name: Declare env variables
+        id: vars
+        shell: bash
+        run: |
+          GITHUB_REF=${GITHUB_REF#refs/tags/}
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          VERSION_ARR=(${CURRENT_VERSION//./ })
+          MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
+          TODAY=`date +%Y%m%d`
+          THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
+          rm -rf pkscreener/classes/__init__.py
+          echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
+          echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
+          echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Load Cache for Linux Dependencies
+        uses: actions/cache@v2
+        if: startsWith(runner.os, 'Linux')
+        with:
+          path: |
+            /usr/include/ta-lib
+            /usr/bin/ta-lib-config
+          key: ${{ runner.os }}-talib
+          restore-keys: |
+            ${{ runner.os }}-talib
+
+      - name: Install dependencies for ${{ matrix.TARGET }}
+        run: ${{ matrix.DEP_BUILD }}
+
+      - name: Build for ${{ matrix.TARGET }}
+        run: ${{ matrix.CMD_BUILD }}
+
+      - name: Test Built Binary for ${{ matrix.TARGET }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: ${{ matrix.TEST_BUILD }}
+        continue-on-error: false
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        continue-on-error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          env_vars: THIS_VERSION,GITHUB_REF
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          
+      - name: Upload report to Coveralls
+        uses: coverallsapp/github-action@v2
