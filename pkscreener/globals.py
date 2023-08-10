@@ -753,8 +753,11 @@ def startWorkers(consumers):
     except ImportError:
         pass
     else:
-        import signal
-        cleanup_on_signal(signal.SIGBREAK)
+        if sys.platform.startswith('win'):
+            import signal
+            cleanup_on_signal(signal.SIGBREAK)
+        else:
+            cleanup_on_sigterm()
     for worker in consumers:
         worker.daemon = True
         worker.start()
@@ -779,9 +782,10 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
     for worker in consumers:
         try:
             if testing:
-                import signal
-                signal.signal(signal.SIGBREAK, shutdown)
-                sleep(1)
+                if sys.platform.startswith('win'):
+                    import signal
+                    signal.signal(signal.SIGBREAK, shutdown)
+                    sleep(1)                    
                 # worker.join()  # necessary so that the Process exists before the test suite exits (thus coverage is collected)
             # else:
             worker.terminate()
