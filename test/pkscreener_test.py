@@ -23,7 +23,7 @@ except:
     print('This test must be run from the root of the project!')
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes import VERSION
-from pkscreener.classes.Changelog import changelog
+from pkscreener.classes import Changelog
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.log import default_logger
 import pkscreener.globals as globals
@@ -41,11 +41,11 @@ def cleanup():
 
 def test_if_changelog_version_changed():
     global last_release
-    v = changelog.split(']')[1].split('[')[-1]
+    v = Changelog.changelog().split(']')[1].split('[')[-1]
     v = str(v).replace('v','')
     assert float(v) >= float(last_release)
-    assert (f'v{str(last_release)}' in changelog)
-    assert (f'v{str(VERSION)}' in changelog)
+    assert (f'v{str(last_release)}' in Changelog.changelog())
+    assert (f'v{str(VERSION)}' in Changelog.changelog())
 
 def test_if_release_version_increamented():
     global last_release

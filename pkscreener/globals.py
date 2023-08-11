@@ -1,5 +1,28 @@
 #!/usr/bin/python3
+"""
+    The MIT License (MIT)
 
+    Copyright (c) 2023 pkjmesra
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+"""
 # Keep module imports prior to classes
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -19,6 +42,7 @@ from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict, level1_X_MenuDict, level2_X_MenuDict, level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict
 from pkscreener.classes.ParallelProcessing import StockConsumer
+from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from pkscreener.classes.Utility import level3ReversalMenuDict, level3ChartPatternMenuDict
 # import classes.Archiver as Archiver
 
@@ -570,7 +594,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             iteration = iteration + 1
             historicalDays = sampleDays - iteration
         tasks_queue, results_queue, totalConsumers = initQueues()
-        consumers = [StockConsumer(tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger())
+        consumers = [PKMultiProcessorClient(StockConsumer().screenStocks, tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger())
                     for _ in range(totalConsumers)]
         startWorkers(consumers)
         if testing or testBuild:
