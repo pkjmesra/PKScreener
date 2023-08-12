@@ -1,70 +1,8 @@
-numpy #==1.21.0 # Installed as dependency for yfinance, scipy, matplotlib, pandas
-appdirs
-cachecontrol
-contextlib2
-distlib
-distro
-html5lib
-ipaddr
-lockfile
-nsetools
-openpyxl
-pep517
-pip
-pip-chill
-progress
+-r requirements.txt
 pyinstaller #==5.6.2
-pytest-mock
-python-dotenv
-telegram
-python-telegram-bot
-pytoml
-retrying
-scipy>=1.7.3
 ta-lib
-tabulate
-yfinance==0.1.87
-alive-progress==1.6.2
-Pillow==9.5.0
-# dataframe_image
-scikit-learn #==1.1.1
-tensorflow #==2.9.2
-joblib
-altgraph # Installed as dependency for pyinstaller
-atomicwrites # Installed as dependency for pytest
-attrs # Installed as dependency for pytest
-certifi # Installed as dependency for requests
-chardet # Installed as dependency for requests
-colorama # Installed as dependency for pytest
-dateutils # Installed as dependency for nsetools
-et-xmlfile # Installed as dependency for openpyxl
-future # Installed as dependency for pefile
-idna # Installed as dependency for requests
-iniconfig # Installed as dependency for pytest
-lxml # Installed as dependency for yfinance
-msgpack # Installed as dependency for cachecontrol
-multitasking # Installed as dependency for yfinance
-packaging # Installed as dependency for pytest
-pandas #==1.3.5 # Installed as dependency for yfinance
-pandas_ta
-pefile # Installed as dependency for pyinstaller
-pluggy # Installed as dependency for pytest
-py # Installed as dependency for pytest
 pyinstaller-hooks-contrib # Installed as dependency for pyinstaller
-pyparsing # Installed as dependency for packaging, matplotlib
 pytest # Installed as dependency for pytest-mock
-python-dateutil # Installed as dependency for dateutils, matplotlib, pandas
-pytz # Installed as dependency for dateutils, pandas
-pywin32-ctypes # Installed as dependency for pyinstaller
-requests # Installed as dependency for yfinance, cachecontrol
-setuptools # Installed as dependency for pyinstaller
-six # Installed as dependency for cycler, nsetools, packaging, retrying, python-dateutil, html5lib
-# sklearn
-toml # Installed as dependency for pep517, pytest
-urllib3 # Installed as dependency for requests
-webencodings # Installed as dependency for html5lib
-xlsxwriter
-gspread
 coveralls
 pytest-cov
 mistletoe

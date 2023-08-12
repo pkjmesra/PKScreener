@@ -30,9 +30,9 @@
 '''
 
 import sys
-import urllib.request
 import csv
-import requests
+from datetime import timedelta
+from io import StringIO
 import random
 import os
 import yfinance as yf
@@ -41,7 +41,8 @@ from nsetools import Nse
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.SuppressOutput import SuppressOutput
 from pkscreener.classes.log import default_logger
-
+from requests_cache import CachedSession
+session = CachedSession('pkscreener_cache', expire_after=timedelta(hours=1),stale_if_error=True,)
 nse = Nse()
 
 # Exception class if yfinance stock delisted
@@ -62,8 +63,13 @@ class tools:
     def fetchCodes(self, tickerOption,proxyServer=None):
         listStockCodes = []
         if tickerOption == 12:
-            url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
-            return list(pd.read_csv(url)['SYMBOL'].values)
+            url = f"https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+            if proxyServer:
+                res = session.get(url,proxies={'https':proxyServer})
+            else:
+                res = session.get(url)
+            data = pd.read_csv(StringIO(res.text))
+            return list(data['SYMBOL'].values)
         tickerMapping = {
             1: "https://archives.nseindia.com/content/indices/ind_nifty50list.csv",
             2: "https://archives.nseindia.com/content/indices/ind_niftynext50list.csv",
@@ -83,9 +89,9 @@ class tools:
 
         try:
             if proxyServer:
-                res = requests.get(url,proxies={'https':proxyServer})
+                res = session.get(url,proxies={'https':proxyServer})
             else:
-                res = requests.get(url)
+                res = session.get(url)
             
             cr = csv.reader(res.text.strip().split('\n'))
             

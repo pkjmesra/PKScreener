@@ -29,6 +29,8 @@ from pkscreener.classes.log import default_logger
 import pkscreener.globals as globals
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import *
+from requests_cache import CachedSession
+session = CachedSession('pkscreener_cache', cache_control=True)
 last_release = 0
 configManager = ConfigManager.tools()
 configManager.default_logger = default_logger()
@@ -49,7 +51,7 @@ def test_if_changelog_version_changed():
 
 def test_if_release_version_increamented():
     global last_release
-    r = requests.get(
+    r = session.get(
         "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
     try:
         tag = r.json()['tag_name']

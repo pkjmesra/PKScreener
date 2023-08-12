@@ -111,7 +111,7 @@ class StockConsumer():
             else:
                 # data = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
                 fullData = Archiver.readData(f'FD_{Utility.tools.tradingDate()}_{stock}.pkl')
-                processedData = Archiver.readData(f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
+                processedData,_,_ = Archiver.readData(f'PD_{Utility.tools.tradingDate()}_{stock}.pkl')
                 if data is None or fullData is None or processedData is None:
                     inputData = (data if backtestDuration == 0 else data.head(400-backtestDuration))
                     fullData, processedData = screener.preprocessData(

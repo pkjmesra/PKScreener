@@ -13,7 +13,6 @@ pep517
 pip
 pip-chill
 progress
-# pyinstaller #==5.6.2
 pytest-mock
 python-dotenv
 telegram
@@ -65,3 +64,4 @@ xlsxwriter
 gspread
 scipy>=1.7.3
 # ta-lib # Install this separately
+requests_cache

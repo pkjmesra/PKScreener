@@ -59,6 +59,8 @@ from pkscreener.classes import VERSION
 from pkscreener.classes import Changelog
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.MenuOptions import menus, menu, MenuRenderStyle
+from requests_cache import CachedSession
+session = CachedSession('pkscreener_cache', cache_control=True)
 
 artText = '''
     $$$$$$      $$   $$      $$$$$                                                        
@@ -398,9 +400,9 @@ class tools:
         if not stockDataLoaded and ConfigManager.default_period == configManager.period and ConfigManager.default_duration == configManager.duration:
             cache_url = "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/" + cache_file
             if proxyServer is not None:
-                resp = requests.get(cache_url, stream=True, proxies={'https':proxyServer})
+                resp = session.get(cache_url, stream=True, proxies={'https':proxyServer})
             else:
-                resp = requests.get(cache_url, stream=True)
+                resp = session.get(cache_url, stream=True)
             default_logger().info(f'Stock data cache file:{cache_file} request status ->{resp.status_code}')
             if resp.status_code == 200:
                 print(colorText.BOLD + colorText.FAIL +
@@ -594,9 +596,9 @@ class tools:
         if download:
             for file_url in urls:
                 if proxyServer is not None:
-                    resp = requests.get(file_url, stream=True, proxies={'https':proxyServer})
+                    resp = session.get(file_url, stream=True, proxies={'https':proxyServer})
                 else:
-                    resp = requests.get(file_url, stream=True)
+                    resp = session.get(file_url, stream=True)
                 if resp.status_code == 200:
                     print(colorText.BOLD + colorText.GREEN +
                             "[+] Downloading AI model (v2) for Nifty predictions, Please Wait.." + colorText.END)

@@ -30,14 +30,15 @@
 '''
 
 from pkscreener.classes.ColorText import colorText
-import requests
-import os
+from datetime import timedelta
 import platform
 import sys
 import subprocess
 import requests
 from pkscreener.classes import VERSION
 from pkscreener.classes.log import default_logger
+from requests_cache import CachedSession
+session = CachedSession('pkscreener_cache', expire_after=timedelta(days=1),stale_if_error=True,)
 
 class OTAUpdater:
 
@@ -107,7 +108,7 @@ rm updater.sh
     # Parse changelog from release.md
     def showWhatsNew():
         url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/release.md"
-        md = requests.get(url)
+        md = session.get(url)
         txt = md.text
         txt = txt.split("New?")[1]
         txt = txt.split("## Downloads")[0]
@@ -123,9 +124,9 @@ rm updater.sh
             now_major_minor = '.'.join([now_components[0],now_components[1]])
             now = float(now_major_minor)
             if proxyServer:
-                resp = requests.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",proxies={'https':proxyServer})
+                resp = session.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",proxies={'https':proxyServer})
             else:
-                resp = requests.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+                resp = session.get("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
             tag = resp.json()['tag_name']
             version_components = tag.split('.')
             major_minor = '.'.join([version_components[0],version_components[1]])

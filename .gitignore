@@ -25,3 +25,4 @@ pkscreener/classes/__pycache__
 *.exe
 *.bin
 *.run
+*.sqlite

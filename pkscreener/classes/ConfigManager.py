@@ -57,8 +57,8 @@ class tools:
         self.daysToLookback = 30
         self.shuffleEnabled = True
         self.cacheEnabled = True
-        self.stageTwo = False
-        self.useEMA = True
+        self.stageTwo = True
+        self.useEMA = False
         self.logsEnabled = False
         self.logger = None
 
