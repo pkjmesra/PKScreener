@@ -29,8 +29,6 @@
  *  Description         :   Class for analyzing candle-stick patterns
 """
 
-import pandas as pd
-
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.Pktalib import pktalib
 

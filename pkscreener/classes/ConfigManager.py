@@ -33,7 +33,6 @@ import configparser
 import glob
 import os
 import sys
-from datetime import date
 
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger

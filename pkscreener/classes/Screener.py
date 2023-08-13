@@ -30,14 +30,12 @@
 """
 
 import math
-import sys
 
 import numpy as np
 import pandas as pd
 
 import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
-from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.Pktalib import pktalib
 
 # from sklearn.preprocessing import StandardScaler
