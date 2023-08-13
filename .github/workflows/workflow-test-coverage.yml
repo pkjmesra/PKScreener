@@ -55,7 +55,7 @@ jobs:
               python -m pip install coveralls
             TEST_BUILD: |
               coverage erase
-              coverage run --source=${package_name} --branch -m pytest -v
+              coverage run --source=${package_name} --branch -m pytest -vv --durations-min=0.005
               coverage combine
               # quick local report output to console:
               coverage report -i
