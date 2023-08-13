@@ -29,7 +29,6 @@
 import argparse
 import builtins
 import multiprocessing
-
 # Keep module imports prior to classes
 import os
 import sys

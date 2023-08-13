@@ -34,14 +34,11 @@ import math
 import os
 import pickle
 import platform
-import sys
 import time
-from decimal import DivisionByZero
 
 import joblib
 import numpy as np
 import pytz
-import requests
 from genericpath import isfile
 
 from pkscreener import Imports

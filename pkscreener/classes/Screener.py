@@ -40,7 +40,6 @@ from pkscreener.classes.Pktalib import pktalib
 
 # from sklearn.preprocessing import StandardScaler
 if Imports["scipy"]:
-    from scipy.signal import argrelextrema
     from scipy.stats import linregress
 
 from pkscreener.classes.ColorText import colorText
@@ -288,7 +287,7 @@ class tools:
                 )
             except Exception as e:
                 self.default_logger.debug(e, exc_info=True)
-                slope, c = 0, 0
+                slope, _ = 0, 0
             angle = np.rad2deg(np.arctan(slope))
             if angle == 0:
                 screenDict["Trend"] = (
@@ -1331,8 +1330,8 @@ class tools:
         data = data.set_index(np.arange(len(data)))
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
-        data['tops'] = data['Close'].iloc[list(argrelextrema(np.array(data['Close']), np.greater_equal, order=3)[0])]
-        data['bots'] = data['Close'].iloc[list(argrelextrema(np.array(data['Close']), np.less_equal, order=3)[0])]
+        data['tops'] = data['Close'].iloc[list(pktalib.argrelextrema(np.array(data['Close']), np.greater_equal, order=3)[0])]
+        data['bots'] = data['Close'].iloc[list(pktalib.argrelextrema(np.array(data['Close']), np.less_equal, order=3)[0])]
         try:
             try:
                 top_slope,top_c = np.polyfit(data.index[data.tops > 0], data['tops'][data.tops > 0], 1)

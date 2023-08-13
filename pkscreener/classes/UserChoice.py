@@ -23,7 +23,7 @@
 
 """
 from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.MenuOptions import menu, menus
+from pkscreener.classes.MenuOptions import menus
 
 
 # This Class manages user menu choices

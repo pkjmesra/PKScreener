@@ -48,24 +48,15 @@ from pkscreener.classes.Backtest import backtest
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger, tracelog
-from pkscreener.classes.MenuOptions import (
-    level0MenuDict,
-    level1_X_MenuDict,
-    level2_X_MenuDict,
-    menus,
-)
+from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
+                                            level2_X_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
-from pkscreener.classes.Utility import (
-    level3ChartPatternMenuDict,
-    level3ReversalMenuDict,
-)
-from pkscreener.Telegram import (
-    is_token_telegram_configured,
-    send_document,
-    send_message,
-)
+from pkscreener.classes.Utility import (level3ChartPatternMenuDict,
+                                        level3ReversalMenuDict)
+from pkscreener.Telegram import (is_token_telegram_configured, send_document,
+                                 send_message)
 
 # import dataframe_image as dfi
 # import df2img

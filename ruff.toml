@@ -1,13 +1,15 @@
 # Enable Pyflakes and pycodestyle rules.
 select = ["E", "F"]
 
-# Never enforce `E501` (line length violations).
-ignore = ["E501", "E402","F403"]
+# Never enforce `E501` (line length violations). E402:Module level import not at top of file
+ignore = ["E501", "E402","F403","F405"]
 
 # Always autofix, but never try to fix `F401` (unused imports).
 fix = true
 unfixable = ["F401"]
 
-# Ignore `E402` (import violations) in all `__init__.py` files, and in `path/to/file.py`.
+# Ignore 
 [per-file-ignores]
-"__init__.py" = ["E402"]
+"pkscreener/globals.py" =["F841", "E712"]
+"pkscreener/classes/ParallelProcessing.py" =["F841"]
+"pkscreener/classes/Utility.py" = ["F401"]

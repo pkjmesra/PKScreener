@@ -1,23 +1,10 @@
 import argparse
 
 import mistletoe
-from mistletoe.block_token import (
-    BlockCode,
-    BlockToken,
-    CodeFence,
-    Footnote,
-    Heading,
-    HTMLBlock,
-    List,
-    ListItem,
-    Paragraph,
-    Quote,
-    SetextHeading,
-    Table,
-    TableCell,
-    TableRow,
-    ThematicBreak,
-)
+from mistletoe.block_token import (BlockCode, BlockToken, CodeFence, Footnote,
+                                   Heading, HTMLBlock, List, ListItem,
+                                   Paragraph, Quote, SetextHeading, Table,
+                                   TableCell, TableRow, ThematicBreak)
 from mistletoe.markdown_renderer import MarkdownRenderer
 from mistletoe.span_token import InlineCode, Link, RawText, SpanToken
 
