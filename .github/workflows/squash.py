@@ -1,5 +1,5 @@
-from time import sleep
 import os
+from time import sleep
 
 c_msg = "GitHub Action Workflow - Market Data Download (Default Config)"
 
@@ -10,16 +10,16 @@ os.system("git log --pretty=oneline > msg.log")
 sleep(5)
 
 lines = None
-with open('msg.log','r') as f:
+with open("msg.log", "r") as f:
     lines = f.readlines()
 
 cnt = 0
-commit_hash = ''
-for l in lines:
-    if c_msg in l:
+commit_hash = ""
+for line in lines:
+    if c_msg in line:
         cnt += 1
     else:
-        commit_hash = l.split(" ")[0]
+        commit_hash = line.split(" ")[0]
         cnt -= 1
         break
 
@@ -34,7 +34,7 @@ if cnt < 1:
 else:
     os.system(f"git reset --soft HEAD~{cnt}")
     os.system(f"git commit -m '{c_msg}'")
-    os.system(f"git push -f -u origin actions-data-download")
+    os.system("git push -f -u origin actions-data-download")
 
 os.remove("msg.log")
 sleep(5)
