@@ -101,7 +101,7 @@ jobs:
         GITHUB_REF=${GITHUB_REF#refs/tags/}
         echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-        CURRENT_VERSION=`grep -o "\".*\"" pkscreener/classes/__init__.py | sed "s/'//g"`
+        CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
         VERSION_ARR=(${CURRENT_VERSION//./ })
         MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
         TODAY=`date +%Y%m%d`
@@ -113,7 +113,7 @@ jobs:
           THIS_VERSION="${{ inputs.version }}"
         fi
         rm -rf pkscreener/classes/__init__.py
-        echo VERSION = \"`echo ${THIS_VERSION}`\" >> pkscreener/classes/__init__.py
+        echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
         echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
         echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
        
