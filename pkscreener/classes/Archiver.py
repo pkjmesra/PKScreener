@@ -53,18 +53,18 @@ def utc_to_ist(utc_dt):
     )
 
 
-def cacheFile(stringData, fileName):
+def cacheFile(bData, fileName):
     filePath = resolveFilePath(fileName)
-    with open(filePath, "w") as f:
-        f.write(stringData)
+    with open(filePath, "wb") as f:
+        f.write(bData)
 
 
 def findFile(fileName):
     filePath = resolveFilePath(fileName)
     try:
-        with open(filePath, "r") as f:
-            stringData = f.read()
-        return stringData, filePath, get_last_modified_datetime(filePath)
+        with open(filePath, "rb") as f:
+            bData = f.read()
+        return bData, filePath, get_last_modified_datetime(filePath)
     except Exception:
         return None, filePath, None
 

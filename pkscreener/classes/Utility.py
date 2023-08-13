@@ -58,6 +58,7 @@ from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes import VERSION, Changelog
+from pkscreener.classes import Archiver
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
@@ -226,6 +227,15 @@ class tools:
     def tableToImage(table, styledTable, filename, label):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
+        fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/courbd.ttf'
+        fontFile = fontURL.split('/')[-1]
+        bData, fontPath, _ = Archiver.findFile(fontFile)
+        if bData is None:
+            resp = session.get(fontURL,stream=True,timeout=ConfigManager.default_timeout)
+            with open(fontPath, 'wb') as f:
+                for chunk in resp.iter_content(chunk_size=1024): 
+                    if chunk: # filter out keep-alive new chunks
+                        f.write(chunk)
         bgColor = "white"
         artColor = "green"
         menuColor = "red"
@@ -233,8 +243,8 @@ class tools:
         repoText = "https://GitHub.com/pkjmesra/pkscreener/"
         screenLines = styledTable.splitlines()
         unstyledLines = table.splitlines()
-        artfont = ImageFont.truetype("courbd.ttf", 30)
-        font = ImageFont.truetype("courbd.ttf", 60)
+        artfont = ImageFont.truetype(fontPath, 30)
+        font = ImageFont.truetype(fontPath, 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
         label_width, label_height = font.getsize_multiline(label)
         text_width, text_height = font.getsize_multiline(table)
