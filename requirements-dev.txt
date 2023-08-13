@@ -1,8 +1,17 @@
 -r requirements.txt
-pyinstaller #==5.6.2
 ta-lib
-pyinstaller-hooks-contrib # Installed as dependency for pyinstaller
-pytest # Installed as dependency for pytest-mock
+
 coveralls
-pytest-cov
+distro
+# distutils
 mistletoe
+pep517
+pip
+pip-chill
+pyinstaller #==5.6.2
+pytest # Installed as dependency for pytest-mock
+pytest-cov
+pytest-mock
+pytoml
+setuptools
+# shutil

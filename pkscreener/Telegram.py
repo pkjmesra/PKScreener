@@ -43,6 +43,7 @@ from datetime import datetime
 
 from telegram.constants import ParseMode
 from pkscreener.classes.log import default_logger
+import pkscreener.classes.ConfigManager as ConfigManager
 
 TOKEN = "00000000xxxxxxx"
 # URL_TELE = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
@@ -77,7 +78,7 @@ def initTelegram():
             Channel_Id, TOKEN, chat_idADMIN = get_secrets()
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            print('Telegram token and secrets are not configured!')
+            print('[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts')
             pass
         Channel_Id = "-" + str(Channel_Id)
         LIST_PEOPLE_IDS_CHAT = [Channel_Id]
@@ -119,7 +120,7 @@ def send_message(message, parse_type = ParseMode.HTML, list_png = None,userID=No
         for people_id in LIST_PEOPLE_IDS_CHAT:
             url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(people_id, message,parse_mode=parse_type)
             try:
-                resp = requests.get(url)
+                resp = requests.get(url, timeout=ConfigManager.default_timeout) #headers={'Connection': 'Close'})
             except Exception as e:
                 default_logger().debug(e, exc_info=True)
                 from time import sleep
@@ -150,12 +151,12 @@ def send_photo(photoFilePath, message = "", message_id = None,userID=None):
     files = {'photo': photo}
     resp = None
     try:
-        resp = requests.post(botsUrl + method, params, files=files)
+        resp = requests.post(botsUrl + method, params, files=files,timeout=2*ConfigManager.default_timeout) #headers={'Connection': 'Close'})
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         from time import sleep
         sleep(2)
-        resp = requests.post(botsUrl + method, params, files=files)
+        resp = requests.post(botsUrl + method, params, files=files,timeout=2*ConfigManager.default_timeout) #headers={'Connection': 'Close'})
     return resp
 
 def send_document(documentFilePath, message="", message_id = None, retryCount=0,userID=None):
@@ -173,7 +174,7 @@ def send_document(documentFilePath, message="", message_id = None, retryCount=0,
     method = "/sendDocument"
     resp = None
     try:
-        resp = requests.post(botsUrl + method, params, files=files)
+        resp = requests.post(botsUrl + method, params, files=files,timeout=3*ConfigManager.default_timeout) #headers={'Connection': 'Close'})
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         from time import sleep

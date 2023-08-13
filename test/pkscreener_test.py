@@ -52,7 +52,7 @@ def test_if_changelog_version_changed():
 def test_if_release_version_increamented():
     global last_release
     r = session.get(
-        "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+        "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",timeout=configManager.generalTimeout) #headers={'Connection': 'Close'})
     try:
         tag = r.json()['tag_name']
         version_components = tag.split('.')
@@ -285,6 +285,16 @@ def test_option_X_Z(mocker, capsys):
             main(testing=True, startupoptions='X:Z', defaultConsoleAnswer='Y')
         out, err = capsys.readouterr()
         assert err == ''
+    except StopIteration:
+        pass
+
+def test_option_X_12_1(mocker):
+    try:
+        cleanup()
+        mocker.patch('builtins.input', side_effect=['X', '12', '1','y'])
+        main(testing=True, startupoptions='X:12:1', defaultConsoleAnswer='Y')
+        assert globals.screenResults is not None
+        assert len(globals.screenResults) > 0
     except StopIteration:
         pass
 

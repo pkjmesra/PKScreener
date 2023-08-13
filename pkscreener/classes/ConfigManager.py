@@ -31,7 +31,6 @@
 
 import sys
 import os
-import string
 import glob
 import configparser
 from datetime import date
@@ -43,7 +42,7 @@ parser = configparser.ConfigParser(strict=False)
 # Default attributes for Downloading Cache from Git repo
 default_period = '400d'
 default_duration = '1d'
-
+default_timeout = 2
 # This Class manages read/write of user configuration
 class tools:
 
@@ -60,6 +59,8 @@ class tools:
         self.stageTwo = True
         self.useEMA = False
         self.logsEnabled = False
+        self.generalTimeout = 2
+        self.longTimeout = 4
         self.logger = None
 
     @property
@@ -105,6 +106,8 @@ class tools:
             parser.set('config', 'onlyStageTwoStocks', 'y' if self.stageTwo else 'n')
             parser.set('config', 'useEMA', 'y' if self.useEMA else 'n')
             parser.set('config', 'logsEnabled', 'y' if self.logsEnabled else 'n')
+            parser.set('config', 'generalTimeout', str(self.generalTimeout))
+            parser.set('config', 'longTimeout', str(self.longTimeout))
             try:
                 fp = open('pkscreener.ini', 'w')
                 parser.write(fp)
@@ -154,6 +157,10 @@ class tools:
                 '[+] Use EMA instead of SMA? (EMA is good for Short-term & SMA for Mid/Long-term trades)[Y/N]: ')).lower()
             self.logsEnabledPrompt = str(input(
                 '[+] Enable Viewing logs? You can ebale if you are having problems.[Y/N]: ')).lower()
+            self.generalTimeout = input(
+                '[+] General network timeout (in seconds)(Optimal = 2 for good networks): ')
+            self.longTimeout = input(
+                '[+] Long network timeout for heavier downloads(in seconds)(Optimal = 4 for good networks): ')
             parser.set('config', 'period', self.period + "d")
             parser.set('config', 'daysToLookback', self.daysToLookback)
             parser.set('config', 'duration', self.duration + "d")
@@ -167,7 +174,8 @@ class tools:
             parser.set('config', 'onlyStageTwoStocks', self.stageTwoPrompt)
             parser.set('config', 'useEMA', self.useEmaPrompt)
             parser.set('config', 'logsEnabled', self.logsEnabledPrompt)
-
+            parser.set('config', 'generalTimeout', self.generalTimeout)
+            parser.set('config', 'longTimeout', self.longTimeout)
             # delete stock data due to config change
             self.deleteFileWithPattern()
             print(colorText.BOLD + colorText.FAIL + "[+] Cached Stock Data Deleted." + colorText.END)
@@ -207,7 +215,15 @@ class tools:
                 self.stageTwo = True if 'n' not in str(parser.get('config', 'onlyStageTwoStocks')).lower() else False
                 self.useEMA = False if 'y' not in str(parser.get('config', 'useEMA')).lower() else True
                 self.logsEnabled = False if 'y' not in str(parser.get('config', 'logsEnabled')).lower() else True
+                self.generalTimeout = float(parser.get('config', 'generalTimeout'))
+                self.longTimeout = float(parser.get('config', 'longTimeout'))
             except configparser.NoOptionError as e:
+                self.default_logger.debug(e, exc_info=True)
+                # input(colorText.BOLD + colorText.FAIL +
+                #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
+                parser.remove_section('config')
+                self.setConfig(parser, default=True,showFileCreatedText=False)
+            except Exception as e:
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)

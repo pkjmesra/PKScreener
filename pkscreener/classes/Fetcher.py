@@ -37,13 +37,11 @@ import random
 import os
 import yfinance as yf
 import pandas as pd
-from nsetools import Nse
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.SuppressOutput import SuppressOutput
 from pkscreener.classes.log import default_logger
 from requests_cache import CachedSession
 session = CachedSession('pkscreener_cache', expire_after=timedelta(hours=1),stale_if_error=True,)
-nse = Nse()
 
 # Exception class if yfinance stock delisted
 
@@ -65,9 +63,9 @@ class tools:
         if tickerOption == 12:
             url = f"https://archives.nseindia.com/content/equities/EQUITY_L.csv"
             if proxyServer:
-                res = session.get(url,proxies={'https':proxyServer})
+                res = session.get(url,proxies={'https':proxyServer},timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
             else:
-                res = session.get(url)
+                res = session.get(url,timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
             data = pd.read_csv(StringIO(res.text))
             return list(data['SYMBOL'].values)
         tickerMapping = {
@@ -89,9 +87,9 @@ class tools:
 
         try:
             if proxyServer:
-                res = session.get(url,proxies={'https':proxyServer})
+                res = session.get(url,proxies={'https':proxyServer},timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
             else:
-                res = session.get(url)
+                res = session.get(url,timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
             
             cr = csv.reader(res.text.strip().split('\n'))
             
@@ -157,7 +155,7 @@ class tools:
                 interval=duration,
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         if printCounter:
             sys.stdout.write("\r\033[K")
@@ -184,7 +182,7 @@ class tools:
                 interval='1d',
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         return data
 
@@ -196,7 +194,7 @@ class tools:
                 interval='5m',
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         banknifty_sell = yf.download(
                 tickers="^NSEBANK",
@@ -204,7 +202,7 @@ class tools:
                 interval='5m',
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         nifty_buy = yf.download(
                 tickers="^NSEI",
@@ -212,7 +210,7 @@ class tools:
                 interval='15m',
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         banknifty_buy = yf.download(
                 tickers="^NSEBANK",
@@ -220,7 +218,7 @@ class tools:
                 interval='15m',
                 proxy=proxyServer,
                 progress=False,
-                timeout=10
+                timeout=self.configManager.longTimeout
             )
         return nifty_buy, banknifty_buy, nifty_sell, banknifty_sell
 

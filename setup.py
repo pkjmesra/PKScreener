@@ -28,17 +28,16 @@ Spyder Editor
 
 This is a temporary script file.
 
-python setup.py clean build install sdist bdist_wheel
+python setup.py clean build sdist bdist_wheel
 
 """
-# import atexit, os
 import sys
 import setuptools  # noqa
 from distutils.core import setup
 from pkscreener.classes import VERSION
 
 __USERNAME__ = 'pkjmesra'
-
+__PACKAGENAME__ ='pkscreener'
 with open('README.md', 'r') as fh:
 	long_description = fh.read()
 with open('requirements.txt', 'r') as fh:
@@ -47,9 +46,9 @@ with open('requirements.txt', 'r') as fh:
 SYS_MAJOR_VERSION = str(sys.version_info.major)
 SYS_VERSION = SYS_MAJOR_VERSION + '.' +str(sys.version_info.minor)
 
-WHEEL_NAME = 'pkscreener-'+VERSION+'-py'+SYS_MAJOR_VERSION+'-none-any.whl'
-TAR_FILE = 'pkscreener-'+VERSION+'.tar.gz'
-EGG_FILE = 'pkscreener-'+VERSION+'-py'+SYS_VERSION+'.egg'
+WHEEL_NAME = __PACKAGENAME__+'-'+VERSION+'-py'+SYS_MAJOR_VERSION+'-none-any.whl'
+TAR_FILE = __PACKAGENAME__+'-'+VERSION+'.tar.gz'
+EGG_FILE = __PACKAGENAME__+'-'+VERSION+'-py'+SYS_VERSION+'.egg'
 DIST_FILES = [WHEEL_NAME, TAR_FILE, EGG_FILE]
 DIST_DIR = 'dist/'
 
@@ -57,15 +56,15 @@ DIST_DIR = 'dist/'
 # 	if "bdist_wheel" in sys.argv:
 # 		for count, filename in enumerate(os.listdir(DIST_DIR)):
 # 			if filename in DIST_FILES:
-# 				os.rename(DIST_DIR + filename, DIST_DIR + filename.replace('pkscreener-', 'pkscreener_'+__USERNAME__+'-'))
+# 				os.rename(DIST_DIR + filename, DIST_DIR + filename.replace(__PACKAGENAME__+'-', __PACKAGENAME__+'_'+__USERNAME__+'-'))
 
 # atexit.register(_post_build)
 
 setup(
-	name = 'pkscreener',
+	name = __PACKAGENAME__,
 	packages=setuptools.find_packages(where=".", exclude=["docs", "test"]),
 	include_package_data = True,    # include everything in source control
-	package_data={'pkscreener': ['pkscreener.ini']},
+	package_data={__PACKAGENAME__: [__PACKAGENAME__+'.ini']},
 	# ...but exclude README.txt from all packages
 	exclude_package_data = { '': ['*.yml'] },
 	version = VERSION,
@@ -75,14 +74,14 @@ setup(
 	author = __USERNAME__,
 	author_email = __USERNAME__+'@gmail.com',
 	license = 'OSI Approved (MIT)',
-	url = 'https://github.com/'+__USERNAME__+'/pkscreener', # use the URL to the github repo
+	url = 'https://github.com/'+__USERNAME__+'/'+__PACKAGENAME__, # use the URL to the github repo
 	zip_safe=False,
 	entry_points='''
 	[console_scripts]
 	pkscreener=pkscreener.pkscreenercli:pkscreenercli
 	pkbot=pkscreener.pkscreenerbot:main
 	''',
-	download_url = 'https://github.com/'+__USERNAME__+'/pkscreener/archive/v' + VERSION + '.zip',
+	download_url = 'https://github.com/'+__USERNAME__+'/'+__PACKAGENAME__+'/archive/v' + VERSION + '.zip',
 	classifiers=[
 	"License :: OSI Approved :: MIT License",
 	"Operating System :: Microsoft :: Windows",
@@ -91,6 +90,8 @@ setup(
 	'Programming Language :: Python',
 	'Programming Language :: Python :: 3',
 	'Programming Language :: Python :: 3.9',
+	'Programming Language :: Python :: 3.10',
+	'Programming Language :: Python :: 3.11',
 	],
 	install_requires = install_requires,
 	keywords = ['NSE', 'Technical Indicators', 'Scanning','Stock Scanners'],

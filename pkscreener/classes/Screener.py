@@ -33,7 +33,6 @@ import sys
 import math
 import numpy as np
 import pandas as pd
-import joblib
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes.Pktalib import pktalib
 from pkscreener import Imports
