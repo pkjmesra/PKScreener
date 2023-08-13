@@ -241,7 +241,7 @@ rm updater.sh
                 return OTAUpdater.developmentVersion
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            if OTAUpdater.checkForUpdate.url != None:
+            if OTAUpdater.checkForUpdate.url is not None:
                 print(
                     colorText.BOLD
                     + colorText.BLUE

@@ -186,7 +186,7 @@ class filterlogger:
             self.info(line)
 
     def info(self, line):
-        global __filter__
+        global __filter__, __DEBUG__
         __DEBUG__ = self.level == logging.DEBUG
         if not self.logger.level == logging.DEBUG:
             return
@@ -360,7 +360,10 @@ def log_to(logger_func):
             return wrapper
 
     else:
-        decorator = lambda x: x
+
+        def decorator(x):
+            return x
+
     return decorator
 
 

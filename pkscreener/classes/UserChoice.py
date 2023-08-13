@@ -45,4 +45,4 @@ class choices:
         return choice
 
     def renderChoices(self):
-        m = menus()
+        menus()

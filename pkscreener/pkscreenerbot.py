@@ -505,7 +505,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
                 context.application.shutdown()
             sys.exit(0)
         else:
-            print(f"Other instance running!")
+            print("Other instance running!")
             # context.application.run_polling(allowed_updates=Update.ALL_TYPES)
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
@@ -608,7 +608,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         else:
-            cmdText = f"For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
+            cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
             """Send a message when the command /help is issued."""
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
@@ -642,7 +642,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 await sendRequestSubmitted(cmd.upper(), update=update, context=context)
                 return START_ROUTES
             elif selectedMenu.menuKey == "0":  # a specific stock by name
-                cmdText = f"For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,)."
+                cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,)."
                 """Send a message when the command /help is issued."""
                 await update.message.reply_text(f"Choose an option:\n{cmdText}")
                 return START_ROUTES

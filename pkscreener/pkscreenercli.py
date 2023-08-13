@@ -149,14 +149,14 @@ def setupLogger(shouldLog=False, trace=False):
     print(
         colorText.BOLD
         + colorText.GREEN
-        + f"[+] Logs will be written to:"
+        + "[+] Logs will be written to:"
         + colorText.END
     )
     print(colorText.BOLD + colorText.FAIL + f"[+] {log_file_path}" + colorText.END)
     print(
         colorText.BOLD
         + colorText.GREEN
-        + f"[+] If you need to share, open this folder, copy and zip the log file to share."
+        + "[+] If you need to share, open this folder, copy and zip the log file to share."
         + colorText.END
     )
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
@@ -177,7 +177,7 @@ def pkscreenercli():
     if args.log or configManager.logsEnabled:
         setupLogger(shouldLog=True, trace=args.testbuild)
         if not args.prodbuild and args.answerdefault is None:
-            input(f"Press any key to continue...")
+            input("Press any key to continue...")
     import pkscreener.classes.Utility as Utility
     from pkscreener.globals import main
 

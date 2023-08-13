@@ -30,11 +30,7 @@
 
 # Get from telegram
 # See tutorial https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token
-import json
-import re
-from datetime import datetime
 
-import pandas as pd
 import requests
 from dotenv import dotenv_values
 from telegram.constants import ParseMode
@@ -112,10 +108,9 @@ def is_token_telegram_configured():
 
 
 def send_exception(ex, extra_mes=""):
-    message_aler = extra_mes + "   ** Exception **" + str(ex)
+    extra_mes + "   ** Exception **" + str(ex)
     if not is_token_telegram_configured():
         return
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_idADMIN}&text={message_aler}"
 
 
 def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None):
@@ -210,7 +205,6 @@ def send_document(
         return
     document = open(documentFilePath, "rb")
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
-    url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
     if message_id is not None:
         params = {
             "chat_id": (userID if userID is not None else Channel_Id),

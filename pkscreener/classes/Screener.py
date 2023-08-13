@@ -338,7 +338,7 @@ class tools:
 
         data = data[::-1]
         data["Number"] = np.arange(len(data)) + 1
-        data_high = data.copy()
+        # data_high = data.copy()
         data_low = data.copy()
         points = 30
 
@@ -615,7 +615,7 @@ class tools:
         data.insert(10, "RSI", rsi)
         cci = pktalib.CCI(data["High"], data["Low"], data["Close"], timeperiod=14)
         data.insert(11, "CCI", cci)
-        x = len(data["Close"])
+        # len(data["Close"])
         fastk, fastd = pktalib.STOCHRSI(
             data["Close"], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0
         )
@@ -1199,7 +1199,7 @@ class tools:
             data = data.fillna(0)
             data = data.replace([np.inf, -np.inf], 0)
             tops = data[data.tops > 0]
-            bots = data[data.bots > 0]
+            # bots = data[data.bots > 0]
             highestTop = round(tops.describe()["High"]["max"], 1)
             filteredTops = tops[
                 tops.tops > (highestTop - (highestTop * percentageFromTop))

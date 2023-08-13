@@ -70,7 +70,7 @@ class tools:
     def fetchCodes(self, tickerOption, proxyServer=None):
         listStockCodes = []
         if tickerOption == 12:
-            url = f"https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+            url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
             if proxyServer:
                 res = session.get(
                     url,
@@ -134,7 +134,7 @@ class tools:
         listStockCodes = []
         if tickerOption == 0:
             stockCode = None
-            while stockCode == None or stockCode == "":
+            while stockCode is None or stockCode == "":
                 stockCode = str(
                     input(
                         colorText.BOLD

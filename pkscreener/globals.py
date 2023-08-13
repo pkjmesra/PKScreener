@@ -115,7 +115,7 @@ def initExecution(menuOption=None):
 
     m0.renderForMenu(selectedMenu=None)
     try:
-        if menuOption == None:
+        if menuOption is None:
             menuOption = input(colorText.BOLD + colorText.FAIL + "[+] Select option: ")
             print(colorText.END, end="")
         if menuOption == "":
@@ -438,7 +438,7 @@ def getScannerMenuChoices(
 
 def handleScannerExecuteOption4(executeOption, options):
     try:
-        selectedMenu = m2.find(str(executeOption))
+        # m2.find(str(executeOption))
         if len(options) >= 4:
             daysForLowestVolume = int(options[3])
         else:
@@ -1050,7 +1050,7 @@ def main(
                 print(
                     colorText.BOLD
                     + colorText.FAIL
-                    + f"[+] Would you like to sort the results?"
+                    + "[+] Would you like to sort the results?"
                     + colorText.END
                 )
                 print(

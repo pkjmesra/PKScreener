@@ -7,16 +7,11 @@
 # pytest --cov --cov-report=html:coverage_re
 
 import configparser
-import json
 import os
-import platform
 import shutil
 import sys
 
-import numpy as np
-import pandas as pd
 import pytest
-import requests
 
 try:
     shutil.copyfile("pkscreener/.env.dev", ".env.dev")
@@ -31,7 +26,7 @@ from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.log import default_logger
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
-from pkscreener.pkscreenercli import *
+from pkscreener.pkscreenercli import disableSysOut
 
 session = CachedSession("pkscreener_cache", cache_control=True)
 last_release = 0
@@ -66,7 +61,7 @@ def test_if_release_version_increamented():
         version_components = tag.split(".")
         major_minor = ".".join([version_components[0], version_components[1]])
         last_release = float(major_minor)
-    except:
+    except Exception:
         if r.json()["message"] == "Not Found":
             last_release = 0
     assert float(VERSION) >= last_release
@@ -386,6 +381,6 @@ def test_release_readme_urls():
     ]
     if float(VERSION) > float(last_release):
         for url in failUrl:
-            assert not url in contents
+            assert url not in contents
     for url in passUrl:
         assert url in contents

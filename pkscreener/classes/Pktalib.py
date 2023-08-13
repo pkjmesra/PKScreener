@@ -39,7 +39,7 @@ else:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + f"[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python"
+            + "[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python"
             + colorText.END
         )
         sleep(5)

@@ -75,7 +75,7 @@ def saveData(data, fileName):
     filePath = resolveFilePath(fileName)
     try:
         data.to_pickle(filePath)
-    except Exception as e:
+    except Exception:
         # print(e)
         pass
 
@@ -88,7 +88,7 @@ def readData(fileName):
     try:
         unpickled_df = pd.read_pickle(filePath)
         return unpickled_df, filePath, get_last_modified_datetime(filePath)
-    except Exception as e:
+    except Exception:
         # print(e)
         pass
     return None, filePath, None
