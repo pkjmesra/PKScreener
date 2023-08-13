@@ -309,7 +309,7 @@ class menus:
     def renderLevel3_X_ChartPattern_Menus(self,skip=[], asList=False,renderStyle=MenuRenderStyle.STANDALONE,parent=None):
         menuText = self.fromDictionary(level3_X_ChartPattern_MenuDict,
                                                    renderExceptionKeys=['0'],
-                                                   renderStyle=renderStyle,
+                                                   renderStyle=renderStyle if renderStyle is not None else MenuRenderStyle.STANDALONE,
                                                    skip=skip,parent=parent).render(asList=asList)
         if asList:
             return menuText

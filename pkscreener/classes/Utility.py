@@ -559,7 +559,7 @@ class tools:
                 percent = float(input(colorText.BOLD + colorText.WARN +
                                       "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : " + colorText.END))
                 return (resp, percent/100.0)
-            if resp >= 0 and resp <= 5:
+            if resp >= 0 and resp <= 6:
                 return resp, 0
             raise ValueError
         except ValueError as e:

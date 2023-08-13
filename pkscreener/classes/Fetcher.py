@@ -41,6 +41,8 @@ from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.SuppressOutput import SuppressOutput
 from pkscreener.classes.log import default_logger
 from requests_cache import CachedSession
+import requests
+requests.packages.urllib3.util.connection.HAS_IPV6 = False
 session = CachedSession('pkscreener_cache', expire_after=timedelta(hours=1),stale_if_error=True,)
 
 # Exception class if yfinance stock delisted

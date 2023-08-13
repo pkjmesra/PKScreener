@@ -23,14 +23,18 @@
 
 """
 import numpy as np
+from time import sleep
 from pkscreener import Imports
 from pkscreener.classes.log import default_logger
+from pkscreener.classes.ColorText import colorText
 
 if Imports['talib']:
     import talib
 else:
     try:
         import pandas_ta as talib
+        print(colorText.BOLD + colorText.FAIL + f'[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python' + colorText.END)
+        sleep(5)
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         import talib

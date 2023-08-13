@@ -327,7 +327,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
     minRSI = 0
     maxRSI = 100
     insideBarToLookback = 7
-    respChartPattern = 1
+    respChartPattern = None
     daysForLowestVolume = 30
     backtestPeriod= 0
     reversalOption = None
@@ -420,6 +420,8 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
                 insideBarToLookback = 0
             else:
                 respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(selectedMenu)
+        else:
+            respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(selectedMenu)
         if respChartPattern is None or insideBarToLookback is None:
             main(testing=testing, testBuild=testBuild, downloadOnly=downloadOnly,
              startupoptions=startupoptions,defaultConsoleAnswer=defaultConsoleAnswer,
@@ -593,7 +595,7 @@ def main(testing=False, testBuild=False, downloadOnly=False, startupoptions=None
             items.extend(moreItems)
             iteration = iteration + 1
             historicalDays = sampleDays - iteration
-        tasks_queue, results_queue, totalConsumers = initQueues()
+        tasks_queue, results_queue, totalConsumers = initQueues(len(items))
         consumers = [PKMultiProcessorClient(StockConsumer().screenStocks, tasks_queue, results_queue, screenCounter, screenResultsCounter, stockDict, proxyServer, keyboardInterruptEvent, default_logger())
                     for _ in range(totalConsumers)]
         startWorkers(consumers)
@@ -786,11 +788,11 @@ def startWorkers(consumers):
         worker.daemon = True
         worker.start()
 
-def initQueues():
+def initQueues(minimumCount=0):
     tasks_queue = multiprocessing.JoinableQueue()
     results_queue = multiprocessing.Queue()
 
-    totalConsumers = multiprocessing.cpu_count()
+    totalConsumers = min(minimumCount,multiprocessing.cpu_count())
     if totalConsumers == 1:
         totalConsumers = 2      # This is required for single core machine
     if configManager.cacheEnabled is True and multiprocessing.cpu_count() > 2:

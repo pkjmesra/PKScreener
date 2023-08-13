@@ -284,6 +284,8 @@ class tools:
         import warnings 
         warnings.filterwarnings("ignore")
         model, pkl = Utility.tools.getNiftyModel(proxyServer=proxyServer)
+        if model is None or pkl is None:
+            return 0, 'Unknown', 'Unknown'
         with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
             data = data[pkl['columns']]
             ### v2 Preprocessing

@@ -279,7 +279,6 @@ def test_option_X_1_11(mocker):
 
 def test_option_X_Z(mocker, capsys):
     try:
-
         mocker.patch('builtins.input', side_effect=['X','Z',''])
         with pytest.raises(SystemExit):
             main(testing=True, startupoptions='X:Z', defaultConsoleAnswer='Y')
@@ -292,9 +291,9 @@ def test_option_X_12_1(mocker):
     try:
         cleanup()
         mocker.patch('builtins.input', side_effect=['X', '12', '1','y'])
-        main(testing=True, startupoptions='X:12:1', defaultConsoleAnswer='Y')
+        main(testing=False, startupoptions='X:12:1', defaultConsoleAnswer='Y')
         assert globals.screenResults is not None
-        assert len(globals.screenResults) > 0
+        assert globals.screenResultsCounter.value > 0
     except StopIteration:
         pass
 
