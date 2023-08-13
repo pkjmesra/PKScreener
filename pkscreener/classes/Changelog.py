@@ -22,18 +22,27 @@
     SOFTWARE.
 
 """
-'''
+"""
  *  Project             :   Screenipy
  *  Author              :   Pranjal Joshi
  *  Created             :   28/04/2021
  *  Description         :   Class for maintaining changelog
-'''
+"""
 
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
+
 def changelog():
-    return colorText.BOLD + '[ChangeLog]\n' + colorText.END + colorText.BLUE + OTAUpdater.showWhatsNew() + '''
+    return (
+        colorText.BOLD
+        + "[ChangeLog]\n"
+        + colorText.END
+        + colorText.BLUE
+        + OTAUpdater.showWhatsNew()
+        + """
 
     --- END ---
-    ''' + colorText.END
+    """
+        + colorText.END
+    )

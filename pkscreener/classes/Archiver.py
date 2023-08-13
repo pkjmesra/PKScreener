@@ -22,43 +22,55 @@
     SOFTWARE.
 
 """
+import os
+import os.path
 import tempfile
 from datetime import datetime, timezone
-import pytz
-import os, os.path
+
 import pandas as pd
+import pytz
+
 
 def resolveFilePath(fileName):
     if fileName is None:
-       fileName = ''
-    dirPath = os.path.join(tempfile.gettempdir(),'pkscreener')
-    filePath = os.path.join(dirPath,fileName)
+        fileName = ""
+    dirPath = os.path.join(tempfile.gettempdir(), "pkscreener")
+    filePath = os.path.join(dirPath, fileName)
     safe_open_w(filePath)
     return filePath
+
 
 def get_last_modified_datetime(file_path):
     last_modified = datetime.utcfromtimestamp(os.path.getmtime(file_path))
     return utc_to_ist(last_modified)
-  
+
+
 def utc_to_ist(utc_dt):
-    return pytz.utc.localize(utc_dt).replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Asia/Kolkata'))
+    return (
+        pytz.utc.localize(utc_dt)
+        .replace(tzinfo=timezone.utc)
+        .astimezone(tz=pytz.timezone("Asia/Kolkata"))
+    )
+
 
 def cacheFile(stringData, fileName):
     filePath = resolveFilePath(fileName)
-    with open(filePath, 'w') as f:
+    with open(filePath, "w") as f:
         f.write(stringData)
+
 
 def findFile(fileName):
     filePath = resolveFilePath(fileName)
     try:
-        with open(filePath, 'r') as f:
+        with open(filePath, "r") as f:
             stringData = f.read()
         return stringData, filePath, get_last_modified_datetime(filePath)
     except:
         return None, filePath, None
-    
+
+
 def saveData(data, fileName):
-    if not len(data) > 0 or fileName == '' or fileName is None:
+    if not len(data) > 0 or fileName == "" or fileName is None:
         return
     filePath = resolveFilePath(fileName)
     try:
@@ -67,21 +79,22 @@ def saveData(data, fileName):
         # print(e)
         pass
 
+
 def readData(fileName):
-    if fileName == '' or fileName is None:
+    if fileName == "" or fileName is None:
         return
     filePath = resolveFilePath(fileName)
     unpickled_df = None
     try:
         unpickled_df = pd.read_pickle(filePath)
-        return unpickled_df,filePath, get_last_modified_datetime(filePath)
+        return unpickled_df, filePath, get_last_modified_datetime(filePath)
     except Exception as e:
         # print(e)
         pass
-    return None,filePath, None
+    return None, filePath, None
+
 
 def safe_open_w(path):
-    ''' Open "path" for writing, creating any parent directories as needed.
-    '''
+    """Open "path" for writing, creating any parent directories as needed."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     # return open(path, 'wb')

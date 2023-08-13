@@ -23,10 +23,10 @@
 
 """
 
-import multiprocessing
 import logging
-import sys
+import multiprocessing
 import os
+import sys
 from queue import Empty
 
 # usage: pkscreenercli.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
@@ -35,28 +35,41 @@ from queue import Empty
 # Module multiprocessing is organized differently in Python 3.4+
 try:
     # Python 3.4+
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         import multiprocessing.popen_spawn_win32 as forking
     else:
         import multiprocessing.popen_fork as forking
 except ImportError:
-    print('Contact developer! Your platform does not support multiprocessing!')
-    input('Press any key to exit...')
+    print("Contact developer! Your platform does not support multiprocessing!")
+    input("Press any key to exit...")
     sys.exit(0)
 
-class PKMultiProcessorClient(multiprocessing.Process):
 
-    def __init__(self, processorMethod, task_queue, result_queue, processingCounter, processingResultsCounter, objectDictionary, proxyServer, keyboardInterruptEvent, defaultLogger):
+class PKMultiProcessorClient(multiprocessing.Process):
+    def __init__(
+        self,
+        processorMethod,
+        task_queue,
+        result_queue,
+        processingCounter,
+        processingResultsCounter,
+        objectDictionary,
+        proxyServer,
+        keyboardInterruptEvent,
+        defaultLogger,
+    ):
         multiprocessing.Process.__init__(self)
         self.multiprocessingForWindows()
-        assert processorMethod is not None, 'processorMethod argument must not be None. This is the meyhod that will do the processing.'
-        assert task_queue is not None, 'task_queue argument must not be None.'
-        assert result_queue is not None, 'result_queue argument must not be None.'
+        assert (
+            processorMethod is not None
+        ), "processorMethod argument must not be None. This is the meyhod that will do the processing."
+        assert task_queue is not None, "task_queue argument must not be None."
+        assert result_queue is not None, "result_queue argument must not be None."
         self.processorMethod = processorMethod
         self.task_queue = task_queue
         self.result_queue = result_queue
         # processingCounter and processingResultsCounter
-        # are sunchronized counters that can be used within 
+        # are sunchronized counters that can be used within
         # processorMethod via hostRef.processingCounter
         # or hostRef.processingResultsCounter
         self.processingCounter = processingCounter
@@ -73,10 +86,10 @@ class PKMultiProcessorClient(multiprocessing.Process):
         # and can be accessed using hostRef.default_logger
         # within processorMethod
         self.default_logger = defaultLogger
-        
+
         self.keyboardInterruptEvent = keyboardInterruptEvent
         if defaultLogger is not None:
-            self.default_logger.info('StockConsumer initialized.')
+            self.default_logger.info("StockConsumer initialized.")
         else:
             # Let's get the root logger by default
             self.default_logger = logging.getLogger(name=None)
@@ -87,45 +100,45 @@ class PKMultiProcessorClient(multiprocessing.Process):
                 try:
                     next_task = self.task_queue.get()
                     if next_task is not None:
-                        # Inject a reference to this instance of the client 
-                        # so that the task can still get access back to it. 
+                        # Inject a reference to this instance of the client
+                        # so that the task can still get access back to it.
                         next_task = (*(next_task), self)
                 except Empty as e:
                     self.default_logger.debug(e, exc_info=True)
                     continue
                 if next_task is None:
-                    self.default_logger.info('No next task in queue')
+                    self.default_logger.info("No next task in queue")
                     self.task_queue.task_done()
                     break
                 answer = self.processorMethod(*(next_task))
                 self.task_queue.task_done()
-                self.default_logger.info(f'Task done. Result:{answer}')
+                self.default_logger.info(f"Task done. Result:{answer}")
                 self.result_queue.put(answer)
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)
             sys.exit(0)
 
     def multiprocessingForWindows(self):
-        if sys.platform.startswith('win'):
+        if sys.platform.startswith("win"):
             # First define a modified version of Popen.
             class _Popen(forking.Popen):
                 def __init__(self, *args, **kw):
-                    if hasattr(sys, 'frozen'):
+                    if hasattr(sys, "frozen"):
                         # We have to set original _MEIPASS2 value from sys._MEIPASS
                         # to get --onefile mode working.
-                        os.putenv('_MEIPASS2', sys._MEIPASS)
+                        os.putenv("_MEIPASS2", sys._MEIPASS)
                     try:
                         super(_Popen, self).__init__(*args, **kw)
                     finally:
-                        if hasattr(sys, 'frozen'):
+                        if hasattr(sys, "frozen"):
                             # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                             # available. In those cases we cannot delete the variable
                             # but only set it to the empty string. The bootloader
                             # can handle this case.
-                            if hasattr(os, 'unsetenv'):
-                                os.unsetenv('_MEIPASS2')
+                            if hasattr(os, "unsetenv"):
+                                os.unsetenv("_MEIPASS2")
                             else:
-                                os.putenv('_MEIPASS2', '')
+                                os.putenv("_MEIPASS2", "")
 
             # Second override 'Popen' class with our modified version.
             forking.Popen = _Popen

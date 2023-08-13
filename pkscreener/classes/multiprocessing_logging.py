@@ -35,6 +35,7 @@ except ImportError:  # Python 2.
     from Queue import Empty  # type: ignore[no-redef]
 __version__ = "0.3.4"
 
+
 def install_mp_handler(logger=None):
     """Wraps the handlers in the given Logger with an MultiProcessingHandler.
 
@@ -44,7 +45,9 @@ def install_mp_handler(logger=None):
         logger = logging.getLogger()
 
     for i, orig_handler in enumerate(list(logger.handlers)):
-        handler = MultiProcessingHandler("mp-handler-{0}".format(i), sub_handler=orig_handler)
+        handler = MultiProcessingHandler(
+            "mp-handler-{0}".format(i), sub_handler=orig_handler
+        )
 
         logger.removeHandler(orig_handler)
         logger.addHandler(handler)

@@ -22,28 +22,35 @@
     SOFTWARE.
 
 """
-'''
+"""
  *  Project             :   Screenipy
  *  Author              :   Pranjal Joshi
  *  Created             :   28/04/2021
  *  Description         :   Class for handling networking for fetching stock codes and data
-'''
+"""
 
-import sys
 import csv
+import os
+import random
+import sys
 from datetime import timedelta
 from io import StringIO
-import random
-import os
-import yfinance as yf
+
 import pandas as pd
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.SuppressOutput import SuppressOutput
-from pkscreener.classes.log import default_logger
-from requests_cache import CachedSession
 import requests
+import yfinance as yf
+from requests_cache import CachedSession
+
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.log import default_logger
+from pkscreener.classes.SuppressOutput import SuppressOutput
+
 requests.packages.urllib3.util.connection.HAS_IPV6 = False
-session = CachedSession('pkscreener_cache', expire_after=timedelta(hours=1),stale_if_error=True,)
+session = CachedSession(
+    "pkscreener_cache",
+    expire_after=timedelta(hours=1),
+    stale_if_error=True,
+)
 
 # Exception class if yfinance stock delisted
 
@@ -51,25 +58,31 @@ session = CachedSession('pkscreener_cache', expire_after=timedelta(hours=1),stal
 class StockDataEmptyException(Exception):
     pass
 
+
 # This Class Handles Fetching of Stock Data over the internet
 
 
 class tools:
-
     def __init__(self, configManager):
         self.configManager = configManager
         pass
 
-    def fetchCodes(self, tickerOption,proxyServer=None):
+    def fetchCodes(self, tickerOption, proxyServer=None):
         listStockCodes = []
         if tickerOption == 12:
             url = f"https://archives.nseindia.com/content/equities/EQUITY_L.csv"
             if proxyServer:
-                res = session.get(url,proxies={'https':proxyServer},timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
+                res = session.get(
+                    url,
+                    proxies={"https": proxyServer},
+                    timeout=self.configManager.generalTimeout,
+                )  # headers={'Connection': 'Close'})
             else:
-                res = session.get(url,timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
+                res = session.get(
+                    url, timeout=self.configManager.generalTimeout
+                )  # headers={'Connection': 'Close'})
             data = pd.read_csv(StringIO(res.text))
-            return list(data['SYMBOL'].values)
+            return list(data["SYMBOL"].values)
         tickerMapping = {
             1: "https://archives.nseindia.com/content/indices/ind_nifty50list.csv",
             2: "https://archives.nseindia.com/content/indices/ind_niftynext50list.csv",
@@ -82,24 +95,30 @@ class tools:
             9: "https://archives.nseindia.com/content/indices/ind_niftymidcap50list.csv",
             10: "https://archives.nseindia.com/content/indices/ind_niftymidcap100list.csv",
             11: "https://archives.nseindia.com/content/indices/ind_niftymidcap150list.csv",
-            14: "https://archives.nseindia.com/content/fo/fo_mktlots.csv"
+            14: "https://archives.nseindia.com/content/fo/fo_mktlots.csv",
         }
 
         url = tickerMapping.get(tickerOption)
 
         try:
             if proxyServer:
-                res = session.get(url,proxies={'https':proxyServer},timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
+                res = session.get(
+                    url,
+                    proxies={"https": proxyServer},
+                    timeout=self.configManager.generalTimeout,
+                )  # headers={'Connection': 'Close'})
             else:
-                res = session.get(url,timeout=self.configManager.generalTimeout) #headers={'Connection': 'Close'})
-            
-            cr = csv.reader(res.text.strip().split('\n'))
-            
+                res = session.get(
+                    url, timeout=self.configManager.generalTimeout
+                )  # headers={'Connection': 'Close'})
+
+            cr = csv.reader(res.text.strip().split("\n"))
+
             if tickerOption == 14:
                 for i in range(5):
                     next(cr)  # skipping first line
                 for row in cr:
-                    listStockCodes.append(row[1])                
+                    listStockCodes.append(row[1])
             else:
                 next(cr)  # skipping first line
                 for row in cr:
@@ -116,112 +135,166 @@ class tools:
         if tickerOption == 0:
             stockCode = None
             while stockCode == None or stockCode == "":
-                stockCode = str(input(colorText.BOLD + colorText.BLUE +
-                                      "[+] Enter Stock Code(s) for screening (Multiple codes should be seperated by ,): ")).upper()
+                stockCode = str(
+                    input(
+                        colorText.BOLD
+                        + colorText.BLUE
+                        + "[+] Enter Stock Code(s) for screening (Multiple codes should be seperated by ,): "
+                    )
+                ).upper()
             stockCode = stockCode.replace(" ", "")
-            listStockCodes = stockCode.split(',')
+            listStockCodes = stockCode.split(",")
         else:
-            print(colorText.BOLD +
-                  "[+] Getting Stock Codes From NSE... ", end='')
-            listStockCodes = self.fetchCodes(tickerOption,proxyServer=proxyServer)
+            print(colorText.BOLD + "[+] Getting Stock Codes From NSE... ", end="")
+            listStockCodes = self.fetchCodes(tickerOption, proxyServer=proxyServer)
             if len(listStockCodes) > 10:
-                print(colorText.GREEN + ("=> Done! Fetched %d stock codes." %
-                                         len(listStockCodes)) + colorText.END)
+                print(
+                    colorText.GREEN
+                    + ("=> Done! Fetched %d stock codes." % len(listStockCodes))
+                    + colorText.END
+                )
                 if self.configManager.shuffleEnabled:
                     random.shuffle(listStockCodes)
-                    print(colorText.BLUE +
-                          "[+] Stock shuffling is active." + colorText.END)
+                    print(
+                        colorText.BLUE
+                        + "[+] Stock shuffling is active."
+                        + colorText.END
+                    )
                 else:
-                    print(colorText.FAIL +
-                          "[+] Stock shuffling is inactive." + colorText.END)
+                    print(
+                        colorText.FAIL
+                        + "[+] Stock shuffling is inactive."
+                        + colorText.END
+                    )
                 if self.configManager.stageTwo:
                     print(
-                        colorText.BLUE + "[+] Screening only for the stocks in Stage-2! Edit User Config to change this." + colorText.END)
+                        colorText.BLUE
+                        + "[+] Screening only for the stocks in Stage-2! Edit User Config to change this."
+                        + colorText.END
+                    )
                 else:
                     print(
-                        colorText.FAIL + "[+] Screening only for the stocks in all Stages! Edit User Config to change this." + colorText.END)
+                        colorText.FAIL
+                        + "[+] Screening only for the stocks in all Stages! Edit User Config to change this."
+                        + colorText.END
+                    )
 
             else:
                 input(
-                    colorText.FAIL + "=> Error getting stock codes from NSE! Press any key to exit!" + colorText.END)
+                    colorText.FAIL
+                    + "=> Error getting stock codes from NSE! Press any key to exit!"
+                    + colorText.END
+                )
                 sys.exit("Exiting script..")
 
         return listStockCodes
 
     # Fetch stock price data from Yahoo finance
-    def fetchStockData(self, stockCode, period, duration, proxyServer, screenResultsCounter, screenCounter, totalSymbols, printCounter=False):
+    def fetchStockData(
+        self,
+        stockCode,
+        period,
+        duration,
+        proxyServer,
+        screenResultsCounter,
+        screenCounter,
+        totalSymbols,
+        printCounter=False,
+    ):
         with SuppressOutput(suppress_stdout=True, suppress_stderr=True):
             data = yf.download(
-                tickers=stockCode+".NS",
+                tickers=stockCode + ".NS",
                 period=period,
                 interval=duration,
                 proxy=proxyServer,
                 progress=False,
-                timeout=self.configManager.longTimeout
+                timeout=self.configManager.longTimeout,
             )
         if printCounter:
             sys.stdout.write("\r\033[K")
             try:
-                print(colorText.BOLD + colorText.GREEN + ("[%d%%] Screened %d, Found %d. Fetching data & Analyzing %s..." % (
-                    int((screenCounter.value/totalSymbols)*100), screenCounter.value, screenResultsCounter.value, stockCode)) + colorText.END, end='')
+                print(
+                    colorText.BOLD
+                    + colorText.GREEN
+                    + (
+                        "[%d%%] Screened %d, Found %d. Fetching data & Analyzing %s..."
+                        % (
+                            int((screenCounter.value / totalSymbols) * 100),
+                            screenCounter.value,
+                            screenResultsCounter.value,
+                            stockCode,
+                        )
+                    )
+                    + colorText.END,
+                    end="",
+                )
             except ZeroDivisionError as e:
                 default_logger().debug(e, exc_info=True)
                 pass
             if len(data) == 0:
-                print(colorText.BOLD + colorText.FAIL +
-                      "=> Failed to fetch!" + colorText.END, end='\r', flush=True)
+                print(
+                    colorText.BOLD
+                    + colorText.FAIL
+                    + "=> Failed to fetch!"
+                    + colorText.END,
+                    end="\r",
+                    flush=True,
+                )
                 raise StockDataEmptyException
                 return None
-            print(colorText.BOLD + colorText.GREEN + "=> Done!" +
-                  colorText.END, end='\r', flush=True)
+            print(
+                colorText.BOLD + colorText.GREEN + "=> Done!" + colorText.END,
+                end="\r",
+                flush=True,
+            )
         return data
 
     # Get Daily Nifty 50 Index:
     def fetchLatestNiftyDaily(self, proxyServer=None):
         data = yf.download(
-                tickers="^NSEI",
-                period='5d',
-                interval='1d',
-                proxy=proxyServer,
-                progress=False,
-                timeout=self.configManager.longTimeout
-            )
+            tickers="^NSEI",
+            period="5d",
+            interval="1d",
+            proxy=proxyServer,
+            progress=False,
+            timeout=self.configManager.longTimeout,
+        )
         return data
 
     # Get Data for Five EMA strategy
     def fetchFiveEmaData(self, proxyServer=None):
         nifty_sell = yf.download(
-                tickers="^NSEI",
-                period='5d',
-                interval='5m',
-                proxy=proxyServer,
-                progress=False,
-                timeout=self.configManager.longTimeout
-            )
+            tickers="^NSEI",
+            period="5d",
+            interval="5m",
+            proxy=proxyServer,
+            progress=False,
+            timeout=self.configManager.longTimeout,
+        )
         banknifty_sell = yf.download(
-                tickers="^NSEBANK",
-                period='5d',
-                interval='5m',
-                proxy=proxyServer,
-                progress=False,
-                timeout=self.configManager.longTimeout
-            )
+            tickers="^NSEBANK",
+            period="5d",
+            interval="5m",
+            proxy=proxyServer,
+            progress=False,
+            timeout=self.configManager.longTimeout,
+        )
         nifty_buy = yf.download(
-                tickers="^NSEI",
-                period='5d',
-                interval='15m',
-                proxy=proxyServer,
-                progress=False,
-                timeout=self.configManager.longTimeout
-            )
+            tickers="^NSEI",
+            period="5d",
+            interval="15m",
+            proxy=proxyServer,
+            progress=False,
+            timeout=self.configManager.longTimeout,
+        )
         banknifty_buy = yf.download(
-                tickers="^NSEBANK",
-                period='5d',
-                interval='15m',
-                proxy=proxyServer,
-                progress=False,
-                timeout=self.configManager.longTimeout
-            )
+            tickers="^NSEBANK",
+            period="5d",
+            interval="15m",
+            proxy=proxyServer,
+            progress=False,
+            timeout=self.configManager.longTimeout,
+        )
         return nifty_buy, banknifty_buy, nifty_sell, banknifty_sell
 
     # Load stockCodes from the watchlist.xlsx
@@ -229,26 +302,37 @@ class tools:
         createTemplate = False
         data = pd.DataFrame()
         try:
-            data = pd.read_excel('watchlist.xlsx')
+            data = pd.read_excel("watchlist.xlsx")
         except FileNotFoundError as e:
             default_logger().debug(e, exc_info=True)
-            print(colorText.BOLD + colorText.FAIL +
-                  f'[+] watchlist.xlsx not found in f{os.getcwd()}' + colorText.END)
+            print(
+                colorText.BOLD
+                + colorText.FAIL
+                + f"[+] watchlist.xlsx not found in f{os.getcwd()}"
+                + colorText.END
+            )
             createTemplate = True
         try:
             if not createTemplate:
-                data = data['Stock Code'].values.tolist()
+                data = data["Stock Code"].values.tolist()
         except KeyError as e:
             default_logger().debug(e, exc_info=True)
-            print(colorText.BOLD + colorText.FAIL +
-                  '[+] Bad Watchlist Format: First Column (A1) should have Header named "Stock Code"' + colorText.END)
+            print(
+                colorText.BOLD
+                + colorText.FAIL
+                + '[+] Bad Watchlist Format: First Column (A1) should have Header named "Stock Code"'
+                + colorText.END
+            )
             createTemplate = True
         if createTemplate:
-            sample = {'Stock Code': ['SBIN', 'INFY', 'TATAMOTORS', 'ITC']}
-            sample_data = pd.DataFrame(sample, columns=['Stock Code'])
-            sample_data.to_excel('watchlist_template.xlsx',
-                                 index=False, header=True)
-            print(colorText.BOLD + colorText.BLUE +
-                  f'[+] watchlist_template.xlsx created in {os.getcwd()} as a referance template.' + colorText.END)
+            sample = {"Stock Code": ["SBIN", "INFY", "TATAMOTORS", "ITC"]}
+            sample_data = pd.DataFrame(sample, columns=["Stock Code"])
+            sample_data.to_excel("watchlist_template.xlsx", index=False, header=True)
+            print(
+                colorText.BOLD
+                + colorText.BLUE
+                + f"[+] watchlist_template.xlsx created in {os.getcwd()} as a referance template."
+                + colorText.END
+            )
             return None
         return data

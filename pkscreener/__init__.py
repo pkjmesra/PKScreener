@@ -23,6 +23,7 @@
 
 """
 from importlib.util import find_spec
+
 Imports = {
     "scipy": find_spec("scipy") is not None,
     "sklearn": find_spec("sklearn") is not None,

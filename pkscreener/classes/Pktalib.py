@@ -22,73 +22,81 @@
     SOFTWARE.
 
 """
-import numpy as np
 from time import sleep
-from pkscreener import Imports
-from pkscreener.classes.log import default_logger
-from pkscreener.classes.ColorText import colorText
 
-if Imports['talib']:
+import numpy as np
+
+from pkscreener import Imports
+from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.log import default_logger
+
+if Imports["talib"]:
     import talib
 else:
     try:
         import pandas_ta as talib
-        print(colorText.BOLD + colorText.FAIL + f'[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python' + colorText.END)
+
+        print(
+            colorText.BOLD
+            + colorText.FAIL
+            + f"[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python"
+            + colorText.END
+        )
         sleep(5)
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         import talib
 
-class pktalib:
 
+class pktalib:
     @classmethod
     def EMA(self, close, timeperiod):
         try:
-            return talib.ema(close,timeperiod)
+            return talib.ema(close, timeperiod)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.EMA(close,timeperiod)
+            return talib.EMA(close, timeperiod)
 
     @classmethod
     def SMA(self, close, timeperiod):
         try:
-            return talib.sma(close,timeperiod)
+            return talib.sma(close, timeperiod)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.SMA(close,timeperiod)
-        
+            return talib.SMA(close, timeperiod)
+
     @classmethod
     def MA(self, close, timeperiod):
         try:
-            return talib.ma(close,timeperiod)
+            return talib.ma(close, timeperiod)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.MA(close,timeperiod)
+            return talib.MA(close, timeperiod)
 
     @classmethod
     def MACD(self, close, fast, slow, signal):
         try:
-            return talib.macd(close,fast,slow,signal)
+            return talib.macd(close, fast, slow, signal)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.MACD(close,fast,slow,signal)
+            return talib.MACD(close, fast, slow, signal)
 
     @classmethod
     def RSI(self, close, timeperiod):
         try:
-            return talib.rsi(close,timeperiod)
+            return talib.rsi(close, timeperiod)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.RSI(close,timeperiod)
-    
+            return talib.RSI(close, timeperiod)
+
     @classmethod
     def CCI(self, high, low, close, timeperiod):
         try:
-            return talib.cci(high, low, close,timeperiod)
+            return talib.cci(high, low, close, timeperiod)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CCI(high, low, close,timeperiod)
-    
+            return talib.CCI(high, low, close, timeperiod)
+
     @classmethod
     def STOCHRSI(self, close, timeperiod, fastk_period, fastd_period, fastd_matype):
         try:
@@ -96,188 +104,202 @@ class pktalib:
             _props = f"_{timeperiod}_{timeperiod}_{fastk_period}_{fastd_period}"
             stochrsi_kname = f"{_name}k{_props}"
             stochrsi_dname = f"{_name}d{_props}"
-            df= talib.stochrsi(close,length=timeperiod, rsi_length=timeperiod, k=fastk_period, d=fastd_period, mamode=fastd_matype)
+            df = talib.stochrsi(
+                close,
+                length=timeperiod,
+                rsi_length=timeperiod,
+                k=fastk_period,
+                d=fastd_period,
+                mamode=fastd_matype,
+            )
             return df[stochrsi_kname], df[stochrsi_dname]
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.STOCHRSI(close.values,timeperiod,fastk_period,fastd_period,fastd_matype)
-    
+            return talib.STOCHRSI(
+                close.values, timeperiod, fastk_period, fastd_period, fastd_matype
+            )
+
     @classmethod
-    def ichimoku(self, df, tenkan=None, kijun=None, senkou=None, include_chikou=True, offset=None):
+    def ichimoku(
+        self, df, tenkan=None, kijun=None, senkou=None, include_chikou=True, offset=None
+    ):
         import pandas_ta as ta
-        ichimokudf, spandf = ta.ichimoku(df['high'],df['low'],df['close'], tenkan, kijun, senkou, False, 26)
+
+        ichimokudf, spandf = ta.ichimoku(
+            df["high"], df["low"], df["close"], tenkan, kijun, senkou, False, 26
+        )
         return ichimokudf
 
     @classmethod
     def CDLMORNINGSTAR(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'morningstar')
+            return talib.cdl_pattern(open, high, low, close, "morningstar")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLMORNINGSTAR(open,high,low,close)
+            return talib.CDLMORNINGSTAR(open, high, low, close)
 
     @classmethod
     def CDLMORNINGDOJISTAR(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'morningdojistar')
+            return talib.cdl_pattern(open, high, low, close, "morningdojistar")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLMORNINGDOJISTAR(open,high,low,close)
-    
+            return talib.CDLMORNINGDOJISTAR(open, high, low, close)
+
     @classmethod
     def CDLEVENINGSTAR(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'eveningstar')
+            return talib.cdl_pattern(open, high, low, close, "eveningstar")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLEVENINGSTAR(open,high,low,close)
-    
+            return talib.CDLEVENINGSTAR(open, high, low, close)
+
     @classmethod
     def CDLEVENINGDOJISTAR(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'eveningdojistar')
+            return talib.cdl_pattern(open, high, low, close, "eveningdojistar")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLEVENINGDOJISTAR(open,high,low,close)
-    
+            return talib.CDLEVENINGDOJISTAR(open, high, low, close)
+
     @classmethod
     def CDLLADDERBOTTOM(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'ladderbottom')
+            return talib.cdl_pattern(open, high, low, close, "ladderbottom")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLLADDERBOTTOM(open,high,low,close)
-    
+            return talib.CDLLADDERBOTTOM(open, high, low, close)
+
     @classmethod
     def CDL3LINESTRIKE(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'3linestrike')
+            return talib.cdl_pattern(open, high, low, close, "3linestrike")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDL3LINESTRIKE(open,high,low,close)
-    
+            return talib.CDL3LINESTRIKE(open, high, low, close)
+
     @classmethod
     def CDL3BLACKCROWS(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'3blackcrows')
+            return talib.cdl_pattern(open, high, low, close, "3blackcrows")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDL3BLACKCROWS(open,high,low,close)
-    
+            return talib.CDL3BLACKCROWS(open, high, low, close)
+
     @classmethod
     def CDL3INSIDE(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'3inside')
+            return talib.cdl_pattern(open, high, low, close, "3inside")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDL3INSIDE(open,high,low,close)
-    
+            return talib.CDL3INSIDE(open, high, low, close)
+
     @classmethod
     def CDL3OUTSIDE(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'3outside')
+            return talib.cdl_pattern(open, high, low, close, "3outside")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDL3OUTSIDE(open,high,low,close)
-    
+            return talib.CDL3OUTSIDE(open, high, low, close)
+
     @classmethod
     def CDL3WHITESOLDIERS(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'3whitesoldiers')
+            return talib.cdl_pattern(open, high, low, close, "3whitesoldiers")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDL3WHITESOLDIERS(open,high,low,close)
-    
+            return talib.CDL3WHITESOLDIERS(open, high, low, close)
+
     @classmethod
     def CDLHARAMI(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'harami')
+            return talib.cdl_pattern(open, high, low, close, "harami")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLHARAMI(open,high,low,close)
-    
+            return talib.CDLHARAMI(open, high, low, close)
+
     @classmethod
     def CDLHARAMICROSS(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'haramicross')
+            return talib.cdl_pattern(open, high, low, close, "haramicross")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLHARAMICROSS(open,high,low,close)
-    
+            return talib.CDLHARAMICROSS(open, high, low, close)
+
     @classmethod
     def CDLMARUBOZU(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'marubozu')
+            return talib.cdl_pattern(open, high, low, close, "marubozu")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLMARUBOZU(open,high,low,close)
-    
+            return talib.CDLMARUBOZU(open, high, low, close)
+
     @classmethod
     def CDLHANGINGMAN(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'hangingman')
+            return talib.cdl_pattern(open, high, low, close, "hangingman")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLHANGINGMAN(open,high,low,close)
-    
+            return talib.CDLHANGINGMAN(open, high, low, close)
+
     @classmethod
     def CDLHAMMER(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'hammer')
+            return talib.cdl_pattern(open, high, low, close, "hammer")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLHAMMER(open,high,low,close)
-    
+            return talib.CDLHAMMER(open, high, low, close)
+
     @classmethod
     def CDLINVERTEDHAMMER(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'invertedhammer')
+            return talib.cdl_pattern(open, high, low, close, "invertedhammer")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLINVERTEDHAMMER(open,high,low,close)
-    
+            return talib.CDLINVERTEDHAMMER(open, high, low, close)
+
     @classmethod
     def CDLSHOOTINGSTAR(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'shootingstar')
+            return talib.cdl_pattern(open, high, low, close, "shootingstar")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLSHOOTINGSTAR(open,high,low,close)
-    
+            return talib.CDLSHOOTINGSTAR(open, high, low, close)
+
     @classmethod
     def CDLDRAGONFLYDOJI(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'dragonflydoji')
+            return talib.cdl_pattern(open, high, low, close, "dragonflydoji")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLDRAGONFLYDOJI(open,high,low,close)
-    
+            return talib.CDLDRAGONFLYDOJI(open, high, low, close)
+
     @classmethod
     def CDLGRAVESTONEDOJI(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'gravestonedoji')
+            return talib.cdl_pattern(open, high, low, close, "gravestonedoji")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLGRAVESTONEDOJI(open,high,low,close)
-    
+            return talib.CDLGRAVESTONEDOJI(open, high, low, close)
+
     @classmethod
     def CDLDOJI(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'doji')
+            return talib.cdl_pattern(open, high, low, close, "doji")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLDOJI(open,high,low,close)
-    
+            return talib.CDLDOJI(open, high, low, close)
+
     @classmethod
     def CDLENGULFING(self, open, high, low, close):
         try:
-            return talib.cdl_pattern(open,high,low,close,'engulfing')
+            return talib.cdl_pattern(open, high, low, close, "engulfing")
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            return talib.CDLENGULFING(open,high,low,close)
+            return talib.CDLENGULFING(open, high, low, close)
 
     @classmethod
-    def argrelextrema(self, data, comparator, axis=0, order=1, mode='clip'):
+    def argrelextrema(self, data, comparator, axis=0, order=1, mode="clip"):
         """
         Calculate the relative extrema of `data`.
 
@@ -320,7 +342,7 @@ class pktalib:
 
         """
         if (int(order) != order) or (order < 1):
-            raise ValueError('Order must be an int >= 1')
+            raise ValueError("Order must be an int >= 1")
 
         datalen = data.shape[axis]
         locs = np.arange(0, datalen)

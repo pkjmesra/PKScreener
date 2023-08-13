@@ -1,9 +1,11 @@
 -r requirements.txt
 ta-lib
 
+black
 coveralls
 distro
 # distutils
+isort
 mistletoe
 pep517
 pip
@@ -13,5 +15,6 @@ pytest # Installed as dependency for pytest-mock
 pytest-cov
 pytest-mock
 pytoml
+ruff
 setuptools
 # shutil
