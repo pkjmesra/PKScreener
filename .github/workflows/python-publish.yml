@@ -113,7 +113,7 @@ jobs:
           THIS_VERSION="${{ inputs.version }}"
         fi
         rm -rf pkscreener/classes/__init__.py
-        echo VERSION = \"`echo ${THIS_VERSION}`\"" >> pkscreener/classes/__init__.py
+        echo VERSION = \"`echo ${THIS_VERSION}`\" >> pkscreener/classes/__init__.py
         echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
         echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
        
