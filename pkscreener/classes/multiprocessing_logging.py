@@ -105,7 +105,7 @@ class MultiProcessingHandler(logging.Handler):
                 break  # The queue was closed by child?
             except Empty:
                 pass  # This periodically checks if the logger is closed.
-            except:
+            except Exception:
                 from sys import stderr
                 from traceback import print_exc
 
@@ -138,7 +138,7 @@ class MultiProcessingHandler(logging.Handler):
             self._send(s)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
     def close(self):

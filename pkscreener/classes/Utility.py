@@ -55,14 +55,14 @@ from time import sleep
 
 import pandas as pd
 from alive_progress import alive_bar
-from PIL import Image, ImageColor, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from requests_cache import CachedSession
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
+from pkscreener.classes.MenuOptions import menus
 
 session = CachedSession("pkscreener_cache", cache_control=True)
 

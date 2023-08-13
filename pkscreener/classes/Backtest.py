@@ -121,18 +121,18 @@ def backtest(
                     + "%.2f%%" % pct_change
                     + colorText.END
                 )
-            except:
+            except Exception:
                 continue
         else:
             del backTestedStock[f"{abs(prd)}-Pd"]
             try:
                 backTestedData = backTestedData.drop(f"{abs(prd)}-Pd", axis=1)
-            except:
+            except Exception:
                 continue
     allStockBacktestData.append(backTestedStock)
     df = pd.DataFrame(allStockBacktestData, columns=backTestedData.columns)
     try:
         backTestedData = pd.concat([backTestedData, df])
-    except:
+    except Exception:
         pass
     return backTestedData

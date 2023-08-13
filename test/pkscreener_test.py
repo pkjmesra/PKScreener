@@ -16,7 +16,7 @@ import pytest
 try:
     shutil.copyfile("pkscreener/.env.dev", ".env.dev")
     sys.path.append(os.path.abspath("pkscreener"))
-except:
+except Exception:
     print("This test must be run from the root of the project!")
 from requests_cache import CachedSession
 

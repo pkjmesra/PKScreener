@@ -65,7 +65,7 @@ def findFile(fileName):
         with open(filePath, "r") as f:
             stringData = f.read()
         return stringData, filePath, get_last_modified_datetime(filePath)
-    except:
+    except Exception:
         return None, filePath, None
 
 

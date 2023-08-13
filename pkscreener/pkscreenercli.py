@@ -57,7 +57,6 @@ def disableSysOut(input=True):
     sys.__stdout__ = open(os.devnull, "w")
 
 
-import multiprocessing
 from time import sleep
 
 import pkscreener.classes.ConfigManager as ConfigManager
@@ -144,7 +143,7 @@ def setupLogger(shouldLog=False, trace=False):
     if os.path.exists(log_file_path):
         try:
             os.remove(log_file_path)
-        except:
+        except Exception:
             pass
     print(
         colorText.BOLD

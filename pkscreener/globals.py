@@ -41,7 +41,6 @@ from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
-import pkscreener.classes.PortfolioTracker as tracker
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes import VERSION
@@ -53,9 +52,6 @@ from pkscreener.classes.MenuOptions import (
     level0MenuDict,
     level1_X_MenuDict,
     level2_X_MenuDict,
-    level3_X_ChartPattern_MenuDict,
-    level3_X_Reversal_MenuDict,
-    menu,
     menus,
 )
 from pkscreener.classes.OtaUpdater import OTAUpdater
@@ -69,7 +65,6 @@ from pkscreener.Telegram import (
     is_token_telegram_configured,
     send_document,
     send_message,
-    send_photo,
 )
 
 # import dataframe_image as dfi
@@ -1328,8 +1323,6 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
                 continue
 
     # Flush the queue so depending processes will end
-    from queue import Empty
-
     while True:
         try:
             _ = tasks_queue.get(False)

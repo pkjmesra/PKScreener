@@ -2,7 +2,7 @@
 select = ["E", "F"]
 
 # Never enforce `E501` (line length violations).
-ignore = ["E501"]
+ignore = ["E501", "E402","F403"]
 
 # Always autofix, but never try to fix `F401` (unused imports).
 fix = true

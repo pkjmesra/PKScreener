@@ -280,9 +280,9 @@ def trace_log(line):
         file_logger().info(line)
 
 
-def flatten(l):
+def flatten(line):
     """Flatten a list (or other iterable) recursively"""
-    for el in l:
+    for el in line:
         if isinstance(el, Iterable) and not isinstance(el, str):
             for sub in flatten(el):
                 yield sub
