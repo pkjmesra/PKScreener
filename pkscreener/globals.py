@@ -503,8 +503,16 @@ def main(
             return
     elif menuOption == "B":
         # Backtests
+        backtestPeriod = 0
+        if len(options) >=2:
+            if str(tickerOption).isnumeric():
+                backtestPeriod = int(tickerOption)
+            if len(options) >= 4:
+                tickerOption = executeOption
+                executeOption = options[3]
+            del options[1] # Let's delete the backtestperiod from the provided options
         tickerOption, executeOption, backtestPeriod = takeBacktestInputs(
-            menuOption, tickerOption, executeOption
+            str(menuOption).upper(), tickerOption, executeOption, backtestPeriod
         )
     else:
         print("Work in progress! Try selecting a different option.")
@@ -930,6 +938,7 @@ def main(
                     insideBarToLookback,
                     len(listStockCodes),
                     configManager,
+                    configManager.cacheEnabled,
                     fetcher,
                     screener,
                     candlePatterns,
@@ -1184,15 +1193,15 @@ def takeBacktestInputs(
         + colorText.GREEN
         + "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods."
     )
-    backtestPeriod = 0
     try:
-        backtestPeriod = int(
-            input(
-                colorText.BOLD
-                + colorText.FAIL
-                + "[+] Enter backtesting period (Default is 30 [days]): "
+        if backtestPeriod == 0:
+            backtestPeriod = int(
+                input(
+                    colorText.BOLD
+                    + colorText.FAIL
+                    + "[+] Enter backtesting period (Default is 30 [days]): "
+                )
             )
-        )
     except Exception as e:
         default_logger().debug(e, exc_info=True)
     if backtestPeriod == 0:
@@ -1205,6 +1214,7 @@ def takeBacktestInputs(
     )
     tickerOption, executeOption = initPostLevel1Execution(
         tickerOption=tickerOption,
+        executeOption = executeOption,
         skip=[
             "0",
             "15",

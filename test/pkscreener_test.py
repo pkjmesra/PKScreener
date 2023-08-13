@@ -73,7 +73,17 @@ def test_configManager():
     assert configManager.period is not None
     assert configManager.consolidationPercentage is not None
 
-def test_option_d(mocker, capsys):
+def test_option_B_10_0_1(mocker, capsys):
+    try:
+        mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y"])
+        # with pytest.raises((SystemExit)):
+        main(testing=False, startupoptions='B:10:0:1:SBIN,IRFC', defaultConsoleAnswer="Y")
+        out, err = capsys.readouterr()
+        assert err == ""
+    except StopIteration:
+        pass
+
+def test_option_D(mocker, capsys):
     try:
         mocker.patch("builtins.input", side_effect=["Y"])
         # with pytest.raises((SystemExit)):

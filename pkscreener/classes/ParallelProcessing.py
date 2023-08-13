@@ -63,6 +63,7 @@ class StockConsumer:
         insideBarToLookback,
         totalSymbols,
         configManager,
+        shouldCache,
         fetcher,
         screener,
         candlePatterns,
@@ -143,7 +144,7 @@ class StockConsumer:
             )
             if (
                 (hostRef.objectDictionary.get(stock) is None)
-                or (configManager.cacheEnabled is False)
+                or not shouldCache
                 or self.isTradingTime
                 or downloadOnly
             ):
@@ -158,7 +159,7 @@ class StockConsumer:
                 )
                 hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
                 if (
-                    configManager.cacheEnabled is True
+                    shouldCache
                     and not self.isTradingTime
                     and (hostRef.objectDictionary.get(stock) is None)
                     or downloadOnly
@@ -215,7 +216,7 @@ class StockConsumer:
                 )
             else:
                 # data = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
-                fullData = Archiver.readData(
+                fullData,_,_ = Archiver.readData(
                     f"FD_{Utility.tools.tradingDate()}_{stock}.pkl"
                 )
                 processedData, _, _ = Archiver.readData(
