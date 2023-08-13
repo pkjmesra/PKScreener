@@ -57,8 +57,7 @@ from requests_cache import CachedSession
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes import VERSION, Changelog
-from pkscreener.classes import Archiver
+from pkscreener.classes import VERSION, Archiver, Changelog
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
@@ -227,7 +226,7 @@ class tools:
     def tableToImage(table, styledTable, filename, label):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
-        fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/courbd.ttf'
+        fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf'
         fontFile = fontURL.split('/')[-1]
         bData, fontPath, _ = Archiver.findFile(fontFile)
         if bData is None:

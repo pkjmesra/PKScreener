@@ -73,6 +73,15 @@ def test_configManager():
     assert configManager.period is not None
     assert configManager.consolidationPercentage is not None
 
+def test_option_d(mocker, capsys):
+    try:
+        mocker.patch("builtins.input", side_effect=["Y"])
+        # with pytest.raises((SystemExit)):
+        main(testing=False, startupoptions='X:12:2', defaultConsoleAnswer="Y", downloadOnly=True)
+        out, err = capsys.readouterr()
+        assert err == ""
+    except StopIteration:
+        pass
 
 def test_option_E(mocker, capsys):
     try:
