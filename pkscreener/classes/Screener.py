@@ -1089,7 +1089,8 @@ class tools:
         data = data.replace([np.inf, -np.inf], 0)
         rsi = int(data.head(1)["RSI"][0])
         saveDict["RSI"] = rsi
-        if (rsi >= minRSI and rsi <= maxRSI) and (rsi <= 70 and rsi >= 30):
+        #https://chartink.com/screener/rsi-screening
+        if (rsi >= minRSI and rsi <= maxRSI) or (rsi <= 71 and rsi >= 67):
             screenDict["RSI"] = (
                 colorText.BOLD + colorText.GREEN + str(rsi) + colorText.END
             )

@@ -336,7 +336,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 if selection[2] == "4":  # Last N days
                     selection.extend(["4", ""])
                 elif selection[2] == "5":  # RSI range
-                    selection.extend(["30", "70"])
+                    selection.extend(["67", "71"])
                 elif selection[2] == "8":  # CCI range
                     selection.extend(["-100", "150"])
                 elif selection[2] == "9":  # Vol gainer ratio
@@ -723,7 +723,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 if selection[2] == "4":  # Last N days
                     selection.extend(["4", ""])
                 elif selection[2] == "5":  # RSI range
-                    selection.extend(["30", "70"])
+                    selection.extend(["67", "71"])
                 elif selection[2] == "8":  # CCI range
                     selection.extend(["-100", "150"])
                 elif selection[2] == "9":  # Vol gainer ratio
