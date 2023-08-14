@@ -136,3 +136,45 @@ def backtest(
     except Exception:
         pass
     return backTestedData
+
+def backtestSummary(df):
+    summary = {}
+    overall = {}
+    summaryList = []
+    net_positives = 0
+    net_negatives = 0
+    df = df.drop_duplicates()
+    df_grouped = df.groupby('Stock')
+    for col in df.keys():
+        if str(col).endswith('-Pd'):
+            overall[col] = [0,0]
+    # iterate over each group of stock rows
+    for stock_name, df_group in df_grouped:
+        # for row_index, row in df_group.iterrows():
+        group_positives = 0
+        group_negatives = 0
+        summary['Stock'] = stock_name
+        for col in df_group.keys():
+            if str(col).endswith('-Pd'):
+                col_positives = df_group[col].astype(str).str.count(colorText.GREEN.replace('[','\[')).sum()
+                col_negatives = df_group[col].astype(str).str.count(colorText.FAIL.replace('[','\[')).sum()
+                group_positives += col_positives
+                group_negatives += col_negatives
+                overall[col] = [overall[col][0] + col_positives, overall[col][1] + col_negatives]
+                summary[col] = f'{"%.2f%%" % (col_positives*100/(col_positives+col_negatives))} of ({col_positives+col_negatives})'
+        summary['Overall'] = f'{"%.2f%%" % (group_positives*100/(group_positives+group_negatives))} of ({group_positives+group_negatives})'
+        summaryList.append(summary)
+        summary = {}
+        net_positives += group_positives
+        net_negatives += group_negatives
+    
+    # Now prepare overall summary
+    summary['Stock'] = 'SUMMARY'
+    for col in overall.keys():
+        col_positives = overall[col][0]
+        col_negatives = overall[col][1]
+        summary[col] = f'{"%.2f%%" % (col_positives*100/(col_positives+col_negatives))} of ({col_positives+col_negatives})'
+    summary['Overall'] = f'{"%.2f%%" % (net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
+    summaryList.append(summary)
+    summary_df = pd.DataFrame(summaryList, columns=summary.keys())
+    return summary_df

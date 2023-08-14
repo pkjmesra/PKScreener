@@ -44,7 +44,7 @@ import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes import VERSION
-from pkscreener.classes.Backtest import backtest
+from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger, tracelog
@@ -1024,6 +1024,9 @@ def main(
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
             backtest_df.set_index("Stock", inplace=True)
             showBacktestResults(backtest_df)
+            summary_df = backtestSummary(backtest_df)
+            summary_df.set_index("Stock", inplace=True)
+            showBacktestResults(summary_df,optionalName="Summary")
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
@@ -1061,6 +1064,7 @@ def main(
                     print(colorText.END, end="")
                     if choice.upper() in sortKeys.keys():
                         showBacktestResults(backtest_df, sortKeys[choice.upper()])
+                        showBacktestResults(summary_df,optionalName="Summary")
                     else:
                         sorting = False
                 else:
@@ -1078,24 +1082,28 @@ def color_negative_red(val):
     return "color: %s" % color
 
 
-def showBacktestResults(backtest_df, sortKey="Base-Date"):
-    Utility.tools.clearScreen()
+def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result_'):
+    if optionalName != "Summary":
+        Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
     backtest_df = backtest_df.drop_duplicates()
-    backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
+    if optionalName != "Summary":
+        backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
+    else:
+        print("Overall Summary of Strategy Prediction Positive outcomes:\n")
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid")
     print(tabulated_text)
     print("\n")
     filename = (
-        "PKScreener-backtest_result_"
+        f"PKScreener-{optionalName}-{sortKey}"
         + Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
         + ".html"
     )
     with open(filename, "a") as f:
         f.write(tabulated_text)
     configManager.deleteFileWithPattern(
-        pattern="PKScreener-backtest_result_*.html", excludeFile=filename
+        pattern=f"PKScreener-{optionalName}-{sortKey}*.html", excludeFile=filename
     )
 
 
@@ -1151,6 +1159,9 @@ def runScanners(
                         if screenResultsCounter.value >= 50 * dumpFreq:
                             # Dump results on the screen and into a file every 50 results
                             showBacktestResults(backtest_df)
+                            summary_df = backtestSummary(backtest_df)
+                            # summary_df.set_index("Stock", inplace=True)
+                            showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
                 numStocks -= 1
                 progressbar.text(

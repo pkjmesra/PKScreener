@@ -369,7 +369,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         optionChoices = (
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
-        menuText = f"You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!"
+        menuText = f"Thank you for choosing {optionChoices}. You will receive the results soon! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@apl \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra\n\nSince it is running on a low-end server, it might take from a few seconds to a few minutes. You will get notified here when the results arrive!"
+
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
             if mnu.menuKey in ["X", "B", "Z"]:
@@ -765,7 +766,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def sendRequestSubmitted(optionChoices, update, context):
-    menuText = f"You chose {optionChoices}. You will receive the results soon! \n\nSince it is running on a free server, it might take from a few seconds up to ~12 minutes depending upon how many stocks need to be scanned (1 to 2000+ in Nifty). You will get notified here when the results arrive!"
+    menuText = f"Thank you for choosing {optionChoices}. You will receive the results soon! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@apl \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra\n\nSince it is running on a low-end server, it might take from a few seconds to a few minutes. You will get notified here when the results arrive!"
     await update.message.reply_text(menuText)
     await help_command(update=update, context=context)
     await shareUpdateWithChannel(

@@ -108,6 +108,11 @@ def test_option_E(mocker, capsys):
                 str(configManager.consolidationPercentage),
                 "y",
                 "y",
+                "y",
+                "n",
+                "n",
+                str(configManager.generalTimeout),
+                str(configManager.longTimeout)
             ],
         )
         with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
