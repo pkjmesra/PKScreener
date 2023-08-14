@@ -1096,14 +1096,19 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     print(tabulated_text)
     print("\n")
     filename = (
-        f"PKScreener-{optionalName}-{sortKey}"
+        f"PKScreener-{optionalName}-{sortKey}_"
         + Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
         + ".html"
     )
+    colored_text = tabulated_text.replace(colorText.GREEN,"<span style='color:green;'>")
+    colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;'>")
+    colored_text = colored_text.replace(colorText.WARN,"<span style='color:blue;'>")
+    colored_text = colored_text.replace(colorText.END,"</span>")
+    colored_text = colored_text.replace("\n","<br />")
     with open(filename, "a") as f:
-        f.write(tabulated_text)
+        f.write(colored_text)
     configManager.deleteFileWithPattern(
-        pattern=f"PKScreener-{optionalName}-{sortKey}*.html", excludeFile=filename
+        pattern=f"PKScreener-{optionalName}-{sortKey}_*.html", excludeFile=filename
     )
 
 
