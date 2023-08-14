@@ -1101,6 +1101,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         + ".html"
     )
     colored_text = tabulated_text.replace(colorText.GREEN,"<span style='color:green;'>")
+    colored_text = colored_text.replace(colorText.BOLD,"")
     colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;'>")
     colored_text = colored_text.replace(colorText.WARN,"<span style='color:blue;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
