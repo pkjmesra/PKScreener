@@ -143,7 +143,7 @@ def backtestSummary(df):
     summaryList = []
     net_positives = 0
     net_negatives = 0
-    df = df.drop_duplicates()
+    df.drop_duplicates()
     df_grouped = df.groupby('Stock')
     for col in df.keys():
         if str(col).endswith('-Pd'):

@@ -419,6 +419,8 @@ def getScannerMenuChoices(
             + colorText.END
         )
         sys.exit(0)
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
     return menuOption, tickerOption, executeOption, selectedChoice
 
 
@@ -1102,7 +1104,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
-    backtest_df = backtest_df.drop_duplicates()
+    backtest_df.drop_duplicates()
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
     else:
