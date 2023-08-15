@@ -335,7 +335,7 @@ class tools:
         # im.show()
 
     def tradingDate(simulate=False, day=None):
-        curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
+        curr = tools.currentDateTime(simulate=simulate,day=day)
         if simulate:
             return curr.replace(day=day)
         else:

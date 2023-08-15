@@ -1,8 +1,26 @@
 """
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   29/04/2021
- *  Description         :   Automated Test Script for pkscreener
+    The MIT License (MIT)
+
+    Copyright (c) 2023 pkjmesra
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
 """
 # pytest --cov --cov-report=html:coverage_re
 
@@ -51,7 +69,7 @@ def test_if_changelog_version_changed():
     assert f"v{str(VERSION)}" in Changelog.changelog()
 
 
-def test_if_release_version_increamented():
+def test_if_release_version_incremented():
     global last_release
     r = session.get(
         "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",
