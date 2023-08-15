@@ -374,8 +374,8 @@ def test_option_X_1_7_5(mocker):
 def test_option_X_1_7_6(mocker):
     try:
         cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "6", "y"])
-        main(testing=False, startupoptions="X:1:7:6", defaultConsoleAnswer="Y")
+        mocker.patch("builtins.input", side_effect=["X", "1", "7", "6", "y","\n","\n"])
+        main(testing=False)
         assert globals.screenResults is not None
         assert len(globals.screenResults) >= 0
     except StopIteration:

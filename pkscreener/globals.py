@@ -93,7 +93,7 @@ selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
 m0 = menus()
 m1 = menus()
 m2 = menus()
-
+m3 = menus()
 
 def initExecution(menuOption=None):
     global selectedChoice
@@ -501,6 +501,7 @@ def main(
             defaultAnswer=defaultAnswer,
             user=user,
         )
+
         if menuOption in ["H", "U", "T", "E", "Y"]:
             return
     elif menuOption == "B":
@@ -529,6 +530,15 @@ def main(
         )
         return
 
+    if menuOption in ["X", "B"]:
+        selMenu = m0.find(menuOption)
+        m1.renderForMenu(selMenu,asList=True)
+        if tickerOption is not None:
+            selMenu = m1.find(tickerOption)
+            m2.renderForMenu(selMenu,asList=True)
+            if executeOption is not None:
+                selMenu = m2.find(executeOption)
+                m3.renderForMenu(selMenu,asList=True)
     if tickerOption == "M" or executeOption == "M":
         main(
             testing=testing,
