@@ -781,11 +781,26 @@ def main(
                     while True:
                         Utility.tools.clearScreen()
                         last_result_len = len(result_df)
-                        result_df = screener.monitorFiveEma(
-                            proxyServer=proxyServer,
-                            fetcher=fetcher,
-                            result_df=result_df,
-                            last_signal=last_signal,
+                        try:
+                            result_df = screener.monitorFiveEma(
+                                proxyServer=proxyServer,
+                                fetcher=fetcher,
+                                result_df=result_df,
+                                last_signal=last_signal,
+                            )
+                        except Exception as e:
+                            default_logger().debug(e, exc_info=True)
+                            print(
+                            colorText.BOLD
+                            + colorText.FAIL
+                            + "[+] There was an exception while monitoring 5-EMA"
+                            + "\n[+] If this continues to happen, please try and run with -l"
+                            + "\n[+] and collect all the logs, zip it and submit it to the developer."
+                            + "\n[+] For example:"
+                            + colorText.END
+                            + colorText.WARN
+                            + "pkscreener -l\n"
+                            + colorText.END
                         )
                         print(
                             colorText.BOLD

@@ -534,7 +534,7 @@ class tools:
                     self.default_logger.debug(e, exc_info=True)
                     condition = last_signal[data_list[cnt]]["SL"][0]
                 # if last_signal[data_list[cnt]] is not final:          # Debug - Shows all conditions
-                if condition != final["SL"][0]:
+                if len(final["SL"]) > 0 and condition != final["SL"][0]:
                     # Do something with results
                     try:
                         result_df = pd.concat(
