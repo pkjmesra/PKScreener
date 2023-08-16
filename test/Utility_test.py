@@ -24,11 +24,14 @@
 """
 import datetime
 import platform
+from unittest.mock import ANY, Mock, patch
+
 import pandas as pd
 import pytz
-from unittest.mock import Mock, patch, ANY
-from pkscreener.classes.Utility import tools
+
 from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.Utility import tools
+
 
 # Positive test case for clearScreen() function
 def test_clearScreen():

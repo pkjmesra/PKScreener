@@ -22,11 +22,13 @@
     SOFTWARE.
 
 """
-import os
 import logging
+import os
 import tempfile
 from unittest.mock import patch
+
 from pkscreener.pkscreenercli import setupLogger
+
 
 # Positive test case - should log when shouldLog is True
 def test_setupLogger_positive_shouldLogTrue():

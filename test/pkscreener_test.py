@@ -93,435 +93,320 @@ def test_configManager():
     assert configManager.consolidationPercentage is not None
 
 def test_option_B_10_0_1(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y"])
-        # with pytest.raises((SystemExit)):
-        main(testing=False, startupoptions='B:10:0:1:SBIN,IRFC', defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-        assert (globals.screenResultsCounter.value > 0)
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y"])
+    # with pytest.raises((SystemExit)):
+    main(testing=False, startupoptions='B:10:0:1:SBIN,IRFC', defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert (globals.screenResultsCounter.value > 0)
 
 def test_option_D(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["Y"])
-        # with pytest.raises((SystemExit)):
-        main(testing=False, startupoptions='X:12:2', defaultConsoleAnswer="Y", downloadOnly=True)
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["Y"])
+    # with pytest.raises((SystemExit)):
+    main(testing=False, startupoptions='X:12:2', defaultConsoleAnswer="Y", downloadOnly=True)
+    out, err = capsys.readouterr()
+    assert err == ""
 
 def test_option_E(mocker, capsys):
-    try:
-        mocker.patch(
-            "builtins.input",
-            side_effect=[
-                "E",
-                str(configManager.period),
-                str(configManager.daysToLookback),
-                str(configManager.duration),
-                str(configManager.minLTP),
-                str(configManager.maxLTP),
-                str(configManager.volumeRatio),
-                str(configManager.consolidationPercentage),
-                "y",
-                "y",
-                "y",
-                "n",
-                "n",
-                str(configManager.generalTimeout),
-                str(configManager.longTimeout),
-                "\n"
-            ],
-        )
-        with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-            main(testing=True, defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == 0 or err == ""
-    except StopIteration:
-        pass
-
+    mocker.patch(
+        "builtins.input",
+        side_effect=[
+            "E",
+            str(configManager.period),
+            str(configManager.daysToLookback),
+            str(configManager.duration),
+            str(configManager.minLTP),
+            str(configManager.maxLTP),
+            str(configManager.volumeRatio),
+            str(configManager.consolidationPercentage),
+            "y",
+            "y",
+            "y",
+            "n",
+            "n",
+            str(configManager.generalTimeout),
+            str(configManager.longTimeout),
+            "\n"
+        ],
+    )
+    with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
+        main(testing=True, defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == 0 or err == ""
 
 def test_option_H(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["H","\n"])
-        # with pytest.raises((configparser.DuplicateSectionError)):
-        main(testing=True, defaultConsoleAnswer="N")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["H","\n"])
+    # with pytest.raises((configparser.DuplicateSectionError)):
+    main(testing=True, defaultConsoleAnswer="N")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_nifty_prediction(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["X", "N"])
-        main(testing=True, defaultConsoleAnswer='Y')
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["X", "N"])
+    main(testing=True, defaultConsoleAnswer='Y')
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_option_T(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["T","\n"])
-        # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-        main(testing=True, defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-        # Revert to the original state
-        mocker.patch("builtins.input", side_effect=["T","\n"])
-        # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-        main(testing=True, defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["T","\n"])
+    # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
+    main(testing=True, defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
+    # Revert to the original state
+    mocker.patch("builtins.input", side_effect=["T","\n"])
+    # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
+    main(testing=True, defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_option_U(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["U", "Z", "Y", "\n"])
-        # with pytest.raises(SystemExit):
-        main(testing=True, startupoptions="U", defaultConsoleAnswer="N")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["U", "Z", "Y", "\n"])
+    # with pytest.raises(SystemExit):
+    main(testing=True, startupoptions="U", defaultConsoleAnswer="N")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_option_X_0(mocker):
-    try:
-        cleanup()
-        mocker.patch(
-            "builtins.input", side_effect=["X", "0", "0", globals.TEST_STKCODE, "y"]
-        )
-        main(
-            testing=False,
-            startupoptions="X:0:0:" + globals.TEST_STKCODE,
-            defaultConsoleAnswer="Y",
-        )
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) == 1
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch(
+        "builtins.input", side_effect=["X", "0", "0", globals.TEST_STKCODE, "y"]
+    )
+    main(
+        testing=False,
+        startupoptions="X:0:0:" + globals.TEST_STKCODE,
+        defaultConsoleAnswer="Y",
+    )
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) == 1
 
 
 def test_option_X_1_0(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "0", "y"])
-        main(testing=False, startupoptions="X:1:0", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "0", "y"])
+    main(testing=False, startupoptions="X:1:0", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_1(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "1", "y"])
-        main(testing=False, startupoptions="X:1:1", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "1", "y"])
+    main(testing=False, startupoptions="X:1:1", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_2(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "2", "y"])
-        main(testing=False, startupoptions="X:1:2", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "2", "y"])
+    main(testing=False, startupoptions="X:1:2", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_3(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "3", "y"])
-        main(testing=False, startupoptions="X:1:3", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "3", "y"])
+    main(testing=False, startupoptions="X:1:3", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_4(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "4", "5", "y"])
-        main(testing=False, startupoptions="X:1:4:5", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "4", "5", "y"])
+    main(testing=False, startupoptions="X:1:4:5", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_5(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "5", "10", "90", "y"])
-        main(testing=False, startupoptions="X:1:5:10:90", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "5", "10", "90", "y"])
+    main(testing=False, startupoptions="X:1:5:10:90", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_6_1(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "1", "y"])
-        main(testing=False, startupoptions="X:1:6:1", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "1", "y"])
+    main(testing=False, startupoptions="X:1:6:1", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_6_2(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "2", "y"])
-        main(testing=False, startupoptions="X:1:6:2", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "2", "y"])
+    main(testing=False, startupoptions="X:1:6:2", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_6_3(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "3", "y"])
-        main(testing=False, startupoptions="X:1:6:3", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "3", "y"])
+    main(testing=False, startupoptions="X:1:6:3", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 
 def test_option_X_1_6_4(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "4", "50", "y"])
-        main(testing=False, startupoptions="X:1:6:4:50", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "4", "50", "y"])
+    main(testing=False, startupoptions="X:1:6:4:50", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_6_5(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "5", "y"])
-        main(testing=False, startupoptions="X:1:6:5", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "5", "y"])
+    main(testing=False, startupoptions="X:1:6:5", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_6_6(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "6", "6", "4", "y"])
-        main(testing=False, startupoptions="X:1:6:6:4", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "6", "6", "4", "y"])
+    main(testing=False, startupoptions="X:1:6:6:4", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_1_7(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "1", "7", "y"])
-        main(testing=False, startupoptions="X:1:7:1:7", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "1", "7", "y"])
+    main(testing=False, startupoptions="X:1:7:1:7", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_2_7(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "2", "7", "y"])
-        main(testing=False, startupoptions="X:1:7:2:7", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "2", "7", "y"])
+    main(testing=False, startupoptions="X:1:7:2:7", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_3_1(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "3", "1", "y"])
-        main(testing=False, startupoptions="X:1:7:3:1", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "3", "1", "y"])
+    main(testing=False, startupoptions="X:1:7:3:1", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_4(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "4", "y"])
-        main(testing=False, startupoptions="X:1:7:4", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "4", "y"])
+    main(testing=False, startupoptions="X:1:7:4", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_5(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "5", "y"])
-        main(testing=False, startupoptions="X:1:7:5", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "5", "y"])
+    main(testing=False, startupoptions="X:1:7:5", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_6(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "7", "6", "y","\n","\n"])
-        main(testing=False)
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "7", "6", "y","\n","\n"])
+    main(testing=False)
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_8(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "8", "-100","150","y"])
-        main(testing=False, startupoptions="X:1:8:-100:150", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "8", "-100","150","y"])
+    main(testing=False, startupoptions="X:1:8:-100:150", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_9_3(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "9", "3", "y"])
-        main(testing=False, startupoptions="X:1:9:3", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "9", "3", "y"])
+    main(testing=False, startupoptions="X:1:9:3", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_10(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "10", "y"])
-        main(testing=False, startupoptions="X:1:10", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "10", "y"])
+    main(testing=False, startupoptions="X:1:10", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_11(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "11", "y"])
-        main(testing=False, startupoptions="X:1:11", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "11", "y"])
+    main(testing=False, startupoptions="X:1:11", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_12(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "12", "y"])
-        main(testing=False, startupoptions="X:1:12", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "12", "y"])
+    main(testing=False, startupoptions="X:1:12", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_13(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "13", "y"])
-        main(testing=False, startupoptions="X:1:13", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "13", "y"])
+    main(testing=False, startupoptions="X:1:13", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_1_14(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "1", "14", "y"])
-        main(testing=False, startupoptions="X:1:14", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert len(globals.screenResults) >= 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "1", "14", "y"])
+    main(testing=False, startupoptions="X:1:14", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_X_Z(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["X", "Z", ""])
-        with pytest.raises(SystemExit):
-            main(testing=False, startupoptions="X:Z", defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["X", "Z", ""])
+    with pytest.raises(SystemExit):
+        main(testing=False, startupoptions="X:Z", defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_option_X_12_1(mocker):
-    try:
-        cleanup()
-        mocker.patch("builtins.input", side_effect=["X", "12", "1", "y"])
-        main(testing=False, startupoptions="X:12:1", defaultConsoleAnswer="Y")
-        assert globals.screenResults is not None
-        assert globals.screenResultsCounter.value > 0
-    except StopIteration:
-        pass
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "12", "1", "y"])
+    main(testing=False, startupoptions="X:12:1", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert globals.screenResultsCounter.value > 0
 
 
 def test_option_X_12_Z(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["X", "12", "Z", ""])
-        with pytest.raises(SystemExit):
-            main(testing=True, startupoptions="X:12:Z", defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["X", "12", "Z", ""])
+    with pytest.raises(SystemExit):
+        main(testing=True, startupoptions="X:12:Z", defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_option_Z(mocker, capsys):
-    try:
-        mocker.patch("builtins.input", side_effect=["Z", ""])
-        with pytest.raises(SystemExit):
-            main(testing=True, startupoptions="Z", defaultConsoleAnswer="Y")
-        out, err = capsys.readouterr()
-        assert err == ""
-    except StopIteration:
-        pass
+    mocker.patch("builtins.input", side_effect=["Z", ""])
+    with pytest.raises(SystemExit):
+        main(testing=True, startupoptions="Z", defaultConsoleAnswer="Y")
+    out, err = capsys.readouterr()
+    assert err == ""
 
 
 def test_ota_updater():
-    try:
-        OTAUpdater.checkForUpdate(globals.proxyServer, VERSION, skipDownload=True)
-        assert (
-            "exe" in OTAUpdater.checkForUpdate.url
-            or "bin" in OTAUpdater.checkForUpdate.url
-        )
-    except StopIteration:
-        pass
+    OTAUpdater.checkForUpdate(globals.proxyServer, VERSION, skipDownload=True)
+    assert (
+        "exe" in OTAUpdater.checkForUpdate.url
+        or "bin" in OTAUpdater.checkForUpdate.url
+    )
 
 
 def test_release_readme_urls():
