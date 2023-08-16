@@ -215,149 +215,223 @@ def test_saveStockData():
             # Assert that pickle.dump() is called with the correct arguments
             mock_dump.assert_called_once_with(stockDict.copy(),ANY)
 
-# # Positive test case for loadStockData() function
-# def test_loadStockData():
-#     # Mocking the os.path.isfile() function
-#     with patch("os.path.isfile", return_value=True) as mock_isfile:
-#         # Mocking the open() function
-#         mock_file = Mock()
-#         with patch("builtins.open", mock_file) as mock_open:
-#             # Mocking the pickle.load() function
-#             mock_pickle = Mock()
-#             with patch("pickle.load", mock_pickle) as mock_load:
-#                 stockDict = {}
-#                 configManager = Mock()
-#                 proxyServer = "http://localhost:8080"
-#                 downloadOnly = False
-#                 defaultAnswer = "Y"
-#                 tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
-#                 # Assert that os.path.isfile() is called with the correct argument
-#                 mock_isfile.assert_called_once_with("stock_data_*.pkl")
-#                 # Assert that open() is called with the correct arguments
-#                 mock_open.assert_called_once_with("stock_data_*.pkl", "rb")
-#                 # Assert that pickle.load() is called
-#                 mock_load.assert_called_once()
+# Positive test case for loadStockData() function
+def test_loadStockData():
+    # Mocking the pickle.load() function
+    mock_pickle = Mock()
+    pd.DataFrame().to_pickle("stock_data_2.pkl")
+    with patch("pickle.load", mock_pickle) as mock_load:
+        mock_load.return_value = []
+        with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            mock_data.return_value = True, "stock_data_2.pkl"
+            stockDict = {}
+            configManager = Mock()
+            proxyServer = "http://localhost:8080"
+            downloadOnly = False
+            defaultAnswer = "Y"
+            tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
+            # Assert that pickle.load() is called
+            mock_load.assert_called_once()
 
-# # Positive test case for promptSaveResults() function
-# def test_promptSaveResults():
-#     # Mocking the pd.DataFrame.to_excel() function
-#     mock_df = Mock()
-#     with patch("pandas.DataFrame.to_excel") as mock_to_excel:
-#         result = tools.promptSaveResults(mock_df)
-#         # Assert that pd.DataFrame.to_excel() is called with the correct argument
-#         mock_to_excel.assert_called_once_with("PKScreener-result_01-01-23_10.30.00.xlsx", engine="xlsxwriter")
-#         # Assert that the result is not None
-#         assert result is not None
+# Positive test case for promptSaveResults() function
+def test_promptSaveResults():
+    # Mocking the pd.DataFrame.to_excel() function
+    mock_df = pd.DataFrame()
+    with patch("pandas.DataFrame.to_excel") as mock_to_excel:
+        result = tools.promptSaveResults(mock_df,defaultAnswer="Y")
+        # Assert that pd.DataFrame.to_excel() is called with the correct argument
+        mock_to_excel.assert_called_once_with(ANY, engine="xlsxwriter")
+        # Assert that the result is not None
+        assert result is not None
 
-# # Positive test case for promptFileExists() function
-# def test_promptFileExists():
-#     # Mocking the input() function
-#     with patch("builtins.input", return_value="Y") as mock_input:
-#         result = tools.promptFileExists()
-#         # Assert input() is called correct argument
-#         mock_input.assert_called_once_with(
-#             colorText.BOLD + colorText.WARN + "[>] stock_data_*.pkl already exists. Do you want to replace this? [Y/N]: " + colorText.END
-#         )
-#         # Assert that the result is "Y"
-#         assert result == "Y"
+# Positive test case for promptFileExists() function
+def test_promptFileExists():
+    # Mocking the input() function
+    with patch("builtins.input", return_value="Y") as mock_input:
+        result = tools.promptFileExists()
+        # Assert input() is called correct argument
+        mock_input.assert_called_once_with(
+            colorText.BOLD + colorText.WARN + "[>] stock_data_*.pkl already exists. Do you want to replace this? [Y/N]: "
+        )
+        # Assert that the result is "Y"
+        assert result == "Y"
 
-# # Positive test case for promptRSIValues() function
-# def test_promptRSIValues():
-#     # Mocking the input() function
-#     with patch("builtins.input", side_effect=["30", "70"]) as mock_input:
-#         result = tools.promptRSIValues()
-#         # Assert that input() is called twice with the correct arguments
-#         mock_input.assert_called_with(
-#             colorText.BOLD + colorText.WARN + "\n[+] Enter Min RSI value: " + colorText.END
-#         )
-#         # Assert that the result is the correct tuple
-#         assert result == (30, 70)
+# Positive test case for promptRSIValues() function
+def test_promptRSIValues():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["30", "70"]) as mock_input:
+        result = tools.promptRSIValues()
+        # Assert that input() is called twice with the correct arguments
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "[+] Enter Max RSI value: "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (30, 70)
 
-# # Positive test case for promptCCIValues() function
-# def test_promptCCIValues():
-#     # Mocking the input() function
-#     with patch("builtins.input", side_effect=["-100", "100"]) as mock_input:
-#         result = tools.promptCCIValues()
-#         # Assert that input() is called twice with the correct arguments
-#         mock_input.assert_called_with(
-#             colorText.BOLD + colorText.WARN + "\n[+] Enter Min CCI value: " + colorText.END
-#         )
-#         # Assert that the result is the correct tuple
-#         assert result == (-100, 100)
+# Positive test case for promptCCIValues() function
+def test_promptCCIValues():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["-100", "100"]) as mock_input:
+        result = tools.promptCCIValues()
+        # Assert that input() is called twice with the correct arguments
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "[+] Enter Max CCI value: "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (-100, 100)
 
-# # Positive test case for promptVolumeMultiplier() function
-# def test_promptVolumeMultiplier():
-#     # Mocking the input() function
-#     with patch("builtins.input", return_value="2") as mock_input:
-#         result = tools.promptVolumeMultiplier()
-#         # Assert that input() is called with the correct argument
-#         mock_input.assert_called_once_with(
-#             colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2): " + colorText.END
-#         )
-#         # Assert that the result is 2
-#         assert result == 2
+# Positive test case for promptVolumeMultiplier() function
+def test_promptVolumeMultiplier():
+    # Mocking the input() function
+    with patch("builtins.input", return_value="2") as mock_input:
+        result = tools.promptVolumeMultiplier()
+        # Assert that input() is called with the correct argument
+        mock_input.assert_called_once_with(
+            colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2): " + colorText.END
+        )
+        # Assert that the result is 2
+        assert result == 2
 
-# # Positive test case for promptReversalScreening() function
-# def test_promptReversalScreening():
-#     # Mocking the input() function
-#     with patch("builtins.input", side_effect=["1"]) as mock_input:
-#         result = tools.promptReversalScreening()
-#         # Assert that input() is called with the correct argument
-#         mock_input.assert_called_with(
-#             colorText.BOLD + colorText.WARN + "[+] Select Option:" + colorText.END
-#         )
-#         # Assert that the result is the correct tuple
-#         assert result == (1, None)
+# Positive test case for promptReversalScreening() function
+def test_promptReversalScreening():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["4","50"]) as mock_input:
+        result = tools.promptReversalScreening()
+        # Assert that input() is called with the correct argument
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "\n[+] Enter MA Length (E.g. 50 or 200): "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (4, 50)
 
-# # Positive test case for promptChartPatterns() function
-# def test_promptChartPatterns():
-#     # Mocking the input() function
-#     with patch("builtins.input", side_effect=["1", "3"]) as mock_input:
-#         result = tools.promptChartPatterns()
-#         # Assert that input() is called twice with the correct arguments
-#         mock_input.assert_called_with(
-#             colorText.BOLD + colorText.WARN + "[+] Select Option:" + colorText.END
-#         )
-#         # Assert that the result is the correct tuple
-#         assert result == (1, 3)
+def test_promptReversalScreening_4x_Does_not_raise_value_error():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["4","x"]) as mock_input:
+        result = tools.promptReversalScreening()
+        # Assert that input() is called with the correct argument
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "\n[+] Enter MA Length (E.g. 50 or 200): "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (None, None)
+def test_promptReversalScreening_Input6():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["6","7"]) as mock_input:
+        result = tools.promptReversalScreening()
+        # Assert that input() is called with the correct argument
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "\n[+] Enter NR timeframe [Integer Number] (E.g. 4, 7, etc.): "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (6, 7)
 
-# # Positive test case for getProgressbarStyle() function
-# def test_getProgressbarStyle():
-#     result = tools.getProgressbarStyle()
-#     # Assert that the result is the correct tuple
-#     assert result == ("smooth", "waves")
+def test_promptReversalScreening_Input1():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["1"]) as mock_input:
+        result = tools.promptReversalScreening()
+        # Assert that input() is called with the correct argument
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + """[+] Select Option:"""
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (1, None)
 
-# # Positive test case for getNiftyModel() function
-# def test_getNiftyModel():
-#     # Mocking the os.path.isfile() function
-#     with patch("os.path.isfile", return_value=True) as mock_isfile:
-#         # Mocking the keras.models.load_model() function
-#         mock_load_model = Mock()
-#         with patch("keras.models.load_model", return_value=mock_load_model) as mock_keras_load_model:
-#             # Mocking the joblib.load() function
-#             mock_joblib_load = Mock()
-#             with patch("joblib.load", return_value=mock_joblib_load) as mock_joblib_load:
-#                 result = tools.getNiftyModel()
-#                 # Assert that os.path.isfile called twice with the correct argument
-#                 mock_isfile.assert_called_with("nifty_model_v2.h5")
-#                 # Assert that keras.models.load_model() is called with the correct argument
-#                 mock_keras_load_model.assert_called_with("nifty_model_v2.h5")
-#                 # Assert that joblib.load() is called with the correct argument
-#                 mock_joblib_load.assert_called_with("nifty_model_v2.pkl")
-#                 # Assert that the result is the correct tuple
-#                 assert result == (mock_load_model, mock_joblib_load)
+# Positive test case for promptChartPatterns() function
+def test_promptChartPatterns():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["4"]) as mock_input:
+        result = tools.promptChartPatterns()
+        # Assert that input() is called with the correct arguments
+        mock_input.assert_called_with(
+            colorText.BOLD + colorText.WARN + "[+] Select Option:" + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (4, 0)
 
-# # Positive test case for getSigmoidConfidence() function
-# def test_getSigmoidConfidence():
-#     x = 0.7
-#     result = tools.getSigmoidConfidence(x)
-#     # Assert that the result is the correct sigmoid confidence value
-#     assert result == 70.0
+def test_promptChartPatterns_Input1():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["1","3"]) as mock_input:
+        result = tools.promptChartPatterns()
+        # Assert that input() is called with the correct arguments
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "\n[+] How many candles (TimeFrame) to look back Inside Bar formation? : "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (1, 3)
 
-# # Positive test case for alertSound() function
-# def test_alertSound():
-#     # Mocking the print() function
-#     with patch("builtins.print") as mock_print:
-#         tools.alertSound()
-#         # Assert that print() is called with the correct argument
-#         mock_print.assert_called_once_with("\a")
+def test_promptChartPatterns_Input3():
+    # Mocking the input() function
+    with patch("builtins.input", side_effect=["3","2"]) as mock_input:
+        result = tools.promptChartPatterns()
+        # Assert that input() is called with the correct arguments
+        mock_input.assert_called_with(
+            colorText.BOLD
+            + colorText.WARN
+            + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : "
+            + colorText.END
+        )
+        # Assert that the result is the correct tuple
+        assert result == (3, .02)
+# Positive test case for getProgressbarStyle() function
+def test_getProgressbarStyle():
+    result = tools.getProgressbarStyle()
+    # Assert that the result is the correct tuple
+    assert result == ("classic2", "dots_recur")
+
+# Positive test case for getNiftyModel() function
+def test_getNiftyModel():
+    # Mocking the os.path.isfile() function
+    with patch("os.path.isfile", return_value=True) as mock_isfile:
+        # Mocking the keras.models.load_model() function
+        mock_load_model = Mock()
+        m1 = str(mock_load_model)
+        with patch("keras.models.load_model", return_value=mock_load_model) as mock_keras_load_model:
+            # Mocking the joblib.load() function
+            mock_joblib_load = Mock()
+            m2 = str(mock_joblib_load)
+            with patch("joblib.load", return_value=mock_joblib_load) as mock_joblib_load:
+                result = tools.getNiftyModel(retrial=True)
+                # Assert that os.path.isfile called twice with the correct argument
+                mock_isfile.assert_called_with("nifty_model_v2.pkl")
+                # Assert that keras.models.load_model() is called with the correct argument
+                mock_keras_load_model.assert_called_with("nifty_model_v2.h5")
+                # Assert that joblib.load() is called with the correct argument
+                mock_joblib_load.assert_called_with("nifty_model_v2.pkl")
+                # Assert that the result is the correct tuple
+                assert (str(result[0]), str(result[1])) == (m1, m2)
+
+# Positive test case for getSigmoidConfidence() function
+def test_getSigmoidConfidence():
+    x = 0.7
+    result = tools.getSigmoidConfidence(x)
+    # Assert that the result is the correct sigmoid confidence value
+    assert result == 39.999
+
+# Positive test case for alertSound() function
+def test_alertSound():
+    # Mocking the print() function
+    with patch("builtins.print") as mock_print:
+        tools.alertSound(1)
+        # Assert that print() is called with the correct argument
+        mock_print.assert_called_once_with("\a")

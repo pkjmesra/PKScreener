@@ -630,7 +630,7 @@ def main(
                     insideBarToLookback = int(options[4])
                 elif defaultConsoleAnswer =='Y' and user is not None:
                     # bot mode
-                    insideBarToLookback = 7 if respChartPattern in [1, 2] else 2
+                    insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
                 else:
                     (
                         respChartPattern,
