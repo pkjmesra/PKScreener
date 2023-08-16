@@ -740,8 +740,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
-            if selection[2] in ["6","7"]:
-                selection.extend(["7"])
             options = ":".join(selection)
             await launchScreener(
                 options=options,

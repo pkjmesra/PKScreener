@@ -597,6 +597,9 @@ def main(
             if reversalOption == 4 or reversalOption == 6:
                 if len(options) >= 5:
                     maLength = int(options[4])
+                elif defaultConsoleAnswer =='Y' and user is not None:
+                    # bot mode
+                    maLength = 50 if reversalOption == 4 else 7
                 else:
                     reversalOption, maLength = Utility.tools.promptReversalScreening(
                         selectedMenu
@@ -625,12 +628,15 @@ def main(
             if respChartPattern in [1, 2, 3]:
                 if len(options) >= 5:
                     insideBarToLookback = int(options[4])
+                elif defaultConsoleAnswer =='Y' and user is not None:
+                    # bot mode
+                    insideBarToLookback = 7 if respChartPattern in [1, 2] else 2
                 else:
                     (
                         respChartPattern,
                         insideBarToLookback,
                     ) = Utility.tools.promptChartPatterns(selectedMenu)
-            elif respChartPattern in [0, 4, 5]:
+            elif respChartPattern in [0, 4, 5, 6]:
                 insideBarToLookback = 0
             else:
                 (
