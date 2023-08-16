@@ -26,7 +26,7 @@ import datetime
 import platform
 import pandas as pd
 import pytz
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, ANY
 from pkscreener.classes.Utility import tools
 from pkscreener.classes.ColorText import colorText
 
@@ -199,19 +199,18 @@ def test_afterMarketStockDataExists():
         # Assert that the result is True and the cache file name is correct
         assert result == (False, cache_file)
 
-# # Positive test case for saveStockData() function
-# def test_saveStockData():
-#     # Mocking the open() function
-#     mock_file = Mock()
-#     with patch("builtins.open", mock_file) as mock_open:
-#         stockDict = {"AAPL": 100, "GOOG": 200}
-#         configManager = Mock()
-#         loadCount = 2
-#         tools.saveStockData(stockDict, configManager, loadCount)
-#         # Assert that open() is called with the correct arguments
-#         mock_open.assert_called_once_with("stock_data_*.pkl", "wb")
-#         # Assert that pickle.dump() is called with the correct arguments
-#         mock_file().__enter__().dump.assert_called_once_with(stockDict.copy())
+# Positive test case for saveStockData() function
+def test_saveStockData():
+    stockDict = {"AAPL": 100, "GOOG": 200}
+    configManager = Mock()
+    loadCount = 2
+    with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+        mock_data.return_value = False, "stock_data_1.pkl"
+        mock_pickle = Mock()
+        with patch("pickle.dump", mock_pickle) as mock_dump:
+            tools.saveStockData(stockDict, configManager, loadCount)
+            # Assert that pickle.dump() is called with the correct arguments
+            mock_dump.assert_called_once_with(stockDict.copy(),ANY)
 
 # # Positive test case for loadStockData() function
 # def test_loadStockData():
