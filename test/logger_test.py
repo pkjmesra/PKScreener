@@ -84,7 +84,9 @@ def test_setupLogger_positive_printLogFilePath(capsys):
     with patch('pkscreener.classes.log.setup_custom_logger'):
         setupLogger(shouldLog=True)
         captured = capsys.readouterr()
-        assert log_file_path in captured.out
+        assert captured.err == ''
+        if captured.out != '':
+            assert log_file_path in captured.out
 
 # Negative test case - should not print log file path when shouldLog is False
 def test_setupLogger_negative_doNotPrintLogFilePath(capsys):

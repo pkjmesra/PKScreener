@@ -106,8 +106,8 @@ def test_tradingDate():
 
 # Positive test case for currentDateTime() function
 def test_currentDateTime():
-    curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-    result = tools.currentDateTime()
+    curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%y_%H.%M.%S")
+    result = tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
     # Assert that the result is the correct current date and time
     assert result == curr
 
