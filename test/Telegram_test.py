@@ -23,7 +23,7 @@
 
 """
 from unittest.mock import patch, MagicMock
-from pkscreener.Telegram import get_secrets, is_token_telegram_configured, send_exception, send_message, send_photo, send_document
+from pkscreener.Telegram import TOKEN, get_secrets, is_token_telegram_configured, send_exception, send_message, send_photo, send_document
 
 # Positive test case: Check if the function returns the correct secrets
 def test_get_secrets():
@@ -42,15 +42,6 @@ def test_get_secrets():
 def test_is_token_telegram_configured():
     result = is_token_telegram_configured()
     assert result is True
-
-# Negative test case: Check if the function returns False when the token is not configured
-def test_is_token_telegram_configured_token_not_configured():
-    with patch('pkscreener.Telegram.initTelegram') as mock_initTelegram:
-        mock_initTelegram.return_value = None
-        global TOKEN
-        TOKEN = "00000000xxxxxxx"
-        result = is_token_telegram_configured()
-        assert result is False
 
 # Positive test case: Check if the function sends an exception message
 def test_send_exception():

@@ -24,6 +24,7 @@
 """
 import datetime
 import platform
+import os
 from unittest.mock import ANY, Mock, patch
 
 import pandas as pd
@@ -207,6 +208,10 @@ def test_saveStockData():
     stockDict = {"AAPL": 100, "GOOG": 200}
     configManager = Mock()
     loadCount = 2
+    try:
+        os.remove("stock_data_1.pkl")
+    except Exception:
+        pass
     with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
         mock_data.return_value = False, "stock_data_1.pkl"
         mock_pickle = Mock()
@@ -397,7 +402,10 @@ def test_promptChartPatterns_Input3():
 def test_getProgressbarStyle():
     result = tools.getProgressbarStyle()
     # Assert that the result is the correct tuple
-    assert result == ("classic2", "dots_recur")
+    if "Windows" in platform.platform():
+        assert result == ("classic2", "dots_recur")
+    else:
+        assert result == ("smooth", "waves")
 
 # Positive test case for getNiftyModel() function
 def test_getNiftyModel():
@@ -406,6 +414,9 @@ def test_getNiftyModel():
         # Mocking the keras.models.load_model() function
         mock_load_model = Mock()
         m1 = str(mock_load_model)
+        f = open("nifty_model_v2.h5","wb")
+        f.close()
+        pd.DataFrame().to_pickle("nifty_model_v2.pkl")
         with patch("keras.models.load_model", return_value=mock_load_model) as mock_keras_load_model:
             # Mocking the joblib.load() function
             mock_joblib_load = Mock()

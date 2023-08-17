@@ -26,3 +26,8 @@ pkscreener/classes/__pycache__
 *.bin
 *.run
 *.sqlite
+*.sh
+*.bat
+*.png
+*.pdf
+
