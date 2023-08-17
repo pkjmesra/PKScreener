@@ -907,8 +907,9 @@ class tools:
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
         try:
-            model = keras.models.load_model(files[0]) if Imports["keras"] else None
-            pkl = joblib.load(files[1])
+            if os.path.isfile(files[0]) and os.path.isfile(files[1]):
+                pkl = joblib.load(files[1])
+                model = keras.models.load_model(files[0]) if Imports["keras"] else None
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             os.remove(files[0])
