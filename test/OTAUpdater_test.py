@@ -22,10 +22,13 @@
     SOFTWARE.
 
 """
-import pytest
 import platform
 from unittest.mock import patch
+
+import pytest
+
 from pkscreener.classes.OtaUpdater import OTAUpdater
+
 
 # Positive test case: Test updateForWindows function
 def test_updateForWindows():

@@ -23,8 +23,8 @@
 
 """
 import datetime
-import platform
 import os
+import platform
 from unittest.mock import ANY, Mock, patch
 
 import pandas as pd

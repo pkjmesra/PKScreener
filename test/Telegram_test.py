@@ -22,8 +22,12 @@
     SOFTWARE.
 
 """
-from unittest.mock import patch, MagicMock
-from pkscreener.Telegram import TOKEN, get_secrets, is_token_telegram_configured, send_exception, send_message, send_photo, send_document
+from unittest.mock import MagicMock, patch
+
+from pkscreener.Telegram import (get_secrets, is_token_telegram_configured,
+                                 send_document, send_exception, send_message,
+                                 send_photo)
+
 
 # Positive test case: Check if the function returns the correct secrets
 def test_get_secrets():

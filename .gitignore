@@ -29,5 +29,6 @@ pkscreener/classes/__pycache__
 *.sh
 *.bat
 *.png
+*.jpg
 *.pdf
 

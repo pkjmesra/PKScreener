@@ -231,6 +231,9 @@ class tools:
             except ZeroDivisionError as e:
                 default_logger().debug(e, exc_info=True)
                 pass
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
+                pass
             if len(data) == 0:
                 print(
                     colorText.BOLD
