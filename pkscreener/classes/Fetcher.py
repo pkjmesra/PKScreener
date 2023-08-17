@@ -185,7 +185,7 @@ class tools:
                     + "=> Error getting stock codes from NSE! Press any key to exit!"
                     + colorText.END
                 )
-                sys.exit("Exiting script..")
+                # sys.exit("Exiting script..")
 
         return listStockCodes
 
