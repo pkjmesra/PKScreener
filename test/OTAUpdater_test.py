@@ -29,6 +29,7 @@ import pytest
 
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
+
 def getPlatformSpecificDetails(jsonDict):
     url = ""
     platName = ""

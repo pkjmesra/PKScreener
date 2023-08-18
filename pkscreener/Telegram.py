@@ -68,7 +68,6 @@ botsUrl = ""
 # chat_idUser3= "495000000"
 LIST_PEOPLE_IDS_CHAT = [Channel_Id]
 
-
 def initTelegram():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if chat_idADMIN == "" or botsUrl == "":
@@ -94,8 +93,6 @@ def get_secrets():
     )
 
 
-# if TOKEN == "00000000xxxxxxx":
-#     raise ValueError("There is no value for the telegram TOKEN, telegram is required to telegram one, see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token")
 def is_token_telegram_configured():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     initTelegram()
@@ -113,12 +110,11 @@ def send_exception(ex, extra_mes=""):
         return
 
 
-def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None):
+def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None, retrial=False):
     initTelegram()
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
     if not is_token_telegram_configured():
-        print("No ")
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if userID is not None:
@@ -138,10 +134,10 @@ def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None)
                 )  # headers={'Connection': 'Close'})
             except Exception as e:
                 default_logger().debug(e, exc_info=True)
-                from time import sleep
-
-                sleep(2)
-                resp = requests.get(url)
+                if not retrial:
+                    from time import sleep
+                    sleep(2)
+                    resp = send_message(message=message, parse_type=parse_type, list_png=list_png, userID=userID, retrial=True)
         return resp
     # else:
     #     for people_id in LIST_PEOPLE_IDS_CHAT:
@@ -153,7 +149,7 @@ def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None)
     #     # print(telegram_msg.content)
 
 
-def send_photo(photoFilePath, message="", message_id=None, userID=None):
+def send_photo(photoFilePath, message="", message_id=None, userID=None, retrial=False):
     initTelegram()
     if not is_token_telegram_configured():
         return
@@ -185,15 +181,10 @@ def send_photo(photoFilePath, message="", message_id=None, userID=None):
         )  # headers={'Connection': 'Close'})
     except Exception as e:
         default_logger().debug(e, exc_info=True)
-        from time import sleep
-
-        sleep(2)
-        resp = requests.post(
-            botsUrl + method,
-            params,
-            files=files,
-            timeout=2 * ConfigManager.default_timeout,
-        )  # headers={'Connection': 'Close'})
+        if not retrial:
+            from time import sleep
+            sleep(2)
+            resp = send_photo(photoFilePath=photoFilePath, message=message, message_id=message_id, userID=userID, retrial=True)
     return resp
 
 
@@ -234,7 +225,7 @@ def send_document(
 
         if retryCount <= 3:
             sleep(2 * (retryCount + 1))
-            send_document(
+            resp = send_document(
                 documentFilePath, message, message_id, retryCount=retryCount + 1
             )
     return resp
