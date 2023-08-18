@@ -29,6 +29,20 @@ import pytest
 
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
+def getPlatformSpecificDetails(jsonDict):
+    url = ""
+    platName = ""
+    platforms = {0:"Linux",1:"Windows", 2:"Darwin"}
+    platformNames = {"Linux":"Linux","Windows":"Windows", "Darwin":"Mac"}
+    for key in platforms.keys():
+        if platforms[key] in platform.system():
+            url = jsonDict["assets"][key]["browser_download_url"]
+            platName = platformNames[platforms[key]]
+            break
+    if url == "":
+        url = jsonDict["assets"][0]["browser_download_url"]
+        platName = platformNames[platforms[0]]
+    return url, platName
 
 # Positive test case: Test updateForWindows function
 def test_updateForWindows():
@@ -75,17 +89,7 @@ def test_checkForUpdate_prod_update():
                 {"browser_download_url": "https://example.com/update2.bin", "size": 200},
             ],
         }
-        url = ""
-        platName = ""
-        if "Windows" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][1]["browser_download_url"]
-            platName = "Windows"
-        elif "Darwin" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][2]["browser_download_url"]
-            platName = "Mac"
-        else:
-            url = mock_get.return_value.json.return_value["assets"][0]["browser_download_url"]
-            platName = "Linux"
+        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 OTAUpdater.checkForUpdate(proxyServer, VERSION)
@@ -104,17 +108,7 @@ def test_checkForUpdate_not_prod_update():
                 {"browser_download_url": "https://example.com/update2.bin", "size": 200},
             ],
         }
-        url = ""
-        platName = ""
-        if "Windows" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][1]["browser_download_url"]
-            platName = "Windows"
-        elif "Darwin" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][2]["browser_download_url"]
-            platName = "Mac"
-        else:
-            url = mock_get.return_value.json.return_value["assets"][0]["browser_download_url"]
-            platName = "Linux"
+        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 with pytest.raises((Exception)):
@@ -127,17 +121,15 @@ def test_checkForUpdate_exception():
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
-        url = ""
-        platName = ""
-        if "Windows" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][1]["browser_download_url"]
-            platName = "Windows"
-        elif "Darwin" in platform.system():
-            url = mock_get.return_value.json.return_value["assets"][2]["browser_download_url"]
-            platName = "Mac"
-        else:
-            url = mock_get.return_value.json.return_value["assets"][0]["browser_download_url"]
-            platName = "Linux"
+        mock_get.return_value.json.return_value = {
+            "tag_name": "1.0.0",
+            "assets": [
+                {"browser_download_url": "https://example.com/update3.run", "size": 300},
+                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
+                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+            ],
+        }
+        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 with pytest.raises(Exception):
@@ -159,13 +151,7 @@ def test_checkForUpdate_skipDownload():
         }
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
             with patch("builtins.input", return_value="n"):
-                platName = ""
-                if "Windows" in platform.system():
-                    platName = "Windows"
-                elif "Darwin" in platform.system():
-                    platName = "Mac"
-                else:
-                    platName = "Linux"
+                url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
                 with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                     OTAUpdater.checkForUpdate(proxyServer, VERSION, skipDownload=True)
                     assert mock_showWhatsNew.called
@@ -184,14 +170,8 @@ def test_checkForUpdate_no_update():
                 {"browser_download_url": "https://example.com/update2.bin", "size": 200},
             ],
         }
+        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
-            platName = ""
-            if "Windows" in platform.system():
-                platName = "Windows"
-            elif "Darwin" in platform.system():
-                platName = "Mac"
-            else:
-                platName = "Linux"
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 OTAUpdater.checkForUpdate(proxyServer, VERSION)
                 assert not mock_showWhatsNew.called
