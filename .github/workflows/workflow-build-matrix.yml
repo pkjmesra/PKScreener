@@ -149,6 +149,7 @@ jobs:
             echo ${{ steps.vars.outputs.CURRENT_VERSION }}
             echo ${{ steps.vars.outputs.THIS_VERSION }}
             python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+            python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ steps.vars.outputs.CURRENT_VERSION }}] -r [v${{ steps.vars.outputs.THIS_VERSION }}] -t text
             python .github/workflows/updateVersion.py -p README.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
