@@ -56,7 +56,7 @@ def test_fetchCodes_positive_proxy(configManager, tools_instance):
         assert result == ['AAPL', 'GOOG']
         mock_get.assert_called_once_with(
             "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
-            {"https":"127.0.0.1:8080"},
+            proxies={"https":"127.0.0.1:8080"},
             timeout=configManager.generalTimeout
         )
 
