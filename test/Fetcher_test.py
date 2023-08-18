@@ -49,6 +49,17 @@ def test_fetchCodes_positive(configManager, tools_instance):
             timeout=configManager.generalTimeout
         )
 
+def test_fetchCodes_positive_proxy(configManager, tools_instance):
+    with patch('requests_cache.CachedSession.get') as mock_get:
+        mock_get.return_value.text = "SYMBOL\nAAPL\nGOOG\n"
+        result = tools_instance.fetchCodes(12, "127.0.0.1:8080")
+        assert result == ['AAPL', 'GOOG']
+        mock_get.assert_called_once_with(
+            "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+            {"https":"127.0.0.1:8080"},
+            timeout=configManager.generalTimeout
+        )
+
 def test_fetchCodes_negative(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
         mock_get.side_effect = Exception("Error fetching data")
@@ -66,6 +77,13 @@ def test_fetchStockCodes_positive(configManager, tools_instance):
         result = tools_instance.fetchStockCodes(1)
         assert len(result) == len(['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG'])
         mock_fetchCodes.assert_called_once_with(1, proxyServer=None)
+
+def test_fetchStockCodes_positive_proxy(configManager, tools_instance):
+    with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:
+        mock_fetchCodes.return_value = ['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG',]
+        result = tools_instance.fetchStockCodes(1,"127.0.0.1:8080")
+        assert len(result) == len(['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG'])
+        mock_fetchCodes.assert_called_once_with(1, proxyServer="127.0.0.1:8080")
 
 def test_fetchStockCodes_negative(configManager, tools_instance):
     with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:

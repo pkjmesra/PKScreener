@@ -184,6 +184,17 @@ def test_option_X_0(mocker):
     assert globals.screenResults is not None
     assert len(globals.screenResults) == 1
 
+def test_option_X_0_input(mocker):
+    cleanup()
+    mocker.patch(
+        "builtins.input", side_effect=["X", "0", "0", globals.TEST_STKCODE, "y"]
+    )
+    main(
+        testing=True,
+        defaultConsoleAnswer="Y",
+    )
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) == 1
 
 def test_option_X_1_0(mocker):
     cleanup()
@@ -392,6 +403,12 @@ def test_option_X_12_Z(mocker, capsys):
     out, err = capsys.readouterr()
     assert err == ""
 
+def test_option_X_14_1(mocker):
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "14", "1", "y"])
+    main(testing=False, startupoptions="X:14:1", defaultConsoleAnswer="Y")
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 0
 
 def test_option_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Z", ""])
