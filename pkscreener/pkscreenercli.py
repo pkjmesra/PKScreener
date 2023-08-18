@@ -189,6 +189,10 @@ def pkscreenercli():
         configManager.setConfig(
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
+    if args.options is not None and str(args.options) == "0":
+        # Must be from tests
+        args.options = None
+        
     if args.testbuild and not args.prodbuild:
         print(
             colorText.BOLD
@@ -222,6 +226,7 @@ def pkscreenercli():
             defaultAnswer = args.answerdefault
             cronInterval = args.croninterval
             while True:
+                startupOptions = args.options
                 if cronInterval is not None and str(cronInterval).isnumeric():
                     sleepUntilNextExecution = not Utility.tools.isTradingTime()
                     while sleepUntilNextExecution:
