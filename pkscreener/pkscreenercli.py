@@ -169,7 +169,11 @@ def setupLogger(shouldLog=False, trace=False):
 
 def pkscreenercli():
     if sys.platform.startswith("darwin"):
-        multiprocessing.set_start_method("fork")
+        try:
+            multiprocessing.set_start_method("fork")
+        except RuntimeError:
+            print("[+] RuntimeError with 'multiprocessing'.\n[+] Please contact the Developer, if this does not work!")
+            pass
     configManager.getConfig(ConfigManager.parser)
 
     if args.log or configManager.logsEnabled:

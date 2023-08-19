@@ -21,8 +21,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
-import os
-import sys
+
 from multiprocessing import Event
 from queue import Queue
 from unittest.mock import Mock, patch

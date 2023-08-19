@@ -159,7 +159,7 @@ def toggleUserConfig():
 
 # Manage Execution flow
 def initPostLevel0Execution(
-    menuOption=None, tickerOption=None, executeOption=None, skip=[]
+    menuOption=None, tickerOption=None, executeOption=None, skip=[], retrial=False
 ):
     global newlyListedOnly, selectedChoice
     Utility.tools.clearScreen()
@@ -170,7 +170,7 @@ def initPostLevel0Execution(
         colorText.BOLD
         + colorText.FAIL
         + "[+] You chose: "
-        + level0MenuDict[selectedChoice["0"]].strip()
+        + level0MenuDict[menuOption].strip()
         + " > "
         + colorText.END
     )
@@ -208,13 +208,14 @@ def initPostLevel0Execution(
             + "\n[+] Please enter a valid numeric option & Try Again!"
             + colorText.END
         )
-        sleep(2)
-        Utility.tools.clearScreen()
-        return initPostLevel0Execution()
+        if not retrial:
+            sleep(2)
+            Utility.tools.clearScreen()
+            return initPostLevel0Execution(retrial=True)
     return tickerOption, executeOption
 
 
-def initPostLevel1Execution(tickerOption, executeOption=None, skip=[]):
+def initPostLevel1Execution(tickerOption, executeOption=None, skip=[], retrial=False):
     global selectedChoice
     if executeOption is None:
         if tickerOption is not None and tickerOption != "W":
@@ -258,9 +259,10 @@ def initPostLevel1Execution(tickerOption, executeOption=None, skip=[]):
             + "\n[+] Please enter a valid numeric option & Try Again!"
             + colorText.END
         )
-        sleep(2)
-        Utility.tools.clearScreen()
-        return initPostLevel1Execution()
+        if not retrial:
+            sleep(2)
+            Utility.tools.clearScreen()
+            return initPostLevel1Execution(tickerOption, executeOption, retrial=True)
     return tickerOption, executeOption
 
 
@@ -313,7 +315,7 @@ def getTestBuildChoices(tickerOption=None, executeOption=None, menuOption=None):
     return "X", 1, 0, {"0": "X", "1": "1", "2": "0"}
 
 
-def getDownloadChoices():
+def getDownloadChoices(defaultAnswer=None):
     exists, cache_file = Utility.tools.afterMarketStockDataExists()
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -358,7 +360,7 @@ def handleSecondaryMenuChoices(
     return
 
 
-def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
+def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly,defaultAnswer=None):
     global selectedChoice
     executeOption = None
     menuOption = None
@@ -376,7 +378,7 @@ def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly):
             menuOption=menuOption,
         )
     elif downloadOnly:
-        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices()
+        menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices(defaultAnswer=defaultAnswer)
     return options, menuOption, tickerOption, executeOption
 
 
@@ -447,7 +449,6 @@ def handleScannerExecuteOption4(executeOption, options):
             + colorText.END
         )
         input("")
-        main()
         return
     print(colorText.END)
     return daysForLowestVolume
@@ -484,7 +485,7 @@ def main(
     listStockCodes = None
     screenResults, saveResults = initDataframes()
     options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(
-        startupoptions, testBuild, downloadOnly
+        startupoptions, testBuild, downloadOnly, defaultAnswer= defaultAnswer
     )
     # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
