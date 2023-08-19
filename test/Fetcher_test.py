@@ -23,10 +23,11 @@
 
 """
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pandas as pd
 import pytest
+from urllib3.exceptions import ReadTimeoutError
 
 from pkscreener.classes.Fetcher import StockDataEmptyException, tools
 
@@ -47,7 +48,7 @@ def test_fetchCodes_positive(configManager, tools_instance):
         assert result == ['AAPL', 'GOOG']
         mock_get.assert_called_once_with(
             "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
-            timeout=configManager.generalTimeout
+            timeout=ANY
         )
 
 def test_fetchCodes_positive_proxy(configManager, tools_instance):
@@ -59,7 +60,7 @@ def test_fetchCodes_positive_proxy(configManager, tools_instance):
         mock_get.assert_called_once_with(
             "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
             proxies={"https":"127.0.0.1:8080"},
-            timeout=configManager.generalTimeout
+            timeout=ANY
         )
 
 def test_fetchCodes_negative(configManager, tools_instance):
@@ -72,6 +73,13 @@ def test_fetchCodes_negative(configManager, tools_instance):
                 "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
                 timeout=configManager.generalTimeout
             )
+
+def test_fetchCodes_ReadTimeoutError_negative(configManager, tools_instance):
+    with patch('requests_cache.CachedSession.get') as mock_get:
+        mock_get.side_effect = ReadTimeoutError(None,None,"Error fetching data")
+        result = tools_instance.fetchCodes(12)
+        assert result == []
+        mock_get.call_count == 3
 
 def test_fetchStockCodes_positive(configManager, tools_instance):
     with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:

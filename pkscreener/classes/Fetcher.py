@@ -40,6 +40,7 @@ import pandas as pd
 import requests
 import yfinance as yf
 from requests_cache import CachedSession
+from urllib3.exceptions import ReadTimeoutError
 
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
@@ -67,24 +68,31 @@ class tools:
         self.configManager = configManager
         pass
 
-    def fetchCodes(self, tickerOption, proxyServer=None):
+    def fetchCodes(self, tickerOption, proxyServer=None, trial=1):
         listStockCodes = []
         if tickerOption == 12:
             url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
-            if proxyServer:
-                res = session.get(
-                    url,
-                    proxies={"https": proxyServer},
-                    timeout=self.configManager.generalTimeout,
-                )  # headers={'Connection': 'Close'})
-            else:
-                res = session.get(
-                    url, timeout=self.configManager.generalTimeout
-                )  # headers={'Connection': 'Close'})
-            if res.status_code >= 400:
-                return []
-            data = pd.read_csv(StringIO(res.text))
-            return list(data["SYMBOL"].values)
+            try:
+                if proxyServer:
+                    res = session.get(
+                        url,
+                        proxies={"https": proxyServer},
+                        timeout=trial*self.configManager.generalTimeout,
+                    )  # headers={'Connection': 'Close'})
+                else:
+                    res = session.get(
+                        url, timeout=trial*self.configManager.generalTimeout
+                    )  # headers={'Connection': 'Close'})
+                if res.status_code >= 400:
+                    return listStockCodes
+                data = pd.read_csv(StringIO(res.text))
+                return list(data["SYMBOL"].values)
+            except ReadTimeoutError as e:
+                default_logger().debug(e, exc_info=True)
+                if trial <= 2:
+                    return self.fetchCodes(tickerOption=tickerOption, proxyServer=proxyServer, trial=trial+1)
+                else:
+                    return listStockCodes
         tickerMapping = {
             1: "https://archives.nseindia.com/content/indices/ind_nifty50list.csv",
             2: "https://archives.nseindia.com/content/indices/ind_niftynext50list.csv",
@@ -107,14 +115,14 @@ class tools:
                 res = session.get(
                     url,
                     proxies={"https": proxyServer},
-                    timeout=self.configManager.generalTimeout,
+                    timeout=trial*self.configManager.generalTimeout,
                 )  # headers={'Connection': 'Close'})
             else:
                 res = session.get(
-                    url, timeout=self.configManager.generalTimeout
+                    url, timeout=trial*self.configManager.generalTimeout
                 )  # headers={'Connection': 'Close'})
             if res.status_code >= 400:
-                return []
+                return listStockCodes
             cr = csv.reader(res.text.strip().split("\n"))
 
             if tickerOption == 14:
@@ -126,6 +134,12 @@ class tools:
                 next(cr)  # skipping first line
                 for row in cr:
                     listStockCodes.append(row[2])
+        except ReadTimeoutError as e:
+            default_logger().debug(e, exc_info=True)
+            if trial <= 2:
+                return self.fetchCodes(tickerOption=tickerOption, proxyServer=proxyServer, trial=trial+1)
+            else:
+                return listStockCodes
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             print(e)

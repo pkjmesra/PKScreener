@@ -48,7 +48,7 @@ tensorflow #==2.9.2
 # tempfile
 # time
 # traceback
-# urllib
+urllib3
 # warnings
 xlsxwriter
 yfinance==0.1.87
