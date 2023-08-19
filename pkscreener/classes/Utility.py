@@ -255,8 +255,8 @@ class tools:
         draw = ImageDraw.Draw(im)
         # artwork
         draw.text((7, 7), artText, font=artfont, fill=artColor)
-        # selected menu options
-        draw.text((7, 8 + arttext_height), label, font=font, fill=menuColor)
+        # selected menu options and As of DateTime
+        draw.text((7, 8 + arttext_height), f"As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > {label}", font=font, fill=menuColor)
         lineNumber = 0
         colPixelRunValue = 7
         rowPixelRunValue = 9 + arttext_height + label_height
