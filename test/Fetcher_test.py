@@ -41,6 +41,7 @@ def tools_instance(configManager):
 
 def test_fetchCodes_positive(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
+        mock_get.return_value.status_code = 200
         mock_get.return_value.text = "SYMBOL\nAAPL\nGOOG\n"
         result = tools_instance.fetchCodes(12)
         assert result == ['AAPL', 'GOOG']
@@ -51,6 +52,7 @@ def test_fetchCodes_positive(configManager, tools_instance):
 
 def test_fetchCodes_positive_proxy(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
+        mock_get.return_value.status_code = 200
         mock_get.return_value.text = "SYMBOL\nAAPL\nGOOG\n"
         result = tools_instance.fetchCodes(12, "127.0.0.1:8080")
         assert result == ['AAPL', 'GOOG']
