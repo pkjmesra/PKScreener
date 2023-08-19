@@ -13,7 +13,20 @@
 [![Docker Build](https://github.com/pkjmesra/pkscreener/workflows/Docker%20Image%20CI/badge.svg)](https://github.com/pkjmesra/pkscreener/actions/workflows/docker-image.yml?query=workflow%3ADocker)
 
 ## What is PKScreener?
+| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot| Backtesting |
+|:---:|:---:|:---:|:---:|:---|
 
+| Nifty screening | Volume scanners | Breakout detection | Consolidating stocks | Reversal Signals |
+|:---:|:---:|:---:|:---:|:---|
+
+| Chart Patterns | CCI scanners | 2% scanners | Short-term bulls | NR4 / NR7 | Weekly Releases |
+|:---:|:---:|:---:|:---:|:---:|:---|
+
+| RSI screening | MACD scanners | IPO Stocks | Momentum Gainers | Watchlist screening |
+|:---:|:---:|:---:|:---:|:---|
+
+| F&O Stocks screening | Live 5-EMA Index Scan | Logging | Telegram Channel | Early Breakouts |
+|:---:|:---:|:---:|:---:|:---|
 ### A Python-based stock screener for NSE, India.
 
 **pkscreener** is an advanced stock screener to find potential breakout stocks from NSE and tell it's possible breakout values. It also helps to find the stocks which are consolidating and may breakout, or the particular chart patterns that you're looking specifically to make your decisions.
