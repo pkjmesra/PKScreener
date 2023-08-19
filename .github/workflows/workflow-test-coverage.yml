@@ -148,6 +148,7 @@ jobs:
 
       - name: Test Built Binary for ${{ matrix.TARGET }}
         shell: bash
+        timeout-minutes: 20
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
