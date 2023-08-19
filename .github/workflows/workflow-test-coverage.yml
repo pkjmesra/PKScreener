@@ -69,7 +69,7 @@ jobs:
           - os: windows-latest
             TARGET: Windows
             CMD_BUILD: |
-              del /s .coverage
+              echo Building
             DEP_BUILD: |
               python -m pip install --upgrade pip
               echo Installing TA-lib...
