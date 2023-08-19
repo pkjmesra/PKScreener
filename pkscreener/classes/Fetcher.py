@@ -81,6 +81,8 @@ class tools:
                 res = session.get(
                     url, timeout=self.configManager.generalTimeout
                 )  # headers={'Connection': 'Close'})
+            if res.status_code >= 400:
+                return []
             data = pd.read_csv(StringIO(res.text))
             return list(data["SYMBOL"].values)
         tickerMapping = {
@@ -111,7 +113,8 @@ class tools:
                 res = session.get(
                     url, timeout=self.configManager.generalTimeout
                 )  # headers={'Connection': 'Close'})
-
+            if res.status_code >= 400:
+                return []
             cr = csv.reader(res.text.strip().split("\n"))
 
             if tickerOption == 14:

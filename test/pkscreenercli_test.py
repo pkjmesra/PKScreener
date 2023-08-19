@@ -30,56 +30,44 @@ def patched_caller(*args, **kwargs):
 
 # Positive test case - Test if pkscreenercli function runs in download-only mode
 def test_pkscreenercli_download_only_mode():
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.globals.main') as mock_main:
-            with pytest.raises(SystemExit):
-                pkscreenercli.args.download = True
-                pkscreenercli.pkscreenercli()
-                mock_config_manager_getConfig.assert_called()
-                mock_main.assert_called_once_with(downloadOnly=True, startupoptions=None, defaultConsoleAnswer="Y", user=None)
+    with patch('pkscreener.globals.main') as mock_main:
+        with pytest.raises(SystemExit):
+            pkscreenercli.args.download = True
+            pkscreenercli.pkscreenercli()
+            mock_main.assert_called_once_with(downloadOnly=True, startupoptions=None, defaultConsoleAnswer="Y", user=None)
 
 # Positive test case - Test if pkscreenercli function runs with cron interval
 def test_pkscreenercli_with_cron_interval():
     pkscreenercli.args.croninterval = "3"
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.globals.main', new=patched_caller) as mock_main:
-            with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
-                mock_is_trading_time.return_value = True
-                pkscreenercli.args.exit = False
-                pkscreenercli.args.options="2"
-                with pytest.raises(SystemExit):
-                    pkscreenercli.pkscreenercli()
-                    mock_config_manager_getConfig.assert_called()
-                    assert mock_main.call_count == 2
+    with patch('pkscreener.globals.main', new=patched_caller) as mock_main:
+        with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
+            mock_is_trading_time.return_value = True
+            pkscreenercli.args.exit = False
+            pkscreenercli.args.options="2"
+            with pytest.raises(SystemExit):
+                pkscreenercli.pkscreenercli()
+                assert mock_main.call_count == 2
 
 # Positive test case - Test if pkscreenercli function runs without cron interval
 def test_pkscreenercli_with_cron_interval_preopen():
     pkscreenercli.args.croninterval = "3"
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.globals.main', new=patched_caller) as mock_main:
-            with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
-                mock_is_trading_time.return_value = False
-                with patch('pkscreener.classes.Utility.tools.secondsBeforeOpenTime') as mock_secondsBeforeOpenTime:
-                    mock_secondsBeforeOpenTime.return_value = -3601
-                    pkscreenercli.args.exit = False
-                    pkscreenercli.args.options="1"
-                    with pytest.raises(SystemExit):
-                        pkscreenercli.pkscreenercli()
-                        mock_config_manager_getConfig.assert_called()
-                        assert mock_main.call_count == 1
+    with patch('pkscreener.globals.main', new=patched_caller) as mock_main:
+        with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
+            mock_is_trading_time.return_value = False
+            with patch('pkscreener.classes.Utility.tools.secondsBeforeOpenTime') as mock_secondsBeforeOpenTime:
+                mock_secondsBeforeOpenTime.return_value = -3601
+                pkscreenercli.args.exit = False
+                pkscreenercli.args.options="1"
+                with pytest.raises(SystemExit):
+                    pkscreenercli.pkscreenercli()
+                    assert mock_main.call_count == 1
 
 # Positive test case - Test if pkscreenercli function runs without any errors
 def test_pkscreenercli_exits():
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.globals.main') as mock_main:
-            with pytest.raises(SystemExit):
-                pkscreenercli.pkscreenercli()
-                mock_config_manager_getConfig.assert_called_once()
-                mock_main.assert_called_once()
+    with patch('pkscreener.globals.main') as mock_main:
+        with pytest.raises(SystemExit):
+            pkscreenercli.pkscreenercli()
+            mock_main.assert_called_once()
 
 # Positive test case - Test if setupLogger function is called when logging is enabled
 def test_setupLogger_logging_enabled():
@@ -102,20 +90,14 @@ def test_setupLogger_logging_disabled():
 
 # Positive test case - Test if pkscreenercli function runs in test-build mode
 def test_pkscreenercli_test_build_mode():
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.globals.main') as mock_main:
-            pkscreenercli.args.testbuild = True
-            pkscreenercli.pkscreenercli()
-            mock_config_manager_getConfig.assert_called()
-            mock_main.assert_called_once_with(testBuild=True, startupoptions=None, defaultConsoleAnswer="Y", user=None)
+    with patch('pkscreener.globals.main') as mock_main:
+        pkscreenercli.args.testbuild = True
+        pkscreenercli.pkscreenercli()
+        mock_main.assert_called_once_with(testBuild=True, startupoptions=None, defaultConsoleAnswer="Y", user=None)
 
 def test_pkscreenercli_prodbuild_mode():
-    with patch('pkscreener.classes.ConfigManager.tools.getConfig') as mock_config_manager_getConfig:
-        mock_config_manager_getConfig.return_value = None
-        with patch('pkscreener.pkscreenercli.disableSysOut') as mock_disableSysOut:
-            pkscreenercli.args.prodbuild = True
-            with pytest.raises(SystemExit):
-                pkscreenercli.pkscreenercli()
-                mock_config_manager_getConfig.assert_called()
-                mock_disableSysOut.assert_called_once()
+    with patch('pkscreener.pkscreenercli.disableSysOut') as mock_disableSysOut:
+        pkscreenercli.args.prodbuild = True
+        with pytest.raises(SystemExit):
+            pkscreenercli.pkscreenercli()
+            mock_disableSysOut.assert_called_once()

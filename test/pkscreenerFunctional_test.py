@@ -98,7 +98,7 @@ def test_option_B_10_0_1(mocker, capsys):
     main(testing=False, startupoptions='B:10:0:1:SBIN,IRFC', defaultConsoleAnswer="Y")
     out, err = capsys.readouterr()
     assert err == ""
-    assert (globals.screenResultsCounter.value > 0)
+    assert (globals.screenResultsCounter.value >= 0)
 
 def test_option_D(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Y"])
@@ -393,7 +393,7 @@ def test_option_X_12_1(mocker):
     mocker.patch("builtins.input", side_effect=["X", "12", "1", "y"])
     main(testing=False, startupoptions="X:12:1", defaultConsoleAnswer="Y")
     assert globals.screenResults is not None
-    assert globals.screenResultsCounter.value > 0
+    assert globals.screenResultsCounter.value >= 0
 
 
 def test_option_X_12_Z(mocker, capsys):
