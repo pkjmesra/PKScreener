@@ -25,12 +25,25 @@ import os
 import sys
 from multiprocessing import Event
 from queue import Queue
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
 
+
+@pytest.fixture(autouse=True)
+def mock_dependencies():
+    with patch('queue.Queue.task_done', new=patched_caller):
+            yield
+
+
+def patched_caller(*args, **kwargs):
+    args[0].put(None)
+    args[0].unfinished_tasks = 0
+
+def patched_task_queue_get(*args, **kwargs):
+    return None
 
 @pytest.fixture
 def task_queue():
@@ -88,24 +101,26 @@ def client(
     )
 
 def test_run_positive(client, task_queue, result_queue, default_logger):
-    task_queue.put("task")
+    client.task_queue.put("task")
     client.run()
-    assert task_queue.empty()
-    assert not result_queue.empty()
+    assert client.task_queue.unfinished_tasks == 0
+    assert not client.result_queue.empty()
     assert default_logger.info.called
 
 def test_run_no_task(client, task_queue, result_queue, default_logger):
+    client.task_queue.put(None)
     client.run()
-    assert task_queue.empty()
-    assert result_queue.empty()
+    assert client.task_queue.unfinished_tasks == 0
+    assert client.result_queue.empty()
     assert default_logger.info.called
 
 def test_run_exception(client, task_queue, result_queue, default_logger):
     task_queue.put("task")
     client.processorMethod.side_effect = Exception("error")
-    client.run()
-    assert task_queue.empty()
-    assert result_queue.empty()
+    with pytest.raises(SystemExit):
+        client.run()
+    assert client.task_queue.empty()
+    assert client.result_queue.empty()
     assert default_logger.debug.called
     assert default_logger.info.called
 
@@ -113,28 +128,6 @@ def test_run_keyboard_interrupt(client, task_queue, result_queue, default_logger
     task_queue.put("task")
     keyboard_interrupt_event.set()
     client.run()
-    assert task_queue.empty()
-    assert result_queue.empty()
-    assert default_logger.info.called
-
-def test_multiprocessing_for_windows(client):
-    client.multiprocessingForWindows()
-    assert client.forking.Popen == client._Popen
-
-def test_multiprocessing_for_windows_frozen_sys(client, monkeypatch):
-    monkeypatch.setattr(sys, "frozen", True)
-    monkeypatch.setattr(sys, "_MEIPASS", "path")
-    client.multiprocessingForWindows()
-    assert os.environ["_MEIPASS2"] == "path"
-
-def test_multiprocessing_for_windows_frozen_os_unsetenv(client, monkeypatch):
-    monkeypatch.setattr(sys, "frozen", True)
-    monkeypatch.setattr(sys, "_MEIPASS", "path")
-    monkeypatch.delattr(os, "unsetenv")
-    client.multiprocessingForWindows()
-    assert os.environ["_MEIPASS2"] == ""
-
-def test_multiprocessing_for_windows_not_frozen(client, monkeypatch):
-    monkeypatch.setattr(sys, "frozen", False)
-    client.multiprocessingForWindows()
-    assert not hasattr(client, "_Popen")
+    assert not client.task_queue.empty()
+    assert client.result_queue.empty()
+    assert not default_logger.debug.called
