@@ -133,6 +133,13 @@ def test_option_E(mocker, capsys):
     out, err = capsys.readouterr()
     assert err == 0 or err == ""
 
+def test_option_Y(mocker, capsys):
+    mocker.patch("builtins.input", side_effect=["Y","\n"])
+    args = argParser.parse_known_args(args=["-a","Y","-o","Y"])[0]
+    main(userArgs=args)
+    out, err = capsys.readouterr()
+    assert err == ""
+
 def test_option_H(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["H","\n"])
     args = argParser.parse_known_args(args=["-a","N","-t","-p"])[0]

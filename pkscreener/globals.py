@@ -771,17 +771,13 @@ def main(userArgs=None):
                     )
                     default_logger().info(menuChoiceHierarchy)
                 if listStockCodes is None or len(listStockCodes) == 0:
-                    if not testing:
-                        listStockCodes = fetcher.fetchStockCodes(
-                            tickerOption, stockCode=None
-                        )
-                    else:
+                    listStockCodes = fetcher.fetchStockCodes(
+                        tickerOption, stockCode=None
+                    )
+                    if (listStockCodes is None or len(listStockCodes) == 0) and testing:
                         listStockCodes = [TEST_STKCODE]
                 if tickerOption == 0:
                     selectedChoice["3"] = ".".join(listStockCodes)
-                if testing:
-                    import random
-                    listStockCodes = [random.choice(listStockCodes)]
 
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
@@ -1335,35 +1331,34 @@ def printNotifySaveScreenedResults(
     print(tabulated_results)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
-        if not testing:
-            if len(screenResults) <= 100:
-                # No point sending a photo with more than 100 stocks.
-                caption = f"<b>({len(saveResults)}</b> stocks found).{caption}"
-                markdown_results = tabulate(
-                    saveResults, headers="keys", tablefmt="grid"
-                )
-                pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
-                if is_token_telegram_configured():
-                    Utility.tools.tableToImage(
-                        markdown_results,
-                        tabulated_results,
-                        pngName,
-                        menuChoiceHierarchy,
-                    )
-                    sendMessageToTelegramChannel(
-                        message=None, photo_filePath=pngName, caption=caption, user=user
-                    )
-                    try:
-                        os.remove(pngName)
-                    except Exception as e:
-                        default_logger().debug(e, exc_info=True)
-            print(
-                colorText.BOLD
-                + colorText.GREEN
-                + f"[+] Found {len(screenResults)} Stocks."
-                + colorText.END
+        if len(screenResults) <= 100:
+            # No point sending a photo with more than 100 stocks.
+            caption = f"<b>({len(saveResults)}</b> stocks found).{caption}"
+            markdown_results = tabulate(
+                saveResults, headers="keys", tablefmt="grid"
             )
-            Utility.tools.setLastScreenedResults(screenResults)
+            pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
+            if is_token_telegram_configured():
+                Utility.tools.tableToImage(
+                    markdown_results,
+                    tabulated_results,
+                    pngName,
+                    menuChoiceHierarchy,
+                )
+                sendMessageToTelegramChannel(
+                    message=None, photo_filePath=pngName, caption=caption, user=user
+                )
+                try:
+                    os.remove(pngName)
+                except Exception as e:
+                    default_logger().debug(e, exc_info=True)
+        print(
+            colorText.BOLD
+            + colorText.GREEN
+            + f"[+] Found {len(screenResults)} Stocks."
+            + colorText.END
+        )
+        Utility.tools.setLastScreenedResults(screenResults)
     elif user is not None:
         sendMessageToTelegramChannel(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
@@ -1371,9 +1366,7 @@ def printNotifySaveScreenedResults(
 
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
-    if downloadOnly or (
-        configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing
-    ):
+    if downloadOnly or configManager.cacheEnabled:
         print(
             colorText.BOLD
             + colorText.GREEN
