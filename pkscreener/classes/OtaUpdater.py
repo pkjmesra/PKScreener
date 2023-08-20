@@ -37,9 +37,9 @@ from datetime import timedelta
 from requests_cache import CachedSession
 
 import pkscreener.classes.ConfigManager as ConfigManager
+import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION
 from pkscreener.classes.ColorText import colorText
-import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes.log import default_logger
 
 session = CachedSession(

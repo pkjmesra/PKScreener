@@ -223,16 +223,20 @@ class StockConsumer:
                 isMaReversal = screener.validateMovingAverages(
                     processedData, screeningDictionary, saveDictionary, maRange=1.25
                 )
-                isShortTermBullish = screener.validateShortTermBullish(
-                    fullData.copy(), screeningDictionary, saveDictionary
-                )
-                is15MinutePriceVolumeBreakout = (
-                    screener.validate15MinutePriceVolumeBreakout(fullData.copy())
-                )
-                isBullishIntradayRSIMACD = screener.findBullishIntradayRSIMACD(
-                    fullData.copy()
-                )
-                isNR4Day = screener.findNR4Day(fullData.copy())
+                if executeOption == 11:
+                    isShortTermBullish = screener.validateShortTermBullish(
+                        fullData.copy(), screeningDictionary, saveDictionary
+                    )
+                if executeOption == 12:
+                    is15MinutePriceVolumeBreakout = (
+                        screener.validate15MinutePriceVolumeBreakout(fullData.copy())
+                    )
+                if executeOption == 13:
+                    isBullishIntradayRSIMACD = screener.findBullishIntradayRSIMACD(
+                        fullData.copy()
+                    )
+                if executeOption == 14:
+                    isNR4Day = screener.findNR4Day(fullData.copy())
                 isVolumeHigh = screener.validateVolume(
                     processedData,
                     screeningDictionary,
@@ -335,11 +339,12 @@ class StockConsumer:
                 isMomentum = screener.validateMomentum(
                     processedData, screeningDictionary, saveDictionary
                 )
-                isPriceRisingByAtLeast2Percent = (
-                    screener.validatePriceRisingByAtLeast2Percent(
-                        processedData, screeningDictionary, saveDictionary
+                if executeOption == 10:
+                    isPriceRisingByAtLeast2Percent = (
+                        screener.validatePriceRisingByAtLeast2Percent(
+                            processedData, screeningDictionary, saveDictionary
+                        )
                     )
-                )
 
                 isVSA = False
                 if not (executeOption == 7 and respChartPattern < 3):

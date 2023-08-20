@@ -1118,7 +1118,9 @@ def runScanners(
                     + colorText.END
                 )
                 progressbar()
-                if testing and (len(lstscreen) >= 2 or counter >= 5):
+                # If it's being run under unit testing, let's wrap up if we find at least 1
+                # stock or if we've already tried screening through 10% of the list. 
+                if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.1)):
                     break
 
         if menuOption == "X":
