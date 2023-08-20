@@ -33,12 +33,14 @@ import csv
 import os
 import random
 import sys
+import urllib
 from datetime import timedelta
 from io import StringIO
 
 import pandas as pd
 import requests
 import yfinance as yf
+from requests.exceptions import ConnectTimeout, ReadTimeout
 from requests_cache import CachedSession
 from urllib3.exceptions import ReadTimeoutError
 
@@ -49,7 +51,7 @@ from pkscreener.classes.SuppressOutput import SuppressOutput
 requests.packages.urllib3.util.connection.HAS_IPV6 = False
 session = CachedSession(
     "pkscreener_cache",
-    expire_after=timedelta(hours=1),
+    expire_after=timedelta(hours=6),
     stale_if_error=True,
 )
 
@@ -62,37 +64,58 @@ class StockDataEmptyException(Exception):
 
 # This Class Handles Fetching of Stock Data over the internet
 
-
 class tools:
     def __init__(self, configManager):
         self.configManager = configManager
+        self._proxy = None
         pass
+    
+    @property
+    def proxyServer(self):
+        if self._proxy is None:
+            self._proxy = self._getProxyServer()
+        return self._proxy
+    
+    def _getProxyServer(self):
+        # Get system wide proxy for networking
+        try:
+            proxy = urllib.request.getproxies()["http"]
+            proxy = {"https": proxy}
+        except KeyError as e:
+            default_logger().debug(e, exc_info=True)
+            proxy = None
+        return proxy
 
-    def fetchCodes(self, tickerOption, proxyServer=None, trial=1):
+    def fetchURL(self, url, stream=False, trial=1):
+        try:
+            response = None
+            response = session.get(
+                            url,
+                            proxies=self.proxyServer,
+                            stream = stream,
+                            timeout=trial*self.configManager.generalTimeout,
+                        ) 
+        except (ConnectTimeout,ReadTimeoutError,ReadTimeout) as e:
+            default_logger().debug(e, exc_info=True)
+            if trial <= int(self.configManager.maxNetworkRetryCount):
+                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request timed-out. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
+                return self.fetchURL(url, stream=stream, trial=trial+1)
+        return response
+                
+    def fetchCodes(self, tickerOption):
         listStockCodes = []
         if tickerOption == 12:
             url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+            res = self.fetchURL(url)
+            if res is None or res.status_code != 200:
+                return listStockCodes
             try:
-                if proxyServer:
-                    res = session.get(
-                        url,
-                        proxies={"https": proxyServer},
-                        timeout=trial*self.configManager.generalTimeout,
-                    )  # headers={'Connection': 'Close'})
-                else:
-                    res = session.get(
-                        url, timeout=trial*self.configManager.generalTimeout
-                    )  # headers={'Connection': 'Close'})
-                if res.status_code >= 400:
-                    return listStockCodes
                 data = pd.read_csv(StringIO(res.text))
                 return list(data["SYMBOL"].values)
-            except ReadTimeoutError as e:
+            except Exception as e:
                 default_logger().debug(e, exc_info=True)
-                if trial <= 2:
-                    return self.fetchCodes(tickerOption=tickerOption, proxyServer=proxyServer, trial=trial+1)
-                else:
-                    return listStockCodes
+                return listStockCodes
+            
         tickerMapping = {
             1: "https://archives.nseindia.com/content/indices/ind_nifty50list.csv",
             2: "https://archives.nseindia.com/content/indices/ind_niftynext50list.csv",
@@ -111,17 +134,8 @@ class tools:
         url = tickerMapping.get(tickerOption)
 
         try:
-            if proxyServer:
-                res = session.get(
-                    url,
-                    proxies={"https": proxyServer},
-                    timeout=trial*self.configManager.generalTimeout,
-                )  # headers={'Connection': 'Close'})
-            else:
-                res = session.get(
-                    url, timeout=trial*self.configManager.generalTimeout
-                )  # headers={'Connection': 'Close'})
-            if res.status_code >= 400:
+            res = self.fetchURL(url)
+            if res is None or res.status_code != 200:
                 return listStockCodes
             cr = csv.reader(res.text.strip().split("\n"))
 
@@ -134,20 +148,13 @@ class tools:
                 next(cr)  # skipping first line
                 for row in cr:
                     listStockCodes.append(row[2])
-        except ReadTimeoutError as e:
-            default_logger().debug(e, exc_info=True)
-            if trial <= 2:
-                return self.fetchCodes(tickerOption=tickerOption, proxyServer=proxyServer, trial=trial+1)
-            else:
-                return listStockCodes
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            print(e)
 
         return listStockCodes
 
     # Fetch all stock codes from NSE
-    def fetchStockCodes(self, tickerOption, proxyServer=None, stockCode=None):
+    def fetchStockCodes(self, tickerOption, stockCode=None):
         listStockCodes = []
         if tickerOption == 0:
             stockCode = None
@@ -163,7 +170,7 @@ class tools:
             listStockCodes = stockCode.split(",")
         else:
             print(colorText.BOLD + "[+] Getting Stock Codes From NSE... ", end="")
-            listStockCodes = self.fetchCodes(tickerOption, proxyServer=proxyServer)
+            listStockCodes = self.fetchCodes(tickerOption)
             if len(listStockCodes) > 10:
                 print(
                     colorText.GREEN

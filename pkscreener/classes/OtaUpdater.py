@@ -39,6 +39,7 @@ from requests_cache import CachedSession
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes import VERSION
 from pkscreener.classes.ColorText import colorText
+import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes.log import default_logger
 
 session = CachedSession(
@@ -50,7 +51,10 @@ session = CachedSession(
 
 class OTAUpdater:
     developmentVersion = "d"
-
+    _configManager = ConfigManager.tools()
+    _tools = Fetcher.tools(_configManager)
+    configManager = _configManager 
+    fetcher = _tools
     # Download and replace exe through other process for Windows
     def updateForWindows(url):
         batFile = (
@@ -128,9 +132,7 @@ rm updater.sh
     # Parse changelog from release.md
     def showWhatsNew():
         url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/release.md"
-        md = session.get(
-            url, timeout=ConfigManager.default_timeout
-        )  # headers={'Connection': 'Close'})
+        md = OTAUpdater.fetcher.fetchURL(url)
         txt = md.text
         txt = txt.split("New?")[1]
         txt = txt.split("## Downloads")[0]
@@ -138,24 +140,14 @@ rm updater.sh
         return txt + "\n"
 
     # Check for update and download if available
-    def checkForUpdate(proxyServer, VERSION=VERSION, skipDownload=False):
+    def checkForUpdate(VERSION=VERSION, skipDownload=False):
         OTAUpdater.checkForUpdate.url = None
         resp = None
         try:
             now_components = str(VERSION).split(".")
             now_major_minor = ".".join([now_components[0], now_components[1]])
             now = float(now_major_minor)
-            if proxyServer:
-                resp = session.get(
-                    "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",
-                    proxies={"https": proxyServer},
-                    timeout=ConfigManager.default_timeout,
-                )  # headers={'Connection': 'Close'})
-            else:
-                resp = session.get(
-                    "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",
-                    timeout=ConfigManager.default_timeout,
-                )  # headers={'Connection': 'Close'})
+            resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
             tag = resp.json()["tag_name"]
             version_components = tag.split(".")
             major_minor = ".".join([version_components[0], version_components[1]])

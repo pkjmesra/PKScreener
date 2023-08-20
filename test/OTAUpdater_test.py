@@ -79,7 +79,6 @@ def test_showWhatsNew():
 
 # Positive test case: Test checkForUpdate function with prod_update = True
 def test_checkForUpdate_prod_update():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {
@@ -93,12 +92,11 @@ def test_checkForUpdate_prod_update():
         url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
-                OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                OTAUpdater.checkForUpdate(VERSION)
                 mock_updateForPlatform.assert_called_with(url)
 
 # Positive test case: Test checkForUpdate function with prod_update = False
 def test_checkForUpdate_not_prod_update():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {
@@ -113,12 +111,11 @@ def test_checkForUpdate_not_prod_update():
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 with pytest.raises((Exception)):
-                    OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                    OTAUpdater.checkForUpdate(VERSION)
                     assert not mock_updateForPlatform.called
 
 # Negative test case: Test checkForUpdate function with exception
 def test_checkForUpdate_exception():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
@@ -134,12 +131,11 @@ def test_checkForUpdate_exception():
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
                 with pytest.raises(Exception):
-                    OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                    OTAUpdater.checkForUpdate(VERSION)
                 assert not mock_updateForPlatform.called
 
 # Positive test case: Test checkForUpdate function with skipDownload = True
 def test_checkForUpdate_skipDownload():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {
@@ -154,13 +150,12 @@ def test_checkForUpdate_skipDownload():
             with patch("builtins.input", return_value="n"):
                 url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
                 with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
-                    OTAUpdater.checkForUpdate(proxyServer, VERSION, skipDownload=True)
+                    OTAUpdater.checkForUpdate(VERSION, skipDownload=True)
                     assert mock_showWhatsNew.called
                     assert not mock_updateForPlatform.called
 
 # Positive test case: Test checkForUpdate function with no update available
 def test_checkForUpdate_no_update():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {
@@ -174,40 +169,37 @@ def test_checkForUpdate_no_update():
         url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
-                OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                OTAUpdater.checkForUpdate(VERSION)
                 assert not mock_showWhatsNew.called
                 assert not mock_updateForPlatform.called
 
 # Negative test case: Test checkForUpdate function with "Not Found" response
 def test_checkForUpdate_not_found():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {"message": "Not Found"}
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
-            OTAUpdater.checkForUpdate(proxyServer, VERSION)
+            OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
 
 # Negative test case: Test checkForUpdate function with exception and url not None
 def test_checkForUpdate_exception_url_not_none():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = "https://example.com/update.exe"
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
             with pytest.raises(Exception):
-                OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
 
 # Negative test case: Test checkForUpdate function with exception and url None
 def test_checkForUpdate_exception_url_none():
-    proxyServer = "https://example.com/proxy"
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = None
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
             with pytest.raises(Exception):
-                OTAUpdater.checkForUpdate(proxyServer, VERSION)
+                OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called

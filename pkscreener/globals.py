@@ -303,14 +303,12 @@ def initDataframes():
 def getTestBuildChoices(tickerOption=None, executeOption=None, menuOption=None):
     if (
         menuOption is not None
-        and tickerOption is not None
-        and executeOption is not None
     ):
         return (
-            menuOption,
-            tickerOption,
-            executeOption,
-            {"0": "X", "1": str(tickerOption), "2": str(executeOption)},
+            str(menuOption),
+            tickerOption if tickerOption is not None else 1,
+            executeOption if executeOption is not None else 0,
+            {"0": str(menuOption), "1": (str(tickerOption) if tickerOption is not None else 1), "2": (str(executeOption) if executeOption is not None else 0)},
         )
     return "X", 1, 0, {"0": "X", "1": "1", "2": "0"}
 
@@ -343,7 +341,7 @@ def handleSecondaryMenuChoices(
                 message=Utility.tools.removeAllColorStyles(helpData), user=user
             )
     elif menuOption == "U":
-        OTAUpdater.checkForUpdate(getProxyServer(), VERSION, skipDownload=testing)
+        OTAUpdater.checkForUpdate(VERSION, skipDownload=testing)
     elif menuOption == "T":
         toggleUserConfig()
     elif menuOption == "E":
@@ -454,12 +452,12 @@ def handleScannerExecuteOption4(executeOption, options):
 @tracelog
 def main(userArgs=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
-    testing=userArgs.testbuild and userArgs.prodbuild
-    testBuild=userArgs.testbuild
-    downloadOnly=userArgs.download
-    startupoptions=userArgs.options
-    user=userArgs.user
-    defaultAnswer = userArgs.answerdefault
+    testing=False if userArgs is None else (userArgs.testbuild and userArgs.prodbuild)
+    testBuild=False if userArgs is None else userArgs.testbuild
+    downloadOnly=False if userArgs is None else userArgs.download
+    startupoptions=None if userArgs is None else userArgs.options
+    user=None if userArgs is None else userArgs.user
+    defaultAnswer = None if userArgs is None else userArgs.answerdefault
     options = []
     screenCounter = multiprocessing.Value("i", 1)
     screenResultsCounter = multiprocessing.Value("i", 0)
@@ -679,8 +677,7 @@ def main(userArgs=None):
             elif tickerOption == "N":
                 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
                 prediction, pText, sText = screener.getNiftyPrediction(
-                    data=fetcher.fetchLatestNiftyDaily(proxyServer=proxyServer),
-                    proxyServer=proxyServer,
+                    data=fetcher.fetchLatestNiftyDaily(proxyServer=fetcher.proxyServer)
                 )
                 sendMessageToTelegramChannel(
                     message=f"Nifty AI prediction for the next day: {pText}. {sText}",
@@ -706,7 +703,6 @@ def main(userArgs=None):
                 last_signal = {}
                 first_scan = True
                 result_df = screener.monitorFiveEma(  # Dummy scan to avoid blank table on 1st scan
-                    proxyServer=proxyServer,
                     fetcher=fetcher,
                     result_df=result_df,
                     last_signal=last_signal,
@@ -717,7 +713,6 @@ def main(userArgs=None):
                         last_result_len = len(result_df)
                         try:
                             result_df = screener.monitorFiveEma(
-                                proxyServer=proxyServer,
                                 fetcher=fetcher,
                                 result_df=result_df,
                                 last_signal=last_signal,
@@ -778,7 +773,7 @@ def main(userArgs=None):
                 if listStockCodes is None or len(listStockCodes) == 0:
                     if not testing:
                         listStockCodes = fetcher.fetchStockCodes(
-                            tickerOption, proxyServer=proxyServer, stockCode=None
+                            tickerOption, stockCode=None
                         )
                     else:
                         listStockCodes = [TEST_STKCODE]
@@ -786,7 +781,6 @@ def main(userArgs=None):
                     selectedChoice["3"] = ".".join(listStockCodes)
                 if testing:
                     import random
-
                     listStockCodes = [random.choice(listStockCodes)]
 
         except urllib.error.URLError as e:
@@ -840,7 +834,6 @@ def main(userArgs=None):
             Utility.tools.loadStockData(
                 stockDict,
                 configManager,
-                proxyServer,
                 downloadOnly=downloadOnly,
                 defaultAnswer=defaultAnswer,
             )
@@ -914,31 +907,27 @@ def main(userArgs=None):
                 screenCounter,
                 screenResultsCounter,
                 stockDict,
-                proxyServer,
+                fetcher.proxyServer,
                 keyboardInterruptEvent,
                 default_logger(),
             )
             for _ in range(totalConsumers)
         ]
         startWorkers(consumers)
-        if testing or testBuild:
-            screenResults, saveResults = runTests(
-                items, tasks_queue, results_queue, screenResults, saveResults
-            )
-        else:
-            screenResults, saveResults, backtest_df = runScanners(
-                menuOption,
-                items,
-                tasks_queue,
-                results_queue,
-                listStockCodes,
-                backtestPeriod,
-                sampleDays - 1,
-                consumers,
-                screenResults,
-                saveResults,
-                backtest_df,
-            )
+        screenResults, saveResults, backtest_df = runScanners(
+            menuOption,
+            items,
+            tasks_queue,
+            results_queue,
+            listStockCodes,
+            backtestPeriod,
+            sampleDays - 1,
+            consumers,
+            screenResults,
+            saveResults,
+            backtest_df,
+            testing=testing
+        )
 
         print(colorText.END)
         terminateAllWorkers(consumers, tasks_queue, testing)
@@ -1081,6 +1070,7 @@ def runScanners(
     screenResults,
     saveResults,
     backtest_df,
+    testing=False
 ):
     populateQueues(items, tasks_queue)
     try:
@@ -1088,12 +1078,14 @@ def runScanners(
         dumpFreq = 1
         print(colorText.END + colorText.BOLD)
         bar, spinner = Utility.tools.getProgressbarStyle()
+        counter = 0
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
             lstFullData = []
             stocks = []
             while numStocks:
+                counter += 1
                 result = results_queue.get()
                 if result is not None:
                     lstscreen.append(result[0])
@@ -1126,7 +1118,8 @@ def runScanners(
                     + colorText.END
                 )
                 progressbar()
-                # default_logger().flush()
+                if testing and (len(lstscreen) >= 2 or counter >= 5):
+                    break
 
         if menuOption == "X":
             # create extension
@@ -1207,33 +1200,6 @@ def populateQueues(items, tasks_queue):
     # Append exit signal for each process indicated by None
     for _ in range(multiprocessing.cpu_count()):
         tasks_queue.put(None)
-
-
-def runTests(items, tasks_queue, results_queue, screenResults, saveResults):
-    testCounter = 0
-    for item in items:
-        testCounter = testCounter + 1
-        tasks_queue.put(item)
-        result = results_queue.get()
-        lstscreen = []
-        lstsave = []
-        lstFullData = []
-        stocks = []
-        default_logger().info(f"Fetched results:\n{result}")
-        if result is not None:
-            lstscreen.append(result[0])
-            lstsave.append(result[1])
-            lstFullData.append(result[2])
-            stocks.append(result[3])
-            df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
-            df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
-            screenResults = pd.concat([screenResults, df_extendedscreen])
-            saveResults = pd.concat([saveResults, df_extendedsave])
-        if len(screenResults) >= 2 or testCounter >= 5:
-            break
-    # backtest(lstFullData[0],'Momentum',30)
-    # input()
-    return screenResults, saveResults
 
 
 def startWorkers(consumers):
@@ -1496,15 +1462,3 @@ def sendMessageToTelegramChannel(
         except Exception as e:
             default_logger().debug(e, exc_info=True)
 
-
-def getProxyServer():
-    # Get system wide proxy for networking
-    try:
-        proxyServer = urllib.request.getproxies()["http"]
-    except KeyError as e:
-        default_logger().debug(e, exc_info=True)
-        proxyServer = ""
-    return proxyServer
-
-
-proxyServer = getProxyServer()

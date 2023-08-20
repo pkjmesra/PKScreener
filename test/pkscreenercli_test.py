@@ -27,6 +27,7 @@ from unittest.mock import patch
 import pytest
 
 from pkscreener import pkscreenercli
+from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
 
 
@@ -41,7 +42,8 @@ def mock_dependencies():
 
 def patched_caller(*args, **kwargs):
     if kwargs is not None:
-        maxCount = kwargs["startupoptions"]
+        userArgs = kwargs["userArgs"]
+        maxCount = userArgs.options
         pkscreenercli.args.options = str(int(maxCount) - 1)
         if int(pkscreenercli.args.options) == 0:
             pkscreenercli.args.exit = True
@@ -110,10 +112,15 @@ def test_setupLogger_logging_disabled():
 
 # Positive test case - Test if pkscreenercli function runs in test-build mode
 def test_pkscreenercli_test_build_mode():
-    with patch('pkscreener.globals.main') as mock_main:
+    with patch('builtins.print') as mock_print:
         pkscreenercli.args.testbuild = True
         pkscreenercli.pkscreenercli()
-        mock_main.assert_called_once_with(testBuild=True, startupoptions=None, defaultConsoleAnswer="Y", user=None)
+        mock_print.assert_called_with(
+            colorText.BOLD
+            + colorText.FAIL
+            + "[+] Started in TestBuild mode!"
+            + colorText.END
+        )
 
 def test_pkscreenercli_prodbuild_mode():
     with patch('pkscreener.pkscreenercli.disableSysOut') as mock_disableSysOut:

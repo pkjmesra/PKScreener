@@ -62,6 +62,7 @@ class tools:
         self.logsEnabled = False
         self.generalTimeout = 2
         self.longTimeout = 4
+        self.maxNetworkRetryCount = 10
         self.logger = None
 
     @property
@@ -110,6 +111,7 @@ class tools:
             parser.set("config", "logsEnabled", "y" if self.logsEnabled else "n")
             parser.set("config", "generalTimeout", str(self.generalTimeout))
             parser.set("config", "longTimeout", str(self.longTimeout))
+            parser.set("config", "maxNetworkRetryCount", str(self.maxNetworkRetryCount))
             try:
                 fp = open("pkscreener.ini", "w")
                 parser.write(fp)
@@ -207,6 +209,9 @@ class tools:
             self.longTimeout = input(
                 "[+] Long network timeout for heavier downloads(in seconds)(Optimal = 4 for good networks): "
             )
+            self.maxNetworkRetryCount = input(
+                "[+] MAximum number of retries in case of network timeout(in seconds)(Optimal = 10 for slow networks): "
+            )
             parser.set("config", "period", self.period + "d")
             parser.set("config", "daysToLookback", self.daysToLookback)
             parser.set("config", "duration", self.duration + "d")
@@ -223,6 +228,7 @@ class tools:
             parser.set("config", "logsEnabled", self.logsEnabledPrompt)
             parser.set("config", "generalTimeout", self.generalTimeout)
             parser.set("config", "longTimeout", self.longTimeout)
+            parser.set("config", "maxNetworkRetryCount", self.maxNetworkRetryCount)
             # delete stock data due to config change
             self.deleteFileWithPattern()
             print(
@@ -302,6 +308,7 @@ class tools:
                 )
                 self.generalTimeout = float(parser.get("config", "generalTimeout"))
                 self.longTimeout = float(parser.get("config", "longTimeout"))
+                self.maxNetworkRetryCount = float(parser.get("config", "maxNetworkRetryCount"))
             except configparser.NoOptionError as e:
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +

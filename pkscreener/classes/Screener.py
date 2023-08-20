@@ -399,11 +399,11 @@ class tools:
     def getCandleType(self, dailyData):
         return bool(dailyData["Close"][0] >= dailyData["Open"][0])
 
-    def getNiftyPrediction(self, data, proxyServer):
+    def getNiftyPrediction(self, data):
         import warnings
 
         warnings.filterwarnings("ignore")
-        model, pkl = Utility.tools.getNiftyModel(proxyServer=proxyServer)
+        model, pkl = Utility.tools.getNiftyModel()
         if model is None or pkl is None:
             return 0, "Unknown", "Unknown"
         with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
@@ -470,7 +470,7 @@ class tools:
         return pred, predictionText.replace(out, outText), strengthText
 
     def monitorFiveEma(
-        self, proxyServer, fetcher, result_df, last_signal, risk_reward=3
+        self, fetcher, result_df, last_signal, risk_reward=3
     ):
         col_names = ["High", "Low", "Close", "5EMA"]
         data_list = ["nifty_buy", "banknifty_buy", "nifty_sell", "banknifty_sell"]

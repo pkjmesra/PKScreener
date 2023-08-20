@@ -57,12 +57,13 @@ from requests_cache import CachedSession
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
+import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION, Archiver, Changelog
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
 session = CachedSession("pkscreener_cache", cache_control=True)
-
+fetcher = Fetcher.tools(ConfigManager.tools())
 artText = """
     $$$$$$      $$   $$      $$$$$                                                        
     $$    $$    $$  $$      $$   $$                         $$$$       $$$$                  $$$$         
@@ -230,7 +231,7 @@ class tools:
         fontFile = fontURL.split('/')[-1]
         bData, fontPath, _ = Archiver.findFile(fontFile)
         if bData is None:
-            resp = session.get(fontURL,stream=True,timeout=ConfigManager.default_timeout)
+            resp = fetcher.fetchURL(fontURL, stream=True)
             with open(fontPath, 'wb') as f:
                 for chunk in resp.iter_content(chunk_size=1024): 
                     if chunk: # filter out keep-alive new chunks
@@ -430,14 +431,14 @@ class tools:
     def afterMarketStockDataExists():
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
-        cache_date = curr.today()  # for monday to friday
-        weekday = curr.today().weekday()
+        cache_date = curr  # for monday to friday
+        weekday = curr.weekday()
         if curr < openTime:  # for monday to friday before 9:15
-            cache_date = curr.today() - datetime.timedelta(1)
+            cache_date = curr - datetime.timedelta(1)
         if weekday == 0 and curr < openTime:  # for monday before 9:15
-            cache_date = curr.today() - datetime.timedelta(3)
+            cache_date = curr - datetime.timedelta(3)
         if weekday == 5 or weekday == 6:  # for saturday and sunday
-            cache_date = curr.today() - datetime.timedelta(days=weekday - 4)
+            cache_date = curr - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
         cache_file = "stock_data_" + str(cache_date) + ".pkl"
         exists = False
@@ -473,7 +474,6 @@ class tools:
     def loadStockData(
         stockDict,
         configManager,
-        proxyServer=None,
         downloadOnly=False,
         defaultAnswer=None,
         retrial=False,
@@ -528,17 +528,7 @@ class tools:
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
                 + cache_file
             )
-            if proxyServer is not None:
-                resp = session.get(
-                    cache_url,
-                    stream=True,
-                    proxies={"https": proxyServer},
-                    timeout=configManager.longTimeout,
-                )  # headers={'Connection': 'Close'})
-            else:
-                resp = session.get(
-                    cache_url, stream=True, timeout=configManager.longTimeout
-                )  # headers={'Connection': 'Close'})
+            resp = fetcher.fetchURL(cache_url, stream=True)
             default_logger().info(
                 f"Stock data cache file:{cache_file} request status ->{resp.status_code}"
             )
@@ -587,7 +577,6 @@ class tools:
                     tools.loadStockData(
                         stockDict,
                         configManager,
-                        proxyServer,
                         downloadOnly,
                         defaultAnswer,
                         retrial=True,
@@ -852,7 +841,7 @@ class tools:
             spinner = "dots_recur"
         return bar, spinner
 
-    def getNiftyModel(proxyServer=None, retrial=False):
+    def getNiftyModel(retrial=False):
         files = ["nifty_model_v2.h5", "nifty_model_v2.pkl"]
         model = None
         urls = [
@@ -871,17 +860,7 @@ class tools:
             download = True
         if download:
             for file_url in urls:
-                if proxyServer is not None:
-                    resp = session.get(
-                        file_url,
-                        stream=True,
-                        proxies={"https": proxyServer},
-                        timeout=ConfigManager.default_timeout,
-                    )  # headers={'Connection': 'Close'})
-                else:
-                    resp = session.get(
-                        file_url, stream=True, timeout=ConfigManager.default_timeout
-                    )  # headers={'Connection': 'Close'})
+                resp = fetcher.fetchURL(file_url, stream=True)
                 if resp.status_code == 200:
                     print(
                         colorText.BOLD
@@ -921,7 +900,7 @@ class tools:
             os.remove(files[0])
             os.remove(files[1])
             if not retrial:
-                tools.getNiftyModel(proxyServer=proxyServer, retrial=True)
+                tools.getNiftyModel(retrial=True)
         return model, pkl
 
     def getSigmoidConfidence(x):

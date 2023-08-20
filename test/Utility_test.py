@@ -193,10 +193,10 @@ def test_afterMarketStockDataExists():
     with patch("pkscreener.classes.Utility.tools.currentDateTime") as mock_currentDateTime:
         mock_currentDateTime.return_value = datetime.datetime(2023, 1, 2, 16, 30)
         curr = mock_currentDateTime.return_value
-        cache_date = curr.today()  # for monday to friday
-        weekday = curr.today().weekday()
+        weekday = curr.weekday()
+        cache_date = curr
         if weekday == 5 or weekday == 6:  # for saturday and sunday
-            cache_date = curr.today() - datetime.timedelta(days=weekday - 4)
+            cache_date = curr - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
         cache_file = "stock_data_" + str(cache_date) + ".pkl"
         result = tools.afterMarketStockDataExists()
@@ -231,10 +231,9 @@ def test_loadStockData():
             mock_data.return_value = True, "stock_data_2.pkl"
             stockDict = {}
             configManager = Mock()
-            proxyServer = "http://localhost:8080"
             downloadOnly = False
             defaultAnswer = "Y"
-            tools.loadStockData(stockDict, configManager, proxyServer, downloadOnly, defaultAnswer)
+            tools.loadStockData(stockDict, configManager, downloadOnly, defaultAnswer)
             # Assert that pickle.load() is called
             mock_load.assert_called_once()
 
@@ -320,13 +319,13 @@ def test_promptReversalScreening():
 
 def test_promptReversalScreening_4x_Does_not_raise_value_error():
     # Mocking the input() function
-    with patch("builtins.input", side_effect=["4","x"]) as mock_input:
+    with patch("builtins.input", side_effect=["4","x","\n"]) as mock_input:
         result = tools.promptReversalScreening()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_with(
             colorText.BOLD
-            + colorText.WARN
-            + "\n[+] Enter MA Length (E.g. 50 or 200): "
+            + colorText.FAIL
+            + "\n[+] Invalid Option Selected. Press <Enter> to try again..."
             + colorText.END
         )
         # Assert that the result is the correct tuple
