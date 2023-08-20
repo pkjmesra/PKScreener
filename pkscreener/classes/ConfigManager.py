@@ -123,20 +123,8 @@ class tools:
                         + "[+] Default configuration generated as user configuration is not found!"
                         + colorText.END
                     )
-                    print(
-                        colorText.BOLD
-                        + colorText.GREEN
-                        + "[+] Use Option > 5 to edit in future."
-                        + colorText.END
-                    )
-                    print(
-                        colorText.BOLD
-                        + colorText.GREEN
-                        + "[+] Close and Restart the program now."
-                        + colorText.END
-                    )
                     input("Press <Enter> to continue...")
-                    sys.exit(0)
+                    return
             except IOError as e:
                 self.default_logger.debug(e, exc_info=True)
                 print(
@@ -248,14 +236,8 @@ class tools:
                     + "[+] User configuration saved."
                     + colorText.END
                 )
-                print(
-                    colorText.BOLD
-                    + colorText.GREEN
-                    + "[+] Restart the Program to start Screening..."
-                    + colorText.END
-                )
                 input("Press <Enter> to continue...")
-                sys.exit(0)
+                return
             except IOError as e:
                 self.default_logger.debug(e, exc_info=True)
                 print(

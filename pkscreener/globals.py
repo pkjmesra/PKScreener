@@ -453,7 +453,7 @@ def handleScannerExecuteOption4(executeOption, options):
 def main(userArgs=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     testing=False if userArgs is None else (userArgs.testbuild and userArgs.prodbuild)
-    testBuild=False if userArgs is None else userArgs.testbuild
+    testBuild=False if userArgs is None else (userArgs.testbuild and not testing)
     downloadOnly=False if userArgs is None else userArgs.download
     startupoptions=None if userArgs is None else userArgs.options
     user=None if userArgs is None else userArgs.user
