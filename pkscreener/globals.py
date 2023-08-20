@@ -647,11 +647,11 @@ def main(userArgs=None):
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 15 and executeOption <= 39:
+    if executeOption >= 16 and executeOption <= 39:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 15 to 39 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 16 to 39 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
@@ -1115,8 +1115,8 @@ def runScanners(
                 )
                 progressbar()
                 # If it's being run under unit testing, let's wrap up if we find at least 1
-                # stock or if we've already tried screening through 10% of the list. 
-                if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.1)):
+                # stock or if we've already tried screening through 5% of the list. 
+                if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.05)):
                     break
 
         if menuOption == "X":
@@ -1331,7 +1331,7 @@ def printNotifySaveScreenedResults(
     print(tabulated_results)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
-        if len(screenResults) <= 100:
+        if not testing and len(screenResults) <= 100:
             # No point sending a photo with more than 100 stocks.
             caption = f"<b>({len(saveResults)}</b> stocks found).{caption}"
             markdown_results = tabulate(
@@ -1366,7 +1366,7 @@ def printNotifySaveScreenedResults(
 
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
-    if downloadOnly or configManager.cacheEnabled:
+    if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
         print(
             colorText.BOLD
             + colorText.GREEN

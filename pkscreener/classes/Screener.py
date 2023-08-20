@@ -67,6 +67,21 @@ class tools:
         self.configManager = configManager
         self.default_logger = default_logger
 
+    # Find stocks that have broken through 52 week low.
+    def find52WeekLowBreakout(self, data):
+        # https://chartink.com/screener/52-week-low-breakout
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        one_week = 5
+        last1Week = data.head(one_week)
+        last2Week = data.head(2*one_week)
+        previousWeek = last2Week.tail(one_week)
+        full52Week = data.head(52*one_week)
+        last1WeekLow = last1Week["Close"].min()
+        previousWeekLow = previousWeek["Close"].min()
+        full52WeekLow = full52Week["Close"].min()
+        return (last1WeekLow <= min(full52WeekLow,last1WeekLow)) and (previousWeekLow <= min(full52WeekLow,previousWeekLow))
+    
     # Find accurate breakout value
     def findBreakout(self, data, screenDict, saveDict, daysToLookback):
         data = data.fillna(0)

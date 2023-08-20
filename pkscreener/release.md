@@ -4,6 +4,7 @@
 1. [v0.4] release
 
 * The pkscreener Telegram bot (@nse_pkscreener_bot) can now respond to your on-demand requests for almost all scan results.
+* Added 52-week low breakout screener
 * Font bug fixes for Ubuntu so now you can send telegram notifications with attachments from Ubuntu as well.
 * Stability and performance enhancements. Network requests default now to IPv4 only because IPv6 delays the requests.
 * Added overall summary prediction of backtests.

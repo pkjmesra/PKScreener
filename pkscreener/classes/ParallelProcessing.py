@@ -237,6 +237,9 @@ class StockConsumer:
                     )
                 if executeOption == 14:
                     isNR4Day = screener.findNR4Day(fullData.copy())
+                if executeOption == 15:
+                    is52WeekLowBreakout = screener.find52WeekLowBreakout(fullData.copy())
+
                 isVolumeHigh = screener.validateVolume(
                     processedData,
                     screeningDictionary,
@@ -603,6 +606,15 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if executeOption == 14 and isNR4Day:
+                        hostRef.processingResultsCounter.value += 1
+                        return (
+                            screeningDictionary,
+                            saveDictionary,
+                            data,
+                            stock,
+                            backtestDuration,
+                        )
+                    if executeOption == 15 and is52WeekLowBreakout:
                         hostRef.processingResultsCounter.value += 1
                         return (
                             screeningDictionary,
