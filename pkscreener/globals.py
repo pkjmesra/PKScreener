@@ -113,7 +113,7 @@ def initExecution(menuOption=None):
                 input(
                     colorText.BOLD
                     + colorText.FAIL
-                    + "[+] Press any key to Exit!"
+                    + "[+] Press <Enter> to Exit!"
                     + colorText.END
                 )
                 sys.exit(0)
@@ -154,7 +154,7 @@ def toggleUserConfig():
         + str(configManager.period)
         + colorText.END
     )
-    input("\nPress any key to Continue...\n")
+    input("\nPress <Enter> to Continue...\n")
 
 
 # Manage Execution flow
@@ -342,7 +342,6 @@ def handleSecondaryMenuChoices(
             sendMessageToTelegramChannel(
                 message=Utility.tools.removeAllColorStyles(helpData), user=user
             )
-            return
     elif menuOption == "U":
         OTAUpdater.checkForUpdate(getProxyServer(), VERSION, skipDownload=testing)
     elif menuOption == "T":
@@ -355,8 +354,6 @@ def handleSecondaryMenuChoices(
             sendMessageToTelegramChannel(
                 message=Utility.tools.removeAllColorStyles(configData), user=user
             )
-            return
-    # main()
     return
 
 
@@ -417,7 +414,7 @@ def getScannerMenuChoices(
         input(
             colorText.BOLD
             + colorText.FAIL
-            + "[+] Press any key to Exit!"
+            + "[+] Press <Enter> to Exit!"
             + colorText.END
         )
         sys.exit(0)
@@ -445,27 +442,24 @@ def handleScannerExecuteOption4(executeOption, options):
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "[+] Error: Non-numeric value entered! Screening aborted."
+            + "[+] Error: Non-numeric value entered! Please try again!"
             + colorText.END
         )
-        input("")
+        input("Press <Enter> to continue...")
         return
     print(colorText.END)
     return daysForLowestVolume
 
 
-# Main function
 @tracelog
-def main(
-    testing=False,
-    testBuild=False,
-    downloadOnly=False,
-    startupoptions=None,
-    defaultConsoleAnswer=None,
-    user=None,
-):
+def main(userArgs=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
-    defaultAnswer = defaultConsoleAnswer
+    testing=userArgs.testbuild and userArgs.prodbuild
+    testBuild=userArgs.testbuild
+    downloadOnly=userArgs.download
+    startupoptions=userArgs.options
+    user=userArgs.user
+    defaultAnswer = userArgs.answerdefault
     options = []
     screenCounter = multiprocessing.Value("i", 1)
     screenResultsCounter = multiprocessing.Value("i", 0)
@@ -519,16 +513,8 @@ def main(
             str(menuOption).upper(), tickerOption, executeOption, backtestPeriod
         )
     else:
-        print("Work in progress! Try selecting a different option.")
+        print("Not implemented yet! Try selecting a different option.")
         sleep(3)
-        main(
-            testing=testing,
-            testBuild=testBuild,
-            downloadOnly=downloadOnly,
-            startupoptions=startupoptions,
-            defaultConsoleAnswer=defaultConsoleAnswer,
-            user=user,
-        )
         return
 
     if menuOption in ["X", "B"]:
@@ -541,14 +527,7 @@ def main(
                 selMenu = m2.find(executeOption)
                 m3.renderForMenu(selMenu,asList=True)
     if tickerOption == "M" or executeOption == "M":
-        main(
-            testing=testing,
-            testBuild=testBuild,
-            downloadOnly=downloadOnly,
-            startupoptions=startupoptions,
-            defaultConsoleAnswer=defaultConsoleAnswer,
-            user=user,
-        )
+        # Go back to the caller. It will show the console menu again.
         return
     if tickerOption == 0:
         if len(options) >= 4:
@@ -557,7 +536,7 @@ def main(
         input(
             colorText.BOLD
             + colorText.FAIL
-            + "[+] Press any key to Exit!"
+            + "[+] Press <Enter> to Exit!"
             + colorText.END
         )
         sys.exit(0)
@@ -578,18 +557,10 @@ def main(
             print(
                 colorText.BOLD
                 + colorText.FAIL
-                + "\n[+] Error: Invalid values for RSI! Values should be in range of 0 to 100. Screening aborted."
+                + "\n[+] Error: Invalid values for RSI! Values should be in range of 0 to 100. Please try again!"
                 + colorText.END
             )
-            input("")
-            main(
-                testing=testing,
-                testBuild=testBuild,
-                downloadOnly=downloadOnly,
-                startupoptions=startupoptions,
-                defaultConsoleAnswer=defaultConsoleAnswer,
-                user=user,
-            )
+            input("PRess <Enter> to continue...")
             return
     if executeOption == 6:
         selectedMenu = m2.find(str(executeOption))
@@ -598,7 +569,7 @@ def main(
             if reversalOption == 4 or reversalOption == 6:
                 if len(options) >= 5:
                     maLength = int(options[4])
-                elif defaultConsoleAnswer =='Y' and user is not None:
+                elif defaultAnswer =='Y' and user is not None:
                     # bot mode
                     maLength = 50 if reversalOption == 4 else 7
                 else:
@@ -610,14 +581,6 @@ def main(
                 selectedMenu
             )
         if reversalOption is None or reversalOption == 0:
-            main(
-                testing=testing,
-                testBuild=testBuild,
-                downloadOnly=downloadOnly,
-                startupoptions=startupoptions,
-                defaultConsoleAnswer=defaultConsoleAnswer,
-                user=user,
-            )
             return
         else:
             selectedChoice["3"] = str(reversalOption)
@@ -629,7 +592,7 @@ def main(
             if respChartPattern in [1, 2, 3]:
                 if len(options) >= 5:
                     insideBarToLookback = int(options[4])
-                elif defaultConsoleAnswer =='Y' and user is not None:
+                elif defaultAnswer =='Y' and user is not None:
                     # bot mode
                     insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
                 else:
@@ -649,14 +612,6 @@ def main(
                 selectedMenu
             )
         if respChartPattern is None or insideBarToLookback is None:
-            main(
-                testing=testing,
-                testBuild=testBuild,
-                downloadOnly=downloadOnly,
-                startupoptions=startupoptions,
-                defaultConsoleAnswer=defaultConsoleAnswer,
-                user=user,
-            )
             return
         else:
             selectedChoice["3"] = str(respChartPattern)
@@ -670,18 +625,10 @@ def main(
             print(
                 colorText.BOLD
                 + colorText.FAIL
-                + "\n[+] Error: Invalid values for CCI! Values should be in range of -300 to 500. Screening aborted."
+                + "\n[+] Error: Invalid values for CCI! Values should be in range of -300 to 500. Please try again!"
                 + colorText.END
             )
-            input("")
-            main(
-                testing=testing,
-                testBuild=testBuild,
-                downloadOnly=downloadOnly,
-                startupoptions=startupoptions,
-                defaultConsoleAnswer=defaultConsoleAnswer,
-                user=user,
-            )
+            input("Press <Enter> to continue...")
             return
     if executeOption == 9:
         if len(options) >= 4:
@@ -692,48 +639,24 @@ def main(
             print(
                 colorText.BOLD
                 + colorText.FAIL
-                + "\n[+] Error: Invalid values for Volume Ratio! Value should be a positive number. Screening aborted."
+                + "\n[+] Error: Invalid values for Volume Ratio! Value should be a positive number. Please try again!"
                 + colorText.END
             )
-            input("")
-            main(
-                testing=testing,
-                testBuild=testBuild,
-                downloadOnly=downloadOnly,
-                startupoptions=startupoptions,
-                defaultConsoleAnswer=defaultConsoleAnswer,
-                user=user,
-            )
+            input("Press <Enter> to continue...")
             return
         else:
             configManager.volumeRatio = float(volumeRatio)
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
-        main(
-            testing=testing,
-            testBuild=testBuild,
-            downloadOnly=downloadOnly,
-            startupoptions=startupoptions,
-            defaultConsoleAnswer=defaultConsoleAnswer,
-            user=user,
-        )
         return
     if executeOption >= 15 and executeOption <= 39:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 15 to 39 Not implemented yet! Press any key to continue."
+            + "\n[+] Error: Option 15 to 39 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
-        input("")
-        main(
-            testing=testing,
-            testBuild=testBuild,
-            downloadOnly=downloadOnly,
-            startupoptions=startupoptions,
-            defaultConsoleAnswer=defaultConsoleAnswer,
-            user=user,
-        )
+        input("Press <Enter> to continue...")
         return
     if (
         not str(tickerOption).isnumeric() and tickerOption in ["W", "E", "M", "N", "Z"]
@@ -764,23 +687,15 @@ def main(
                     user=user,
                 )
                 if defaultAnswer is None:
-                    input("\nPress any key to Continue...\n")
+                    input("\nPress <Enter> to Continue...\n")
                 return
             elif tickerOption == "M":
-                main(
-                    testing=testing,
-                    testBuild=testBuild,
-                    downloadOnly=downloadOnly,
-                    startupoptions=startupoptions,
-                    defaultConsoleAnswer=defaultConsoleAnswer,
-                    user=user,
-                )
                 return
             elif tickerOption == "Z":
                 input(
                     colorText.BOLD
                     + colorText.FAIL
-                    + "[+] Press any key to Exit!"
+                    + "[+] Press <Enter> to Exit!"
                     + colorText.END
                 )
                 sys.exit(0)
@@ -837,7 +752,7 @@ def main(
                         sleep(60)
                         first_scan = False
                 except KeyboardInterrupt:
-                    input("\nPress any key to Continue...\n")
+                    input("\nPress <Enter> to Continue...\n")
                     return
             else:
                 if not downloadOnly:
@@ -879,10 +794,10 @@ def main(
             print(
                 colorText.BOLD
                 + colorText.FAIL
-                + "\n\n[+] Oops! It looks like you don't have an Internet connectivity at the moment! Press any key to exit!"
+                + "\n\n[+] Oops! It looks like you don't have an Internet connectivity at the moment!"
                 + colorText.END
             )
-            input("")
+            input("Exiting now...")
             sys.exit(0)
 
         if (
@@ -1105,7 +1020,7 @@ def main(
                     print("Finished backtesting!")
                     sorting = False
             if defaultAnswer != "Y":
-                input("Press any key to return to the main menu...")
+                input("Press <Enter> to continue...")
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
@@ -1536,7 +1451,7 @@ def saveNotifyResultsFile(
         + colorText.END
     )
     if defaultAnswer is None:
-        input("")
+        input("Press <Enter> to continue...")
 
 
 def sendTestStatus(screenResults, label, user=None):

@@ -134,11 +134,14 @@ args = args[0]
 
 configManager = ConfigManager.tools()
 
+def logFilePath():
+    return os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
 
 def setupLogger(shouldLog=False, trace=False):
     if not shouldLog:
         return
-    log_file_path = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    log_file_path = logFilePath()
+
     if os.path.exists(log_file_path):
         try:
             os.remove(log_file_path)
@@ -166,6 +169,9 @@ def setupLogger(shouldLog=False, trace=False):
         filter=None,
     )
 
+def runApplication():
+    from pkscreener.globals import main
+    main(userArgs=args)
 
 def pkscreenercli():
     if sys.platform.startswith("darwin"):
@@ -179,9 +185,10 @@ def pkscreenercli():
     if args.log or configManager.logsEnabled:
         setupLogger(shouldLog=True, trace=args.testbuild)
         if not args.prodbuild and args.answerdefault is None:
-            input("Press any key to continue...")
+            input("Press <Enter> to continue...")
+    # Import other dependency here because if we import them at the top
+    # multiprocessing behaves in unpredictable ways
     import pkscreener.classes.Utility as Utility
-    from pkscreener.globals import main
 
     configManager.default_logger = default_logger()
     Utility.tools.clearScreen()
@@ -194,7 +201,7 @@ def pkscreenercli():
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
     if args.options is not None and str(args.options) == "0":
-        # Must be from tests
+        # Must be from unit tests to be able to break out of loops via eventing
         args.options = None
         
     if args.testbuild and not args.prodbuild:
@@ -204,12 +211,7 @@ def pkscreenercli():
             + "[+] Started in TestBuild mode!"
             + colorText.END
         )
-        main(
-            testBuild=True,
-            startupoptions=args.options,
-            defaultConsoleAnswer=args.answerdefault,
-            user=args.user,
-        )
+        runApplication()
     elif args.download:
         print(
             colorText.BOLD
@@ -217,91 +219,68 @@ def pkscreenercli():
             + "[+] Download ONLY mode! Stocks will not be screened!"
             + colorText.END
         )
-        main(
-            downloadOnly=True,
-            startupoptions=args.options,
-            defaultConsoleAnswer=args.answerdefault,
-            user=args.user,
-        )
+        runApplication()
         sys.exit(0)
     else:
-        try:
-            startupOptions = args.options
-            defaultAnswer = args.answerdefault
-            cronInterval = args.croninterval
-            while True:
-                startupOptions = args.options
-                if cronInterval is not None and str(cronInterval).isnumeric():
-                    sleepUntilNextExecution = not Utility.tools.isTradingTime()
-                    while sleepUntilNextExecution:
-                        print(
-                            colorText.BOLD
-                            + colorText.FAIL
-                            + (
-                                "SecondsAfterClosingTime[%d] SecondsBeforeMarketOpen [%d]. Next run at [%s]"
-                                % (
-                                    int(Utility.tools.secondsAfterCloseTime()),
-                                    int(Utility.tools.secondsBeforeOpenTime()),
-                                    str(
-                                        Utility.tools.nextRunAtDateTime(
-                                            bufferSeconds=3600,
-                                            cronWaitSeconds=int(args.croninterval),
-                                        )
-                                    ),
-                                )
-                            )
-                            + colorText.END
+        runApplicationForScreening(Utility.tools)
+
+def runApplicationForScreening(tools):
+    try:
+        while True:
+            if args.croninterval is not None and str(args.croninterval).isnumeric():
+                scheduleNextRun(tools)
+            else:
+                runApplication()
+            if args.exit or args.user is not None:
+                break
+        sys.exit(0)
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
+        print("[+] An error occurred! Please run with '-l' option to collect the logs.\n[+] For example, 'pkscreener -l' and then contact the developer!")
+        sys.exit(0)
+
+def scheduleNextRun(tools):
+    sleepUntilNextExecution = not tools.isTradingTime()
+    while sleepUntilNextExecution:
+        print(
+            colorText.BOLD
+            + colorText.FAIL
+            + (
+                "SecondsAfterClosingTime[%d] SecondsBeforeMarketOpen [%d]. Next run at [%s]"
+                % (
+                    int(tools.secondsAfterCloseTime()),
+                    int(tools.secondsBeforeOpenTime()),
+                    str(
+                        tools.nextRunAtDateTime(
+                            bufferSeconds=3600,
+                            cronWaitSeconds=int(args.croninterval),
                         )
-                        if (Utility.tools.secondsAfterCloseTime() >= 3600) and (
-                            Utility.tools.secondsAfterCloseTime()
+                    ),
+                )
+            )
+            + colorText.END
+        )
+        if (tools.secondsAfterCloseTime() >= 3600) and (
+                            tools.secondsAfterCloseTime()
                             <= (3600 + 1.5 * int(args.croninterval))
                         ):
-                            sleepUntilNextExecution = False
-                        if (Utility.tools.secondsBeforeOpenTime() <= -3600) and (
-                            Utility.tools.secondsBeforeOpenTime()
+            sleepUntilNextExecution = False
+        if (tools.secondsBeforeOpenTime() <= -3600) and (
+                            tools.secondsBeforeOpenTime()
                             >= (-3600 - 1.5 * int(args.croninterval))
                         ):
-                            sleepUntilNextExecution = False
-                        sleep(int(cronInterval))
-                    print(
-                        colorText.BOLD
-                        + colorText.GREEN
-                        + "=> Going to fetch again!"
-                        + colorText.END,
-                        end="\r",
-                        flush=True,
-                    )
-                    sleep(3)
-                    main(
-                        startupoptions=startupOptions,
-                        defaultConsoleAnswer=defaultAnswer,
-                        testing=(args.testbuild and args.prodbuild),
-                        user=args.user,
-                    )
-                else:
-                    main(
-                        startupoptions=startupOptions,
-                        defaultConsoleAnswer=defaultAnswer,
-                        testing=(args.testbuild and args.prodbuild),
-                        user=args.user,
-                    )
-                    if args.user is not None or args.exit:
-                        sys.exit(0)
-                    startupOptions = None
-                    defaultAnswer = None
-                    cronInterval = None
-                if args.exit:
-                    break
-            sys.exit(0)
-        except Exception as e:
-            default_logger().debug(e, exc_info=True)
-            sys.exit(0)
-            # if isDevVersion == OTAUpdater.developmentVersion:
-            #     raise(e)
-            # input(colorText.BOLD + colorText.FAIL +
-            #     "[+] Press any key to Exit!" + colorText.END)
-            # sys.exit(0)
-
+            sleepUntilNextExecution = False
+        sleep(int(args.croninterval))
+    print(
+        colorText.BOLD
+        + colorText.GREEN
+        + "=> Going to fetch again!"
+        + colorText.END,
+        end="\r",
+        flush=True,
+    )
+    sleep(3)
+    runApplication()
 
 if __name__ == "__main__":
     pkscreenercli()

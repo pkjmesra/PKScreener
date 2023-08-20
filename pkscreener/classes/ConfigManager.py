@@ -133,7 +133,7 @@ class tools:
                         + "[+] Close and Restart the program now."
                         + colorText.END
                     )
-                    input("")
+                    input("Press <Enter> to continue...")
                     sys.exit(0)
             except IOError as e:
                 self.default_logger.debug(e, exc_info=True)
@@ -143,7 +143,7 @@ class tools:
                     + "[+] Failed to save user config. Exiting.."
                     + colorText.END
                 )
-                input("")
+                input("Press <Enter> to continue...")
                 sys.exit(1)
         else:
             parser = configparser.ConfigParser(strict=False)
@@ -248,7 +248,7 @@ class tools:
                     + "[+] Restart the Program to start Screening..."
                     + colorText.END
                 )
-                input("")
+                input("Press <Enter> to continue...")
                 sys.exit(0)
             except IOError as e:
                 self.default_logger.debug(e, exc_info=True)
@@ -258,7 +258,7 @@ class tools:
                     + "[+] Failed to save user config. Exiting.."
                     + colorText.END
                 )
-                input("")
+                input("Press <Enter> to continue...")
                 sys.exit(1)
 
     # Load user config from file
@@ -345,7 +345,7 @@ class tools:
             f.close()
             print("\n" + configData)
             if defaultAnswer != "Y":
-                input("Press any key to continue...")
+                input("Press <Enter> to continue...")
             return f"{prompt}\n{configData}"
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)

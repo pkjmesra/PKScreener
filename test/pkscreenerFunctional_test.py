@@ -24,7 +24,6 @@
 """
 # pytest --cov --cov-report=html:coverage_re
 
-import configparser
 import os
 import shutil
 import sys
@@ -44,7 +43,7 @@ from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.log import default_logger
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
-from pkscreener.pkscreenercli import disableSysOut
+from pkscreener.pkscreenercli import argParser, disableSysOut
 
 session = CachedSession("pkscreener_cache", cache_control=True)
 last_release = 0
@@ -94,16 +93,16 @@ def test_configManager():
 
 def test_option_B_10_0_1(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y"])
-    # with pytest.raises((SystemExit)):
-    main(testing=False, startupoptions='B:10:0:1:SBIN,IRFC', defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","B:10:0:1:SBIN,IRFC"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
     assert (globals.screenResultsCounter.value >= 0)
 
 def test_option_D(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Y"])
-    # with pytest.raises((SystemExit)):
-    main(testing=False, startupoptions='X:12:2', defaultConsoleAnswer="Y", downloadOnly=True)
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:12:2","-d"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
@@ -129,44 +128,44 @@ def test_option_E(mocker, capsys):
             "\n"
         ],
     )
-    with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-        main(testing=True, defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-t", "-p","-a","Y"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == 0 or err == ""
 
 def test_option_H(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["H","\n"])
-    # with pytest.raises((configparser.DuplicateSectionError)):
-    main(testing=True, defaultConsoleAnswer="N")
+    args = argParser.parse_known_args(args=["-a","N","-t","-p"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
 
 def test_nifty_prediction(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["X", "N"])
-    main(testing=True, defaultConsoleAnswer='Y')
+    args = argParser.parse_known_args(args=["-a","Y","-t","-p"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
 
 def test_option_T(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["T","\n"])
-    # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-    main(testing=True, defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-t","-p"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
     # Revert to the original state
     mocker.patch("builtins.input", side_effect=["T","\n"])
-    # with pytest.raises((SystemExit, configparser.DuplicateSectionError)):
-    main(testing=True, defaultConsoleAnswer="Y")
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
 
 def test_option_U(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["U", "Z", "Y", "\n"])
-    # with pytest.raises(SystemExit):
-    main(testing=True, startupoptions="U", defaultConsoleAnswer="N")
+    args = argParser.parse_known_args(args=["-a","N","-t","-p","-o","U"])[0]
+    main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
@@ -176,11 +175,8 @@ def test_option_X_0(mocker):
     mocker.patch(
         "builtins.input", side_effect=["X", "0", "0", globals.TEST_STKCODE, "y"]
     )
-    main(
-        testing=False,
-        startupoptions="X:0:0:" + globals.TEST_STKCODE,
-        defaultConsoleAnswer="Y",
-    )
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:0:0:" + globals.TEST_STKCODE])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) == 1
 
@@ -189,17 +185,16 @@ def test_option_X_0_input(mocker):
     mocker.patch(
         "builtins.input", side_effect=["X", "0", "0", globals.TEST_STKCODE, "y"]
     )
-    main(
-        testing=True,
-        defaultConsoleAnswer="Y",
-    )
+    args = argParser.parse_known_args(args=["-a","Y","-t","-p"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) == 1
 
 def test_option_X_1_0(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "0", "y"])
-    main(testing=False, startupoptions="X:1:0", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:0"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -207,7 +202,8 @@ def test_option_X_1_0(mocker):
 def test_option_X_1_1(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "1", "y"])
-    main(testing=False, startupoptions="X:1:1", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:1"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -215,7 +211,8 @@ def test_option_X_1_1(mocker):
 def test_option_X_1_2(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "2", "y"])
-    main(testing=False, startupoptions="X:1:2", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:2"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -223,7 +220,8 @@ def test_option_X_1_2(mocker):
 def test_option_X_1_3(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "3", "y"])
-    main(testing=False, startupoptions="X:1:3", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:3"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -231,7 +229,8 @@ def test_option_X_1_3(mocker):
 def test_option_X_1_4(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "4", "5", "y"])
-    main(testing=False, startupoptions="X:1:4:5", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:4:5"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -239,7 +238,8 @@ def test_option_X_1_4(mocker):
 def test_option_X_1_5(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "5", "10", "90", "y"])
-    main(testing=False, startupoptions="X:1:5:10:90", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:5:10:90"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -247,7 +247,8 @@ def test_option_X_1_5(mocker):
 def test_option_X_1_6_1(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "1", "y"])
-    main(testing=False, startupoptions="X:1:6:1", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:1"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -255,7 +256,8 @@ def test_option_X_1_6_1(mocker):
 def test_option_X_1_6_2(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "2", "y"])
-    main(testing=False, startupoptions="X:1:6:2", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:2"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -263,7 +265,8 @@ def test_option_X_1_6_2(mocker):
 def test_option_X_1_6_3(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "3", "y"])
-    main(testing=False, startupoptions="X:1:6:3", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:3"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
@@ -271,119 +274,135 @@ def test_option_X_1_6_3(mocker):
 def test_option_X_1_6_4(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "4", "50", "y"])
-    main(testing=False, startupoptions="X:1:6:4:50", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:4:50"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_6_5(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "5", "y"])
-    main(testing=False, startupoptions="X:1:6:5", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:5"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_6_6(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "6", "6", "4", "y"])
-    main(testing=False, startupoptions="X:1:6:6:4", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:6:6:4"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_1_7(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "1", "7", "y"])
-    main(testing=False, startupoptions="X:1:7:1:7", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:7:1:7"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_2_7(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "2", "7", "y"])
-    main(testing=False, startupoptions="X:1:7:2:7", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:7:2:7"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_3_1(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "3", "1", "y"])
-    main(testing=False, startupoptions="X:1:7:3:1", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:7:3:1"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_4(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "4", "y"])
-    main(testing=False, startupoptions="X:1:7:4", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:7:4"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_5(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "5", "y"])
-    main(testing=False, startupoptions="X:1:7:5", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:7:5"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_7_6(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "7", "6", "y","\n","\n"])
-    main(testing=False)
+    main(userArgs=None)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_8(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "8", "-100","150","y"])
-    main(testing=False, startupoptions="X:1:8:-100:150", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:8:-100:150"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_9_3(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "9", "3", "y"])
-    main(testing=False, startupoptions="X:1:9:3", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:9:3"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_10(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "10", "y"])
-    main(testing=False, startupoptions="X:1:10", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:10"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_11(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "11", "y"])
-    main(testing=False, startupoptions="X:1:11", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:11"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_12(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "12", "y"])
-    main(testing=False, startupoptions="X:1:12", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:12"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_13(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "13", "y"])
-    main(testing=False, startupoptions="X:1:13", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:13"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_1_14(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "1", "14", "y"])
-    main(testing=False, startupoptions="X:1:14", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:1:14"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_X_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["X", "Z", ""])
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:Z"])[0]
     with pytest.raises(SystemExit):
-        main(testing=False, startupoptions="X:Z", defaultConsoleAnswer="Y")
+        main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
@@ -391,29 +410,33 @@ def test_option_X_Z(mocker, capsys):
 def test_option_X_12_1(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "12", "1", "y"])
-    main(testing=False, startupoptions="X:12:1", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:12:1"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert globals.screenResultsCounter.value >= 0
 
 
 def test_option_X_12_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["X", "12", "Z", ""])
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:12:Z"])[0]
     with pytest.raises(SystemExit):
-        main(testing=True, startupoptions="X:12:Z", defaultConsoleAnswer="Y")
+        main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 
 def test_option_X_14_1(mocker):
     cleanup()
     mocker.patch("builtins.input", side_effect=["X", "14", "1", "y"])
-    main(testing=False, startupoptions="X:14:1", defaultConsoleAnswer="Y")
+    args = argParser.parse_known_args(args=["-a","Y","-o","X:14:1"])[0]
+    main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
 
 def test_option_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Z", ""])
+    args = argParser.parse_known_args(args=["-a","Y","-o","Z","-t","-p"])[0]
     with pytest.raises(SystemExit):
-        main(testing=True, startupoptions="Z", defaultConsoleAnswer="Y")
+        main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
 

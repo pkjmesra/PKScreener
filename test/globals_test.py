@@ -165,7 +165,7 @@ def test_handleScannerExecuteOption4_negative():
             handleScannerExecuteOption4(executeOption, options)
             mock_print.assert_called_with(colorText.BOLD
                 + colorText.FAIL
-                + "[+] Error: Non-numeric value entered! Screening aborted."
+                + "[+] Error: Non-numeric value entered! Please try again!"
                 + colorText.END)
 
 def test_getTopLevelMenuChoices_edge():

@@ -199,10 +199,9 @@ class tools:
             else:
                 input(
                     colorText.FAIL
-                    + "=> Error getting stock codes from NSE! Press any key to exit!"
+                    + "=> Error getting stock codes from NSE! Press <Enter> to exit!"
                     + colorText.END
                 )
-                # sys.exit("Exiting script..")
 
         return listStockCodes
 

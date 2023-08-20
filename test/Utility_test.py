@@ -52,7 +52,7 @@ def test_showDevInfo():
         result = tools.showDevInfo()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_once_with(
-            colorText.BOLD + colorText.FAIL + "[+] Press any key to continue!" + colorText.END
+            colorText.BOLD + colorText.FAIL + "[+] Press <Enter> to continue!" + colorText.END
         )
         # Assert that the result is not None
         assert result is not None

@@ -126,7 +126,7 @@ class tools:
             input(
                 colorText.BOLD
                 + colorText.FAIL
-                + "[+] Press any key to continue!"
+                + "[+] Press <Enter> to continue!"
                 + colorText.END
             )
         return f"\n{Changelog.changelog()}\n\n{devInfo}\n{versionInfo}\n\n{homePage}\n{issuesInfo}\n{communityInfo}\n{latestInfo}"
@@ -165,7 +165,7 @@ class tools:
             input(
                 colorText.BOLD
                 + colorText.GREEN
-                + "[+] Press any key to continue.."
+                + "[+] Press <Enter> to continue.."
                 + colorText.END
             )
         except FileNotFoundError as e:
@@ -791,6 +791,12 @@ class tools:
             raise ValueError
         except ValueError as e:
             default_logger().debug(e, exc_info=True)
+            input(
+                colorText.BOLD
+                + colorText.FAIL
+                + "\n[+] Invalid Option Selected. Press <Enter> to try again..."
+                + colorText.END
+            )
             return None, None
 
     # Prompt for Reversal screening
@@ -833,7 +839,7 @@ class tools:
             input(
                 colorText.BOLD
                 + colorText.FAIL
-                + "\n[+] Invalid Option Selected. Press Any Key to Continue..."
+                + "\n[+] Invalid Option Selected. Press <Enter> to try again..."
                 + colorText.END
             )
             return (None, None)

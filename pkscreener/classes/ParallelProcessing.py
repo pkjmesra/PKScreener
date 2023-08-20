@@ -80,56 +80,10 @@ class StockConsumer:
         assert (
             hostRef is not None
         ), "hostRef argument must not be None. It should b an instance of PKMultiProcessorClient"
-        screenResults = pd.DataFrame(
-            columns=[
-                "Stock",
-                "Consol.",
-                "Breakout",
-                "MA-Signal",
-                "Volume",
-                "LTP",
-                "%Chng",
-                "RSI",
-                "Trend",
-                "Pattern",
-                "CCI",
-            ]
-        )
-        screeningDictionary = {
-            "Stock": "",
-            "Consol.": "",
-            "Breakout": "",
-            "MA-Signal": "",
-            "Volume": "",
-            "LTP": 0,
-            "%Chng": 0,
-            "RSI": 0,
-            "Trend": "",
-            "Pattern": "",
-            "CCI": 0,
-        }
-        saveDictionary = {
-            "Stock": "",
-            "Consol.": "",
-            "Breakout": "",
-            "MA-Signal": "",
-            "Volume": "",
-            "LTP": 0,
-            "%Chng": 0,
-            "RSI": 0,
-            "Trend": "",
-            "Pattern": "",
-            "CCI": 0,
-        }
+        screeningDictionary, saveDictionary = self.initResultDictionaries()
 
         try:
-            hostRef.default_logger.level = logLevel
-            screener.default_logger.level = logLevel
-            hostRef.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
-            screener.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
-            hostRef.default_logger.info(
-                f"Beginning the stock screening for stock:{stock}"
-            )
+            self.setupLoggers(hostRef, screener, logLevel, stock)
             period = configManager.period
             if volumeRatio <= 0:
                 volumeRatio = configManager.volumeRatio
@@ -143,10 +97,10 @@ class StockConsumer:
                 f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
             )
             if (
-                (hostRef.objectDictionary.get(stock) is None)
-                or not shouldCache
-                or self.isTradingTime
+                (not shouldCache
                 or downloadOnly
+                or self.isTradingTime
+                or hostRef.objectDictionary.get(stock) is None)
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -159,9 +113,9 @@ class StockConsumer:
                 )
                 hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
                 if (
-                    shouldCache
+                    (shouldCache
                     and not self.isTradingTime
-                    and (hostRef.objectDictionary.get(stock) is None)
+                    and (hostRef.objectDictionary.get(stock) is None))
                     or downloadOnly
                 ):
                     hostRef.objectDictionary[stock] = data.to_dict("split")
@@ -681,3 +635,62 @@ class StockConsumer:
                     + colorText.END
                 )
         return None
+
+    def setupLoggers(self, hostRef, screener, logLevel, stock):
+        # Set the loglevels for both the caller and screener
+        # Also add handlers that are specific to this sub-process which
+        # will co ntinue with the screening. Each sub-process would have
+        # its own logger but going into the same file/console > to that
+        # of the parent logger.
+        hostRef.default_logger.level = logLevel
+        screener.default_logger.level = logLevel
+        hostRef.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
+        screener.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
+        hostRef.default_logger.info(
+            f"Beginning the stock screening for stock:{stock}"
+        )
+
+    def initResultDictionaries(self):
+        screenResults = pd.DataFrame(
+            columns=[
+                "Stock",
+                "Consol.",
+                "Breakout",
+                "MA-Signal",
+                "Volume",
+                "LTP",
+                "%Chng",
+                "RSI",
+                "Trend",
+                "Pattern",
+                "CCI",
+            ]
+        )
+        screeningDictionary = {
+            "Stock": "",
+            "Consol.": "",
+            "Breakout": "",
+            "MA-Signal": "",
+            "Volume": "",
+            "LTP": 0,
+            "%Chng": 0,
+            "RSI": 0,
+            "Trend": "",
+            "Pattern": "",
+            "CCI": 0,
+        }
+        saveDictionary = {
+            "Stock": "",
+            "Consol.": "",
+            "Breakout": "",
+            "MA-Signal": "",
+            "Volume": "",
+            "LTP": 0,
+            "%Chng": 0,
+            "RSI": 0,
+            "Trend": "",
+            "Pattern": "",
+            "CCI": 0,
+        }
+        
+        return screeningDictionary,saveDictionary
