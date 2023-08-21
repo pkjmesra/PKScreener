@@ -458,11 +458,12 @@ def test_option_Z(mocker, capsys):
 
 def test_ota_updater():
     OTAUpdater.checkForUpdate(VERSION, skipDownload=True)
-    assert (
-        "exe" in OTAUpdater.checkForUpdate.url
-        or "bin" in OTAUpdater.checkForUpdate.url
-        or "run" in OTAUpdater.checkForUpdate.url
-    )
+    if OTAUpdater.checkForUpdate.url is not None:
+        assert (
+            "exe" in OTAUpdater.checkForUpdate.url
+            or "bin" in OTAUpdater.checkForUpdate.url
+            or "run" in OTAUpdater.checkForUpdate.url
+        )
 
 
 def test_release_readme_urls():

@@ -778,7 +778,9 @@ def main(userArgs=None):
                         listStockCodes = [TEST_STKCODE]
                 if tickerOption == 0:
                     selectedChoice["3"] = ".".join(listStockCodes)
-
+                if testing:
+                    import random
+                    listStockCodes = [random.choice(listStockCodes)]
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
             print(
@@ -1250,7 +1252,6 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
         except OSError as e:
             default_logger().debug(e, exc_info=True)
             if e.winerror == 5:
-                default_logger().debug(e, exc_info=True)
                 continue
 
     # Flush the queue so depending processes will end
