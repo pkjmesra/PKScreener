@@ -34,6 +34,8 @@ import glob
 import os
 import sys
 
+import requests_cache
+
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
 
@@ -321,8 +323,17 @@ class tools:
         # Delete any cached *.pkl data
         self.deleteFileWithPattern()
         # Delete any cached session data
-        self.deleteFileWithPattern(pattern="*_cache.sqlite")
+        self.restartRequestsCache()
 
+    def restartRequestsCache(self):
+        try:
+            requests_cache.clear()
+            requests_cache.uninstall_cache()
+            self.deleteFileWithPattern("*_cache.sqlite")
+            requests_cache.install_cache('pkscreener_cache')
+        except Exception as e:
+            self.default_logger.debug(e, exc_info=True)
+            
     def isIntradayConfig(self):
         return (
             self.period == "1d" and self.duration[-1] == "m" and not self.cacheEnabled

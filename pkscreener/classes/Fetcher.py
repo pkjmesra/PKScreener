@@ -39,6 +39,7 @@ from io import StringIO
 
 import pandas as pd
 import requests
+import requests_cache
 import yfinance as yf
 from requests.exceptions import ConnectTimeout, ReadTimeout
 from requests_cache import CachedSession
@@ -99,6 +100,19 @@ class tools:
             default_logger().debug(e, exc_info=True)
             if trial <= int(self.configManager.maxNetworkRetryCount):
                 print(colorText.BOLD + colorText.FAIL + f"[+] Network Request timed-out. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
+                return self.fetchURL(url, stream=stream, trial=trial+1)
+        except Exception as e:
+            # Something went wrong with the CachedSession.
+            default_logger().debug(e, exc_info=True)
+            if trial <= int(self.configManager.maxNetworkRetryCount):
+                if trial <= 1:
+                    # Let's try and restart the cache
+                    self.configManager.restartRequestsCache()
+                elif trial > 1:
+                    # REstarting didn't fix it. We need to disable the cache altogether.
+                    requests_cache.clear()
+                    requests_cache.uninstall_cache() 
+                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request failed. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
                 return self.fetchURL(url, stream=stream, trial=trial+1)
         return response
                 
