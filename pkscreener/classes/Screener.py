@@ -66,6 +66,23 @@ class tools:
     def __init__(self, configManager, default_logger) -> None:
         self.configManager = configManager
         self.default_logger = default_logger
+ 
+    # Find stocks that have broken through 52 week low.
+    def find52WeekHighBreakout(self, data):
+        # https://chartink.com/screener/52-week-low-breakout
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        one_week = 5
+        recent = data.head(1)["High"][0]
+        last1Week = data.head(one_week)
+        last2Week = data.head(2*one_week)
+        previousWeek = last2Week.tail(one_week)
+        full52Week = data.head(50*one_week)
+        last1WeekHigh = last1Week["High"].max()
+        previousWeekHigh = previousWeek["High"].max()
+        full52WeekHigh = full52Week["High"].max()
+        return (recent > full52WeekHigh) or(last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
+    
 
     # Find stocks that have broken through 52 week low.
     def find52WeekLowBreakout(self, data):
@@ -73,14 +90,40 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
+        recent = data.head(1)["Low"][0]
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
-        full52Week = data.head(52*one_week)
-        last1WeekLow = last1Week["Close"].min()
-        previousWeekLow = previousWeek["Close"].min()
-        full52WeekLow = full52Week["Close"].min()
-        return (last1WeekLow <= min(full52WeekLow,last1WeekLow)) and (previousWeekLow <= min(full52WeekLow,previousWeekLow))
+        full52Week = data.head(50*one_week)
+        last1WeekLow = last1Week["Low"].min()
+        previousWeekLow = previousWeek["Low"].min()
+        full52WeekLow = full52Week["Low"].min()
+        return (recent < full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
+    
+        # Find stocks that have broken through 52 week low.
+    def find10DaysLowBreakout(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        one_week = 5
+        recent = data.head(1)["Low"][0]
+        last1Week = data.head(one_week)
+        last2Week = data.head(2*one_week)
+        previousWeek = last2Week.tail(one_week)
+        last1WeekLow = last1Week.min()
+        previousWeekLow = previousWeek["Low"].min()
+        return (recent < min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
+    
+        # Find stocks that have broken through 52 week low.
+    def findAroonBullishCrossover(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        period = 14
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        aroondf = pktalib.Aroon(data['High'],data['Low'], period)
+        recent = aroondf.tail(1)
+        up = recent[f"AROONU_{period}"][0]
+        down = recent[f"AROOND_{period}"][0]
+        return up > down
     
     # Find accurate breakout value
     def findBreakout(self, data, screenDict, saveDict, daysToLookback):
@@ -863,10 +906,10 @@ class tools:
         if ltp >= minLTP and ltp <= maxLTP and verifyStageTwo:
             saveDict["LTP"] = str((" %.2f" % ltp))
             screenDict["LTP"] = colorText.GREEN + ("%.2f" % ltp) + colorText.END
-            return True
+            return True, verifyStageTwo
         screenDict["LTP"] = colorText.FAIL + ("%.2f" % ltp) + colorText.END
         saveDict["LTP"] = str((" %.2f" % ltp))
-        return False
+        return False, verifyStageTwo
 
     # Find if stock gaining bullish momentum
     def validateMomentum(self, data, screenDict, saveDict):

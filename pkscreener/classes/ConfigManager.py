@@ -318,6 +318,10 @@ class tools:
             self.duration = "1d"
             self.cacheEnabled = True
         self.setConfig(parser, default=True, showFileCreatedText=False)
+        # Delete any cached *.pkl data
+        self.deleteFileWithPattern()
+        # Delete any cached session data
+        self.deleteFileWithPattern(pattern="*_cache.sqlite")
 
     def isIntradayConfig(self):
         return (

@@ -647,11 +647,11 @@ def main(userArgs=None):
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 16 and executeOption <= 39:
+    if executeOption >= 19 and executeOption <= 39:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 16 to 39 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 19 to 39 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")

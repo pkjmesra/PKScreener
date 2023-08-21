@@ -25,6 +25,7 @@
 from time import sleep
 
 import numpy as np
+import pandas as pd
 
 from pkscreener import Imports
 from pkscreener.classes.ColorText import colorText
@@ -97,6 +98,21 @@ class pktalib:
             default_logger().debug(e, exc_info=True)
             return talib.CCI(high, low, close, timeperiod)
 
+    @classmethod
+    def Aroon(self, high, low, timeperiod):
+        try:
+            return talib.aroon(high, low, timeperiod)
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
+            aroon_down, aroon_up = talib.AROON(high, low, timeperiod)
+            aroon_up.name = f"AROONU_{timeperiod}"
+            aroon_down.name = f"AROOND_{timeperiod}"
+            data = {
+                aroon_down.name: aroon_down,
+                aroon_up.name: aroon_up,
+            }
+            return pd.DataFrame(data)
+        
     @classmethod
     def STOCHRSI(self, close, timeperiod, fastk_period, fastd_period, fastd_matype):
         try:

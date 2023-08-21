@@ -414,6 +414,30 @@ def test_option_X_8_15(mocker):
     assert globals.screenResults is not None
     assert globals.screenResultsCounter.value >= 0
 
+def test_option_X_8_16(mocker):
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "8", "16", "y"])
+    args = argParser.parse_known_args(args=["-t","-p","-a","Y","-o","X:8:16"])[0]
+    main(userArgs=args)
+    assert globals.screenResults is not None
+    assert globals.screenResultsCounter.value >= 0
+
+def test_option_X_8_17(mocker):
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "8", "17", "y"])
+    args = argParser.parse_known_args(args=["-t","-p","-a","Y","-o","X:8:17"])[0]
+    main(userArgs=args)
+    assert globals.screenResults is not None
+    assert globals.screenResultsCounter.value >= 0
+
+def test_option_X_8_18(mocker):
+    cleanup()
+    mocker.patch("builtins.input", side_effect=["X", "8", "18", "y"])
+    args = argParser.parse_known_args(args=["-t","-p","-a","Y","-o","X:8:18"])[0]
+    main(userArgs=args)
+    assert globals.screenResults is not None
+    assert globals.screenResultsCounter.value >= 0
+
 def test_option_X_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["X", "Z", ""])
     args = argParser.parse_known_args(args=["-a","Y","-o","X:Z"])[0]

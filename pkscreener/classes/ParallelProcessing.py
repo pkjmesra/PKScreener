@@ -214,6 +214,13 @@ class StockConsumer:
                     + colorText.END
                 )
                 saveDictionary["Stock"] = stock
+                isLtpValid, verifyStageTwo = screener.validateLTP(
+                    fullData,
+                    screeningDictionary,
+                    saveDictionary,
+                    minLTP=configManager.minLTP,
+                    maxLTP=configManager.maxLTP,
+                )
                 consolidationValue = screener.validateConsolidation(
                     processedData,
                     screeningDictionary,
@@ -239,7 +246,13 @@ class StockConsumer:
                     isNR4Day = screener.findNR4Day(fullData.copy())
                 if executeOption == 15:
                     is52WeekLowBreakout = screener.find52WeekLowBreakout(fullData.copy())
-
+                if executeOption == 16:
+                    is10DaysLowBreakout = screener.find10DaysLowBreakout(fullData.copy())
+                if executeOption == 17:
+                    is52WeekHighBreakout = screener.find52WeekHighBreakout(fullData.copy())
+                if executeOption == 18:
+                    isAroonCrossover = screener.findAroonBullishCrossover(fullData.copy())
+                    
                 isVolumeHigh = screener.validateVolume(
                     processedData,
                     screeningDictionary,
@@ -251,13 +264,6 @@ class StockConsumer:
                     screeningDictionary,
                     saveDictionary,
                     daysToLookback=configManager.daysToLookback,
-                )
-                isLtpValid = screener.validateLTP(
-                    fullData,
-                    screeningDictionary,
-                    saveDictionary,
-                    minLTP=configManager.minLTP,
-                    maxLTP=configManager.maxLTP,
                 )
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
@@ -614,7 +620,7 @@ class StockConsumer:
                             stock,
                             backtestDuration,
                         )
-                    if executeOption == 15 and is52WeekLowBreakout:
+                    if (executeOption == 15 and is52WeekLowBreakout) or (executeOption == 16 and is10DaysLowBreakout) or (executeOption == 17 and is52WeekHighBreakout) or (executeOption == 18 and isLtpValid and isAroonCrossover):
                         hostRef.processingResultsCounter.value += 1
                         return (
                             screeningDictionary,
