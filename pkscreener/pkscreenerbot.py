@@ -732,7 +732,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "15",
                     "16",
                     "17",
-                    "18"
+                    "18",
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
@@ -834,10 +834,6 @@ def addCommandsForMenuItems(application):
             cmds2 = m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "15",
-                    "16",
-                    "17",
-                    "18",
                     "19",
                     "20",
                     "21",

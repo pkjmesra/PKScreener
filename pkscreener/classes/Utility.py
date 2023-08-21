@@ -529,10 +529,11 @@ class tools:
                 + cache_file
             )
             resp = fetcher.fetchURL(cache_url, stream=True)
-            default_logger().info(
-                f"Stock data cache file:{cache_file} request status ->{resp.status_code}"
-            )
-            if resp.status_code == 200:
+            if resp is not None:
+                default_logger().info(
+                    f"Stock data cache file:{cache_file} request status ->{resp.status_code}"
+                )
+            if resp is not None and resp.status_code == 200:
                 print(
                     colorText.BOLD
                     + colorText.FAIL
@@ -861,7 +862,7 @@ class tools:
         if download:
             for file_url in urls:
                 resp = fetcher.fetchURL(file_url, stream=True)
-                if resp.status_code == 200:
+                if resp is not None and resp.status_code == 200:
                     print(
                         colorText.BOLD
                         + colorText.GREEN

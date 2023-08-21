@@ -148,6 +148,8 @@ rm updater.sh
             now_major_minor = ".".join([now_components[0], now_components[1]])
             now = float(now_major_minor)
             resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+            if resp is None:
+                return resp
             tag = resp.json()["tag_name"]
             version_components = tag.split(".")
             major_minor = ".".join([version_components[0], version_components[1]])
