@@ -65,7 +65,6 @@ jobs:
               coveralls --service=github
               # coverage run --source=${package_name} --branch -m pytest --cov=pkscreener test/
               # coveralls --service=github
-              exit $?
           - os: windows-latest
             TARGET: Windows
             CMD_BUILD: |
@@ -85,7 +84,6 @@ jobs:
               pip3 install .
             TEST_BUILD: |
               pytest -vv --durations-min=0.005
-              exit $?
           - os: macos-latest
             TARGET: MacOS
             CMD_BUILD: |
@@ -105,7 +103,6 @@ jobs:
               pip3 install .
             TEST_BUILD: |
               pytest -vv --durations-min=0.005
-              exit $?
 
     steps:
       - uses: actions/checkout@v2
@@ -148,7 +145,7 @@ jobs:
 
       - name: Test Built Binary for ${{ matrix.TARGET }}
         shell: bash
-        timeout-minutes: 30
+        timeout-minutes: 20
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

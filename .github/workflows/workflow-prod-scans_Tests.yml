@@ -26,7 +26,7 @@ jobs:
   Prod_Scan_Tests_OnDev:
 
     runs-on: windows-latest
-
+    timeout-minutes: 20
     steps:
     - uses: actions/checkout@v2
       with:
