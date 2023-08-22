@@ -74,7 +74,7 @@ def test_updateForMac():
 def test_showWhatsNew():
     expected_output = "What's new in this update?\n"
     with patch("requests_cache.CachedSession.get") as mock_get:
-        mock_get.return_value.text = f"What's New?\n{expected_output}## Downloads"
+        mock_get.return_value.text = f"What's New?\n{expected_output}## Older Releases"
         output = OTAUpdater.showWhatsNew()
         assert output == expected_output
 
