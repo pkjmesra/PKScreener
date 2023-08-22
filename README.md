@@ -94,6 +94,8 @@ Followin scanners are already implemented. Others are `In Progress`
      9 > Volume gainers                         10 > Closing at least 2% up since last 3 days
     11 > Short term bullish stocks              12 > 15 Minute Price & Volume breakout
     13 > Bullish RSI & MACD Intraday            14 > NR4 Daily Today
+    15 > 52 week low breakout(today/1 wk)       16 > 10 days low breakout
+    17 > 52 week high breakout(today/1 wk)      18 > Bullish Aroon(14) Crossover
 ```
 ## How to use on your own local Windows/Linux/Macbook laptop?
 # Installing the latest version from PyPi.
