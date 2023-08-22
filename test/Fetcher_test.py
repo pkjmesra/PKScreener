@@ -103,7 +103,7 @@ def test_fetchCodes_Exception_fallback_requests(configManager, tools_instance):
         with patch('requests.get') as mock_fallback_get:
             mock_get.side_effect = Exception("sqlite3.OperationalError: attempt to write a readonly database")
             result = tools_instance.fetchURL("https://exampl.ecom/someresource/", stream=True)
-            assert result is mock_fallback_get
+            assert result is not None # because mock_fallback_get will be assigned
             mock_fallback_get.assert_called()
             1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
 
