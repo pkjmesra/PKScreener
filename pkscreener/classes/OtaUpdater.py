@@ -148,8 +148,6 @@ rm updater.sh
             now_major_minor = ".".join([now_components[0], now_components[1]])
             now = float(now_major_minor)
             resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
-            if resp is None:
-                return resp
             tag = resp.json()["tag_name"]
             version_components = tag.split(".")
             major_minor = ".".join([version_components[0], version_components[1]])
@@ -245,19 +243,20 @@ rm updater.sh
                     )
                     + colorText.END
                 )
-            if resp.json()["message"] == "Not Found":
-                OTAUpdater.checkForUpdate.url = "exe/bin not available."
+            else:
+                OTAUpdater.checkForUpdate.url = "[+] No exe/bin/run file as an update available!"
+            if resp is not None and resp.json()["message"] == "Not Found":
                 print(
                     colorText.BOLD
                     + colorText.FAIL
-                    + "[+] No exe/bin as an update available!"
+                    + OTAUpdater.checkForUpdate.url
                     + colorText.END
                 )
+            print(e)
             print(
                 colorText.BOLD
                 + colorText.FAIL
                 + "[+] Failure while checking update!"
                 + colorText.END
             )
-            print(e)
         return

@@ -27,6 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
+from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
 
@@ -130,9 +131,14 @@ def test_checkForUpdate_exception():
         url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
         with patch("builtins.input", return_value="y"):
             with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
-                with pytest.raises(Exception):
+                with patch("builtins.print") as mock_print:
                     OTAUpdater.checkForUpdate(VERSION)
-                assert not mock_updateForPlatform.called
+                    assert not mock_updateForPlatform.called
+                    mock_print.assert_called_with(
+                        colorText.BOLD
+                        + colorText.FAIL
+                        + "[+] Failure while checking update!"
+                        + colorText.END)
 
 # Positive test case: Test checkForUpdate function with skipDownload = True
 def test_checkForUpdate_skipDownload():
@@ -189,8 +195,7 @@ def test_checkForUpdate_exception_url_not_none():
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = "https://example.com/update.exe"
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
-            with pytest.raises(Exception):
-                OTAUpdater.checkForUpdate(VERSION)
+            OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
 
 # Negative test case: Test checkForUpdate function with exception and url None
@@ -200,6 +205,5 @@ def test_checkForUpdate_exception_url_none():
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = None
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
-            with pytest.raises(Exception):
-                OTAUpdater.checkForUpdate(VERSION)
+            OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called

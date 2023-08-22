@@ -327,8 +327,9 @@ class tools:
 
     def restartRequestsCache(self):
         try:
-            requests_cache.clear()
-            requests_cache.uninstall_cache()
+            if requests_cache.is_installed():
+                requests_cache.clear()
+                requests_cache.uninstall_cache()
             self.deleteFileWithPattern("*_cache.sqlite")
             requests_cache.install_cache('pkscreener_cache')
         except Exception as e:
