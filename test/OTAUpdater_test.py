@@ -119,26 +119,28 @@ def test_checkForUpdate_not_prod_update():
 def test_checkForUpdate_exception():
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
-        mock_get.side_effect = Exception("Error")
-        mock_get.return_value.json.return_value = {
-            "tag_name": "1.0.0",
-            "assets": [
-                {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
-            ],
-        }
-        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
-        with patch("builtins.input", return_value="y"):
-            with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
-                with patch("builtins.print") as mock_print:
-                    OTAUpdater.checkForUpdate(VERSION)
-                    assert not mock_updateForPlatform.called
-                    mock_print.assert_called_with(
-                        colorText.BOLD
-                        + colorText.FAIL
-                        + "[+] Failure while checking update!"
-                        + colorText.END)
+        with patch("requests.get") as mock_requests_get:
+            mock_get.side_effect = Exception("Error")
+            mock_requests_get.side_effect = Exception("Error")
+            mock_get.return_value.json.return_value = {
+                "tag_name": "1.0.0",
+                "assets": [
+                    {"browser_download_url": "https://example.com/update3.run", "size": 300},
+                    {"browser_download_url": "https://example.com/update1.exe", "size": 100},
+                    {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                ],
+            }
+            url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
+            with patch("builtins.input", return_value="y"):
+                with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+                    with patch("builtins.print") as mock_print:
+                        OTAUpdater.checkForUpdate(VERSION)
+                        assert not mock_updateForPlatform.called
+                        mock_print.assert_called_with(
+                            colorText.BOLD
+                            + colorText.FAIL
+                            + "[+] Failure while checking update!"
+                            + colorText.END)
 
 # Positive test case: Test checkForUpdate function with skipDownload = True
 def test_checkForUpdate_skipDownload():
