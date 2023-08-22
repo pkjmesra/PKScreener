@@ -136,7 +136,7 @@ rm updater.sh
         txt = md.text
         txt = txt.split("New?")[1]
         txt = txt.split("## Downloads")[0]
-        txt = txt.replace("**", "").replace("`", "").strip()
+        txt = txt.replace("* ", "- ").replace("`", "").strip()
         return txt + "\n"
 
     # Check for update and download if available
