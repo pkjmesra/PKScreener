@@ -42,6 +42,7 @@ import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.log import default_logger
+from pkscreener.classes.MenuOptions import menus
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
@@ -508,3 +509,32 @@ def test_release_readme_urls():
             assert url not in contents
     for url in passUrl:
         assert url in contents
+
+def option_12_all():
+    m = menus()
+    m.renderForMenu(None)
+    x = m.find("X")
+    m.renderForMenu(
+            selectedMenu=x,
+            asList=True,
+            renderStyle=MenuRenderStyle.STANDALONE,
+        )
+    x = m.find("12")
+    skipList =["0","Z","M"]
+    NA_Counter = 19
+    Last_Counter = 42
+    menuCounter = NA_Counter
+    while menuCounter <= Last_Counter:
+        skipList.extend([str(menuCounter)])
+        menuCounter += 1
+    cmds = m.renderForMenu(
+        selectedMenu=x,
+        skip=skipList,
+        asList=True,
+        renderStyle=MenuRenderStyle.STANDALONE,
+    )
+    args = argParser.parse_known_args(args=["-e","-a","Y","-o","Z"])[0]
+    # with pytest.raises(SystemExit):
+    main(userArgs=args)
+    # out, err = capsys.readouterr()
+    # assert err == ""
