@@ -52,7 +52,7 @@ jobs:
         - id: should_run
           continue-on-error: true
           name: check latest commit is less than a week
-          if: ${{ github.event_name == 'schedule' }} || ${{ github.event_name == 'workflow_dispatch' }}
+          if: ${{ github.event_name == 'workflow_call' }} || ${{ github.event_name == 'workflow_dispatch' }}
           run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
 
   deploy:
