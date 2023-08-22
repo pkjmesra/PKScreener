@@ -42,7 +42,7 @@ from pkscreener.classes.log import default_logger
 parser = configparser.ConfigParser(strict=False)
 
 # Default attributes for Downloading Cache from Git repo
-default_period = "400d"
+default_period = "280d"
 default_duration = "1d"
 default_timeout = 2
 
@@ -54,7 +54,7 @@ class tools:
         self.volumeRatio = 2.5
         self.minLTP = 20.0
         self.maxLTP = 50000
-        self.period = "400d"
+        self.period = "280d"
         self.duration = "1d"
         self.daysToLookback = 30
         self.shuffleEnabled = True
@@ -316,7 +316,7 @@ class tools:
             self.duration = "1m"
             self.cacheEnabled = False
         else:
-            self.period = "400d"
+            self.period = "280d"
             self.duration = "1d"
             self.cacheEnabled = True
         self.setConfig(parser, default=True, showFileCreatedText=False)

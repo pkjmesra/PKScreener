@@ -180,7 +180,7 @@ class StockConsumer:
                     inputData = (
                         data
                         if backtestDuration == 0
-                        else data.head(400 - backtestDuration)
+                        else data.head(280 - backtestDuration)
                     )
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback

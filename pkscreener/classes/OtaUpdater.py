@@ -135,7 +135,7 @@ rm updater.sh
         md = OTAUpdater.fetcher.fetchURL(url)
         txt = md.text
         txt = txt.split("New?")[1]
-        txt = txt.split("## Downloads")[0]
+        txt = txt.split("## Older Releases")[0]
         txt = txt.replace("* ", "- ").replace("`", "").strip()
         return txt + "\n"
 

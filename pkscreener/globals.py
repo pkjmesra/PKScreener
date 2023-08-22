@@ -424,8 +424,12 @@ def getScannerMenuChoices(
 def handleScannerExecuteOption4(executeOption, options):
     try:
         # m2.find(str(executeOption))
-        if len(options) >= 4:
-            daysForLowestVolume = int(options[3])
+        if len(options) >= 4: 
+            if str(options[3]).upper() == 'D':
+                # Use a default value
+                daysForLowestVolume = 5
+            else:
+                daysForLowestVolume = int(options[3])
         else:
             daysForLowestVolume = int(
                 input(
@@ -547,8 +551,13 @@ def main(userArgs=None):
     if executeOption == 5:
         selectedMenu = m2.find(str(executeOption))
         if len(options) >= 5:
-            minRSI = int(options[3])
-            maxRSI = int(options[4])
+            if str(options[3]).isnumeric():
+                minRSI = int(options[3])
+                maxRSI = int(options[4])
+            elif str(options[3]).upper() == 'D':
+                # Use a default value
+                minRSI = 30
+                maxRSI = 70
         else:
             minRSI, maxRSI = Utility.tools.promptRSIValues()
         if not minRSI and not maxRSI:
@@ -566,7 +575,10 @@ def main(userArgs=None):
             reversalOption = int(options[3])
             if reversalOption == 4 or reversalOption == 6:
                 if len(options) >= 5:
-                    maLength = int(options[4])
+                    if str(options[4]).isnumeric():
+                        maLength = int(options[4])
+                    elif str(options[4]).upper() == 'D':
+                        maLength = 50 if reversalOption == 4 else 7
                 elif defaultAnswer =='Y' and user is not None:
                     # bot mode
                     maLength = 50 if reversalOption == 4 else 7
@@ -589,7 +601,10 @@ def main(userArgs=None):
             selectedChoice["3"] = options[3]
             if respChartPattern in [1, 2, 3]:
                 if len(options) >= 5:
-                    insideBarToLookback = int(options[4])
+                    if str(options[4]).isnumeric():
+                        insideBarToLookback = int(options[4])
+                    elif str(options[4]).upper() == 'D':
+                        insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
                 elif defaultAnswer =='Y' and user is not None:
                     # bot mode
                     insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
@@ -615,8 +630,12 @@ def main(userArgs=None):
             selectedChoice["3"] = str(respChartPattern)
     if executeOption == 8:
         if len(options) >= 5:
-            minRSI = int(options[3])
-            maxRSI = int(options[4])
+            if str(options[3]).isnumeric():
+                minRSI = int(options[3])
+                maxRSI = int(options[4])
+            elif str(options[3]).upper() == 'D':
+                minRSI = -100
+                maxRSI = 150
         else:
             minRSI, maxRSI = Utility.tools.promptCCIValues()
         if not minRSI and not maxRSI:
@@ -630,7 +649,10 @@ def main(userArgs=None):
             return
     if executeOption == 9:
         if len(options) >= 4:
-            volumeRatio = float(options[3])
+            if str(options[3]).isnumeric():
+                volumeRatio = float(options[3])
+            elif str(options[3]).upper() == 'D':
+                volumeRatio = configManager.volumeRatio
         else:
             volumeRatio = Utility.tools.promptVolumeMultiplier()
         if volumeRatio <= 0:

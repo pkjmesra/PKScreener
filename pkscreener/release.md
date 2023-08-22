@@ -13,11 +13,12 @@
 * Fixed RSI screening to be evaluated for range 67 <= RSI <=71 
 * Many other bug fixes and improvement in [v0.4.x] weekly releases
 
-2. [v0.3] release
+## Older Releases
+3. [v0.3] release
 
 * Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
 
-3. [v0.2] release
+2. [v0.2] release
 
 * Backtests are now enabled. You can now choose any strategy and backtest for the past 1 year's data.
 * Logging with option `-l` is now enabled for troubleshooting
@@ -25,7 +26,7 @@
 * Includes an option to create user's own telegram channel and receive alerts there.
 * The application now runs without TA-Lib as well.
 
-4. First release - [v0.01]
+1. First release - [v0.01]
 
 ## Downloads
 | Operating System | Executable File |

@@ -217,7 +217,7 @@ Feel free to Edit the parameters in the ``pkscreener.ini`` file which will be ge
    :caption: pkscreener.ini
 
     [config]
-    period = 400d
+    period = 280d
     daystolookback = 30
     duration = 1d
     minprice = 30

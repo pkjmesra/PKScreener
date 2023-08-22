@@ -42,7 +42,7 @@ import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.log import default_logger
-from pkscreener.classes.MenuOptions import menus
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
@@ -92,8 +92,8 @@ def test_configManager():
     assert configManager.consolidationPercentage is not None
 
 def test_option_B_10_0_1(mocker, capsys):
-    mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y"])
-    args = argParser.parse_known_args(args=["-e","-a","Y","-o","B:10:0:1:SBIN,IRFC"])[0]
+    mocker.patch("builtins.input", side_effect=["B","10","0","1","SBIN,IRFC","Y","\n"])
+    args = argParser.parse_known_args(args=["-e","-t","-p","-a","Y","-o","B:10:0:1:SBIN,IRFC"])[0]
     main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
@@ -510,15 +510,19 @@ def test_release_readme_urls():
     for url in passUrl:
         assert url in contents
 
-def option_12_all():
+def listedMenusFromRendering(selectedMenu=None, skipList=[]):
     m = menus()
-    m.renderForMenu(None)
-    x = m.find("X")
-    m.renderForMenu(
-            selectedMenu=x,
+    return m, m.renderForMenu(
+            selectedMenu=selectedMenu,
+            skip=skipList,
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
+
+def test_option_X_12_all(mocker, capsys):
+    m ,_ = listedMenusFromRendering()
+    x = m.find("X")
+    m ,_ = listedMenusFromRendering(x)
     x = m.find("12")
     skipList =["0","Z","M"]
     NA_Counter = 19
@@ -527,14 +531,25 @@ def option_12_all():
     while menuCounter <= Last_Counter:
         skipList.extend([str(menuCounter)])
         menuCounter += 1
-    cmds = m.renderForMenu(
-        selectedMenu=x,
-        skip=skipList,
-        asList=True,
-        renderStyle=MenuRenderStyle.STANDALONE,
-    )
-    args = argParser.parse_known_args(args=["-e","-a","Y","-o","Z"])[0]
-    # with pytest.raises(SystemExit):
-    main(userArgs=args)
-    # out, err = capsys.readouterr()
-    # assert err == ""
+    m, cmds = listedMenusFromRendering(x, skipList=skipList)
+    argsList =[]
+    for cmd in cmds:
+        startupOption = "X:12"
+        key = cmd.menuKey.upper()
+        startupOption = f"{startupOption}:{key}"
+        if str(key) in ["6","7"]:
+            x = m.find(key)
+            _, cmds1 = listedMenusFromRendering(x,skipList=skipList)
+            for cmd1 in cmds1:
+                key1 = cmd1.menuKey.upper()
+                startupOption = f"{startupOption}:{key1}:D:D"
+                args = argParser.parse_known_args(args=["-e","-p","-t","-a","Y","-o",startupOption])[0]
+                argsList.extend([args])
+        else:
+            startupOption = f"{startupOption}:D:D"
+            args = argParser.parse_known_args(args=["-e","-p","-t","-a","Y","-o",startupOption])[0]
+            argsList.extend([args])
+    for arg in argsList:
+        main(userArgs=arg)
+        out, err = capsys.readouterr()
+        assert err == ""
