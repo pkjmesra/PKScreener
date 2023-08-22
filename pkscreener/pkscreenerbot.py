@@ -529,10 +529,10 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message is not None and abs(update.message.from_user.id) in [
+    if update.message is not None and (abs(update.message.from_user.id) in [
         Channel_Id,
         GROUP_CHAT_ID,
-    ]:
+    ] or update.message.from_user.username in ["GroupAnonymousBot"]):
         # We want to avoid sending any help message back to channel or group.
         return START_ROUTES
     msg = update.effective_message
