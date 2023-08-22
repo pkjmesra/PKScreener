@@ -89,14 +89,23 @@ def test_fetchCodes_ReadTimeoutError_negative(configManager, tools_instance):
         mock_get.side_effect = ReadTimeoutError(None,None,"Error fetching data")
         result = tools_instance.fetchCodes(12)
         assert result == []
-        mock_get.call_count == int(configManager.maxNetworkRetryCount)
+        1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
 
 def test_fetchCodes_Exception_negative(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
         mock_get.side_effect = Exception("sqlite3.OperationalError: attempt to write a readonly database")
         result = tools_instance.fetchURL("https://exampl.ecom/someresource/", stream=True)
         assert result is None
-        mock_get.call_count == int(configManager.maxNetworkRetryCount)
+        1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
+
+def test_fetchCodes_Exception_fallback_requests(configManager, tools_instance):
+    with patch('requests_cache.CachedSession.get') as mock_get:
+        with patch('requests.get') as mock_fallback_get:
+            mock_get.side_effect = Exception("sqlite3.OperationalError: attempt to write a readonly database")
+            result = tools_instance.fetchURL("https://exampl.ecom/someresource/", stream=True)
+            assert result is None
+            mock_fallback_get.assert_called()
+            1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
 
 def test_fetchStockCodes_positive(configManager, tools_instance):
     with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:
