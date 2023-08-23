@@ -29,7 +29,7 @@ import pytest
 from pkscreener import pkscreenercli
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
-
+from pkscreenr.globals import shutdown
 
 # Mocking necessary functions or dependencies
 @pytest.fixture(autouse=True)
@@ -128,3 +128,9 @@ def test_pkscreenercli_prodbuild_mode():
         with pytest.raises(SystemExit):
             pkscreenercli.pkscreenercli()
             mock_disableSysOut.assert_called_once()
+    try:
+        import signal
+        signal.signal(signal.SIGBREAK, shutdown)
+        signal.signal(signal.SIGTERM,shutdown)
+    except Exception:
+        pass

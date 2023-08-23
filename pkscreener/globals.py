@@ -1265,7 +1265,6 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
             if testing:
                 if sys.platform.startswith("win"):
                     import signal
-
                     signal.signal(signal.SIGBREAK, shutdown)
                     sleep(1)
                 # worker.join()  # necessary so that the Process exists before the test suite exits (thus coverage is collected)
