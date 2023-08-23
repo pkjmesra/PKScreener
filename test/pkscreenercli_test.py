@@ -29,7 +29,7 @@ import pytest
 from pkscreener import pkscreenercli
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
-from pkscreenr.globals import shutdown
+from pkscreener.globals import shutdown
 
 # Mocking necessary functions or dependencies
 @pytest.fixture(autouse=True)
