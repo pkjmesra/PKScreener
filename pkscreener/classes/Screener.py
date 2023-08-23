@@ -393,7 +393,6 @@ class tools:
 
         data = data[::-1]
         data["Number"] = np.arange(len(data)) + 1
-        # data_high = data.copy()
         data_low = data.copy()
         points = 30
 

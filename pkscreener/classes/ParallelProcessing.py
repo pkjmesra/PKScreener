@@ -35,7 +35,6 @@ import sys
 import numpy as np
 import pandas as pd
 
-import pkscreener.classes.Archiver as Archiver
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
@@ -81,7 +80,8 @@ class StockConsumer:
             hostRef is not None
         ), "hostRef argument must not be None. It should b an instance of PKMultiProcessorClient"
         screeningDictionary, saveDictionary = self.initResultDictionaries()
-
+        fullData = None
+        processedData = None
         try:
             self.setupLoggers(hostRef, screener, logLevel, stock)
             period = configManager.period
@@ -169,30 +169,14 @@ class StockConsumer:
                     data, daysToLookback=configManager.daysToLookback
                 )
             else:
-                # data = Archiver.readData(f'RD_{Utility.tools.tradingDate()}_{stock}.pkl')
-                fullData,_,_ = Archiver.readData(
-                    f"FD_{Utility.tools.tradingDate()}_{stock}.pkl"
-                )
-                processedData, _, _ = Archiver.readData(
-                    f"PD_{Utility.tools.tradingDate()}_{stock}.pkl"
-                )
                 if data is None or fullData is None or processedData is None:
                     inputData = (
                         data
                         if backtestDuration == 0
-                        else data.head(280 - backtestDuration)
+                        else data.head(configManager.backtestPeriod - backtestDuration)
                     )
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
-                    )
-                    Archiver.saveData(
-                        data, f"RD_{Utility.tools.tradingDate()}_{stock}.pkl"
-                    )
-                    Archiver.saveData(
-                        fullData, f"FD_{Utility.tools.tradingDate()}_{stock}.pkl"
-                    )
-                    Archiver.saveData(
-                        processedData, f"PD_{Utility.tools.tradingDate()}_{stock}.pkl"
                     )
             hostRef.default_logger.info(
                 f"Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n"
@@ -232,26 +216,26 @@ class StockConsumer:
                 )
                 if executeOption == 11:
                     isShortTermBullish = screener.validateShortTermBullish(
-                        fullData.copy(), screeningDictionary, saveDictionary
+                        fullData, screeningDictionary, saveDictionary
                     )
                 if executeOption == 12:
                     is15MinutePriceVolumeBreakout = (
-                        screener.validate15MinutePriceVolumeBreakout(fullData.copy())
+                        screener.validate15MinutePriceVolumeBreakout(fullData)
                     )
                 if executeOption == 13:
                     isBullishIntradayRSIMACD = screener.findBullishIntradayRSIMACD(
-                        fullData.copy()
+                        fullData
                     )
                 if executeOption == 14:
-                    isNR4Day = screener.findNR4Day(fullData.copy())
+                    isNR4Day = screener.findNR4Day(fullData)
                 if executeOption == 15:
-                    is52WeekLowBreakout = screener.find52WeekLowBreakout(fullData.copy())
+                    is52WeekLowBreakout = screener.find52WeekLowBreakout(fullData)
                 if executeOption == 16:
-                    is10DaysLowBreakout = screener.find10DaysLowBreakout(fullData.copy())
+                    is10DaysLowBreakout = screener.find10DaysLowBreakout(fullData)
                 if executeOption == 17:
-                    is52WeekHighBreakout = screener.find52WeekHighBreakout(fullData.copy())
+                    is52WeekHighBreakout = screener.find52WeekHighBreakout(fullData)
                 if executeOption == 18:
-                    isAroonCrossover = screener.findAroonBullishCrossover(fullData.copy())
+                    isAroonCrossover = screener.findAroonBullishCrossover(fullData)
                     
                 isVolumeHigh = screener.validateVolume(
                     processedData,

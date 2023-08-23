@@ -25,10 +25,13 @@
 import pandas as pd
 
 from pkscreener.classes.ColorText import colorText
+from pkscreener.classes.ConfigManager import parser, tools
 
+configManager = tools()
+configManager.getConfig(parser)
 
 def backtest(
-    stock, data, screenedDict=None, periods=30, sampleDays=365, backTestedData=None
+    stock, data, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None
 ):
     if stock == "" or data is None:
         print(f"No data/stock{(stock)} received for backtesting!")
@@ -39,7 +42,7 @@ def backtest(
     calcPeriods = [1, 2, 3, 4, 5, 10, 15, 22, 30]
     allStockBacktestData = []
     # Take the data based on which the result set for a strategy may have been arrived at
-    # The results must have been arrived at with data based on 280-sampleDays
+    # The results must have been arrived at with data based on configManager.backtestPeriod -sampleDays
     # but we also need the periods days to be able to calculate the next few days' returns
     # s1    d0
     # s1    d1
@@ -54,11 +57,11 @@ def backtest(
     else:
         f1 = periods
         t1 = periods
-    daysback_df = data.head(280 - sampleDays + f1)  # print(daysback_df)
+    daysback_df = data.head(configManager.backtestPeriod - sampleDays + f1)  # print(daysback_df)
     daysback_df = daysback_df.tail(
         t1 + 1
     )  # +1 to include the actual date on which the recommendation was made
-    daysback_df = data.head(280 - sampleDays + futureRows)  # print(daysback_df)
+    daysback_df = data.head(configManager.backtestPeriod - sampleDays + futureRows)  # print(daysback_df)
     daysback_df = daysback_df.tail(
         futureRows + 1
     )  # +1 to include the actual date on which the recommendation was made

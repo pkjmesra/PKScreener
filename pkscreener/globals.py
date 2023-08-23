@@ -874,7 +874,7 @@ def main(userArgs=None):
             )
 
         iterations = (
-            getIterationCount(len(listStockCodes)) if menuOption.upper() == "B" else 1
+            getHistoricalDays(len(listStockCodes)) if menuOption.upper() == "B" else 1
         )
         sampleDays = (iterations + backtestPeriod + 1) if menuOption == "B" else 2
         iteration = 1 if menuOption == "B" else 2
@@ -883,7 +883,7 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {iterations} iterations are planned.\n"
+                + f"[+] A total of {iterations} days of historical data will be considered.\n"
             )
         items = []
         historicalDays = sampleDays - iteration
@@ -956,8 +956,6 @@ def main(userArgs=None):
                 screenResults, saveResults, configManager, volumeRatio
             )
             screenResults, saveResults = removeUnknowns(screenResults, saveResults)
-            # Archiver.saveData(saveResults, f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            # Archiver.saveData(screenResults, f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
             printNotifySaveScreenedResults(
                 screenResults,
                 saveResults,
@@ -1034,12 +1032,6 @@ def main(userArgs=None):
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
 
-
-def color_negative_red(val):
-    color = "red" if str(val).startswith("-") else "green"
-    return "color: %s" % color
-
-
 def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result_'):
     if optionalName != "Summary":
         Utility.tools.clearScreen()
@@ -1071,11 +1063,11 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     )
 
 
-def getIterationCount(numStocks):
-    # Generally it takes 50-60 seconds for one full run of backtest for a batch of 1900
-    # stocks. We would like the backtest to finish with 3-5 minutes.
-    # iterations = (1900/numStocks) * 3.5
-    return 240  # (5 if iterations < 5 else (100 if iterations > 100 else iterations))
+def getHistoricalDays(numStocks):
+    # Generally it takes 40-50 stocks to be processed every second. 
+    # We would like the backtest to finish withn 10 minutes (600 seconds).
+    # days = numStocks/40 per second
+    return configManager.backtestPeriod #if numStocks <= 2000 else 120 # (5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
 
 def runScanners(
@@ -1094,7 +1086,7 @@ def runScanners(
 ):
     populateQueues(items, tasks_queue)
     try:
-        numStocks = len(listStockCodes) * iterations
+        numStocks = len(listStockCodes) * int(iterations)
         dumpFreq = 1
         print(colorText.END + colorText.BOLD)
         bar, spinner = Utility.tools.getProgressbarStyle()
@@ -1198,10 +1190,6 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "15",
-            "16",
-            "17",
-            "18",
             "19",
             "20",
             "21",

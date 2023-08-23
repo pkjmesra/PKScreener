@@ -65,6 +65,7 @@ class tools:
         self.generalTimeout = 2
         self.longTimeout = 4
         self.maxNetworkRetryCount = 10
+        self.backtestPeriod = 240
         self.logger = None
 
     @property
@@ -114,6 +115,7 @@ class tools:
             parser.set("config", "generalTimeout", str(self.generalTimeout))
             parser.set("config", "longTimeout", str(self.longTimeout))
             parser.set("config", "maxNetworkRetryCount", str(self.maxNetworkRetryCount))
+            parser.set("config", "backtestPeriod", str(self.backtestPeriod))
             try:
                 fp = open("pkscreener.ini", "w")
                 parser.write(fp)
@@ -200,7 +202,10 @@ class tools:
                 "[+] Long network timeout for heavier downloads(in seconds)(Optimal = 4 for good networks): "
             )
             self.maxNetworkRetryCount = input(
-                "[+] MAximum number of retries in case of network timeout(in seconds)(Optimal = 10 for slow networks): "
+                "[+] Maximum number of retries in case of network timeout(in seconds)(Optimal = 10 for slow networks): "
+            )
+            self.backtestPeriod = input(
+                "[+] Number of days in the past for backtesting(in days)(Optimal = 240): "
             )
             parser.set("config", "period", self.period + "d")
             parser.set("config", "daysToLookback", self.daysToLookback)
@@ -219,6 +224,7 @@ class tools:
             parser.set("config", "generalTimeout", self.generalTimeout)
             parser.set("config", "longTimeout", self.longTimeout)
             parser.set("config", "maxNetworkRetryCount", self.maxNetworkRetryCount)
+            parser.set("config", "backtestPeriod", self.backtestPeriod)
             # delete stock data due to config change
             self.deleteFileWithPattern()
             print(
@@ -293,6 +299,7 @@ class tools:
                 self.generalTimeout = float(parser.get("config", "generalTimeout"))
                 self.longTimeout = float(parser.get("config", "longTimeout"))
                 self.maxNetworkRetryCount = float(parser.get("config", "maxNetworkRetryCount"))
+                self.backtestPeriod = int(parser.get("config", "backtestPeriod"))
             except configparser.NoOptionError as e:
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
