@@ -16,7 +16,7 @@
 * Font bug fixes for Ubuntu so now you can send telegram notifications with attachments from Ubuntu as well.
 * Stability and performance enhancements. Network requests default now to IPv4 only because IPv6 delays the requests.
 * Added overall summary prediction of backtests.
-* Fixed RSI screening to be evaluated for range 67 <= RSI <=71 
+* Fixed RSI screening to be evaluated for range 67 <= RSI <=71
 * Many other bug fixes and improvement in [v0.4.x] weekly releases
 
 3. [v0.3] release
@@ -34,11 +34,11 @@
 1. First release - [v0.01]
 
 ## Downloads
-| Operating System | Executable File |
-| :-: | --- |
- | ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreenercli.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreenercli.exe)** |
-| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) | **[pkscreenercli.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreenercli.bin)** |
-| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000) | **[pkscreenercli.run](https://github.com/pkjmesra/PKScreener/releases/download/0.4/pkscreenercli.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
+| Operating System                                                                                         | Executable File                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) | **[pkscreenercli.exe](https://github.com/pkjmesra/PKScreener/releases/download/0.41/pkscreenercli.exe)**                                                                                                         |
+| ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)       | **[pkscreenercli.bin](https://github.com/pkjmesra/PKScreener/releases/download/0.41/pkscreenercli.bin)**                                                                                                         |
+| ![Mac OS](https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000)  | **[pkscreenercli.run](https://github.com/pkjmesra/PKScreener/releases/download/0.41/pkscreenercli.run)** ([Read Installation Guide](https://github.com/pkjmesra/PKScreener/blob/main/INSTALLATION.md#for-macos)) |
 
 ## How to use?
 
