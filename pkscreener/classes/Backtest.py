@@ -50,22 +50,7 @@ def backtest(
     # s1    d3  ^
     #   ....    |
     # s1    dn  |----------------We need to make calculations upto 30 day period from d2
-    futureRows = periods
-    if sampleDays <= periods:
-        f1 = 0
-        t1 = sampleDays
-    else:
-        f1 = periods
-        t1 = periods
-    daysback_df = data.head(configManager.backtestPeriod - sampleDays + f1)  # print(daysback_df)
-    daysback_df = daysback_df.tail(
-        t1 + 1
-    )  # +1 to include the actual date on which the recommendation was made
-    daysback_df = data.head(configManager.backtestPeriod - sampleDays + futureRows)  # print(daysback_df)
-    daysback_df = daysback_df.tail(
-        futureRows + 1
-    )  # +1 to include the actual date on which the recommendation was made
-    previous_recent = daysback_df.head(
+    previous_recent = data.head(
         1
     )  # This is the row which has the date for which the recommendation is valid
     previous_recent.reset_index(inplace=True)
@@ -117,7 +102,7 @@ def backtest(
     for prd in calcPeriods:
         if abs(prd) <= periods:
             try:
-                rolling_pct = daysback_df["Close"].pct_change(periods=prd) * 100
+                rolling_pct = data["Close"].pct_change(periods=prd) * 100
                 pct_change = rolling_pct.iloc[prd]
                 backTestedStock[f"{abs(prd)}-Pd"] = (
                     (colorText.GREEN if pct_change >= 0 else colorText.FAIL)
@@ -146,6 +131,8 @@ def backtestSummary(df):
     summaryList = []
     net_positives = 0
     net_negatives = 0
+    if df is None:
+        return
     df.drop_duplicates()
     df_grouped = df.groupby('Stock')
     for col in df.keys():
@@ -164,8 +151,10 @@ def backtestSummary(df):
                 group_positives += col_positives
                 group_negatives += col_negatives
                 overall[col] = [overall[col][0] + col_positives, overall[col][1] + col_negatives]
-                summary[col] = f'{"%.2f%%" % (col_positives*100/(col_positives+col_negatives))} of ({col_positives+col_negatives})'
-        summary['Overall'] = f'{"%.2f%%" % (group_positives*100/(group_positives+group_negatives))} of ({group_positives+group_negatives})'
+                overAllPeriodPrediction = (col_positives*100/(col_positives+col_negatives))
+                summary[col] = f'{formattedOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
+        overAllRowPrediction = (group_positives*100/(group_positives+group_negatives))
+        summary['Overall'] = f'{formattedOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
         summaryList.append(summary)
         summary = {}
         net_positives += group_positives
@@ -176,8 +165,15 @@ def backtestSummary(df):
     for col in overall.keys():
         col_positives = overall[col][0]
         col_negatives = overall[col][1]
-        summary[col] = f'{"%.2f%%" % (col_positives*100/(col_positives+col_negatives))} of ({col_positives+col_negatives})'
-    summary['Overall'] = f'{"%.2f%%" % (net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
+        summary[col] = f'{formattedOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
+    summary['Overall'] = f'{formattedOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
     summaryList.append(summary)
     summary_df = pd.DataFrame(summaryList, columns=summary.keys())
     return summary_df
+
+def formattedOutput(outcome):
+    if outcome >= 80:
+        return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
+    if outcome >= 60:
+        return f'{colorText.WARN}{"%.2f%%" % outcome}{colorText.END}'
+    return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'

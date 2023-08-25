@@ -873,21 +873,28 @@ def main(userArgs=None):
                 + "[+] Starting download.. Press Ctrl+C to stop!\n"
             )
 
-        iterations = (
-            getHistoricalDays(len(listStockCodes)) if menuOption.upper() == "B" else 1
+        suggestedHistoricalDuration = (
+            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
         )
-        sampleDays = (iterations + backtestPeriod + 1) if menuOption == "B" else 2
-        iteration = 1 if menuOption == "B" else 2
+        # Number of days from past, including the backtest duration chosen by the user
+        # that we will need to consider to evaluate the data. If the user choses 10-period
+        # backtesting, we will need to have the past 6-months or whatever is returned by
+        # x = getHistoricalDays and 10 days of recent data. So total rows to consider
+        # will be x + 10 days.
+        samplingDuration = (suggestedHistoricalDuration + backtestPeriod + 1) if menuOption == "B" else 2
+        fillerPlaceHolder = 1 if menuOption == "B" else 2
         backtest_df = None
         if menuOption.upper() == "B":
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {iterations} days of historical data will be considered.\n"
+                + f"[+] A total of {suggestedHistoricalDuration} days of historical data will be considered for backtesting. You can change this in User Config.\n"
             )
         items = []
-        historicalDays = sampleDays - iteration
-        while historicalDays >= 0:
+        actualHistoricalDuration = samplingDuration - fillerPlaceHolder
+        # Lets begin from y days ago, evaluate from that date if the selected strategy had yielded any result
+        # and then keep coming to the next day (x-1) until we get to today (actualHistoricalDuration = 0)
+        while actualHistoricalDuration >= 0:
             moreItems = [
                 (
                     executeOption,
@@ -910,14 +917,15 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     testBuild,
-                    historicalDays,
+                    actualHistoricalDuration,
+                    backtestPeriod,
                     default_logger().level,
                 )
                 for stock in listStockCodes
             ]
             items.extend(moreItems)
-            iteration = iteration + 1
-            historicalDays = sampleDays - iteration
+            fillerPlaceHolder = fillerPlaceHolder + 1
+            actualHistoricalDuration = samplingDuration - fillerPlaceHolder
         tasks_queue, results_queue, totalConsumers = initQueues(len(items))
         consumers = [
             PKMultiProcessorClient(
@@ -941,7 +949,7 @@ def main(userArgs=None):
             results_queue,
             listStockCodes,
             backtestPeriod,
-            sampleDays - 1,
+            samplingDuration - 1,
             consumers,
             screenResults,
             saveResults,
@@ -979,10 +987,16 @@ def main(userArgs=None):
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
             backtest_df.set_index("Stock", inplace=True)
-            showBacktestResults(backtest_df)
             summary_df = backtestSummary(backtest_df)
+            # backtest_df.reset_index(inplace=True)
+            # backtest_df.reset_index(drop=True)
+            showBacktestResults(backtest_df)
+
             summary_df.set_index("Stock", inplace=True)
+            # summary_df.reset_index(inplace=True)
+            # summary_df.reset_index(drop=True)
             showBacktestResults(summary_df,optionalName="Summary")
+
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
@@ -1033,29 +1047,40 @@ def main(userArgs=None):
         newlyListedOnly = False
 
 def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result_'):
+    global menuChoiceHierarchy
     if optionalName != "Summary":
         Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
     # pd.set_option("display.max_columns", 20)
+    if backtest_df is None:
+        return
     backtest_df.drop_duplicates()
+    summaryText = menuChoiceHierarchy
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
     else:
-        print("Overall Summary of Strategy Prediction Positive outcomes:\n")
+        summaryText = f"{summaryText}\nOverall Summary of (correctness of) Strategy Prediction Positive outcomes:"
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid")
-    print(tabulated_text)
-    print("\n")
+    print(colorText.FAIL+summaryText+colorText.END+"\n")
+    print(tabulated_text+"\n")
     filename = (
         f"PKScreener-{optionalName}-{sortKey}_"
         + Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
         + ".html"
     )
-    colored_text = tabulated_text.replace(colorText.GREEN,"<span style='color:green;'>")
+    colored_text = backtest_df.to_html()
+    summaryText = summaryText.replace("\n","<br />")
+    colored_text = colored_text.replace("<table", f"<span style='background-color:black; color:white;' >{summaryText}<br /><table")
+    colored_text = colored_text.replace("<html>", "<html ")
+    colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
+    colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
+    colored_text = colored_text.replace(colorText.GREEN,"<span style='color:green;'>")
     colored_text = colored_text.replace(colorText.BOLD,"")
     colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;'>")
-    colored_text = colored_text.replace(colorText.WARN,"<span style='color:blue;'>")
+    colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
-    colored_text = colored_text.replace("\n","<br />")
+    colored_text = colored_text.replace("\n","")
+    colored_text = colored_text.replace("</table>","</table></span>")
     with open(filename, "a") as f:
         f.write(colored_text)
     configManager.deleteFileWithPattern(
@@ -1063,11 +1088,11 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     )
 
 
-def getHistoricalDays(numStocks):
+def getHistoricalDays(numStocks, testing):
     # Generally it takes 40-50 stocks to be processed every second. 
     # We would like the backtest to finish withn 10 minutes (600 seconds).
     # days = numStocks/40 per second
-    return configManager.backtestPeriod #if numStocks <= 2000 else 120 # (5 if iterations < 5 else (100 if iterations > 100 else iterations))
+    return 10 if testing else configManager.backtestPeriod #if numStocks <= 2000 else 120 # (5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
 
 def runScanners(

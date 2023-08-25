@@ -640,8 +640,9 @@ class tools:
                         pass
                     # Then update
                     last_signal[data_list[cnt]] = [final]
-        result_df.drop_duplicates(keep="last", inplace=True)
-        result_df.sort_values(by="Time", inplace=True)
+        if result_df is not None:
+            result_df.drop_duplicates(keep="last", inplace=True)
+            result_df.sort_values(by="Time", inplace=True)
         return result_df[::-1]
 
     # Preprocess the acquired data

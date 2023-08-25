@@ -73,6 +73,7 @@ class StockConsumer:
         testbuild=False,
         printCounter=False,
         backtestDuration=0,
+        backtestPeriodToLookback=30,
         logLevel=logging.NOTSET,
         hostRef=None,
     ):
@@ -161,7 +162,7 @@ class StockConsumer:
                 data = pd.DataFrame(
                     data["data"], columns=data["columns"], index=data["index"]
                 )
-            if len(data) == 0:
+            if len(data) == 0 or len(data) <= backtestDuration:
                 return None
             hostRef.default_logger.info(f"Will pre-process data:\n{data.tail(10)}")
             if backtestDuration == 0:
@@ -170,11 +171,11 @@ class StockConsumer:
                 )
             else:
                 if data is None or fullData is None or processedData is None:
-                    inputData = (
-                        data
-                        if backtestDuration == 0
-                        else data.head(configManager.backtestPeriod - backtestDuration)
-                    )
+                    # We want to have the nth day treated as today when pre-processing where n = backtestDuration row from the bottom
+                    inputData = data.head(len(data) - backtestDuration + 1)
+                    # This will have all the rows in future from the date under consideration 
+                    # at the bottom of fullData (or at the top of inputData)
+                    data = data.tail(backtestDuration).head(backtestPeriodToLookback+1)
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
                     )

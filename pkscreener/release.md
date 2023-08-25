@@ -1,7 +1,13 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 
 ## What's New?
-1. [v0.4] release
+1. [v0.41] release
+
+* Fixed several bugs in backtesting. Now, backtesting default is set to 30 periods in the past.
+* You can now get html formatted outputs for backtesting results and summary of correctness of strategies.
+
+## Older Releases
+4. [v0.4.20230825.38] release
 
 * The pkscreener Telegram bot (@nse_pkscreener_bot) can now respond to your on-demand requests for almost all scan results.
 * Added 52-week low/high breakout screeners (X > 12 > 15, X > 12 > 17)
@@ -13,7 +19,6 @@
 * Fixed RSI screening to be evaluated for range 67 <= RSI <=71 
 * Many other bug fixes and improvement in [v0.4.x] weekly releases
 
-## Older Releases
 3. [v0.3] release
 
 * Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
