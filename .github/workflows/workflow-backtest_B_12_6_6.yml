@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Narrow Range (NRx) Reversal (B_12_6_6)
+name: B. B_12_6_6 Narrow Range (NRx) Reversal (B_12_6_6)
 on:
   workflow_dispatch:
     inputs:

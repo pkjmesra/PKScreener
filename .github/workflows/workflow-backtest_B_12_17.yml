@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for 52 week high breakout(today/1 wk) (B_12_17)
+name: B. B_12_17 Backtest for 52 week high breakout(today/1 wk) (B_12_17)
 on:
   workflow_dispatch:
     inputs:

@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for  Bullish RSI & MACD Intraday (B_12_13)
+name: B. B_12_13 Backtest for  Bullish RSI & MACD Intraday (B_12_13)
 on:
   workflow_dispatch:
     inputs:

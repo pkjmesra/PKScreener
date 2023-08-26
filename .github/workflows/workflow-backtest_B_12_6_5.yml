@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Volume Spread Analysis (Bullish VSA Reversal) (B_12_6_5)
+name: B. B_12_6_5 Volume Spread Analysis (Bullish VSA Reversal) (B_12_6_5)
 on:
   workflow_dispatch:
     inputs:

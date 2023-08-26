@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Closing at least 2% up since last 3 days (B_12_10)
+name: B. B_12_10 Backtest for Closing at least 2% up since last 3 days (B_12_10)
 on:
   workflow_dispatch:
     inputs:

@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Bullish Aroon(14) Crossover (B_12_18)
+name: B. B_12_18 Backtest for Bullish Aroon(14) Crossover (B_12_18)
 on:
   workflow_dispatch:
     inputs:

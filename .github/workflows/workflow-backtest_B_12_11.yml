@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for  Short term bullish stocks (B_12_11)
+name: B. B_12_11 Backtest for  Short term bullish stocks (B_12_11)
 on:
   workflow_dispatch:
     inputs:

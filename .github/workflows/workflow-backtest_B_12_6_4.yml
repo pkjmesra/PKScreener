@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Reversal at Moving Average (Bullish Reversal) (B_12_6_4)
+name: B. B_12_6_4 Backtest for Reversal at Moving Average (Bullish Reversal) (B_12_6_4)
 on:
   workflow_dispatch:
     inputs:

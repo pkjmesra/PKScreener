@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Buying at Trendline (Ideal for Swing/Mid/Long term) (B_12_7_5)
+name: B. B_12_7_5 Backtest for Buying at Trendline (Ideal for Swing/Mid/Long term) (B_12_7_5)
 on:
   workflow_dispatch:
     inputs:
