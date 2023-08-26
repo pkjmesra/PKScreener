@@ -69,6 +69,7 @@ jobs:
         git remote update
         git fetch
         git checkout -b Backtest-Reports origin/Backtest-Reports
+        git pull
         git add Backtest-Reports/PKScreener_*.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_9)"
         git push -v -u origin +Backtest-Reports
