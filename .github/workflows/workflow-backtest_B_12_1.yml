@@ -16,7 +16,7 @@ on:
 
 jobs:
 
-  Download_Stock_Data:
+  B_12_1:
 
     runs-on: windows-latest
 
