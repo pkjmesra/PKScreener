@@ -55,8 +55,8 @@ jobs:
     - name: Download Stock Data
       shell: cmd
       run: |
-        rmdir /s /q Backtest-Reports
-        mkdir Backtest-Reports
+        rmdir /s /q actions-data-download
+        mkdir actions-data-download
         python pkscreener/pkscreenercli.py -d -a Y
         copy "stock_data_*.pkl" "actions-data-download"
 
