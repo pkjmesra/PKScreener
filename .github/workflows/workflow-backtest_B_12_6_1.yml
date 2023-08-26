@@ -3,20 +3,20 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Recent Breakouts (B_12_2)
+name: B. Backtest for Reversal Buy Signals (B_12_6_1)
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Backtest for Recent Breakouts (B_12_2)'
+        description: 'Backtest for Reversal Buy Signals (B_12_6_1)'
         required: false
-        default: 'Backtest for Recent Breakouts (B_12_2)'
+        default: 'Backtest for Reversal Buy Signals (B_12_6_1)'
   schedule:
-  - cron: '02 10 * * 1-5'
+  - cron: '06 10 * * 1-5'
 
 jobs:
 
-  B_12_2:
+  B_12_6_1:
 
     runs-on: windows-latest
 
@@ -57,7 +57,7 @@ jobs:
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:2
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:6:1
         copy "PKScreener_*.html" "Backtest-Reports"
 
     - name: Push backtest and summary reports
@@ -69,7 +69,7 @@ jobs:
         git fetch
         git checkout -b Backtest-Reports origin/Backtest-Reports
         git add Backtest-Reports/PKScreener_*.html --force
-        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_2)"
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_1)"
         git push -v -u origin +Backtest-Reports
 
     - name: Squash Commits (Python)
@@ -79,4 +79,4 @@ jobs:
         git config user.email github-actions@github.com
         git fetch
         git checkout -b Backtest-Reports origin/Backtest-Reports
-        python .github/workflows/squash.py -b Backtest-Reports -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_2)"
+        python .github/workflows/squash.py -b Backtest-Reports -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_1)"

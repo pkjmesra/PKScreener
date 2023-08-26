@@ -78,26 +78,6 @@ lastScreened = "last_screened_results.pkl"
 
 # Class for managing misc and utility methods
 
-level3ReversalMenuDict = {
-    "1": "Buy Signals (Bullish Reversal)",
-    "2": "Sell Signals (Bearish Reversal)",
-    "3": "Momentum Gainers (Rising Bullish Momentum)",
-    "4": "Reversal at Moving Average (Bullish Reversal)",
-    "5": "Volume Spread Analysis (Bullish VSA Reversal)",
-    "6": "Narrow Range (NRx) Reversal",
-    "0": "Cancel",
-}
-level3ChartPatternMenuDict = {
-    "1": "Bullish Inside Bar (Flag) Pattern",
-    "2": "Bearish Inside Bar (Flag) Pattern",
-    "3": "The Confluence (50 & 200 MA/EMA)",
-    "4": "VCP (Experimental)",
-    "5": "Buying at Trendline (Ideal for Swing/Mid/Long term)",
-    "6": "Narrow Range (NRx) Reversal",
-    "0": "Cancel",
-}
-
-
 class tools:
     def clearScreen():
         if platform.system() == "Windows":

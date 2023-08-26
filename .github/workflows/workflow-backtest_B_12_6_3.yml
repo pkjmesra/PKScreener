@@ -3,16 +3,16 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Backtest for Momentum Gainers (B_12_6_3)
+name: B. Backtest for Reversal Signals Momentum Gainers (B_12_6_3)
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Backtest for Momentum Gainers(B_12_6_3)'
+        description: 'Backtest for Reversal Signals Momentum Gainers(B_12_6_3)'
         required: false
-        default: 'Backtest for Momentum Gainers(B_12_6_3)'
+        default: 'Backtest for Reversal Signals Momentum Gainers(B_12_6_3)'
   schedule:
-  - cron: '05 10 * * 1-5'
+  - cron: '08 10 * * 1-5'
 
 jobs:
 
@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: actions-data-download
+        ref: Backtest-Reports
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -67,16 +67,7 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
+        git checkout -b Backtest-Reports origin/Backtest-Reports
         git add Backtest-Reports/PKScreener_*.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_3)"
-        git push -v -u origin +actions-data-download
-
-    - name: Squash Commits (Python)
-      shell: cmd
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_3)"
+        git push -v -u origin +Backtest-Reports
