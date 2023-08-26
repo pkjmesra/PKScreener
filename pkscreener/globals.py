@@ -1084,9 +1084,10 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace("\n","")
     colored_text = colored_text.replace("</table>","</table></span>")
     # Delete any pre-existing backtesting report for the same parameters
-    configManager.deleteFileWithPattern(
-        pattern=filename, excludeFile=None
-    )
+    try:
+        os.remove(filename)
+    except Exception:
+        pass
     with open(filename, "w") as f:
         f.write(colored_text)
 
