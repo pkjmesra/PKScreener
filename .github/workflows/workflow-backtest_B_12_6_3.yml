@@ -3,16 +3,16 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: 4. After-Market Data Gen
+name: B. Backtest for Momentum Gainers (B_12_6_3)
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Run Details'
+        description: 'Backtest for Momentum Gainers(B_12_6_3)'
         required: false
-        default: 'Data Download'
+        default: 'Backtest for Momentum Gainers(B_12_6_3)'
   schedule:
-  - cron: '58 9 * * 1-5'
+  - cron: '05 10 * * 1-5'
 
 jobs:
 
@@ -52,15 +52,15 @@ jobs:
         pip3 install ta-lib
         pip install .
 
-    - name: Download Stock Data
+    - name: Run backtest
       shell: cmd
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -d -a Y
-        copy "stock_data_*.pkl" "actions-data-download"
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:6:3
+        copy "PKScreener_*.html" "Backtest-Reports"
 
-    - name: Push Pickle Data
+    - name: Push backtest and summary reports
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
@@ -68,8 +68,8 @@ jobs:
         git remote update
         git fetch
         git checkout -b actions-data-download origin/actions-data-download
-        git add actions-data-download/stock_data_*.pkl --force
-        git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
+        git add Backtest-Reports/PKScreener_*.html --force
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_3)"
         git push -v -u origin +actions-data-download
 
     - name: Squash Commits (Python)
@@ -79,4 +79,4 @@ jobs:
         git config user.email github-actions@github.com
         git fetch
         git checkout -b actions-data-download origin/actions-data-download
-        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
+        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_3)"

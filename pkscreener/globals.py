@@ -1046,8 +1046,8 @@ def main(userArgs=None):
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
 
-def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result_'):
-    global menuChoiceHierarchy
+def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
+    global menuChoiceHierarchy, selectedChoice
     if optionalName != "Summary":
         Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
@@ -1055,7 +1055,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     if backtest_df is None:
         return
     backtest_df.drop_duplicates()
-    summaryText = menuChoiceHierarchy
+    summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy}"
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
     else:
@@ -1063,10 +1063,12 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid")
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
+    choices = ""
+    for choice in selectedChoice:
+        if len(selectedChoice[choice]) > 0:
+            choices = f"{choices}{selectedChoice[choice]}_"
     filename = (
-        f"PKScreener-{optionalName}-{sortKey}_"
-        + Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
-        + ".html"
+        f"PKScreener_{choices}{optionalName}_{sortKey}Sorted.html"
     )
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
@@ -1074,9 +1076,9 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace("<html>", "<html ")
     colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
     colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
-    colored_text = colored_text.replace(colorText.GREEN,"<span style='color:green;'>")
+    colored_text = colored_text.replace(colorText.GREEN,"<span style='color:lightgreen;font-weight:bold;'>")
     colored_text = colored_text.replace(colorText.BOLD,"")
-    colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;'>")
+    colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;font-weight:bold;'>")
     colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")

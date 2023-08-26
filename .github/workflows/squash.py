@@ -1,7 +1,16 @@
+import argparse
 import os
 from time import sleep
 
-c_msg = "GitHub Action Workflow - Market Data Download (Default Config)"
+argParser = argparse.ArgumentParser()
+required = True
+argParser.add_argument("-m", "--message", help="Commit message to look for", required=required)
+argParser.add_argument(
+    "-b", "--branch", help="Origin branch name to push to", required=required
+)
+args = argParser.parse_args()
+
+c_msg = args.message #"GitHub Action Workflow - Market Data Download (Default Config)"
 
 print("[+] === SQUASHING COMMITS : actions-data-download branch ===")
 print("[+] Saving Commit messages log..")
@@ -34,7 +43,7 @@ if cnt < 1:
 else:
     os.system(f"git reset --soft HEAD~{cnt}")
     os.system(f"git commit -m '{c_msg}'")
-    os.system("git push -f -u origin actions-data-download")
+    os.system(f"git push -f -u origin {args.branch}") # actions-data-download
 
 os.remove("msg.log")
 sleep(5)
