@@ -71,12 +71,3 @@ jobs:
         git add Backtest-Reports/PKScreener_*.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_2)"
         git push -v -u origin +Backtest-Reports
-
-    - name: Squash Commits (Python)
-      shell: cmd
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git fetch
-        git checkout -b Backtest-Reports origin/Backtest-Reports
-        python .github/workflows/squash.py -b Backtest-Reports -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_2)"
