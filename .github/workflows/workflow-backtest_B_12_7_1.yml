@@ -68,6 +68,7 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
+        git pull
         git checkout -b Backtest-Reports origin/Backtest-Reports
         git add Backtest-Reports/PKScreener_*.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_7_1)"
