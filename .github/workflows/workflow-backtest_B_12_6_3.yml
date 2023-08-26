@@ -54,14 +54,15 @@ jobs:
 
     - name: Run backtest
       shell: cmd
+      continue-on-error: true
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports
         python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:6:3
-        copy "PKScreener_*.html" "Backtest-Reports"
 
     - name: Push backtest and summary reports
       run: |
+        copy "PKScreener_*.html" "Backtest-Reports"
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"

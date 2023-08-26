@@ -1083,7 +1083,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")
     colored_text = colored_text.replace("</table>","</table></span>")
-    with open(filename, "a") as f:
+    with open(filename, "w") as f:
         f.write(colored_text)
     configManager.deleteFileWithPattern(
         pattern=f"PKScreener-{optionalName}-{sortKey}_*.html", excludeFile=filename
