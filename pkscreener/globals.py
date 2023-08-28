@@ -49,12 +49,12 @@ from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
-                                            level2_X_MenuDict, menus)
+                                            level2_X_MenuDict,
+                                            level3_X_ChartPattern_MenuDict,
+                                            level3_X_Reversal_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
-from pkscreener.classes.MenuOptions import (level3_X_ChartPattern_MenuDict,
-                                        level3_X_Reversal_MenuDict)
 from pkscreener.Telegram import (is_token_telegram_configured, send_document,
                                  send_message)
 
@@ -1083,11 +1083,14 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")
     colored_text = colored_text.replace("</table>","</table></span>")
-    with open(filename, "w") as f:
-        f.write(colored_text)
-    configManager.deleteFileWithPattern(
-        pattern=f"PKScreener-{optionalName}-{sortKey}_*.html", excludeFile=filename
-    )
+    # Delete any pre-existing backtesting report for the same parameters
+    try:
+        os.remove(filename)
+    except Exception:
+        pass
+    finally:
+        with open(filename, "w") as f:
+            f.write(colored_text)
 
 
 def getHistoricalDays(numStocks, testing):

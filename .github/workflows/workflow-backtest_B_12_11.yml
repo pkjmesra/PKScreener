@@ -70,6 +70,8 @@ jobs:
         git fetch
         git pull
         git checkout -b Backtest-Reports origin/Backtest-Reports
-        git add Backtest-Reports/PKScreener_*.html --force
+        git pull
+        git add Backtest-Reports/PKScreener_B_12_11_backtest_result_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_B_12_11_Summary_StockSorted.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_11)"
         git push -v -u origin +Backtest-Reports
