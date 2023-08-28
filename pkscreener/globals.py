@@ -1088,8 +1088,9 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         os.remove(filename)
     except Exception:
         pass
-    with open(filename, "w") as f:
-        f.write(colored_text)
+    finally:
+        with open(filename, "w") as f:
+            f.write(colored_text)
 
 
 def getHistoricalDays(numStocks, testing):
