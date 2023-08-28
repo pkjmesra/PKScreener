@@ -1072,7 +1072,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     )
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<span style='background-color:black; color:white;' >{summaryText}<br /><table")
+    colored_text = colored_text.replace("<table", f"<html><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
     colored_text = colored_text.replace("<html>", "<html ")
     colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
     colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
@@ -1082,7 +1082,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")
-    colored_text = colored_text.replace("</table>","</table></span>")
+    colored_text = colored_text.replace("</table>","</table></span></body></html>")
     # Delete any pre-existing backtesting report for the same parameters
     try:
         os.remove(filename)
