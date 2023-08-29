@@ -702,7 +702,7 @@ def main(userArgs=None):
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=fetcher.proxyServer)
                 )
                 sendMessageToTelegramChannel(
-                    message=f"Nifty AI prediction for the next day: {pText}. {sText}",
+                    message=f"Nifty AI prediction for the next day: {pText}. {sText}\n\nYou may wish to check the backtest results for all previous day scan results for all Nifty Stocks:\nhttps://pkjmesra.github.io/PKScreener/BacktestReports.html",
                     user=user,
                 )
                 if defaultAnswer is None:
@@ -1072,7 +1072,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     )
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<span style='background-color:black; color:white;' >{summaryText}<br /><table")
+    colored_text = colored_text.replace("<table", f"<html><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
     colored_text = colored_text.replace("<html>", "<html ")
     colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
     colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
@@ -1082,7 +1082,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")
-    colored_text = colored_text.replace("</table>","</table></span>")
+    colored_text = colored_text.replace("</table>","</table></span></body></html>")
     # Delete any pre-existing backtesting report for the same parameters
     try:
         os.remove(filename)
@@ -1477,6 +1477,8 @@ def removeUnknowns(screenResults, saveResults):
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
+    if user is not None:
+        caption = f"{caption}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
             send_message(message, userID=user)
