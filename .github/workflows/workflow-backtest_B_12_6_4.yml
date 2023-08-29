@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: Backtest-Reports
+        ref: gh-pages
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -69,9 +69,9 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b Backtest-Reports origin/Backtest-Reports
+        git checkout -b gh-pages origin/gh-pages
         git pull
         git add Backtest-Reports/PKScreener_B_12_6_4_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_B_12_6_4_Summary_StockSorted.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_4)"
-        git push -v -u origin +Backtest-Reports
+        git push -v -u origin +gh-pages
