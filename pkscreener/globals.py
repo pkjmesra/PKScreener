@@ -49,12 +49,12 @@ from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
-                                            level2_X_MenuDict, menus)
+                                            level2_X_MenuDict,
+                                            level3_X_ChartPattern_MenuDict,
+                                            level3_X_Reversal_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
-from pkscreener.classes.MenuOptions import (level3_X_ChartPattern_MenuDict,
-                                        level3_X_Reversal_MenuDict)
 from pkscreener.Telegram import (is_token_telegram_configured, send_document,
                                  send_message)
 
@@ -702,7 +702,7 @@ def main(userArgs=None):
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=fetcher.proxyServer)
                 )
                 sendMessageToTelegramChannel(
-                    message=f"Nifty AI prediction for the next day: {pText}. {sText}",
+                    message=f"Nifty AI prediction for the next day: {pText}. {sText}\n\nYou may wish to check the backtest results for all previous day scan results for all Nifty Stocks:\nhttps://pkjmesra.github.io/PKScreener/BacktestReports.html",
                     user=user,
                 )
                 if defaultAnswer is None:
@@ -1072,7 +1072,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     )
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<span style='background-color:black; color:white;' >{summaryText}<br /><table")
+    colored_text = colored_text.replace("<table", f"<html><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
     colored_text = colored_text.replace("<html>", "<html ")
     colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
     colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
@@ -1082,12 +1082,15 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
     colored_text = colored_text.replace(colorText.END,"</span>")
     colored_text = colored_text.replace("\n","")
-    colored_text = colored_text.replace("</table>","</table></span>")
-    with open(filename, "a") as f:
-        f.write(colored_text)
-    configManager.deleteFileWithPattern(
-        pattern=f"PKScreener-{optionalName}-{sortKey}_*.html", excludeFile=filename
-    )
+    colored_text = colored_text.replace("</table>","</table></span></body></html>")
+    # Delete any pre-existing backtesting report for the same parameters
+    try:
+        os.remove(filename)
+    except Exception:
+        pass
+    finally:
+        with open(filename, "w") as f:
+            f.write(colored_text)
 
 
 def getHistoricalDays(numStocks, testing):
@@ -1474,6 +1477,8 @@ def removeUnknowns(screenResults, saveResults):
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
+    if user is not None:
+        caption = f"{caption}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
             send_message(message, userID=user)

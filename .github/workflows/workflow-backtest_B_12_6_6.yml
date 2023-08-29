@@ -3,7 +3,7 @@
 # Created             :   24/01/2022
 # Description         :   Workflow for downloading pickled stock data to cloud [Use this when yfinance causing an issue]
 
-name: B. Narrow Range (NRx) Reversal (B_12_6_6)
+name: B. B_12_6_6 Narrow Range (NRx) Reversal (B_12_6_6)
 on:
   workflow_dispatch:
     inputs:
@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: Backtest-Reports
+        ref: gh-pages
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -54,29 +54,24 @@ jobs:
 
     - name: Run backtest
       shell: cmd
+      continue-on-error: true
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports
         python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:6:6:4
-        copy "PKScreener_*.html" "Backtest-Reports"
 
     - name: Push backtest and summary reports
+      continue-on-error: true
       run: |
+        copy "PKScreener_*.html" "Backtest-Reports"
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b Backtest-Reports origin/Backtest-Reports
-        git add Backtest-Reports/PKScreener_*.html --force
+        git checkout -b gh-pages origin/gh-pages
+        git pull
+        git add Backtest-Reports/PKScreener_B_12_6_6_backtest_result_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_B_12_6_6_Summary_StockSorted.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_6)"
-        git push -v -u origin +Backtest-Reports
-
-    - name: Squash Commits (Python)
-      shell: cmd
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git fetch
-        git checkout -b Backtest-Reports origin/Backtest-Reports
-        python .github/workflows/squash.py -b Backtest-Reports -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_6_6)"
+        git push -v -u origin +gh-pages

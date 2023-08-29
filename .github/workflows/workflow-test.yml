@@ -74,7 +74,7 @@ jobs:
   Create-Pull-Request:
     if: ${{ inputs.branch-name }} != 'main' && ${{ github.ref != 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    needs: [Test-Source, Lint-Source, call-prod-scan-test-workflow]
+    needs: [Test-Source, Lint-Source, Call-prod-scan-test-workflow]
 
     steps:
     - name: Checkout Repo before PR
