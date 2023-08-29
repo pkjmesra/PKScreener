@@ -12,18 +12,18 @@ on:
         required: false
         default: 'Backtest for Probable Breakouts (B_12_1)'
   schedule:
-  - cron: '05 10 * * 1-5'
+  - cron: '01 10 * * 1-5'
 
 jobs:
 
-  Download_Stock_Data:
+  B_12_1:
 
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: actions-data-download
+        ref: Backtest-Reports
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -67,10 +67,10 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
+        git checkout -b Backtest-Reports origin/Backtest-Reports
         git add Backtest-Reports/PKScreener_*.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_1)"
-        git push -v -u origin +actions-data-download
+        git push -v -u origin +Backtest-Reports
 
     - name: Squash Commits (Python)
       shell: cmd
@@ -78,5 +78,5 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_1)"
+        git checkout -b Backtest-Reports origin/Backtest-Reports
+        python .github/workflows/squash.py -b Backtest-Reports -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_1)"

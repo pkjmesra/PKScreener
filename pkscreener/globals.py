@@ -53,8 +53,8 @@ from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
-from pkscreener.classes.Utility import (level3ChartPatternMenuDict,
-                                        level3ReversalMenuDict)
+from pkscreener.classes.MenuOptions import (level3_X_ChartPattern_MenuDict,
+                                        level3_X_Reversal_MenuDict)
 from pkscreener.Telegram import (is_token_telegram_configured, send_document,
                                  send_message)
 
@@ -590,7 +590,7 @@ def main(userArgs=None):
             reversalOption, maLength = Utility.tools.promptReversalScreening(
                 selectedMenu
             )
-        if reversalOption is None or reversalOption == 0:
+        if reversalOption is None or reversalOption == 0 or maLength == 0:
             return
         else:
             selectedChoice["3"] = str(reversalOption)
@@ -624,7 +624,7 @@ def main(userArgs=None):
             respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(
                 selectedMenu
             )
-        if respChartPattern is None or insideBarToLookback is None:
+        if respChartPattern is None or insideBarToLookback is None or respChartPattern == 0 or insideBarToLookback == 0:
             return
         else:
             selectedChoice["3"] = str(respChartPattern)
@@ -777,12 +777,12 @@ def main(userArgs=None):
                     if selectedChoice["2"] == "6":
                         menuChoiceHierarchy = (
                             menuChoiceHierarchy
-                            + f'>{level3ReversalMenuDict[selectedChoice["3"]].strip()}'
+                            + f'>{level3_X_Reversal_MenuDict[selectedChoice["3"]].strip()}'
                         )
                     elif selectedChoice["2"] == "7":
                         menuChoiceHierarchy = (
                             menuChoiceHierarchy
-                            + f'>{level3ChartPatternMenuDict[selectedChoice["3"]].strip()}'
+                            + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
                         )
                     print(
                         colorText.BOLD
