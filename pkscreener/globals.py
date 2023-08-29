@@ -702,7 +702,7 @@ def main(userArgs=None):
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=fetcher.proxyServer)
                 )
                 sendMessageToTelegramChannel(
-                    message=f"Nifty AI prediction for the next day: {pText}. {sText}",
+                    message=f"Nifty AI prediction for the next day: {pText}. {sText}\n\nYou may wish to check the backtest results for all previous day scan results for all Nifty Stocks:\nhttps://pkjmesra.github.io/PKScreener/BacktestReports.html",
                     user=user,
                 )
                 if defaultAnswer is None:
@@ -1477,6 +1477,8 @@ def removeUnknowns(screenResults, saveResults):
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
+    if user is not None:
+        caption = f"{caption}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
             send_message(message, userID=user)
