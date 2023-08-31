@@ -1079,8 +1079,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
 
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
-    colored_text = colored_text.replace("<html>", "<html ")
+    colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
     colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
     for key in headerDict.keys():
         if key > 0:
