@@ -111,12 +111,12 @@ def backtest(
                 )
             except Exception:
                 continue
-        else:
-            del backTestedStock[f"{abs(prd)}-Pd"]
-            try:
-                backTestedData = backTestedData.drop(f"{abs(prd)}-Pd", axis=1)
-            except Exception:
-                continue
+        # else:
+        #     del backTestedStock[f"{abs(prd)}-Pd"]
+        #     try:
+        #         backTestedData = backTestedData.drop(f"{abs(prd)}-Pd", axis=1)
+        #     except Exception:
+        #         continue
     allStockBacktestData.append(backTestedStock)
     df = pd.DataFrame(allStockBacktestData, columns=backTestedData.columns)
     try:
@@ -152,9 +152,15 @@ def backtestSummary(df):
                 group_negatives += col_negatives
                 overall[col] = [overall[col][0] + col_positives, overall[col][1] + col_negatives]
                 overAllPeriodPrediction = (col_positives*100/(col_positives+col_negatives))
-                summary[col] = f'{formattedOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
+                if col_positives+col_negatives == 0:
+                    summary[col] = "-"
+                else:
+                    summary[col] = f'{formattedOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
         overAllRowPrediction = (group_positives*100/(group_positives+group_negatives))
-        summary['Overall'] = f'{formattedOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
+        if group_positives+group_negatives == 0:
+            summary['Overall'] = "-"
+        else:
+            summary['Overall'] = f'{formattedOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
         summaryList.append(summary)
         summary = {}
         net_positives += group_positives
@@ -165,8 +171,14 @@ def backtestSummary(df):
     for col in overall.keys():
         col_positives = overall[col][0]
         col_negatives = overall[col][1]
-        summary[col] = f'{formattedOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
-    summary['Overall'] = f'{formattedOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
+        if col_positives+col_negatives == 0:
+            summary[col] = "-"
+        else:
+            summary[col] = f'{formattedOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
+    if net_positives+net_negatives == 0:
+        summary['Overall'] = "-"
+    else:
+        summary['Overall'] = f'{formattedOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
     summaryList.append(summary)
     summary_df = pd.DataFrame(summaryList, columns=summary.keys())
     return summary_df
