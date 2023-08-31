@@ -1070,12 +1070,23 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     filename = (
         f"PKScreener_{choices}{optionalName}_{sortKey}Sorted.html"
     )
+    headerDict = {0:"<th></th>"}
+    index = 1
+    for col in backtest_df.columns:
+        if col != "Stock":
+            headerDict[index] = f"<th>{col}</th>"
+            index += 1
+
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<html><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
+    colored_text = colored_text.replace("<table", f"<html><head><script src='https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
     colored_text = colored_text.replace("<html>", "<html ")
     colored_text = colored_text.replace("<table ", "<table style='background-color:black; color:white;' ")
-    colored_text = colored_text.replace("<th>", "<th style='color:white;'>")
+    for key in headerDict.keys():
+        if key > 0:
+            colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
+        else:
+            colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
     colored_text = colored_text.replace(colorText.GREEN,"<span style='color:lightgreen;font-weight:bold;'>")
     colored_text = colored_text.replace(colorText.BOLD,"")
     colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;font-weight:bold;'>")
@@ -1478,9 +1489,10 @@ def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
     if user is not None:
-        caption = f"{caption}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
+        caption = f"{caption.replace('&',' n ')}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
+            message = message.replace('&',' n ')
             send_message(message, userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
@@ -1493,6 +1505,7 @@ def sendMessageToTelegramChannel(
             default_logger().debug(e, exc_info=True)
     if document_filePath is not None:
         try:
+            caption = caption.replace('&',' n ')
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
