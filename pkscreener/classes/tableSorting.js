@@ -19,6 +19,9 @@ function sortTable(n) {
         one from current row and one from the next: */
         x = rows[i].getElementsByTagName("TD")[n];
         y = rows[i + 1].getElementsByTagName("TD")[n];
+        if (x == undefined || y == undefined) {
+          continue
+        }
         /* Check if the two rows should switch place,
         based on the direction, asc or desc: */
         if (dir == "asc") {
@@ -52,3 +55,7 @@ function sortTable(n) {
       }
     }
   }
+window.addEventListener('load', function() {
+    /*Get rid of the first row with Stocks on all columns*/
+  document.getElementsByTagName("TR")[1].remove()
+})
