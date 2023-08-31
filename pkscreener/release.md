@@ -5,6 +5,9 @@
 
 * Fixed several bugs in backtesting. Now, backtesting default is set to 30 periods in the past.
 * You can now get html formatted outputs for backtesting results and summary of correctness of strategies.
+* Backtest results and summary of backtests now available at https://pkjmesra.github.io/PKScreener/BacktestReports.html
+* Backtests are now available for dates/days until as recent as yesterday.
+* Several other warnings fixed. 
 
 ## Older Releases
 4. [v0.4.20230825.38] release

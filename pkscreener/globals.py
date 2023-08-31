@@ -917,7 +917,7 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     testBuild,
-                    actualHistoricalDuration,
+                    fillerPlaceHolder - 1,
                     backtestPeriod,
                     default_logger().level,
                 )
