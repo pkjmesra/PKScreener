@@ -31,7 +31,7 @@ configManager = tools()
 configManager.getConfig(parser)
 
 def backtest(
-    stock, data, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None
+    stock, data, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None, sellSignal=False
 ):
     if stock == "" or data is None:
         print(f"No data/stock{(stock)} received for backtesting!")
@@ -105,7 +105,7 @@ def backtest(
                 rolling_pct = data["Close"].pct_change(periods=prd) * 100
                 pct_change = rolling_pct.iloc[prd]
                 backTestedStock[f"{abs(prd)}-Pd"] = (
-                    (colorText.GREEN if pct_change >= 0 else colorText.FAIL)
+                    (colorText.GREEN if pct_change >= 0 else colorText.FAIL) if not sellSignal else (colorText.FAIL if pct_change >= 0 else colorText.GREEN)
                     + "%.2f%%" % pct_change
                     + colorText.END
                 )

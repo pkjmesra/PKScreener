@@ -96,6 +96,13 @@ argParser.add_argument(
     required=False,
 )
 argParser.add_argument(
+    "-i",
+    "--intraday",
+    action="store_true",
+    help="Use Intraday configurations. Default is False",
+    required=False,
+)
+argParser.add_argument(
     "-o",
     "--options",
     help="Pass selected options in the <MainMenu>:<SubMenu>:<SubMenu>:etc. format. For example: ./pkscreenercli.py -a Y -o X:12:10 -e will run the screener with answer Y as default choice to questions and scan with menu choices: Scanners > Nifty (All Stocks) > Closing at least 2%% up since last 3 day",
@@ -200,6 +207,8 @@ def pkscreenercli():
         configManager.setConfig(
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
+    if args.intraday and not configManager.isIntradayConfig():
+        configManager.toggleConfig()
     if args.options is not None and str(args.options) == "0":
         # Must be from unit tests to be able to break out of loops via eventing
         args.options = None
