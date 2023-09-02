@@ -1268,7 +1268,7 @@ def saveNotifyResultsFile(
         print(
             colorText.BOLD
             + colorText.WARN
-            + "[+] Note: Trend calculation is based on number of days recent to screen as per your configuration."
+            + "[+] Note: Trend calculation is based on number of days 'daysToLookBack' to scan as per your configuration."
             + colorText.END
         )
         try:
@@ -1402,9 +1402,25 @@ def startWorkers(consumers):
             cleanup_on_signal(signal.SIGBREAK)
         else:
             cleanup_on_sigterm()
-    for worker in consumers:
-        worker.daemon = True
-        worker.start()
+    print(colorText.BOLD
+            + colorText.FAIL
+            + f"[+] Using Period:{configManager.period} and Duration:{configManager.duration} for scan! You can change this in user config."
+            + colorText.END
+            )
+    lenConsumers = len(consumers)
+    bar, spinner = Utility.tools.getProgressbarStyle()
+    with alive_bar(lenConsumers, bar=bar, spinner=spinner) as progressbar:
+        for worker in consumers:
+            lenConsumers -= 1
+            progressbar.text(
+                colorText.BOLD
+                + colorText.GREEN
+                + f"Starting {lenConsumers}nth worker"
+                + colorText.END
+            )
+            worker.daemon = True
+            worker.start()
+            progressbar()
 
 def takeBacktestInputs(
     menuOption=None, tickerOption=None, executeOption=None, backtestPeriod=0

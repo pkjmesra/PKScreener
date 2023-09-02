@@ -34,6 +34,7 @@ import math
 import os
 import pickle
 import platform
+import tempfile
 import time
 
 import joblib
@@ -592,9 +593,23 @@ class tools:
                 + tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")
                 + ".xlsx"
             )
-            df.to_excel(
-                filename, engine="xlsxwriter"
-            )  # openpyxl throws an error exporting % sign.
+            desktop = os.path.expanduser("~/Desktop")
+            # the above is valid on Windows (after 7) but if you want it in os normalized form:
+            desktop = os.path.normpath(os.path.expanduser("~/Desktop"))
+            try:
+                df.to_excel(
+                    os.path.join(desktop, filename), engine="xlsxwriter"
+                )  # openpyxl throws an error exporting % sign.
+                filename = os.path.join(desktop, filename)
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
+                print(colorText.FAIL
+                + ("[+] Error saving to Desktop at %s" % os.path.join(desktop, filename))
+                + colorText.END)
+                df.to_excel(
+                    os.path.join(tempfile.gettempdir(), filename), engine="xlsxwriter"
+                )
+                filename = os.path.join(tempfile.gettempdir(), filename)
             print(
                 colorText.BOLD
                 + colorText.GREEN
