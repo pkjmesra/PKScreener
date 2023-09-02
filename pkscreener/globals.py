@@ -1185,13 +1185,18 @@ def runScanners(
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
+                        sellSignal = (
+                            str(selectedChoice["2"]) in ["6","7"] and 
+                            str(selectedChoice["3"]) in ["2"]
+                            ) or selectedChoice["2"] in ["15","16","19"]
                         backtest_df = backtest(
                             result[3],
                             result[2],
                             result[0],
                             backtestPeriod,
                             sampleDays,
-                            backtest_df
+                            backtest_df,
+                            sellSignal
                         )
                         if screenResultsCounter.value >= 50 * dumpFreq:
                             # Dump results on the screen and into a file every 50 results
