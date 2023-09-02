@@ -81,7 +81,7 @@ class tools:
         last1WeekHigh = last1Week["High"].max()
         previousWeekHigh = previousWeek["High"].max()
         full52WeekHigh = full52Week["High"].max()
-        return (recent > full52WeekHigh) or(last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
+        return (recent >= full52WeekHigh) or (last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
     
 
     # Find stocks that have broken through 52 week low.
@@ -98,7 +98,7 @@ class tools:
         last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
         full52WeekLow = full52Week["Low"].min()
-        return (recent < full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
+        return (recent <= full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
     
         # Find stocks that have broken through 52 week low.
     def find10DaysLowBreakout(self, data):
@@ -109,9 +109,9 @@ class tools:
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
-        last1WeekLow = last1Week.min()
+        last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
-        return (recent < min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
+        return (recent <= min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
     
         # Find stocks that have broken through 52 week low.
     def findAroonBullishCrossover(self, data):

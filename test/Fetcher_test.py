@@ -23,7 +23,7 @@
 
 """
 from unittest import mock
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, patch
 
 import pandas as pd
 import pytest
