@@ -76,7 +76,7 @@ level2_X_MenuDict = {
     "9": "Volume gainers                  ",
     "10": "Closing at least 2% up since last 3 days",
     "11": "Short term bullish stocks(Intraday)",
-    "12": "15 Minute Price & Volume breakout",
+    "12": "15 Minute Price & Volume breakout(Intraday)",
     "13": "Bullish RSI & MACD(Intraday)       ",
     "14": "NR4 Daily Today",
     "15": "52 week low breakout(today/1 wk)",

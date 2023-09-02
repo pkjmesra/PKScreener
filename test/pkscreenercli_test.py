@@ -92,6 +92,16 @@ def test_pkscreenercli_exits():
             pkscreenercli.pkscreenercli()
             mock_main.assert_called_once()
 
+def test_intraday_enabled():
+    with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
+        with patch('pkscreener.classes.ConfigManager.tools.restartRequestsCache') as mock_cache:
+            with pytest.raises(SystemExit):
+                pkscreenercli.args.intraday = "15m"
+                mock_is_trading_time.return_value = False
+                pkscreenercli.pkscreenercli()
+                mock_cache.assert_called_once()
+                
+
 # Positive test case - Test if setupLogger function is called when logging is enabled
 def test_setupLogger_logging_enabled():
     with patch('pkscreener.classes.log.setup_custom_logger') as mock_setup_logger:

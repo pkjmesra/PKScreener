@@ -98,8 +98,7 @@ argParser.add_argument(
 argParser.add_argument(
     "-i",
     "--intraday",
-    action="store_true",
-    help="Use Intraday configurations. Default is False",
+    help="Use Intraday configurations and use the candlestick duration that is passed. Acceptabel values 1m, 5m, 15m, 1h etc.",
     required=False,
 )
 argParser.add_argument(
@@ -136,8 +135,8 @@ argParser.add_argument(
     required=False,
 )
 argParser.add_argument("-v", action="store_true")  # Dummy Arg for pytest -v
-args = argParser.parse_known_args()
-args = args[0]
+argsv = argParser.parse_known_args()
+args = argsv[0]
 
 configManager = ConfigManager.tools()
 
@@ -207,8 +206,8 @@ def pkscreenercli():
         configManager.setConfig(
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
-    if args.intraday and not configManager.isIntradayConfig():
-        configManager.toggleConfig()
+    if args.intraday:
+        configManager.toggleConfig(candleDuration=args.intraday)
     if args.options is not None and str(args.options) == "0":
         # Must be from unit tests to be able to break out of loops via eventing
         args.options = None

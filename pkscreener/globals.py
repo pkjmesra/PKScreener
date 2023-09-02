@@ -699,6 +699,8 @@ def main(userArgs=None):
             return
         else:
             configManager.volumeRatio = float(volumeRatio)
+    if executeOption == 12:
+        configManager.toggleConfig(candleDuration="15m")
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return

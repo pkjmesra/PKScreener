@@ -126,6 +126,7 @@ def test_option_E(mocker, capsys):
             str(configManager.generalTimeout),
             str(configManager.longTimeout),
             str(configManager.maxNetworkRetryCount),
+            str(configManager.backtestPeriod),
             "\n"
         ],
     )
