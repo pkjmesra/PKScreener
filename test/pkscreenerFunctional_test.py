@@ -28,6 +28,7 @@ import os
 import shutil
 import sys
 
+import pandas as pd
 import pytest
 
 try:
@@ -472,6 +473,17 @@ def test_option_X_14_1(mocker):
     main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
+
+def test_option_X_W(mocker):
+    cleanup()
+    sample = {"Stock Code": ["SBIN", "INFY", "TATAMOTORS", "ITC"]}
+    sample_data = pd.DataFrame(sample, columns=["Stock Code"])
+    sample_data.to_excel(os.path.join(os.getcwd(),"watchlist.xlsx"), index=False, header=True)
+    mocker.patch("builtins.input", side_effect=["X", "W", "y"])
+    args = argParser.parse_known_args(args=["-e","-t","-p","-a","Y","-o","X:W:0"])[0]
+    main(userArgs=args)
+    assert globals.screenResults is not None
+    assert len(globals.screenResults) >= 1
 
 def test_option_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Z", ""])

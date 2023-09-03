@@ -26,11 +26,17 @@ import os
 import os.path
 import tempfile
 from datetime import datetime, timezone
-import pandas as pd
-import pytz
-import pytest
 from unittest.mock import patch
-from pkscreener.classes.Archiver import resolveFilePath, get_last_modified_datetime, utc_to_ist, cacheFile, findFile, saveData, readData, safe_open_w
+
+import pandas as pd
+import pytest
+import pytz
+
+from pkscreener.classes.Archiver import (cacheFile, findFile,
+                                         get_last_modified_datetime, readData,
+                                         resolveFilePath, safe_open_w,
+                                         saveData, utc_to_ist)
+
 
 # Positive test case: fileName is not None
 def test_resolveFilePath_positive():

@@ -598,18 +598,28 @@ class tools:
             desktop = os.path.normpath(os.path.expanduser("~/Desktop"))
             try:
                 df.to_excel(
-                    os.path.join(desktop, filename), engine="xlsxwriter"
+                    os.path.join(os.getcwd(), filename), engine="xlsxwriter"
                 )  # openpyxl throws an error exporting % sign.
-                filename = os.path.join(desktop, filename)
+                filename = os.path.join(os.getcwd(), filename)
             except Exception as e:
                 default_logger().debug(e, exc_info=True)
                 print(colorText.FAIL
-                + ("[+] Error saving to Desktop at %s" % os.path.join(desktop, filename))
+                + ("[+] Error saving file at %s" % os.path.join(os.getcwd(), filename))
                 + colorText.END)
-                df.to_excel(
-                    os.path.join(tempfile.gettempdir(), filename), engine="xlsxwriter"
-                )
-                filename = os.path.join(tempfile.gettempdir(), filename)
+                try:
+                    df.to_excel(
+                        os.path.join(desktop, filename), engine="xlsxwriter"
+                    )  # openpyxl throws an error exporting % sign.
+                    filename = os.path.join(desktop, filename)
+                except Exception as ex:
+                    default_logger().debug(ex, exc_info=True)
+                    print(colorText.FAIL
+                        + ("[+] Error saving file at %s" % os.path.join(desktop, filename))
+                        + colorText.END)
+                    df.to_excel(
+                        os.path.join(tempfile.gettempdir(), filename), engine="xlsxwriter"
+                    )
+                    filename = os.path.join(tempfile.gettempdir(), filename)
             print(
                 colorText.BOLD
                 + colorText.GREEN
