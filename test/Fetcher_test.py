@@ -23,7 +23,7 @@
 
 """
 from unittest import mock
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, patch
 
 import pandas as pd
 import pytest
@@ -239,3 +239,10 @@ def test_fetchWatchlist_negative(tools_instance):
         result = tools_instance.fetchWatchlist()
         assert result is None
         mock_read_excel.assert_called_once_with("watchlist.xlsx")
+
+def test_fetchWatchlist_Actual_file(tools_instance):
+    sample = {"Stock Code": ["SBIN", "INFY", "TATAMOTORS", "ITC"]}
+    sample_data = pd.DataFrame(sample, columns=["Stock Code"])
+    sample_data.to_excel("watchlist.xlsx", index=False, header=True)
+    result = tools_instance.fetchWatchlist()
+    assert result == ["SBIN", "INFY", "TATAMOTORS", "ITC"]

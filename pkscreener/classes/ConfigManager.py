@@ -46,7 +46,6 @@ default_period = "280d"
 default_duration = "1d"
 default_timeout = 2
 
-
 # This Class manages read/write of user configuration
 class tools:
     def __init__(self):
@@ -65,7 +64,7 @@ class tools:
         self.generalTimeout = 2
         self.longTimeout = 4
         self.maxNetworkRetryCount = 10
-        self.backtestPeriod = 240
+        self.backtestPeriod = 30
         self.logger = None
 
     @property
@@ -205,7 +204,7 @@ class tools:
                 "[+] Maximum number of retries in case of network timeout(in seconds)(Optimal = 10 for slow networks): "
             )
             self.backtestPeriod = input(
-                "[+] Number of days in the past for backtesting(in days)(Optimal = 240): "
+                "[+] Number of days in the past for backtesting(in days)(Optimal = 30): "
             )
             parser.set("config", "period", self.period + "d")
             parser.set("config", "daysToLookback", self.daysToLookback)
@@ -298,7 +297,7 @@ class tools:
                 )
                 self.generalTimeout = float(parser.get("config", "generalTimeout"))
                 self.longTimeout = float(parser.get("config", "longTimeout"))
-                self.maxNetworkRetryCount = float(parser.get("config", "maxNetworkRetryCount"))
+                self.maxNetworkRetryCount = int(parser.get("config", "maxNetworkRetryCount"))
                 self.backtestPeriod = int(parser.get("config", "backtestPeriod"))
             except configparser.NoOptionError as e:
                 self.default_logger.debug(e, exc_info=True)
@@ -316,16 +315,19 @@ class tools:
             self.setConfig(parser, default=True, showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
-    def toggleConfig(self):
+    def toggleConfig(self, candleDuration="1d"):
+        candleDuration = candleDuration.lower()
         self.getConfig(parser)
-        if not self.isIntradayConfig():
-            self.period = "1d"
-            self.duration = "1m"
-            self.cacheEnabled = False
-        else:
+        if candleDuration[-1] in ["d"]:
             self.period = "280d"
-            self.duration = "1d"
             self.cacheEnabled = True
+        if not self.isIntradayConfig() or candleDuration[-1] in ["m","h"]:
+            self.period = "1d"
+            self.cacheEnabled = False
+        if self.isIntradayConfig():
+            self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "1m"
+        else:
+            self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
         self.setConfig(parser, default=True, showFileCreatedText=False)
         # Delete any cached *.pkl data
         self.deleteFileWithPattern()
@@ -344,7 +346,7 @@ class tools:
             
     def isIntradayConfig(self):
         return (
-            self.period == "1d" and self.duration[-1] == "m" and not self.cacheEnabled
+            self.period == "1d"
         )
 
     # Print config file

@@ -43,7 +43,7 @@ else:
             + "[+] TA-Lib is not installed. Falling back on pandas_ta.\n[+] For full coverage(candle patterns), you may wish to follow instructions from\n[+] https://github.com/ta-lib/ta-lib-python"
             + colorText.END
         )
-        sleep(5)
+        sleep(3)
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         import talib
@@ -77,7 +77,7 @@ class pktalib:
     @classmethod
     def MACD(self, close, fast, slow, signal):
         try:
-            return talib.macd(close, fast, slow, signal)
+            return talib.macd(close, fast, slow, signal,talib=Imports["talib"])
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             return talib.MACD(close, fast, slow, signal)

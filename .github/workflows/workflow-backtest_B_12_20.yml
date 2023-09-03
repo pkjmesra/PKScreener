@@ -22,20 +22,20 @@
 #     SOFTWARE.
 
 # """
-name: B. B_12_7_1 Backtest for Bullish Inside Bar (Flag) Pattern (B_12_7_1)
+name: B. B_12_20 Backtest for Bullish for next day (B_12_20)
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Backtest for Bullish Inside Bar (Flag) Pattern (B_12_7_1)'
+        description: 'Backtest for Bullish for next day (B_12_20)'
         required: false
-        default: 'Backtest for Bullish Inside Bar (Flag) Pattern (B_12_7_1)'
+        default: 'Backtest for Bullish for next day (B_12_20)'
   schedule:
-  - cron: '12 10 * * 1-5'
+  - cron: '30 10 * * 1-5'
 
 jobs:
 
-  B_12_7_1:
+  B_12_20:
 
     runs-on: windows-latest
 
@@ -77,7 +77,7 @@ jobs:
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:7:1:7
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:20
 
     - name: Push backtest and summary reports
       continue-on-error: true
@@ -90,7 +90,7 @@ jobs:
         git fetch
         git checkout -b gh-pages origin/gh-pages
         git pull
-        git add Backtest-Reports/PKScreener_B_12_7_1_backtest_result_StockSorted.html --force
-        git add Backtest-Reports/PKScreener_B_12_7_1_Summary_StockSorted.html --force
-        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_7_1)"
+        git add Backtest-Reports/PKScreener_B_12_20_backtest_result_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_B_12_20_Summary_StockSorted.html --force
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_20)"
         git push -v -u origin +gh-pages

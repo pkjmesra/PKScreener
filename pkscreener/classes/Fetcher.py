@@ -359,7 +359,7 @@ class tools:
             print(
                 colorText.BOLD
                 + colorText.FAIL
-                + f"[+] watchlist.xlsx not found in f{os.getcwd()}"
+                + f"[+] watchlist.xlsx not found in {os.getcwd()}"
                 + colorText.END
             )
             createTemplate = True

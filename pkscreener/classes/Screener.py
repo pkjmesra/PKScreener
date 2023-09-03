@@ -73,7 +73,7 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["High"][0]
+        recent = data.head(1)["High"].iloc[0]
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
@@ -81,7 +81,7 @@ class tools:
         last1WeekHigh = last1Week["High"].max()
         previousWeekHigh = previousWeek["High"].max()
         full52WeekHigh = full52Week["High"].max()
-        return (recent > full52WeekHigh) or(last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
+        return (recent >= full52WeekHigh) or (last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
     
 
     # Find stocks that have broken through 52 week low.
@@ -90,7 +90,7 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["Low"][0]
+        recent = data.head(1)["Low"].iloc[0]
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
@@ -98,20 +98,20 @@ class tools:
         last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
         full52WeekLow = full52Week["Low"].min()
-        return (recent < full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
+        return (recent <= full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
     
         # Find stocks that have broken through 52 week low.
     def find10DaysLowBreakout(self, data):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["Low"][0]
+        recent = data.head(1)["Low"].iloc[0]
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
-        last1WeekLow = last1Week.min()
+        last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
-        return (recent < min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
+        return (recent <= min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
     
         # Find stocks that have broken through 52 week low.
     def findAroonBullishCrossover(self, data):
@@ -121,8 +121,8 @@ class tools:
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
         aroondf = pktalib.Aroon(data['High'],data['Low'], period)
         recent = aroondf.tail(1)
-        up = recent[f"AROONU_{period}"][0]
-        down = recent[f"AROOND_{period}"][0]
+        up = recent[f"AROONU_{period}"].iloc[0]
+        down = recent[f"AROOND_{period}"].iloc[0]
         return up > down
     
     # Find accurate breakout value
@@ -133,7 +133,7 @@ class tools:
         data = data[1:]
         hs = round(data.describe()["High"]["max"], 2)
         hc = round(data.describe()["Close"]["max"], 2)
-        rc = round(recent["Close"][0], 2)
+        rc = round(recent["Close"].iloc[0], 2)
         if np.isnan(hc) or np.isnan(hs):
             saveDict["Breakout"] = "BO: Unknown"
             screenDict["Breakout"] = (
@@ -243,7 +243,6 @@ class tools:
 
     # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10
     def findBullishIntradayRSIMACD(self, data):
-        # https://chartink.com/screener/15-min-price-volume-breakout
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
@@ -252,15 +251,15 @@ class tools:
         data["EMA200"] = pktalib.EMA(data["Close"], 200)
         macd = pktalib.MACD(data["Close"], 10, 18, 9)[2].tail(1)
         recent = data.tail(1)
-        cond1 = recent["RSI12"][0] > 55
+        cond1 = recent["RSI12"].iloc[0] > 55
         cond2 = cond1 and (macd.iloc[:1][0] > 0)
-        cond3 = cond2 and (recent["Close"][0] > recent["EMA10"][0])
-        cond4 = cond3 and (recent["Close"][0] > recent["EMA200"][0])
+        cond3 = cond2 and (recent["Close"].iloc[0] > recent["EMA10"].iloc[0])
+        cond4 = cond3 and (recent["Close"].iloc[0] > recent["EMA200"].iloc[0])
         return cond4
 
     def findNR4Day(self, data):
         # https://chartink.com/screener/nr4-daily-today
-        if data.tail(1)["Volume"][0] <= 50000:
+        if data.tail(1)["Volume"].iloc[0] <= 50000:
             return False
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
@@ -270,20 +269,20 @@ class tools:
         data["SMA200"] = pktalib.SMA(data["Close"], 200)
         recent = data.tail(5)
         recent = recent[::-1]
-        cond1 = (recent["High"][0] - recent["Low"][0]) < (
-            recent["High"][1] - recent["Low"][1]
+        cond1 = (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
+            recent["High"].iloc[1] - recent["Low"].iloc[1]
         )
-        cond2 = cond1 and (recent["High"][0] - recent["Low"][0]) < (
-            recent["High"][2] - recent["Low"][2]
+        cond2 = cond1 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
+            recent["High"].iloc[2] - recent["Low"].iloc[2]
         )
-        cond3 = cond2 and (recent["High"][0] - recent["Low"][0]) < (
-            recent["High"][3] - recent["Low"][3]
+        cond3 = cond2 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
+            recent["High"].iloc[3] - recent["Low"].iloc[3]
         )
-        cond4 = cond3 and (recent["High"][0] - recent["Low"][0]) < (
-            recent["High"][4] - recent["Low"][4]
+        cond4 = cond3 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
+            recent["High"].iloc[4] - recent["Low"].iloc[4]
         )
-        cond5 = cond4 and (recent["SMA10"][0] > recent["SMA50"][0])
-        cond6 = cond5 and (recent["SMA50"][0] > recent["SMA200"][0])
+        cond5 = cond4 and (recent["SMA10"].iloc[0] > recent["SMA50"].iloc[0])
+        cond6 = cond5 and (recent["SMA50"].iloc[0] > recent["SMA200"].iloc[0])
         return cond6
 
     # Find stock reversing at given MA
@@ -304,7 +303,7 @@ class tools:
                     & (data.Close <= (data.maRev + (data.maRev * percentage)))
                 ]
             )
-            and data.head(1)["Close"][0] >= data.head(1)["maRev"][0]
+            and data.head(1)["Close"].iloc[0] >= data.head(1)["maRev"].iloc[0]
         ):
             screenDict["MA-Signal"] = (
                 colorText.BOLD
@@ -454,7 +453,7 @@ class tools:
     # Private method to find candle type
     # True = Bullish, False = Bearish
     def getCandleType(self, dailyData):
-        return bool(dailyData["Close"][0] >= dailyData["Open"][0])
+        return bool(dailyData["Close"].iloc[0] >= dailyData["Open"].iloc[0])
 
     def getNiftyPrediction(self, data):
         import warnings
@@ -591,7 +590,7 @@ class tools:
                     self.default_logger.debug(e, exc_info=True)
                     condition = last_signal[data_list[cnt]]["SL"][0]
                 # if last_signal[data_list[cnt]] is not final:          # Debug - Shows all conditions
-                if len(final["SL"]) > 0 and condition != final["SL"][0]:
+                if len(final["SL"]) > 0 and condition != final["SL"].iloc[0]:
                     # Do something with results
                     try:
                         result_df = pd.concat(
@@ -695,18 +694,36 @@ class tools:
             ::-1
         ]  # Reverse the dataframe so that it's the most recent date first
         recent = data.head(3)
-        cond1 = recent["Close"][0] > recent["Close"][1]
-        cond2 = cond1 and (recent["Close"][0] > recent["SMA20"][0])
-        cond3 = cond2 and (recent["Close"][1] > recent["High"][2])
-        cond4 = cond3 and (recent["Volume"][0] > recent["SMA20V"][0])
-        cond5 = cond4 and (recent["Volume"][1] > recent["SMA20V"][0])
+        cond1 = recent["Close"].iloc[0] > recent["Close"].iloc[1]
+        cond2 = cond1 and (recent["Close"].iloc[0] > recent["SMA20"].iloc[0])
+        cond3 = cond2 and (recent["Close"].iloc[1] > recent["High"].iloc[2])
+        cond4 = cond3 and (recent["Volume"].iloc[0] > recent["SMA20V"].iloc[0])
+        cond5 = cond4 and (recent["Volume"].iloc[1] > recent["SMA20V"].iloc[0])
         return cond5
 
+    def validateBullishForTomorrow(self, data):
+        # https://chartink.com/screener/bullish-for-tomorrow
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        macdLine = pktalib.MACD(data["Close"], 12, 26, 9)[0].tail(3)
+        macdSignal = pktalib.MACD(data["Close"], 12, 26, 9)[1].tail(3)
+        macdHist = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(3)
+        
+        return (
+                (macdHist.iloc[:1][0] < macdHist.iloc[:2][1]) and
+                (macdHist.iloc[:3][2] > macdHist.iloc[:2][1]) and
+                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) >= 0.4) and
+                ((macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) - (macdLine.iloc[:1][0] - macdSignal.iloc[:1][0]) <= 0.2) and
+                (macdLine.iloc[:3][2] > macdSignal.iloc[:3][2]) and
+                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) < 1)
+                )
+    
     # validate if CCI is within given range
     def validateCCI(self, data, screenDict, saveDict, minCCI, maxCCI):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
-        cci = int(data.head(1)["CCI"][0])
+        cci = int(data.head(1)["CCI"].iloc[0])
         saveDict["CCI"] = cci
         if (cci <= minCCI or cci >= maxCCI) and ("Up" in saveDict["Trend"]):
             if (cci <= minCCI) or cci >= maxCCI:
@@ -724,11 +741,11 @@ class tools:
     # Find Conflucence
     def validateConfluence(self, stock, data, screenDict, saveDict, percentage=0.1):
         recent = data.head(1)
-        if abs(recent["SMA"][0] - recent["LMA"][0]) <= (recent["SMA"][0] * percentage):
+        if abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0]) <= (recent["SMA"].iloc[0] * percentage):
             difference = round(
-                abs(recent["SMA"][0] - recent["LMA"][0]) / recent["Close"][0] * 100, 2
+                abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0]) / recent["Close"].iloc[0] * 100, 2
             )
-            if recent["SMA"][0] >= recent["LMA"][0]:
+            if recent["SMA"].iloc[0] >= recent["LMA"].iloc[0]:
                 screenDict["MA-Signal"] = (
                     colorText.BOLD
                     + colorText.GREEN
@@ -831,8 +848,8 @@ class tools:
 
     # Find IPO base
     def validateIpoBase(self, stock, data, screenDict, saveDict, percentage=0.3):
-        listingPrice = data[::-1].head(1)["Open"][0]
-        currentPrice = data.head(1)["Close"][0]
+        listingPrice = data[::-1].head(1)["Open"].iloc[0]
+        currentPrice = data.head(1)["Close"].iloc[0]
         ATH = data.describe()["High"]["max"]
         if ATH > (listingPrice + (listingPrice * percentage)):
             return False
@@ -870,7 +887,7 @@ class tools:
             daysForLowestVolume = 30
         data = data.head(daysForLowestVolume)
         recent = data.head(1)
-        if (recent["Volume"][0] <= data.describe()["Volume"]["min"]) and recent[
+        if (recent["Volume"].iloc[0] <= data.describe()["Volume"]["min"]) and recent[
             "Volume"
         ][0] != np.nan:
             return True
@@ -896,7 +913,7 @@ class tools:
             pct_change = colorText.WARN + ("%.1f%%" % pct_change) + colorText.END
         saveDict["%Chng"] = pct_save
         screenDict["%Chng"] = pct_change
-        ltp = round(recent["Close"][0], 2)
+        ltp = round(recent["Close"].iloc[0], 2)
         verifyStageTwo = True
         if self.configManager.stageTwo and len(data) > 250:
             yearlyLow = data.head(250).min()["Close"]
@@ -911,6 +928,14 @@ class tools:
         saveDict["LTP"] = str((" %.2f" % ltp))
         return False, verifyStageTwo
 
+    # Find stocks that are bearish intraday: Macd Histogram negative
+    def validateMACDHistogramBelow0(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        macd = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(1)
+        return macd.iloc[:1][0] < 0
+    
     # Find if stock gaining bullish momentum
     def validateMomentum(self, data, screenDict, saveDict):
         try:
@@ -969,19 +994,19 @@ class tools:
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         if (
-            recent["SMA"][0] > recent["LMA"][0]
-            and recent["Close"][0] > recent["SMA"][0]
+            recent["SMA"].iloc[0] > recent["LMA"].iloc[0]
+            and recent["Close"].iloc[0] > recent["SMA"].iloc[0]
         ):
             screenDict["MA-Signal"] = (
                 colorText.BOLD + colorText.GREEN + "Bullish" + colorText.END
             )
             saveDict["MA-Signal"] = "Bullish"
-        elif recent["SMA"][0] < recent["LMA"][0]:
+        elif recent["SMA"].iloc[0] < recent["LMA"].iloc[0]:
             screenDict["MA-Signal"] = (
                 colorText.BOLD + colorText.FAIL + "Bearish" + colorText.END
             )
             saveDict["MA-Signal"] = "Bearish"
-        elif recent["SMA"][0] == 0:
+        elif recent["SMA"].iloc[0] == 0:
             screenDict["MA-Signal"] = (
                 colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
             )
@@ -992,15 +1017,15 @@ class tools:
             )
             saveDict["MA-Signal"] = "Neutral"
 
-        smaDev = data["SMA"][0] * maRange / 100
-        lmaDev = data["LMA"][0] * maRange / 100
+        smaDev = data["SMA"].iloc[0] * maRange / 100
+        lmaDev = data["LMA"].iloc[0] * maRange / 100
         open, high, low, close, sma, lma = (
-            data["Open"][0],
-            data["High"][0],
-            data["Low"][0],
-            data["Close"][0],
-            data["SMA"][0],
-            data["LMA"][0],
+            data["Open"].iloc[0],
+            data["High"].iloc[0],
+            data["Low"].iloc[0],
+            data["Close"].iloc[0],
+            data["SMA"].iloc[0],
+            data["LMA"].iloc[0],
         )
         maReversal = 0
         # Taking Support 50
@@ -1072,10 +1097,10 @@ class tools:
             now_candle = data.head(1)
             rangeData["Range"] = abs(rangeData["Close"] - rangeData["Open"])
             recent = rangeData.head(1)
-            if recent["Range"][0] == rangeData.describe()["Range"]["min"]:
+            if recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
                 if (
                     self.getCandleType(recent)
-                    and now_candle["Close"][0] >= recent["Close"][0]
+                    and now_candle["Close"].iloc[0] >= recent["Close"].iloc[0]
                 ):
                     screenDict["Pattern"] = (
                         colorText.BOLD + colorText.GREEN + f"Buy-NR{nr}" + colorText.END
@@ -1084,7 +1109,7 @@ class tools:
                     return True
                 elif (
                     not self.getCandleType(recent)
-                    and now_candle["Close"][0] <= recent["Close"][0]
+                    and now_candle["Close"].iloc[0] <= recent["Close"].iloc[0]
                 ):
                     screenDict["Pattern"] = (
                         colorText.BOLD + colorText.FAIL + f"Sell-NR{nr}" + colorText.END
@@ -1096,7 +1121,7 @@ class tools:
             rangeData = data.head(nr)
             rangeData["Range"] = abs(rangeData["Close"] - rangeData["Open"])
             recent = rangeData.head(1)
-            if recent["Range"][0] == rangeData.describe()["Range"]["min"]:
+            if recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
                 screenDict["Pattern"] = (
                     colorText.BOLD + colorText.GREEN + f"NR{nr}" + colorText.END
                 )
@@ -1109,7 +1134,7 @@ class tools:
         daysToLookback = int(daysToLookback[:-1])
         recent = data.head(1)
         if len(data) < daysToLookback and (
-            recent["Close"][0] != np.nan and recent["Close"][0] > 0
+            recent["Close"].iloc[0] != np.nan and recent["Close"].iloc[0] > 0
         ):
             return True
         return False
@@ -1145,7 +1170,7 @@ class tools:
     def validateRSI(self, data, screenDict, saveDict, minRSI, maxRSI):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
-        rsi = int(data.head(1)["RSI"][0])
+        rsi = int(data.head(1)["RSI"].iloc[0])
         saveDict["RSI"] = rsi
         #https://chartink.com/screener/rsi-screening
         if (rsi >= minRSI and rsi <= maxRSI) or (rsi <= 71 and rsi >= 67):
@@ -1162,7 +1187,7 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
-        fk = 0 if len(data) < 3 else np.round(data["FASTK"][2], 5)
+        fk = 0 if len(data) < 3 else np.round(data["FASTK"].iloc[2], 5)
         # Reverse the dataframe for ichimoku calculations with date in ascending order
         df_new = data[::-1]
         try:
@@ -1182,38 +1207,38 @@ class tools:
             # Reverse again to get the most recent date on top
             df_new = df_new[::-1]
             df_new = df_new.head(1)
-            df_new["cloud_green"] = df_new["ISA_9"][0] > df_new["ISB_26"][0]
-            df_new["cloud_red"] = df_new["ISB_26"][0] > df_new["ISA_9"][0]
+            df_new["cloud_green"] = df_new["ISA_9"].iloc[0] > df_new["ISB_26"].iloc[0]
+            df_new["cloud_red"] = df_new["ISB_26"].iloc[0] > df_new["ISA_9"].iloc[0]
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)
             pass
         aboveCloudTop = False
         # baseline > cloud top (cloud is bound by span a and span b) and close is > cloud top
-        if df_new["cloud_green"][0]:
+        if df_new["cloud_green"].iloc[0]:
             aboveCloudTop = (
-                df_new["IKS_26"][0] > df_new["ISA_9"][0]
-                and recent["Close"][0] > df_new["ISA_9"][0]
+                df_new["IKS_26"].iloc[0] > df_new["ISA_9"].iloc[0]
+                and recent["Close"].iloc[0] > df_new["ISA_9"].iloc[0]
             )
-        elif df_new["cloud_red"][0]:
+        elif df_new["cloud_red"].iloc[0]:
             aboveCloudTop = (
-                df_new["IKS_26"][0] > df_new["ISB_26"][0]
-                and recent["Close"][0] > df_new["ISB_26"][0]
+                df_new["IKS_26"].iloc[0] > df_new["ISB_26"].iloc[0]
+                and recent["Close"].iloc[0] > df_new["ISB_26"].iloc[0]
             )
 
         # Latest Ichimoku baseline is < latest Ichimoku conversion line
-        if aboveCloudTop and df_new["IKS_26"][0] < df_new["ITS_9"][0]:
+        if aboveCloudTop and df_new["IKS_26"].iloc[0] < df_new["ITS_9"].iloc[0]:
             # StochRSI crossed 20 and RSI > 50
-            if fk > 20 and recent["RSI"][0] > 50:
+            if fk > 20 and recent["RSI"].iloc[0] > 50:
                 # condition of crossing the StochRSI main signal line from bottom to top
                 if (
-                    data["FASTD"][100] < data["FASTK"][100]
-                    and data["FASTD"][101] > data["FASTK"][101]
+                    data["FASTD"].iloc[100] < data["FASTK"].iloc[100]
+                    and data["FASTD"].iloc[101] > data["FASTK"].iloc[101]
                 ):
                     # close > 50 period SMA/EMA and 200 period SMA/EMA
                     if (
-                        recent["SSMA"][0] > recent["SMA"][0]
-                        and recent["Close"][0] > recent["SSMA"][0]
-                        and recent["Close"][0] > recent["LMA"][0]
+                        recent["SSMA"].iloc[0] > recent["SMA"].iloc[0]
+                        and recent["Close"].iloc[0] > recent["SSMA"].iloc[0]
+                        and recent["Close"].iloc[0] > recent["LMA"].iloc[0]
                     ):
                         screenDict["MA-Signal"] = (
                             colorText.BOLD + colorText.GREEN + "Bullish" + colorText.END
@@ -1278,7 +1303,7 @@ class tools:
                 lowPointsOrg = lowPoints
                 lowPoints.sort(reverse=True)
                 lowPointsSorted = lowPoints
-                ltp = data.head(1)["Close"][0]
+                ltp = data.head(1)["Close"].iloc[0]
                 if (
                     lowPointsOrg == lowPointsSorted
                     and ltp < highestTop
@@ -1301,13 +1326,13 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
-        if recent["VolMA"][0] == 0:  # Handles Divide by 0 warning
+        if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
             saveDict["Volume"] = 0  # "Unknown"
             screenDict[
                 "Volume"
             ] = 0  # colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
             return True
-        ratio = round(recent["Volume"][0] / recent["VolMA"][0], 2)
+        ratio = round(recent["Volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
         saveDict["Volume"] = ratio  # str(ratio)+"x"
         if (
             ratio >= volumeRatio
