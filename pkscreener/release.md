@@ -2,39 +2,11 @@
 
 ## What's New?
 1. [v0.41] release
-
-* Fixed several bugs in backtesting. Now, backtesting default is set to 30 periods in the past.
-* You can now get html formatted outputs for backtesting results and summary of correctness of strategies.
-* Backtest results and summary of backtests now available at https://pkjmesra.github.io/PKScreener/BacktestReports.html
-* Backtests are now available for dates/days until as recent as yesterday.
-* Several other warnings fixed. 
+* Added new scanners X>12>19 (MACD Hisotogram crossing below 0) and X>12>20 (Bullish next day)
+* Enabled intraday scans with command line parameter -i (it will just toggle the default config to intraday at launch)
 
 ## Older Releases
-4. [v0.4.20230825.38] release
-
-* The pkscreener Telegram bot (@nse_pkscreener_bot) can now respond to your on-demand requests for almost all scan results.
-* Added 52-week low/high breakout screeners (X > 12 > 15, X > 12 > 17)
-* Added 10-days low breakout screener (X > 12 > 16)
-* Added Aroon(5) Bullish Crossover scanner
-* Font bug fixes for Ubuntu so now you can send telegram notifications with attachments from Ubuntu as well.
-* Stability and performance enhancements. Network requests default now to IPv4 only because IPv6 delays the requests.
-* Added overall summary prediction of backtests.
-* Fixed RSI screening to be evaluated for range 67 <= RSI <=71
-* Many other bug fixes and improvement in [v0.4.x] weekly releases
-
-3. [v0.3] release
-
-* Now avaialble via pipy as a package. You can just run `pip install pkscreener` to get it working. After installation, just run `pkscreener` on your favorite command line.
-
-2. [v0.2] release
-
-* Backtests are now enabled. You can now choose any strategy and backtest for the past 1 year's data.
-* Logging with option `-l` is now enabled for troubleshooting
-* Telegram alerts for all major scanner strategies.
-* Includes an option to create user's own telegram channel and receive alerts there.
-* The application now runs without TA-Lib as well.
-
-1. First release - [v0.01]
+* https://github.com/pkjmesra/PKScreener/releases
 
 ## Downloads
 | Operating System                                                                                         | Executable File                                                                                                                                                                                                  |

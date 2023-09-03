@@ -81,7 +81,7 @@ class tools:
         last1WeekHigh = last1Week["High"].max()
         previousWeekHigh = previousWeek["High"].max()
         full52WeekHigh = full52Week["High"].max()
-        return (recent > full52WeekHigh) or(last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
+        return (recent >= full52WeekHigh) or (last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
     
 
     # Find stocks that have broken through 52 week low.
@@ -98,7 +98,7 @@ class tools:
         last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
         full52WeekLow = full52Week["Low"].min()
-        return (recent < full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
+        return (recent <= full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
     
         # Find stocks that have broken through 52 week low.
     def find10DaysLowBreakout(self, data):
@@ -109,9 +109,9 @@ class tools:
         last1Week = data.head(one_week)
         last2Week = data.head(2*one_week)
         previousWeek = last2Week.tail(one_week)
-        last1WeekLow = last1Week.min()
+        last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
-        return (recent < min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
+        return (recent <= min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
     
         # Find stocks that have broken through 52 week low.
     def findAroonBullishCrossover(self, data):
@@ -243,7 +243,6 @@ class tools:
 
     # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10
     def findBullishIntradayRSIMACD(self, data):
-        # https://chartink.com/screener/15-min-price-volume-breakout
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
@@ -702,6 +701,24 @@ class tools:
         cond5 = cond4 and (recent["Volume"].iloc[1] > recent["SMA20V"].iloc[0])
         return cond5
 
+    def validateBullishForTomorrow(self, data):
+        # https://chartink.com/screener/bullish-for-tomorrow
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        macdLine = pktalib.MACD(data["Close"], 12, 26, 9)[0].tail(3)
+        macdSignal = pktalib.MACD(data["Close"], 12, 26, 9)[1].tail(3)
+        macdHist = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(3)
+        
+        return (
+                (macdHist.iloc[:1][0] < macdHist.iloc[:2][1]) and
+                (macdHist.iloc[:3][2] > macdHist.iloc[:2][1]) and
+                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) >= 0.4) and
+                ((macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) - (macdLine.iloc[:1][0] - macdSignal.iloc[:1][0]) <= 0.2) and
+                (macdLine.iloc[:3][2] > macdSignal.iloc[:3][2]) and
+                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) < 1)
+                )
+    
     # validate if CCI is within given range
     def validateCCI(self, data, screenDict, saveDict, minCCI, maxCCI):
         data = data.fillna(0)
@@ -911,6 +928,14 @@ class tools:
         saveDict["LTP"] = str((" %.2f" % ltp))
         return False, verifyStageTwo
 
+    # Find stocks that are bearish intraday: Macd Histogram negative
+    def validateMACDHistogramBelow0(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        macd = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(1)
+        return macd.iloc[:1][0] < 0
+    
     # Find if stock gaining bullish momentum
     def validateMomentum(self, data, screenDict, saveDict):
         try:

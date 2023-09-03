@@ -237,7 +237,10 @@ class StockConsumer:
                     is52WeekHighBreakout = screener.find52WeekHighBreakout(fullData)
                 if executeOption == 18:
                     isAroonCrossover = screener.findAroonBullishCrossover(fullData)
-                    
+                if executeOption == 19:
+                    macdHistBelow0 = screener.validateMACDHistogramBelow0(fullData)
+                if executeOption == 20:
+                    bullishForTomorrow = screener.validateBullishForTomorrow(fullData)
                 isVolumeHigh = screener.validateVolume(
                     processedData,
                     screeningDictionary,
@@ -605,7 +608,14 @@ class StockConsumer:
                             stock,
                             backtestDuration,
                         )
-                    if (executeOption == 15 and is52WeekLowBreakout) or (executeOption == 16 and is10DaysLowBreakout) or (executeOption == 17 and is52WeekHighBreakout) or (executeOption == 18 and isLtpValid and isAroonCrossover):
+                    if (
+                        (executeOption == 15 and is52WeekLowBreakout) or 
+                        (executeOption == 16 and is10DaysLowBreakout) or 
+                        (executeOption == 17 and is52WeekHighBreakout) or 
+                        (executeOption == 18 and isLtpValid and isAroonCrossover) or
+                        (executeOption == 19 and macdHistBelow0) or
+                        (executeOption == 20 and bullishForTomorrow)
+                    ):
                         hostRef.processingResultsCounter.value += 1
                         return (
                             screeningDictionary,
