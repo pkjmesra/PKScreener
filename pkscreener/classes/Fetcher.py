@@ -87,6 +87,47 @@ class tools:
             proxy = None
         return proxy
 
+    def postURL(self, url, data=None, headers={}, trial=1):
+        try:
+            response = None
+            requestor = session
+            # We should try to switch to requests lib if cached_session 
+            # begin to give some problem after we've tried for
+            # 50% of the configured retrials.
+            if trial >= int(self.configManager.maxNetworkRetryCount/2):
+                requestor = requests
+            response = requestor.post(
+                            url,
+                            proxies=self.proxyServer,
+                            data = data,
+                            headers=headers,
+                            timeout=trial*self.configManager.generalTimeout,
+                        )
+        except (ConnectTimeout,ReadTimeoutError,ReadTimeout) as e:
+            default_logger().debug(e, exc_info=True)
+            if trial <= int(self.configManager.maxNetworkRetryCount):
+                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request timed-out. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
+                return self.postURL(url, data=data, headers=headers,trial=trial+1)
+        except Exception as e:
+            # Something went wrong with the CachedSession.
+            default_logger().debug(e, exc_info=True)
+            if trial <= int(self.configManager.maxNetworkRetryCount):
+                if trial <= 1:
+                    # Let's try and restart the cache
+                    self.configManager.restartRequestsCache()
+                elif trial > 1 and requests_cache.is_installed():
+                    # REstarting didn't fix it. We need to disable the cache altogether.
+                    requests_cache.clear()
+                    requests_cache.uninstall_cache()
+                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request failed. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
+                return self.postURL(url, data=data, headers=headers,trial=trial+1)
+        if trial > 1 and not requests_cache.is_installed():
+            # Let's try and re-enable the caching behaviour before exiting.
+            # Maybe there was something wrong with this request, but the next
+            # request should have access to cache.
+            self.configManager.restartRequestsCache()
+        return response
+
     def fetchURL(self, url, stream=False, trial=1):
         try:
             response = None
