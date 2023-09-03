@@ -1293,7 +1293,7 @@ def saveNotifyResultsFile(
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
-    if user is not None:
+    if user is not None and caption is not None:
         caption = f"{caption.replace('&',' n ')}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
@@ -1303,6 +1303,8 @@ def sendMessageToTelegramChannel(
             default_logger().debug(e, exc_info=True)
     if photo_filePath is not None:
         try:
+            if caption is not None:
+                caption = f"{caption.replace('&',' n ')}"
             send_document(photo_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
@@ -1310,7 +1312,8 @@ def sendMessageToTelegramChannel(
             default_logger().debug(e, exc_info=True)
     if document_filePath is not None:
         try:
-            caption = caption.replace('&',' n ')
+            if caption is not None:
+                caption = f"{caption.replace('&',' n ')}"
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
