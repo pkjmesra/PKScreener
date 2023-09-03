@@ -23,7 +23,8 @@
 
 """
 import os
-from pkscreener.classes.MenuOptions import menus,MenuRenderStyle
+
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 
 m0 = menus()
 m1 = menus()

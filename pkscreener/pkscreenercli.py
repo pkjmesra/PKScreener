@@ -141,7 +141,14 @@ args = argsv[0]
 configManager = ConfigManager.tools()
 
 def logFilePath():
-    return os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    try:
+        filePath = os.path.join(os.getcwd(), "pkscreener-logs.txt")
+        f = open(filePath, "w")
+        f.write("Logger file for pkscreener!")
+        f.close()
+    except Exception:
+        filePath = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    return filePath
 
 def setupLogger(shouldLog=False, trace=False):
     if not shouldLog:
@@ -153,19 +160,9 @@ def setupLogger(shouldLog=False, trace=False):
             os.remove(log_file_path)
         except Exception:
             pass
-    print(
-        colorText.BOLD
-        + colorText.GREEN
-        + "[+] Logs will be written to:"
-        + colorText.END
-    )
-    print(colorText.BOLD + colorText.FAIL + f"[+] {log_file_path}" + colorText.END)
-    print(
-        colorText.BOLD
-        + colorText.GREEN
-        + "[+] If you need to share, open this folder, copy and zip the log file to share."
-        + colorText.END
-    )
+    print("[+] Logs will be written to:")
+    print(f"[+] {log_file_path}")
+    print("[+] If you need to share, open this folder, copy and zip the log file to share.")
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
     log.setup_custom_logger(
         "pkscreener",
