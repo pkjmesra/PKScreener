@@ -580,7 +580,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z"] if "x" in cmd else ["W", "E", "M", "Z","N","0"]),
+            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
@@ -590,7 +590,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             cmdText = (
                 f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
             )
-        if "x" in cmd:
+        if cmd in ["x"]:
             cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
         """Send a message when the command /help is issued."""
         await update.message.reply_text(f"Choose an option:\n{cmdText}")
@@ -617,7 +617,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         else:
-            if "x" in cmd:
+            if cmd in ["x"]:
                 cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
             """Send a message when the command /help is issued."""
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
