@@ -4,6 +4,8 @@
 1. [v0.41] release
 * Added new scanners X>12>19 (MACD Hisotogram crossing below 0) and X>12>20 (Bullish next day)
 * Enabled intraday scans with command line parameter -i (it will just toggle the default config to intraday at launch)
+* Now backtesting can be triggered from Telegram bot (@nse_pkscreener_bot) as well. It will initiate a workflow that can publish backtest reports to gh-pages repo.
+* Many warning fixes and everal other stability improvements.
 
 ## Older Releases
 * https://github.com/pkjmesra/PKScreener/releases

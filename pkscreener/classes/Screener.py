@@ -421,10 +421,10 @@ class tools:
         data["Support"] = slope * data["Number"] + intercept
         now = data.tail(1)
 
-        limit_upper = now["Support"][0].item() + (now["Support"][0].item() * percentage)
-        limit_lower = now["Support"][0].item() - (now["Support"][0].item() * percentage)
+        limit_upper = now["Support"].iloc[0] + (now["Support"].iloc[0] * percentage)
+        limit_lower = now["Support"].iloc[0] - (now["Support"].iloc[0] * percentage)
 
-        if limit_lower < now["Close"][0].item() < limit_upper and slope > 0.15:
+        if limit_lower < now["Close"].iloc[0] < limit_upper and slope > 0.15:
             screenDict["Pattern"] = (
                 colorText.BOLD + colorText.GREEN + "Trendline-Support" + colorText.END
             )
@@ -711,12 +711,12 @@ class tools:
         macdHist = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(3)
         
         return (
-                (macdHist.iloc[:1][0] < macdHist.iloc[:2][1]) and
-                (macdHist.iloc[:3][2] > macdHist.iloc[:2][1]) and
-                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) >= 0.4) and
-                ((macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) - (macdLine.iloc[:1][0] - macdSignal.iloc[:1][0]) <= 0.2) and
-                (macdLine.iloc[:3][2] > macdSignal.iloc[:3][2]) and
-                ((macdLine.iloc[:3][2] - macdSignal.iloc[:3][2]) - (macdLine.iloc[:2][1] - macdSignal.iloc[:2][1]) < 1)
+                (macdHist.iloc[:1].iloc[0] < macdHist.iloc[:2].iloc[1]) and
+                (macdHist.iloc[:3].iloc[2] > macdHist.iloc[:2].iloc[1]) and
+                ((macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2]) - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) >= 0.4) and
+                ((macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) - (macdLine.iloc[:1].iloc[0] - macdSignal.iloc[:1].iloc[0]) <= 0.2) and
+                (macdLine.iloc[:3].iloc[2] > macdSignal.iloc[:3].iloc[2]) and
+                ((macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2]) - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) < 1)
                 )
     
     # validate if CCI is within given range
@@ -961,10 +961,10 @@ class tools:
                     self.default_logger.info(
                         f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!'
                     )
-                    to = data["Open"][0].item()
-                    yc = data["Close"][1].item()
-                    yo = data["Open"][1].item()
-                    dyc = data["Close"][2].item()
+                    to = data["Open"].iloc[0]
+                    yc = data["Close"].iloc[1]
+                    yo = data["Open"].iloc[1]
+                    dyc = data["Close"].iloc[2]
                     if (to >= yc) and (yo >= dyc):
                         self.default_logger.info(
                             f'Stock:{saveDict["Stock"]}, is a momentum-gainer because today-open ({to}) >= yesterday-close ({yc}) and yesterday-open({yo}) >= day-before-close({dyc})'
