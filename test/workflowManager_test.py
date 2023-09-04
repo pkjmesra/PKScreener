@@ -39,42 +39,42 @@ def mock_fetcher():
 
 def test_run_workflow_positive(mock_fetcher):
     mock_fetcher.return_value.status_code = 204
-    result = run_workflow("command", "ghp_token")
+    result = run_workflow("command", "user")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main"}',
+        data='{"ref":"main","inputs":{"user":"user"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ghp_token",
+            "Authorization": "Bearer ",
             "Content-Type": "application/json"
         }
     )
 
 def test_run_workflow_negative(mock_fetcher):
     mock_fetcher.return_value.status_code = 400
-    result = run_workflow("command", "ghp_token")
+    result = run_workflow("command", "user")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main"}',
+        data='{"ref":"main","inputs":{"user":"user"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ghp_token",
+            "Authorization": "Bearer ",
             "Content-Type": "application/json"
         }
     )
 
 def test_run_workflow_edge(mock_fetcher):
     mock_fetcher.return_value.status_code = 200
-    result = run_workflow("command", "ghp_token")
+    result = run_workflow("command", "user")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main"}',
+        data='{"ref":"main","inputs":{"user":"user"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ghp_token",
+            "Authorization": "Bearer ",
             "Content-Type": "application/json"
         }
     )
@@ -82,14 +82,14 @@ def test_run_workflow_edge(mock_fetcher):
 def test_run_workflow_error(mock_fetcher):
     mock_fetcher.side_effect = Exception("Error")
     with pytest.raises(Exception):
-        result = run_workflow("command", "ghp_token")
+        result = run_workflow("command", "user")
         assert result == mock_fetcher.side_effect
         mock_fetcher.assert_called_once_with(
             "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-            data='{"ref":"main"}',
+            data='{"ref":"main","inputs":{"user":"user"}}',
             headers={
                 "Accept": "application/vnd.github+json",
-                "Authorization": "Bearer ghp_token",
+                "Authorization": "Bearer ",
                 "Content-Type": "application/json"
             }
         )

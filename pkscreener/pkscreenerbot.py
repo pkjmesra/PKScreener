@@ -875,7 +875,7 @@ def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id
-    Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+    Channel_Id, TOKEN, chat_idADMIN,GITHUB_TOKEN = get_secrets()
     # TOKEN = '1234567'
     # Channel_Id = 1001785195297
     application = Application.builder().token(TOKEN).build()

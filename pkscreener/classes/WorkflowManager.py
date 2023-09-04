@@ -24,12 +24,14 @@
 """
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.Fetcher import tools
+from pkscreener.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 
-def run_workflow(command,ghp_token):
+def run_workflow(command,user):
     branch, owner, repo="main", "pkjmesra", "PKScreener"
     workflow_name = f"workflow-backtest_{command.upper()}.yml"
+    _,_,_,ghp_token = get_secrets()
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
     
     headers = {
@@ -38,7 +40,7 @@ def run_workflow(command,ghp_token):
         "Content-Type": "application/json"
     }
 
-    data = '{"ref":"'+branch+'"}'
+    data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'"}}'
     fetcher = tools(configManager)
     resp = fetcher.postURL(url, data=data, headers=headers)
     if resp.status_code==204:
@@ -46,3 +48,5 @@ def run_workflow(command,ghp_token):
     else:
         print(f"Something went wrong while triggering {workflow_name}")
     return resp
+
+# resp = run_workflow("B_12_1","-1001785195297")

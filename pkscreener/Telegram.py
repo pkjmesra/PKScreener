@@ -72,7 +72,7 @@ def initTelegram():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if chat_idADMIN == "" or botsUrl == "":
         try:
-            Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+            Channel_Id, TOKEN, chat_idADMIN,_ = get_secrets()
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             print(
@@ -86,10 +86,13 @@ def initTelegram():
 
 def get_secrets():
     local_secrets = dotenv_values(".env.dev")
+    if "GITHUB_TOKEN" not in local_secrets.keys():
+        local_secrets["GITHUB_TOKEN"] = ""
     return (
         local_secrets["CHAT_ID"],
         local_secrets["TOKEN"],
         local_secrets["chat_idADMIN"],
+        local_secrets["GITHUB_TOKEN"],
     )
 
 
@@ -110,7 +113,7 @@ def send_exception(ex, extra_mes=""):
         return
 
 
-def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None, retrial=False):
+def send_message(message, userID=None, parse_type=ParseMode.HTML, list_png=None, retrial=False):
     initTelegram()
     # botsUrl = f"https://api.telegram.org/bot{TOKEN}"  # + "/sendMessage?chat_id={}&text={}".format(chat_idLUISL, message_aler, parse_mode=ParseMode.HTML)
     # url = botsUrl + "/sendMessage?chat_id={}&text={}&parse_mode={parse_mode}".format(chat_idLUISL, message_aler,parse_mode=ParseMode.MARKDOWN_V2)
@@ -137,7 +140,7 @@ def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None,
                 if not retrial:
                     from time import sleep
                     sleep(2)
-                    resp = send_message(message=message, parse_type=parse_type, list_png=list_png, userID=userID, retrial=True)
+                    resp = send_message(message=message, userID=userID, parse_type=parse_type, list_png=list_png, retrial=True)
         return resp
     # else:
     #     for people_id in LIST_PEOPLE_IDS_CHAT:
