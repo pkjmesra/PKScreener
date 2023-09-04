@@ -117,7 +117,7 @@ def send_message(message, parse_type=ParseMode.HTML, list_png=None, userID=None,
     if not is_token_telegram_configured():
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
-    if userID is not None:
+    if userID is not None and userID !="":
         LIST_PEOPLE_IDS_CHAT = [userID]
     if list_png is None or any(elem is None for elem in list_png):
         resp = None
