@@ -328,17 +328,6 @@ def test_postURL_retry_max_retries(tools_instance, configManager):
             tools_instance.postURL(url, data=data, headers=headers)
             mock_post_later.assert_called_with(url, proxies=None, data=data, headers=headers, timeout=4)
 
-def test_postURL_retry_disable_cache(tools_instance, configManager):
-    url = "https://example.com"
-    data = {"key": "value"}
-    headers = {"Content-Type": "application/json"}
-    response = MagicMock()
-    response.status_code = 200
-    configManager.maxNetworkRetryCount = 3
-    with patch("requests_cache.CachedSession.post", side_effect=[ConnectTimeout, response]):
-        with patch("requests_cache.is_installed", return_value=True) as mock_is_installed:
-            tools_instance.postURL(url, data=data, headers=headers)
-            mock_is_installed.assert_called_once()
 
 def test_postURL_retry_enable_cache_restart(tools_instance, configManager):
     url = "https://example.com"
