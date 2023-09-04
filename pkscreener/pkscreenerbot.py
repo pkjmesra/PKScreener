@@ -439,7 +439,7 @@ async def launchScreener(options, user, context, optionChoices, update):
                 ]
             )
         elif str(optionChoices.upper()).startswith("B"):
-            run_workflow(optionChoices,user)
+            run_workflow(optionChoices, str(user.id))
     except Exception:
         await start(update, context)
 
@@ -841,6 +841,8 @@ def addCommandsForMenuItems(application):
         )
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
+            if p1 in ["N","0"]:
+                continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
             cmds2 = m2.renderForMenu(
