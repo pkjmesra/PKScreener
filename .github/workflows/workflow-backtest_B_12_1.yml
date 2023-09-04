@@ -91,7 +91,7 @@ jobs:
       run: |
           pip install .
           cd pkscreener
-          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow has been trigerred for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over.', os.environ['NOTIFY_USER']);"
+          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow has been trigerred for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over.', userID=os.environ['NOTIFY_USER']);"
           cd ..
     - name: Run backtest
       shell: cmd
