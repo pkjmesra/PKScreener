@@ -439,7 +439,7 @@ async def launchScreener(options, user, context, optionChoices, update):
                 ]
             )
         elif str(optionChoices.upper()).startswith("B"):
-            run_workflow(optionChoices,user)
+            run_workflow(optionChoices,user,str(options.upper()))
     except Exception:
         await start(update, context)
 
