@@ -104,8 +104,12 @@ def backtest(
             try:
                 rolling_pct = data["Close"].pct_change(periods=prd) * 100
                 pct_change = rolling_pct.iloc[prd]
+                if not sellSignal:
+                    colored_pct = colorText.GREEN if pct_change >= 0 else colorText.FAIL
+                else:
+                    colored_pct = colorText.FAIL if pct_change >= 0 else colorText.GREEN
                 backTestedStock[f"{abs(prd)}-Pd"] = (
-                    (colorText.GREEN if pct_change >= 0 else colorText.FAIL) if not sellSignal else (colorText.FAIL if pct_change >= 0 else colorText.GREEN)
+                    colored_pct
                     + "%.2f%%" % pct_change
                     + colorText.END
                 )

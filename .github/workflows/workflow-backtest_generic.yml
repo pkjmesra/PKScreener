@@ -1,0 +1,123 @@
+# """
+#     The MIT License (MIT)
+
+#     Copyright (c) 2023 pkjmesra
+
+#     Permission is hereby granted, free of charge, to any person obtaining a copy
+#     of this software and associated documentation files (the "Software"), to deal
+#     in the Software without restriction, including without limitation the rights
+#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#     copies of the Software, and to permit persons to whom the Software is
+#     furnished to do so, subject to the following conditions:
+
+#     The above copyright notice and this permission notice shall be included in all
+#     copies or substantial portions of the Software.
+
+#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#     SOFTWARE.
+
+# """
+name: B. Backtest for Generic
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Backtest for Generic'
+        required: false
+        default: 'B_12_1'
+      params:
+          description: 'Backtest for Generic'
+          required: false
+          default: '12:1'
+      user:
+          description: 'Telegram user'
+          required: false
+          default: '-1001785195297'
+
+jobs:
+
+  Generic:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: gh-pages
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Restore Dependencies from Cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install TA-Lib
+      run: |
+        python -m pip install --upgrade pip
+        cd .github/dependencies/
+        echo %cd%
+        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+
+    - name: Install Python Dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip3 install ta-lib
+        pip install .
+      
+    - name: Configure .env.dev file
+      shell: bash
+      env:
+        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+      run: |
+          python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+  
+    - name: Send notification about this workflow trigger
+      shell: bash
+      env:
+        NOTIFY_USER : ${{ inputs.user }}
+        BACKTEST_NAME: ${{ inputs.name }}
+      run: |
+          pip install .
+          cd pkscreener
+          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
+          cd ..
+          
+    - name: Run backtest
+      shell: cmd
+      continue-on-error: true
+      run: |
+        rmdir /s /q Backtest-Reports
+        mkdir Backtest-Reports
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }}
+
+    - name: Push backtest and summary reports
+      continue-on-error: true
+      run: |
+        copy "PKScreener_*.html" "Backtest-Reports"
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git remote update
+        git fetch
+        git checkout -b gh-pages origin/gh-pages
+        git pull
+        git pull
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
+        git push -v -u origin +gh-pages

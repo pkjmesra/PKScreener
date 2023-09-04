@@ -28,9 +28,9 @@ from pkscreener.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 
-def run_workflow(command,user):
+def run_workflow(command,user,options):
     branch, owner, repo="main", "pkjmesra", "PKScreener"
-    workflow_name = f"workflow-backtest_{command.upper()}.yml"
+    workflow_name = "workflow-backtest_generic.yml"
     _,_,_,ghp_token = get_secrets()
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
     
@@ -39,8 +39,8 @@ def run_workflow(command,user):
         "Authorization": f"Bearer {ghp_token}",
         "Content-Type": "application/json"
     }
-
-    data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'"}}'
+    options = options.replace("B:","")
+    data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'{options}'+'","name":"'+f'{command}'+'"}}'
     fetcher = tools(configManager)
     resp = fetcher.postURL(url, data=data, headers=headers)
     if resp.status_code==204:

@@ -116,7 +116,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
     await update.message.reply_text(
-        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X ",
+        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X or \nbacktest with /B",
         reply_markup=reply_markup,
     )
     await context.bot.send_message(
@@ -159,9 +159,10 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         .replace("    ", "")
         .replace("\t", "")
     )
+    midSkip = "1" if data == "X" else "N"
     mns = m1.renderForMenu(
         m0.find(data),
-        skip=["W", "E", "M", "Z", "0", "2", "1", "3", "4", "6", "7", "9", "10", "13"],
+        skip=["W", "E", "M", "Z", "0", "2", midSkip, "3", "4", "6", "7", "9", "10", "13"],
         asList=True,
     )
     inlineMenus = []
@@ -439,7 +440,7 @@ async def launchScreener(options, user, context, optionChoices, update):
                 ]
             )
         elif str(optionChoices.upper()).startswith("B"):
-            run_workflow(optionChoices,user)
+            run_workflow(optionChoices,str(user.id),str(options.upper()))
     except Exception:
         await start(update, context)
 
@@ -579,15 +580,18 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=["W", "E", "M", "Z"],
+            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for cmd in cmds:
+            if cmd in ["N","0"]:
+                continue
             cmdText = (
                 f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
             )
-        cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
+        if cmd in ["x"]:
+            cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
         """Send a message when the command /help is issued."""
         await update.message.reply_text(f"Choose an option:\n{cmdText}")
         return START_ROUTES
@@ -613,7 +617,8 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         else:
-            cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
+            if cmd in ["x"]:
+                cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
             """Send a message when the command /help is issued."""
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
@@ -841,6 +846,8 @@ def addCommandsForMenuItems(application):
         )
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
+            if p1 in ["N","0"]:
+                continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
             cmds2 = m2.renderForMenu(

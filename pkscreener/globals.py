@@ -951,7 +951,7 @@ def main(userArgs=None):
                     downloadOnly,
                     volumeRatio,
                     testBuild,
-                    testBuild,
+                    userArgs.log,
                     fillerPlaceHolder - 1,
                     backtestPeriod,
                     default_logger().level,
@@ -1415,20 +1415,9 @@ def startWorkers(consumers):
             + f"[+] Using Period:{configManager.period} and Duration:{configManager.duration} for scan! You can change this in user config."
             + colorText.END
             )
-    lenConsumers = len(consumers)
-    bar, spinner = Utility.tools.getProgressbarStyle()
-    with alive_bar(lenConsumers, bar=bar, spinner=spinner) as progressbar:
-        for worker in consumers:
-            lenConsumers -= 1
-            progressbar.text(
-                colorText.BOLD
-                + colorText.GREEN
-                + f"Starting {lenConsumers}nth worker"
-                + colorText.END
-            )
-            worker.daemon = True
-            worker.start()
-            progressbar()
+    for worker in consumers:
+        worker.daemon = True
+        worker.start()
 
 def takeBacktestInputs(
     menuOption=None, tickerOption=None, executeOption=None, backtestPeriod=0
