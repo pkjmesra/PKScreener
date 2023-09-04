@@ -30,6 +30,10 @@ on:
         description: 'Backtest for  10 days low breakout (B_12_16)'
         required: false
         default: 'Backtest for  10 days low breakout (B_12_16)'
+      user:
+          description: 'Telegram user'
+          required: false
+          default: '-1001785195297'
   schedule:
   - cron: '26 10 * * 1-5'
 
@@ -71,6 +75,25 @@ jobs:
         pip3 install ta-lib
         pip install .
 
+      
+    - name: Configure .env.dev file
+      shell: bash
+      env:
+        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+      run: |
+          python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+  
+    - name: Send notification about this workflow trigger
+      shell: bash
+      env:
+        NOTIFY_USER : ${{ inputs.user }}
+      run: |
+          pip install .
+          cd pkscreener
+          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow has been trigerred for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over.', userID=os.environ['NOTIFY_USER']);"
+          cd ..
     - name: Run backtest
       shell: cmd
       continue-on-error: true

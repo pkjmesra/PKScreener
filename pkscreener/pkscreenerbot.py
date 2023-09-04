@@ -54,6 +54,7 @@ start_time = datetime.now()
 MINUTES_5_IN_SECONDS = 300
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
+from pkscreener.classes.WorkflowManager import run_workflow
 from pkscreener.Telegram import get_secrets
 
 try:
@@ -423,19 +424,22 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 
 async def launchScreener(options, user, context, optionChoices, update):
     try:
-        Popen(
-            [
-                "pkscreener",
-                "-a",
-                "Y",
-                "-e",
-                "-p",
-                "-o",
-                str(options.upper()),
-                "-u",
-                str(user.id),
-            ]
-        )
+        if str(optionChoices.upper()).startswith("X"):
+            Popen(
+                [
+                    "pkscreener",
+                    "-a",
+                    "Y",
+                    "-e",
+                    "-p",
+                    "-o",
+                    str(options.upper()),
+                    "-u",
+                    str(user.id),
+                ]
+            )
+        elif str(optionChoices.upper()).startswith("B"):
+            run_workflow(optionChoices,user)
     except Exception:
         await start(update, context)
 
@@ -831,7 +835,7 @@ def addCommandsForMenuItems(application):
         selectedMenu = m0.find(p0)
         cmds1 = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=["W", "E", "M", "Z"],
+            skip=(["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
