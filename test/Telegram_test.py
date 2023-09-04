@@ -35,12 +35,14 @@ def test_get_secrets():
         mock_dotenv_values.return_value = {
             "CHAT_ID": "123456789",
             "TOKEN": "abcdefgh",
-            "chat_idADMIN": "987654321"
+            "chat_idADMIN": "987654321",
+            "GITHUB_TOKEN": "abcdefgh",
         }
-        (s1,s2,s3) = get_secrets()
+        (s1,s2,s3,s4) = get_secrets()
         assert s1 is not None
         assert s2 is not None
         assert s3 is not None
+        assert s4 is not None
 
 # Negative test case when get_secrets can raise an exception for non existent key
 def test_inittelegram_exception_negative():

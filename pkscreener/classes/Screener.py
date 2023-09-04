@@ -294,7 +294,7 @@ class tools:
             maRev = pktalib.EMA(data["Close"], timeperiod=maLength)
         else:
             maRev = pktalib.MA(data["Close"], timeperiod=maLength)
-        data.insert(14, "maRev", maRev)
+        data.insert(len(data.columns), "maRev", maRev)
         data = data[::-1].head(3)
         if (
             data.equals(
