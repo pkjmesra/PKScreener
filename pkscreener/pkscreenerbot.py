@@ -519,6 +519,8 @@ async def launchScreener(options, user, context, optionChoices, update):
             )
         elif str(optionChoices.upper()).startswith("B"):
             optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()))
     except Exception:
         await start(update, context)
