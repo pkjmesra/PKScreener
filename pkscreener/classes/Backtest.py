@@ -22,6 +22,10 @@
     SOFTWARE.
 
 """
+import warnings
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 from pkscreener.classes.ColorText import colorText

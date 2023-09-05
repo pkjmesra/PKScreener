@@ -22,8 +22,11 @@
     SOFTWARE.
 
 """
+import warnings
 from unittest.mock import patch
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 

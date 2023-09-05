@@ -23,6 +23,9 @@
 
 """
 # import gspread
+# import warnings
+# warnings.simplefilter("ignore", DeprecationWarning)
+# warnings.simplefilter("ignore", FutureWarning)
 # import pandas as pd
 # '''
 # Start using gspread:
@@ -167,7 +170,10 @@
 #     print(portfolio)
 #     folioSheet.update([portfolio.columns.values.tolist()] + portfolio.values.tolist())
 
-# import pandas as pd
+# import warnings
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
+import pandas as pd
 
 # data = {'Name': ['John', 'Mary', 'Peter'],
 #         'Age': [25, 35, 30],

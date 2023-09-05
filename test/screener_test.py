@@ -22,17 +22,19 @@
     SOFTWARE.
 
 """
-import math
+import warnings
 from unittest.mock import ANY, MagicMock
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes.log import default_logger as dl
-from pkscreener.classes.Pktalib import pktalib
 from pkscreener.classes.Screener import tools
 
 

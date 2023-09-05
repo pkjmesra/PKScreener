@@ -28,6 +28,7 @@
 
 import argparse
 import builtins
+import logging
 import multiprocessing
 # Keep module imports prior to classes
 import os
@@ -36,6 +37,10 @@ import tempfile
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+try:
+    logging.getLogger("tensorflow").setLevel(logging.ERROR)
+except Exception:
+    pass
 
 def decorator(func):
     def new_func(*args, **kwargs):
