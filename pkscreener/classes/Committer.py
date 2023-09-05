@@ -44,9 +44,9 @@ def commitTempOutcomes(reportName)
     except Exception as e:
         return
 
-    execOSCommand("rmdir /s /q Backtest-Reports")
-    sleep(1)
-    execOSCommand("mkdir Backtest-Reports")
+    # execOSCommand("rmdir /s /q Backtest-Reports")
+    # sleep(1)
+    # execOSCommand("mkdir Backtest-Reports")
     execOSCommand("copy 'PKScreener_*.html' 'Backtest-Reports'")
     sleep(1)
     execOSCommand("git config user.name github-actions")
