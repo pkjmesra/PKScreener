@@ -527,14 +527,16 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     try:
         # Finally, send the message
-        await context.bot.send_message(
-            chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
-        )
+        if "telegram.error.Conflict" not in message:
+            await context.bot.send_message(
+                chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
+            )
     except Exception:
         try:
-            await context.bot.send_message(
-                chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
-            )
+            if "telegram.error.Conflict" not in tb_string:
+                await context.bot.send_message(
+                    chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
+                )
         except Exception:
             print(tb_string)
 
@@ -796,17 +798,22 @@ async def shareUpdateWithChannel(update, context, optionChoices=""):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.callback_query is not None and abs(
-        update.callback_query.from_user.id
-    ) in [Channel_Id, GROUP_CHAT_ID]:
-        # We want to avoid sending any help message back to channel or group.
+    sentFrom = []
+    if update.callback_query is not None:
+        sentFrom.append(abs(update.callback_query.from_user.id))
+    if update.message is not None and update.message.from_user is not None:
+        sentFrom.append(abs(update.message.from_user.id))
+    if update.channel_post is not None:
+        if update.channel_post.chat is not None:
+            sentFrom.append(abs(update.channel_post.chat.id))
+        if update.channel_post.sender_chat is not None:
+            sentFrom.append(abs(update.channel_post.sender_chat.id))
+
+    if abs(Channel_Id) in sentFrom or abs(GROUP_CHAT_ID) in sentFrom:
+        # We want to avoid sending any help message back to channel
+        # or group in response to our own messages
         return
-    if update.message is not None and abs(update.message.from_user.id) in [
-        Channel_Id,
-        GROUP_CHAT_ID,
-    ]:
-        # We want to avoid sending any help message back to channel or group.
-        return
+
     cmds = m0.renderForMenu(
         selectedMenu=None,
         skip=["S", "T", "E", "U", "Z", "S"],
