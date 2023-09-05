@@ -35,7 +35,7 @@ from time import sleep
 # )
 # args = argParser.parse_known_args()
 
-def commitTempOutcomes(reportName)
+def commitTempOutcomes(reportName):
     if "Windows" not in platform.system():
         return
     try:
@@ -55,8 +55,8 @@ def commitTempOutcomes(reportName)
     execOSCommand("git remote update")
     execOSCommand("git fetch")
     sleep(1)
-    execOSCommand("git checkout -b gh-pages origin/gh-pages")
-    sleep(1)
+    # execOSCommand("git checkout -b gh-pages origin/gh-pages")
+    # sleep(1)
     execOSCommand("git pull")
     sleep(2)
     execOSCommand(f"git add Backtest-Reports/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
