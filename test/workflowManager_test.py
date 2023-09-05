@@ -29,6 +29,7 @@ import pytest
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.Fetcher import tools
 from pkscreener.classes.WorkflowManager import run_workflow
+from pkscreener.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 
@@ -39,57 +40,61 @@ def mock_fetcher():
 
 def test_run_workflow_positive(mock_fetcher):
     mock_fetcher.return_value.status_code = 204
-    result = run_workflow("command", "user")
+    _,_,_,ghp_token = get_secrets()
+    result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main","inputs":{"user":"user"}}',
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ",
+            "Authorization": "Bearer "+ghp_token,
             "Content-Type": "application/json"
         }
     )
 
 def test_run_workflow_negative(mock_fetcher):
     mock_fetcher.return_value.status_code = 400
-    result = run_workflow("command", "user")
+    _,_,_,ghp_token = get_secrets()
+    result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main","inputs":{"user":"user"}}',
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ",
+            "Authorization": "Bearer "+ghp_token,
             "Content-Type": "application/json"
         }
     )
 
 def test_run_workflow_edge(mock_fetcher):
     mock_fetcher.return_value.status_code = 200
-    result = run_workflow("command", "user")
+    _,_,_,ghp_token = get_secrets()
+    result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-        data='{"ref":"main","inputs":{"user":"user"}}',
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer ",
+            "Authorization": "Bearer "+ghp_token,
             "Content-Type": "application/json"
         }
     )
 
 def test_run_workflow_error(mock_fetcher):
+    _,_,_,ghp_token = get_secrets()
     mock_fetcher.side_effect = Exception("Error")
     with pytest.raises(Exception):
-        result = run_workflow("command", "user")
+        result = run_workflow("command", "user","options")
         assert result == mock_fetcher.side_effect
         mock_fetcher.assert_called_once_with(
-            "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_COMMAND.yml/dispatches",
-            data='{"ref":"main","inputs":{"user":"user"}}',
+            "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+            data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
             headers={
                 "Accept": "application/vnd.github+json",
-                "Authorization": "Bearer ",
+                "Authorization": "Bearer "+ghp_token,
                 "Content-Type": "application/json"
             }
         )

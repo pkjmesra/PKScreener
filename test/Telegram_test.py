@@ -50,8 +50,8 @@ def test_inittelegram_exception_negative():
         with patch("builtins.print") as mock_print:
             mock_get_secrets.side_effect = Exception("KeyError: Key not found")
             initTelegram()
-            mock_print.assert_called_once_with("[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts")
-
+            mock_print.assert_not_called()
+            
 # Positive test case: Check if the function returns True when the token is configured
 def test_is_token_telegram_configured():
     result = is_token_telegram_configured()
