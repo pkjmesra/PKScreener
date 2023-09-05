@@ -75,9 +75,9 @@ def initTelegram():
             Channel_Id, TOKEN, chat_idADMIN,_ = get_secrets()
         except Exception as e:
             default_logger().debug(e, exc_info=True)
-            print(
-                "[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts"
-            )
+            # print(
+            #     "[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts"
+            # )
             pass
         Channel_Id = "-" + str(Channel_Id)
         LIST_PEOPLE_IDS_CHAT = [Channel_Id]
@@ -100,9 +100,9 @@ def is_token_telegram_configured():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     initTelegram()
     if TOKEN == "00000000xxxxxxx":
-        print(
-            "[+] There is no value for the telegram TOKEN. It is required to telegram someone.\n[+] see tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token"
-        )
+        # print(
+        #     "[+] There is no value for the telegram TOKEN. It is required to telegram someone.\n[+] See tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token"
+        # )
         return False
     return True
 
