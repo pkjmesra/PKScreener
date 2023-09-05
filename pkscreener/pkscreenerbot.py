@@ -134,6 +134,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     data = query.data.upper().replace("CX", "X").replace("CB", "B")
     if data not in ["X", "B"]:
         return start(update, context)
+    midSkip = "1" if data == "X" else "N"
     menuText = (
         m1.renderForMenu(
             m0.find(data),
@@ -144,7 +145,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 "Z",
                 "0",
                 "2",
-                "1",
+                midSkip,
                 "3",
                 "4",
                 "6",
@@ -159,7 +160,6 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         .replace("    ", "")
         .replace("\t", "")
     )
-    midSkip = "1" if data == "X" else "N"
     mns = m1.renderForMenu(
         m0.find(data),
         skip=["W", "E", "M", "Z", "0", "2", midSkip, "3", "4", "6", "7", "9", "10", "13"],
@@ -209,6 +209,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -239,6 +241,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -270,10 +274,82 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
+                    "14",
                     "15",
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            menuText = menuText + "\nP > Previous Options"
+            menuText = menuText + "\nM > More Options"
+            mns = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "14",
+                    "15",
+                    "16",
+                    "17",
+                    "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                asList=True,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            mns.append(menu().create("P", "Previous Options", 2))
+            mns.append(menu().create("M", "More Options", 2))
+        elif selection[2] == "M":
+            menuText = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
@@ -300,10 +376,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
-                    "15",
-                    "16",
-                    "17",
-                    "18",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
@@ -440,6 +518,7 @@ async def launchScreener(options, user, context, optionChoices, update):
                 ]
             )
         elif str(optionChoices.upper()).startswith("B"):
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
             run_workflow(optionChoices,str(user.id),str(options.upper()))
     except Exception:
         await start(update, context)
@@ -527,14 +606,16 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     try:
         # Finally, send the message
-        await context.bot.send_message(
-            chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
-        )
+        if "telegram.error.Conflict" not in message:
+            await context.bot.send_message(
+                chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
+            )
     except Exception:
         try:
-            await context.bot.send_message(
-                chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
-            )
+            if "telegram.error.Conflict" not in tb_string:
+                await context.bot.send_message(
+                    chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
+                )
         except Exception:
             print(tb_string)
 
@@ -796,17 +877,22 @@ async def shareUpdateWithChannel(update, context, optionChoices=""):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.callback_query is not None and abs(
-        update.callback_query.from_user.id
-    ) in [Channel_Id, GROUP_CHAT_ID]:
-        # We want to avoid sending any help message back to channel or group.
+    sentFrom = []
+    if update.callback_query is not None:
+        sentFrom.append(abs(update.callback_query.from_user.id))
+    if update.message is not None and update.message.from_user is not None:
+        sentFrom.append(abs(update.message.from_user.id))
+    if update.channel_post is not None:
+        if update.channel_post.chat is not None:
+            sentFrom.append(abs(update.channel_post.chat.id))
+        if update.channel_post.sender_chat is not None:
+            sentFrom.append(abs(update.channel_post.sender_chat.id))
+
+    if abs(Channel_Id) in sentFrom or abs(GROUP_CHAT_ID) in sentFrom:
+        # We want to avoid sending any help message back to channel
+        # or group in response to our own messages
         return
-    if update.message is not None and abs(update.message.from_user.id) in [
-        Channel_Id,
-        GROUP_CHAT_ID,
-    ]:
-        # We want to avoid sending any help message back to channel or group.
-        return
+
     cmds = m0.renderForMenu(
         selectedMenu=None,
         skip=["S", "T", "E", "U", "Z", "S"],
