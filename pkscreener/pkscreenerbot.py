@@ -134,6 +134,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     data = query.data.upper().replace("CX", "X").replace("CB", "B")
     if data not in ["X", "B"]:
         return start(update, context)
+    midSkip = "1" if data == "X" else "N"
     menuText = (
         m1.renderForMenu(
             m0.find(data),
@@ -144,7 +145,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 "Z",
                 "0",
                 "2",
-                "1",
+                midSkip,
                 "3",
                 "4",
                 "6",
@@ -159,7 +160,6 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         .replace("    ", "")
         .replace("\t", "")
     )
-    midSkip = "1" if data == "X" else "N"
     mns = m1.renderForMenu(
         m0.find(data),
         skip=["W", "E", "M", "Z", "0", "2", midSkip, "3", "4", "6", "7", "9", "10", "13"],
@@ -209,6 +209,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -239,6 +241,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -270,10 +274,82 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
+                    "14",
                     "15",
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            menuText = menuText + "\nP > Previous Options"
+            menuText = menuText + "\nM > More Options"
+            mns = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "14",
+                    "15",
+                    "16",
+                    "17",
+                    "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                asList=True,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            mns.append(menu().create("P", "Previous Options", 2))
+            mns.append(menu().create("M", "More Options", 2))
+        elif selection[2] == "M":
+            menuText = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
@@ -300,10 +376,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
-                    "15",
-                    "16",
-                    "17",
-                    "18",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
