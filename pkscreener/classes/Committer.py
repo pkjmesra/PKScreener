@@ -41,7 +41,7 @@ def commitTempOutcomes(reportName):
     try:
         if len(os.environ['BACKTEST_NAME']) == 0 or len(os.environ['RUNNER']) == 0:
             return
-    except Exception as e:
+    except Exception:
         return
 
     # execOSCommand("rmdir /s /q Backtest-Reports")
@@ -69,5 +69,5 @@ def commitTempOutcomes(reportName):
 def execOSCommand(command):
     try:
         os.system(command)
-    except Exception as e:
+    except Exception:
         pass

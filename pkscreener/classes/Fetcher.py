@@ -34,9 +34,12 @@ import os
 import random
 import sys
 import urllib
+import warnings
 from datetime import timedelta
 from io import StringIO
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import requests
 import requests_cache

@@ -27,7 +27,10 @@
 import os
 import shutil
 import sys
+import warnings
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 

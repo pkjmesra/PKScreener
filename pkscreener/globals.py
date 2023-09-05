@@ -31,10 +31,14 @@ import logging
 import multiprocessing
 import sys
 import urllib
+import warnings
 from datetime import datetime
 from time import sleep
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
 from tabulate import tabulate
@@ -952,7 +956,7 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    fillerPlaceHolder - 1,
+                    fillerPlaceHolder,
                     backtestPeriod,
                     default_logger().level,
                 )

@@ -105,7 +105,7 @@ jobs:
       run: |
         #rmdir /s /q Backtest-Reports
         #mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }}
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
 
     - name: Push backtest and summary reports
       continue-on-error: true

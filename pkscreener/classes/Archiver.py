@@ -25,8 +25,11 @@
 import os
 import os.path
 import tempfile
+import warnings
 from datetime import datetime, timezone
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytz
 
