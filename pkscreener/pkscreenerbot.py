@@ -890,7 +890,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         if update.channel_post.sender_chat is not None:
             sentFrom.append(abs(update.channel_post.sender_chat.id))
 
-    if abs(Channel_Id) in sentFrom or abs(GROUP_CHAT_ID) in sentFrom:
+    if abs(int(Channel_Id)) in sentFrom or abs(int(GROUP_CHAT_ID)) in sentFrom:
         # We want to avoid sending any help message back to channel
         # or group in response to our own messages
         return
