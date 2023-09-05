@@ -103,8 +103,8 @@ jobs:
         RUNNER : "GitHub_Actions"
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
-        rmdir /s /q Backtest-Reports
-        mkdir Backtest-Reports
+        #rmdir /s /q Backtest-Reports
+        #mkdir Backtest-Reports
         python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }}
 
     - name: Push backtest and summary reports

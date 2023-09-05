@@ -98,8 +98,8 @@ jobs:
       shell: cmd
       continue-on-error: true
       run: |
-        rmdir /s /q Backtest-Reports
-        mkdir Backtest-Reports
+        #rmdir /s /q Backtest-Reports
+        #mkdir Backtest-Reports
         python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:7:2:7
 
     - name: Push backtest and summary reports
