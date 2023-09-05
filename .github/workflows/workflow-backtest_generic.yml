@@ -99,6 +99,9 @@ jobs:
     - name: Run backtest
       shell: cmd
       continue-on-error: true
+      env:
+        RUNNER : "GitHub_Actions"
+        BACKTEST_NAME: ${{ inputs.name }}
       run: |
         rmdir /s /q Backtest-Reports
         mkdir Backtest-Reports

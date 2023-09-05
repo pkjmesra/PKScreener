@@ -46,6 +46,7 @@ import pkscreener.classes.Utility as Utility
 from pkscreener.classes import VERSION
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
+from pkscreener.classes.Committer import commitTempOutcomes
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
@@ -1205,6 +1206,13 @@ def runScanners(
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
+                            choices = ""
+                            for choice in selectedChoice:
+                                if len(selectedChoice[choice]) > 0:
+                                    if len(choices) > 0:
+                                        choices = f"{choices}_"
+                                    choices = f"{choices}{selectedChoice[choice]}"
+                            commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
                     colorText.BOLD
