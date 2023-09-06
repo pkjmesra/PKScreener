@@ -209,3 +209,9 @@ def test_checkForUpdate_exception_url_none():
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
             OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
+
+def test_get_latest_release_info():
+    resp, size = OTAUpdater.get_latest_release_info()
+    assert resp is not None
+    assert size > 0
+    assert OTAUpdater.checkForUpdate.url is not None

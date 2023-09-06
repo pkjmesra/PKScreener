@@ -71,6 +71,8 @@ from pkscreener.classes.log import default_logger
 multiprocessing.freeze_support()
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ['AUTOGRAPH_VERBOSITY'] = '0'
+
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
