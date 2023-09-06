@@ -138,6 +138,25 @@ rm updater.sh
         txt = txt.split("## Older Releases")[0]
         txt = txt.replace("* ", "- ").replace("`", "").strip()
         return txt + "\n"
+    
+    def get_latest_release_info():
+        resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+        if "Windows" in platform.system():
+            OTAUpdater.checkForUpdate.url = resp.json()["assets"][1][
+                    "browser_download_url"
+                ]
+            size = int(resp.json()["assets"][1]["size"] / (1024 * 1024))
+        elif "Darwin" in platform.system():
+            OTAUpdater.checkForUpdate.url = resp.json()["assets"][2][
+                    "browser_download_url"
+                ]
+            size = int(resp.json()["assets"][2]["size"] / (1024 * 1024))
+        else:
+            OTAUpdater.checkForUpdate.url = resp.json()["assets"][0][
+                    "browser_download_url"
+                ]
+            size = int(resp.json()["assets"][0]["size"] / (1024 * 1024))
+        return resp,size
 
     # Check for update and download if available
     def checkForUpdate(VERSION=VERSION, skipDownload=False):
@@ -147,7 +166,7 @@ rm updater.sh
             now_components = str(VERSION).split(".")
             now_major_minor = ".".join([now_components[0], now_components[1]])
             now = float(now_major_minor)
-            resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+            resp, size = OTAUpdater.get_latest_release_info()
             tag = resp.json()["tag_name"]
             version_components = tag.split(".")
             major_minor = ".".join([version_components[0], version_components[1]])
@@ -168,21 +187,6 @@ rm updater.sh
                 elif float(now_components[2]) == float(version_components[2]):
                     if float(now_components[3]) < float(version_components[3]):
                         prod_update = True
-            if "Windows" in platform.system():
-                OTAUpdater.checkForUpdate.url = resp.json()["assets"][1][
-                    "browser_download_url"
-                ]
-                size = int(resp.json()["assets"][1]["size"] / (1024 * 1024))
-            elif "Darwin" in platform.system():
-                OTAUpdater.checkForUpdate.url = resp.json()["assets"][2][
-                    "browser_download_url"
-                ]
-                size = int(resp.json()["assets"][2]["size"] / (1024 * 1024))
-            else:
-                OTAUpdater.checkForUpdate.url = resp.json()["assets"][0][
-                    "browser_download_url"
-                ]
-                size = int(resp.json()["assets"][0]["size"] / (1024 * 1024))
             if prod_update:
                 print(
                     colorText.BOLD
