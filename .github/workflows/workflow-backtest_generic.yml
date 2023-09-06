@@ -22,24 +22,26 @@
 #     SOFTWARE.
 
 # """
-name: B. B_12_7_3 Backtest for The Confluence (50 & 200 MA/EMA) (B_12_7_3)
+name: B. Backtest for Generic
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Backtest for The Confluence (50 & 200 MA/EMA) (B_12_7_3)'
+        description: 'Backtest for Generic'
         required: false
-        default: 'Backtest for The Confluence (50 & 200 MA/EMA) (B_12_7_3)'
+        default: 'B_12_1'
+      params:
+          description: 'Backtest for Generic'
+          required: false
+          default: '12:1'
       user:
           description: 'Telegram user'
           required: false
           default: '-1001785195297'
-  schedule:
-  - cron: '14 10 * * 1-5'
 
 jobs:
 
-  B_12_7_3:
+  Generic:
 
     runs-on: windows-latest
 
@@ -74,7 +76,6 @@ jobs:
         pip install -r requirements-dev.txt
         pip3 install ta-lib
         pip install .
-
       
     - name: Configure .env.dev file
       shell: bash
@@ -89,18 +90,22 @@ jobs:
       shell: bash
       env:
         NOTIFY_USER : ${{ inputs.user }}
+        BACKTEST_NAME: ${{ inputs.name }}
       run: |
-          pip install .
           cd pkscreener
-          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow has been trigerred for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over.', userID=os.environ['NOTIFY_USER']);"
+          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
           cd ..
+          
     - name: Run backtest
       shell: cmd
       continue-on-error: true
+      env:
+        RUNNER : "GitHub_Actions"
+        BACKTEST_NAME: ${{ inputs.name }}
       run: |
         #rmdir /s /q Backtest-Reports
         #mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:12:7:3:1
+        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
 
     - name: Push backtest and summary reports
       continue-on-error: true
@@ -113,7 +118,18 @@ jobs:
         git fetch
         git checkout -b gh-pages origin/gh-pages
         git pull
-        git add Backtest-Reports/PKScreener_B_12_7_3_backtest_result_StockSorted.html --force
-        git add Backtest-Reports/PKScreener_B_12_7_3_Summary_StockSorted.html --force
-        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(B_12_7_3)"
+        git pull
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
         git push -v -u origin +gh-pages
+
+    - name: Send notification about finished workflow trigger
+      shell: bash
+      env:
+        NOTIFY_USER : ${{ inputs.user }}
+        BACKTEST_NAME: ${{ inputs.name }}
+      run: |
+          cd pkscreener
+          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
+          cd ..

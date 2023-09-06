@@ -35,12 +35,14 @@ def test_get_secrets():
         mock_dotenv_values.return_value = {
             "CHAT_ID": "123456789",
             "TOKEN": "abcdefgh",
-            "chat_idADMIN": "987654321"
+            "chat_idADMIN": "987654321",
+            "GITHUB_TOKEN": "abcdefgh",
         }
-        (s1,s2,s3) = get_secrets()
+        (s1,s2,s3,s4) = get_secrets()
         assert s1 is not None
         assert s2 is not None
         assert s3 is not None
+        assert s4 is not None
 
 # Negative test case when get_secrets can raise an exception for non existent key
 def test_inittelegram_exception_negative():
@@ -48,8 +50,8 @@ def test_inittelegram_exception_negative():
         with patch("builtins.print") as mock_print:
             mock_get_secrets.side_effect = Exception("KeyError: Key not found")
             initTelegram()
-            mock_print.assert_called_once_with("[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts")
-
+            mock_print.assert_not_called()
+            
 # Positive test case: Check if the function returns True when the token is configured
 def test_is_token_telegram_configured():
     result = is_token_telegram_configured()

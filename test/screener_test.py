@@ -22,17 +22,19 @@
     SOFTWARE.
 
 """
-import math
-from unittest.mock import MagicMock
+import warnings
+from unittest.mock import ANY, MagicMock
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes.log import default_logger as dl
-from pkscreener.classes.Pktalib import pktalib
 from pkscreener.classes.Screener import tools
 
 
@@ -165,324 +167,91 @@ def test_findBreakout_edge(tools_instance):
     result = tools_instance.findBreakout(data, screenDict, saveDict, daysToLookback)
     assert result == True
 
-# # Mocking the necessary functions or dependencies
-# @pytest.fixture(autouse=True)
-# def mock_dependencies(monkeypatch):
-#     monkeypatch.setattr(pd, 'DataFrame', MagicMock())
-#     monkeypatch.setattr(np, 'nan', MagicMock())
-#     monkeypatch.setattr(np, 'inf', MagicMock())
-#     monkeypatch.setattr(math, 'isnan', MagicMock())
-#     monkeypatch.setattr(math, 'isinf', MagicMock())
-#     monkeypatch.setattr(pktalib, 'Aroon', MagicMock())
-#     monkeypatch.setattr(tools, 'getCandleType', MagicMock())
-
 # Positive test case for findBullishIntradayRSIMACD function
-# def test_findBullishIntradayRSIMACD_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 60
-#     data.tail().iloc[1].return_value = 50
-#     data.tail().iloc[2].return_value = 40
-#     data.tail().iloc[3].return_value = 30
-#     data.tail().iloc[4].return_value = 20
-#     data.tail().iloc[5].return_value = 10
-#     data.tail().iloc[6].return_value = 0
-#     data.tail().iloc[7].return_value = -10
-#     data.tail().iloc[8].return_value = -20
-#     data.tail().iloc[9].return_value = -30
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findBullishIntradayRSIMACD(data) == True
-
-# # Negative test case for findBullishIntradayRSIMACD function
-# def test_findBullishIntradayRSIMACD_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 60
-#     data.tail().iloc[1].return_value = 50
-#     data.tail().iloc[2].return_value = 40
-#     data.tail().iloc[3].return_value = 30
-#     data.tail().iloc[4].return_value = 20
-#     data.tail().iloc[5].return_value = 10
-#     data.tail().iloc[6].return_value = 0
-#     data.tail().iloc[7].return_value = -10
-#     data.tail().iloc[8].return_value = -20
-#     data.tail().iloc[9].return_value = -40
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findBullishIntradayRSIMACD(data) == False
+def test_findBullishIntradayRSIMACD_positive():
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10]})
+    # Create an instance of the tools class
+    tool = tools(None, None)
+    # Call the function and assert the result
+    assert tool.findBullishIntradayRSIMACD(data) == False
 
 # # Positive test case for findNR4Day function
-# def test_findNR4Day_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.tail().iloc[0].return_value = 50001
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 10
+def test_findNR4Day_positive():
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Create an instance of the tools class
+    tool = tools(None, None)
+    # Call the function and assert the result
+    assert tool.findNR4Day(data) == False
 
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
+# Positive test case for findReversalMA function
+def test_findReversalMA_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Call the function and assert the result
+    assert tools_instance.findReversalMA(data, {}, {}, 3) == False
 
-#     # Call the function and assert the result
-#     assert tool.findNR4Day(data) == True
+# Positive test case for findTrend function
+def test_findTrend_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Call the function and assert the result
+    assert tools_instance.findTrend(data, {}, {}, 10) == "Strong Up"
 
-# # Negative test case for findNR4Day function
-# def test_findNR4Day_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.tail().iloc[0].return_value = 50000
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 10
+# Positive test case for findTrendlines function
+def test_findTrendlines_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
 
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-#     # Call the function 
-#     assert tool.findNR4Day(data) == False
+    # Call the function and assert the result
+    assert tools_instance.findTrendlines(data, {}, {}) == False
 
-# # Positive test case for findReversalMA function
-# def test_findReversalMA_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().ilociloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 10
+# Positive test case for getCandleType function
+def test_getCandleType_positive(tools_instance):
+    # Mocking the dailyData
+    dailyData = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Call the function and assert the result
+    assert tools_instance.getCandleType(dailyData) == True
 
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findReversalMA(data, {}, {}, 10) == True
-
-# # Negative test case for findReversalMA function
-# def test_findReversalMA_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findReversalMA(data, {}, {}, 10) == False
-
-# # Positive test case for findTrend function
-# def test_findTrend_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 10
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findTrend(data, {}, {}, 10) == "Strong Up"
-
-# # Negative test case for findTrend function
-# def test_findTrend_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findTrend(data, {}, {}, 10) == "Strong Down"
-
-# # Positive test case for findTrendlines function
-# def test_findTrendlines_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 10
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findTrendlines(data, {}, {}) == True
-
-# # Negative test case for findTrendlines function
-# def test_findTrendlines_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.findTrendlines(data, {}, {}) == False
-
-# # Positive test case for getCandleType function
-# def test_getCandleType_positive():
-#     # Mocking the dailyData
-#     dailyData = MagicMock()
-#     dailyData["Close"].iloc[0].return_value = 100
-#     dailyData["Open"].iloc[0].return_value = 90
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.getCandleType(dailyData) == True
-
-# # Negative test case for getCandleType function
-# def test_getCandleType_negative():
-#     # Mocking the dailyData
-#     dailyData = MagicMock()
-#     dailyData["Close"].iloc[0].return_value = 90
-#     dailyData["Open"].iloc[0].return_value = 100
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.getCandleType(dailyData) == False
-
-# # PositiveNiftyPrediction function
-# def test_getNiftyPrediction_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     # Mocking the scaler
-#     scaler = MagicMock()
-#     pkl = {"columns": scaler}
-#     data[pkl["columns"]].return_value = data
-#     data["High"].pct_change.return_value = data
-#     data["Low"].pct_change.return_value = data
-#     data["Open"].pct_change.return_value = data
-#     data["Close"].pct_change.return_value = data
-#     data.iloc[-1].return_value = 0.1
-
-#     # Mocking the model
-#     model = MagicMock()
-#     model.predict.return_value = [0.6]
-
-    
-#     # Mocking the Utility class
-#     Utility.tools.getNiftyModel.return_value = (model, pkl)
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.getNiftyPrediction(data) == (0.6, "BEARISH", "Probability/Strength of Prediction = 75.0%")
-
-# # Negative test case for getNiftyPrediction function
-# def test_getNiftyPrediction_negative():
-#     # Mocking the data
-#     data = MagicMock()
-
-#     # Mocking the model
-#     model = MagicMock()
-#     model.predict.return_value = [0.4]
-
-#     # Mocking the scaler
-#     scaler = MagicMock()
-#     pkl = {"columns": scaler}
-#     # Mocking the Utility class
-#     Utility.tools.getNiftyModel.return_value = (model, pkl)
-#     data[pkl["columns"]].return_value = data
-#     data["High"].pct_change.return_value = data
-#     data["Low"].pct_change.return_value = data
-#     data["Open"].pct_change.return_value = data
-#     data["Close"].pct_change.return_value = data
-#     data.iloc[-1].return_value = 0.1
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.getNiftyPrediction(data) == (0.4, "BULLISH", "Probability/Strength of Prediction = 60.0%")
+# PositiveNiftyPrediction function
+def test_getNiftyPrediction_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Mocking the scaler
+    scaler = MagicMock()
+    pkl = {"columns": scaler}
+    # Mocking the model
+    model = MagicMock()
+    model.predict.return_value = [0.6]
+    # Mocking the Utility class
+    Utility.tools.getNiftyModel.return_value = (model, pkl)
+    # Call the function and assert the result
+    assert tools_instance.getNiftyPrediction(data) == (ANY, "Market may Open BEARISH next day! Hold your Short position!", "Probability/Strength of Prediction = 100.0%")
 
 # # Positive test case for monitorFiveEma function
 # def test_monitorFiveEma_positive():
@@ -507,166 +276,50 @@ def test_findBreakout_edge(tools_instance):
 #     # Mocking the fetcher
 #     fetcher = MagicMock()
 #     fetcher.fetchFiveEmaData.return_value = (MagicMock(), MagicMock(), MagicMock(), MagicMock())
-
 #     # Mocking the result_df
 #     result_df = MagicMock()
-
 #     # Mocking the last_signal
 #     last_signal = MagicMock()
-
 #     # Create an instance of the tools class
 #     tool = tools(None, None)
-
 #     # Call the function and assert the result
 #     assert tool.monitorFiveEma(fetcher, result_df, last_signal) != result_df
 
-# # Positive test case for preprocessData function
-# def test_preprocessData_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data["Close"].return_value = data
-#     data["Volume"].return_value = data
-#     data["Close"].rolling.return_value = MagicMock()
-#     data["Volume"].rolling.return_value = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 10
+# Positive test case for preprocessData function
+def test_preprocessData_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200.1, 190.1, 180.1, 170.1, 160.1, 150.1, 140.1, 130.1, 120.1, 110.1, 100.1, 90.1, 80.1, 70.1, 60.1, 50.1, 40.1, 30.1, 20.1, 10.1],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Other': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+   
+    # Call the function and assert the result
+    assert tools_instance.preprocessData(data, 10) is not None
 
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.preprocessData(data, 10) == (data, data.head(10))
-
-# # Negative test case for preprocessData function
-# def test_preprocessData_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data["Close"].return_value = data
-#     data["Volume"].return_value = data
-#     data["Close"].rolling.return_value = MagicMock()
-#     data["Volume"].rolling.return_value = MagicMock()
-#     data[::-1].head.return_value = MagicMock()
-#     data.head().iloc[0].return_value = 100
-#     data.head().iloc[1].return_value = 90
-#     data.head().iloc[2].return_value = 80
-#     data.head().iloc[3].return_value = 70
-#     data.head().iloc[4].return_value = 60
-#     data.head().iloc[5].return_value = 50
-#     data.head().iloc[6].return_value = 40
-#     data.head().iloc[7].return_value = 30
-#     data.head().iloc[8].return_value = 20
-#     data.head().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.preprocessData(data, 10) == (data, data.head(5))
-
-# # Positive test case for validate15MinutePriceVolumeBreakout function
-# def test_validate15MinutePriceVolumeBreakout_positive():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 10
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.validate15MinutePriceVolumeBreakout(data) == True
-
-# # Negative test case for validate15MinutePriceVolumeBreakout function
-# def test_validate15MinutePriceVolumeBreakout_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.validate15MinutePriceVolumeBreakout(data) == False
+# Positive test case for validate15MinutePriceVolumeBreakout function
+def test_validate15MinutePriceVolumeBreakout_positive(tools_instance):
+    # Mocking the data
+    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    # Call the function and assert the result
+    assert tools_instance.validate15MinutePriceVolumeBreakout(data) == True
 
 # # Positive test case for validateBullishForTomorrow function
-# def test_validateBullishForTomorrow_positive():
+# def test_validateBullishForTomorrow_positive(tools_instance):
 #     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 10
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
+#     data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
+#                          'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+#                          'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+#                          'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+#                          'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+   
 #     # Call the function and assert the result
-#     assert tool.validateBullishForTomorrow(data) == True
-
-# # Negative test case for validateBullishForTomorrow function
-# def test_validateBullishForTomorrow_negative():
-#     # Mocking the data
-#     data = MagicMock()
-#     data.fillna.return_value = data
-#     data.replace.return_value = data
-#     data[::-1].tail.return_value = MagicMock()
-#     data.tail().iloc[0].return_value = 100
-#     data.tail().iloc[1].return_value = 90
-#     data.tail().iloc[2].return_value = 80
-#     data.tail().iloc[3].return_value = 70
-#     data.tail().iloc[4].return_value = 60
-#     data.tail().iloc[5].return_value = 50
-#     data.tail().iloc[6].return_value = 40
-#     data.tail().iloc[7].return_value = 30
-#     data.tail().iloc[8].return_value = 20
-#     data.tail().iloc[9].return_value = 5
-
-#     # Create an instance of the tools class
-#     tool = tools(None, None)
-
-#     # Call the function and assert the result
-#     assert tool.validateBullishForTomorrow(data) == False
+#     assert tools_instance.validateBullishForTomorrow(data) == True
 
 # # Positive test case for validateCCI function
 # def test_validateCCI_positive():

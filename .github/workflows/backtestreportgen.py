@@ -23,7 +23,8 @@
 
 """
 import os
-from pkscreener.classes.MenuOptions import menus,MenuRenderStyle
+
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 
 m0 = menus()
 m1 = menus()
@@ -110,7 +111,7 @@ for mnu0 in cmds0:
                     p3 = mnu3.menuKey.upper()
                     f.writelines([TR_OPENER,
                               f"{TD_GENERAL}".format(str(counter)),
-                              f"{TD_GENERAL}".format(str(mnu2.menuText.strip()+" > <br />"+mnu3.menuText.strip())),
+                              f"{TD_GENERAL}".format(str(mnu1.menuText.strip()+" > <br />"+mnu2.menuText.strip()+" > <br />"+mnu3.menuText.strip())),
                               f"{TD_LINK}".format(f"{p0}_{p1}_{p2}_{p3}","backtest_result",f"{p0}_{p1}_{p2}_{p3}"),
                               f"{TD_LINK}".format(f"{p0}_{p1}_{p2}_{p3}","Summary",f"{p0}_{p1}_{p2}_{p3}"),
                               TR_CLOSER
@@ -119,7 +120,7 @@ for mnu0 in cmds0:
             else:
                 f.writelines([TR_OPENER,
                               f"{TD_GENERAL}".format(str(counter)),
-                              f"{TD_GENERAL}".format(str(mnu2.menuText.strip())),
+                              f"{TD_GENERAL}".format(str(mnu1.menuText.strip()+" > <br />"+mnu2.menuText.strip())),
                               f"{TD_LINK}".format(f"{p0}_{p1}_{p2}","backtest_result",f"{p0}_{p1}_{p2}"),
                               f"{TD_LINK}".format(f"{p0}_{p1}_{p2}","Summary",f"{p0}_{p1}_{p2}"),
                               TR_CLOSER

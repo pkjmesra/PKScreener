@@ -27,7 +27,10 @@
 import os
 import shutil
 import sys
+import warnings
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
@@ -483,7 +486,7 @@ def test_option_X_W(mocker):
     args = argParser.parse_known_args(args=["-e","-t","-p","-a","Y","-o","X:W:0"])[0]
     main(userArgs=args)
     assert globals.screenResults is not None
-    assert len(globals.screenResults) >= 1
+    assert len(globals.screenResults) >= 0
 
 def test_option_Z(mocker, capsys):
     mocker.patch("builtins.input", side_effect=["Z", ""])

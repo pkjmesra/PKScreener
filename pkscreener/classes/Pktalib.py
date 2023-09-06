@@ -22,9 +22,13 @@
     SOFTWARE.
 
 """
+import warnings
 from time import sleep
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 from pkscreener import Imports

@@ -25,8 +25,11 @@
 import datetime
 import os
 import platform
+import warnings
 from unittest.mock import ANY, Mock, patch
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytz
 

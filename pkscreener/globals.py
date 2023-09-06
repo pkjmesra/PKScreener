@@ -31,10 +31,14 @@ import logging
 import multiprocessing
 import sys
 import urllib
+import warnings
 from datetime import datetime
 from time import sleep
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
 from tabulate import tabulate
@@ -43,7 +47,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
-from pkscreener.classes import VERSION
+from pkscreener.classes import VERSION, Committer
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ColorText import colorText
@@ -951,8 +955,8 @@ def main(userArgs=None):
                     downloadOnly,
                     volumeRatio,
                     testBuild,
-                    testBuild,
-                    fillerPlaceHolder - 1,
+                    userArgs.log,
+                    fillerPlaceHolder,
                     backtestPeriod,
                     default_logger().level,
                 )
@@ -1163,6 +1167,14 @@ def runScanners(
     testing=False
 ):
     populateQueues(items, tasks_queue)
+    choices = ""
+    for choice in selectedChoice:
+        if len(selectedChoice[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{selectedChoice[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
     try:
         numStocks = len(listStockCodes) * int(iterations)
         dumpFreq = 1
@@ -1205,6 +1217,7 @@ def runScanners(
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
+                            Committer.commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
                     colorText.BOLD
@@ -1293,7 +1306,7 @@ def saveNotifyResultsFile(
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
-    if user is not None:
+    if user is not None and caption is not None:
         caption = f"{caption.replace('&',' n ')}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
         try:
@@ -1303,6 +1316,8 @@ def sendMessageToTelegramChannel(
             default_logger().debug(e, exc_info=True)
     if photo_filePath is not None:
         try:
+            if caption is not None:
+                caption = f"{caption.replace('&',' n ')}"
             send_document(photo_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
@@ -1310,7 +1325,8 @@ def sendMessageToTelegramChannel(
             default_logger().debug(e, exc_info=True)
     if document_filePath is not None:
         try:
-            caption = caption.replace('&',' n ')
+            if caption is not None:
+                caption = f"{caption.replace('&',' n ')}"
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
@@ -1412,20 +1428,9 @@ def startWorkers(consumers):
             + f"[+] Using Period:{configManager.period} and Duration:{configManager.duration} for scan! You can change this in user config."
             + colorText.END
             )
-    lenConsumers = len(consumers)
-    bar, spinner = Utility.tools.getProgressbarStyle()
-    with alive_bar(lenConsumers, bar=bar, spinner=spinner) as progressbar:
-        for worker in consumers:
-            lenConsumers -= 1
-            progressbar.text(
-                colorText.BOLD
-                + colorText.GREEN
-                + f"Starting {lenConsumers}nth worker"
-                + colorText.END
-            )
-            worker.daemon = True
-            worker.start()
-            progressbar()
+    for worker in consumers:
+        worker.daemon = True
+        worker.start()
 
 def takeBacktestInputs(
     menuOption=None, tickerOption=None, executeOption=None, backtestPeriod=0

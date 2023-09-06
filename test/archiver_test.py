@@ -25,9 +25,12 @@
 import os
 import os.path
 import tempfile
+import warnings
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 import pytz

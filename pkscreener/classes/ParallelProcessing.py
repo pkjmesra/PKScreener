@@ -31,8 +31,12 @@
 
 import logging
 import sys
+import warnings
 
 import numpy as np
+
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 import pkscreener.classes.Fetcher as Fetcher

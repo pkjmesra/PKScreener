@@ -32,6 +32,10 @@ import datetime
 import glob
 import math
 import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['AUTOGRAPH_VERBOSITY'] = '0'
+
 import pickle
 import platform
 import tempfile
@@ -51,6 +55,8 @@ if Imports["keras"]:
 import warnings
 from time import sleep
 
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
 from PIL import Image, ImageDraw, ImageFont

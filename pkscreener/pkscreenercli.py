@@ -28,6 +28,7 @@
 
 import argparse
 import builtins
+import logging
 import multiprocessing
 # Keep module imports prior to classes
 import os
@@ -36,6 +37,10 @@ import tempfile
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+try:
+    logging.getLogger("tensorflow").setLevel(logging.ERROR)
+except Exception:
+    pass
 
 def decorator(func):
     def new_func(*args, **kwargs):
@@ -66,6 +71,8 @@ from pkscreener.classes.log import default_logger
 multiprocessing.freeze_support()
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ['AUTOGRAPH_VERBOSITY'] = '0'
+
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
@@ -141,7 +148,14 @@ args = argsv[0]
 configManager = ConfigManager.tools()
 
 def logFilePath():
-    return os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    try:
+        filePath = os.path.join(os.getcwd(), "pkscreener-logs.txt")
+        f = open(filePath, "w")
+        f.write("Logger file for pkscreener!")
+        f.close()
+    except Exception:
+        filePath = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    return filePath
 
 def setupLogger(shouldLog=False, trace=False):
     if not shouldLog:
@@ -153,19 +167,9 @@ def setupLogger(shouldLog=False, trace=False):
             os.remove(log_file_path)
         except Exception:
             pass
-    print(
-        colorText.BOLD
-        + colorText.GREEN
-        + "[+] Logs will be written to:"
-        + colorText.END
-    )
-    print(colorText.BOLD + colorText.FAIL + f"[+] {log_file_path}" + colorText.END)
-    print(
-        colorText.BOLD
-        + colorText.GREEN
-        + "[+] If you need to share, open this folder, copy and zip the log file to share."
-        + colorText.END
-    )
+    print("[+] Logs will be written to:")
+    print(f"[+] {log_file_path}")
+    print("[+] If you need to share, open this folder, copy and zip the log file to share.")
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
     log.setup_custom_logger(
         "pkscreener",

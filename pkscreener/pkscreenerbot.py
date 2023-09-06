@@ -54,6 +54,7 @@ start_time = datetime.now()
 MINUTES_5_IN_SECONDS = 300
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
+from pkscreener.classes.WorkflowManager import run_workflow
 from pkscreener.Telegram import get_secrets
 
 try:
@@ -115,7 +116,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Send message with text and appended InlineKeyboard
     await update.message.reply_text(
-        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X ",
+        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X or \nbacktest with /B",
         reply_markup=reply_markup,
     )
     await context.bot.send_message(
@@ -133,6 +134,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     data = query.data.upper().replace("CX", "X").replace("CB", "B")
     if data not in ["X", "B"]:
         return start(update, context)
+    midSkip = "1" if data == "X" else "N"
     menuText = (
         m1.renderForMenu(
             m0.find(data),
@@ -143,7 +145,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 "Z",
                 "0",
                 "2",
-                "1",
+                midSkip,
                 "3",
                 "4",
                 "6",
@@ -160,7 +162,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     mns = m1.renderForMenu(
         m0.find(data),
-        skip=["W", "E", "M", "Z", "0", "2", "1", "3", "4", "6", "7", "9", "10", "13"],
+        skip=["W", "E", "M", "Z", "0", "2", midSkip, "3", "4", "6", "7", "9", "10", "13"],
         asList=True,
     )
     inlineMenus = []
@@ -187,7 +189,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     preSelection = query.data.upper().replace("CX", "X").replace("CB", "B")
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0] != "X":
+    if selection[0].upper() not in ["X","B"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -207,6 +209,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -237,6 +241,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
                     "21",
                     "22",
                     "23",
@@ -268,10 +274,82 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
+                    "14",
                     "15",
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            menuText = menuText + "\nP > Previous Options"
+            menuText = menuText + "\nM > More Options"
+            mns = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "14",
+                    "15",
+                    "16",
+                    "17",
+                    "18",
+                    "19",
+                    "20",
+                    "21",
+                    "22",
+                    "23",
+                    "24",
+                    "25",
+                    "26",
+                    "27",
+                    "28",
+                    "42",
+                    "M",
+                    "Z",
+                ],
+                asList=True,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            mns.append(menu().create("P", "Previous Options", 2))
+            mns.append(menu().create("M", "More Options", 2))
+        elif selection[2] == "M":
+            menuText = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=[
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
@@ -298,10 +376,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "5",
                     "6",
                     "7",
-                    "15",
-                    "16",
-                    "17",
-                    "18",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
                     "21",
                     "22",
                     "23",
@@ -350,6 +430,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "12",
                     "13",
                     "14",
+                    "15",
+                    "16",
+                    "17",
+                    "18",
+                    "19",
+                    "20"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
@@ -417,19 +503,25 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 
 async def launchScreener(options, user, context, optionChoices, update):
     try:
-        Popen(
-            [
-                "pkscreener",
-                "-a",
-                "Y",
-                "-e",
-                "-p",
-                "-o",
-                str(options.upper()),
-                "-u",
-                str(user.id),
-            ]
-        )
+        if str(optionChoices.upper()).startswith("X"):
+            Popen(
+                [
+                    "pkscreener",
+                    "-a",
+                    "Y",
+                    "-e",
+                    "-p",
+                    "-o",
+                    str(options.upper()),
+                    "-u",
+                    str(user.id),
+                ]
+            )
+        elif str(optionChoices.upper()).startswith("B"):
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
+            run_workflow(optionChoices,str(user.id),str(options.upper()))
     except Exception:
         await start(update, context)
 
@@ -516,14 +608,16 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     try:
         # Finally, send the message
-        await context.bot.send_message(
-            chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
-        )
+        if "telegram.error.Conflict" not in message:
+            await context.bot.send_message(
+                chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
+            )
     except Exception:
         try:
-            await context.bot.send_message(
-                chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
-            )
+            if "telegram.error.Conflict" not in tb_string:
+                await context.bot.send_message(
+                    chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
+                )
         except Exception:
             print(tb_string)
 
@@ -546,7 +640,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await XScanners(update=update, context=context)
         return START_ROUTES
     if cmd.startswith("cb"):
-        await BBacktests(update=update, context=context)
+        await XScanners(update=update, context=context)
         return START_ROUTES
     if cmd.startswith("cz"):
         await end(update=update, context=context)
@@ -558,7 +652,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if cmd == "help":
         await help_command(update=update, context=context)
         return START_ROUTES
-    if cmd == "x":
+    if cmd in ["x","b"]:
         await shareUpdateWithChannel(update=update, context=context)
         m0.renderForMenu(
             selectedMenu=None,
@@ -569,15 +663,18 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=["W", "E", "M", "Z"],
+            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for cmd in cmds:
+            if cmd in ["N","0"]:
+                continue
             cmdText = (
                 f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
             )
-        cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
+        if cmd in ["x"]:
+            cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
         """Send a message when the command /help is issued."""
         await update.message.reply_text(f"Choose an option:\n{cmdText}")
         return START_ROUTES
@@ -585,12 +682,12 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if update.message is None:
         await help_command(update=update, context=context)
         return START_ROUTES
-    if "x_0" in cmd or "x_0_0" in cmd:
+    if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         shouldScan = False
         if len(args) > 0:
             shouldScan = True
-            selection = ["X", "0", "0", f"{','.join(args)}".replace(" ", "")]
+            selection = [cmd.split("_")[0].upper(), "0", "0", f"{','.join(args)}".replace(" ", "")]
         if shouldScan:
             options = ":".join(selection)
             await launchScreener(
@@ -603,12 +700,13 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         else:
-            cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
+            if cmd in ["x"]:
+                cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
             """Send a message when the command /help is issued."""
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
 
-    if "x_" in cmd:
+    if "x_" in cmd or "b_" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         selection = cmd.split("_")
         if len(selection) == 2:
@@ -620,12 +718,12 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=["W", "E", "M", "Z"],
+                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             selectedMenu = m1.find(selection[1].upper())
-            if selectedMenu.menuKey == "N":  # Nifty prediction
+            if "x_" in cmd and selectedMenu.menuKey == "N":  # Nifty prediction
                 options = ":".join(selection)
                 await launchScreener(
                     options=options,
@@ -636,7 +734,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 )
                 await sendRequestSubmitted(cmd.upper(), update=update, context=context)
                 return START_ROUTES
-            elif selectedMenu.menuKey == "0":  # a specific stock by name
+            elif "x_" in cmd and selectedMenu.menuKey == "0":  # a specific stock by name
                 cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,)."
                 """Send a message when the command /help is issued."""
                 await update.message.reply_text(f"Choose an option:\n{cmdText}")
@@ -675,7 +773,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=["W", "E", "M", "Z"],
+                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -733,6 +831,8 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "16",
                     "17",
                     "18",
+                    "19",
+                    "20"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
@@ -779,20 +879,25 @@ async def shareUpdateWithChannel(update, context, optionChoices=""):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.callback_query is not None and abs(
-        update.callback_query.from_user.id
-    ) in [Channel_Id, GROUP_CHAT_ID]:
-        # We want to avoid sending any help message back to channel or group.
+    sentFrom = []
+    if update.callback_query is not None:
+        sentFrom.append(abs(update.callback_query.from_user.id))
+    if update.message is not None and update.message.from_user is not None:
+        sentFrom.append(abs(update.message.from_user.id))
+    if update.channel_post is not None:
+        if update.channel_post.chat is not None:
+            sentFrom.append(abs(update.channel_post.chat.id))
+        if update.channel_post.sender_chat is not None:
+            sentFrom.append(abs(update.channel_post.sender_chat.id))
+
+    if abs(int(Channel_Id)) in sentFrom or abs(int(GROUP_CHAT_ID)) in sentFrom:
+        # We want to avoid sending any help message back to channel
+        # or group in response to our own messages
         return
-    if update.message is not None and abs(update.message.from_user.id) in [
-        Channel_Id,
-        GROUP_CHAT_ID,
-    ]:
-        # We want to avoid sending any help message back to channel or group.
-        return
+
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "S", "B"],
+        skip=["S", "T", "E", "U", "Z", "S"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -823,12 +928,14 @@ def addCommandsForMenuItems(application):
         selectedMenu = m0.find(p0)
         cmds1 = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=["W", "E", "M", "Z"],
+            skip=(["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
+            if p1 in ["N","0"]:
+                continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
             cmds2 = m2.renderForMenu(
@@ -873,7 +980,7 @@ def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id
-    Channel_Id, TOKEN, chat_idADMIN = get_secrets()
+    Channel_Id, TOKEN, chat_idADMIN,GITHUB_TOKEN = get_secrets()
     # TOKEN = '1234567'
     # Channel_Id = 1001785195297
     application = Application.builder().token(TOKEN).build()
@@ -888,7 +995,7 @@ def main() -> None:
         states={
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
-                CallbackQueryHandler(BBacktests, pattern="^" + str("CB") + "$"),
+                CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
                 CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),

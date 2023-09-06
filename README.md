@@ -109,14 +109,14 @@ Followin scanners are already implemented. Others are `In Progress`
 * Download and install docker desktop: https://docs.docker.com/get-docker/
 * After installation, launch/run docker desktop and if it asks, login using your docker credentials.
 * Launch any command line and type `docker pull pkjmesra/pkscreener-debian:latest`. Then type `docker run pkjmesra/pkscreener-debian:latest python3 pkscreenercli -a Y -o X:12:10 -e` ow whatever -o options you'd like executed.
-* Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `12` is `Scanners.`. `10` `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
+* Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `10` is `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
 
 # Building from source repo
 * Install python 3.9 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
 * Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .
-* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. `pip3 install ta-lib`
+* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. `pip3 install ta-lib`. Please review additional steps to buil TA-Lib in tthe workflow files meant for your OS under .github > workflows.
 * `cd pkscreener`
 * Finally, from within the `pkscreener` directory, run `python pkscreenercli.py`. You are all set.
 
@@ -188,6 +188,10 @@ cachestockdata = y
 onlystagetwostocks = y
 useema = n
 logsEnabled = n
+generaltimeout = 2.0
+longtimeout = 4.0
+maxnetworkretrycount = 10
+backtestPeriod = 30
 ```
 Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well. You can use the toggle menu option `T` to toggle between long term and intraday config before you begin the scanners.
 
@@ -215,7 +219,7 @@ After you have finished the run, go to that copied path, zip the contents of the
 * DO NOT use the results provided by the software 'solely' to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
 * The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
-* A lot of this work is based on the work of https://github.com/pranjal-joshi/Screeni-py. A big thank you!
+* This screener began as a fork of https://github.com/pranjal-joshi/Screeni-py but has since added a lot of additional scanners, backtesting, Telegram bots, Alerts and a number of modifications and improvements.
 
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
 [wheel-badge]: https://img.shields.io/pypi/wheel/pkscreener.svg?style=flat-square
