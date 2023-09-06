@@ -78,7 +78,7 @@ jobs:
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
-        curl -o pkscreenercli.exe $exe_path
+        curl -JLO $exe_path
         rmdir /s /q actions-data-download
         mkdir actions-data-download
         pkscreenercli.exe ${{ inputs.params }}
