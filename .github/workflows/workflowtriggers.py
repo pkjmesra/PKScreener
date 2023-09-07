@@ -47,11 +47,11 @@ m1 = menus()
 m2 = menus()
 m3 = menus()
 objectDictionary = {}
-args.scans = True 
-args.user="-1001907892864" 
-args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
-args.skiplistlevel1 ="W,N,E,M,Z,0,2,3,4,5,6,7,8,9,10,11,12,13,14" 
-args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
+# args.scans = True 
+# args.user="-1001907892864" 
+# args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
+# args.skiplistlevel1 ="W,N,E,M,Z,0,2,3,4,5,6,7,8,9,10,11,12,13,14" 
+# args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
 
 if args.skiplistlevel0 is None:
     args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
