@@ -49,7 +49,7 @@ m3 = menus()
 objectDictionary = {}
 
 # args.scans = True 
-# args.user="-1001907892864" 
+# args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
 # args.skiplistlevel1 ="W,N,E,M,Z,0,2,3,4,5,6,7,8,9,10,11,12,13,14" 
 # args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
@@ -152,7 +152,7 @@ def generateBacktestReportMainPage():
     f.write(HTMLFOOTER_TEXT)
     f.close()
 
-def run_workflow(command,user,options,workflow_name,postdata):
+def run_workflow(workflow_name,postdata):
     owner, repo="pkjmesra", "PKScreener"
     ghp_token = ""
     if "GITHUB_OUTPUT" in os.environ.keys():

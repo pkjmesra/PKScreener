@@ -70,12 +70,18 @@ jobs:
         echo %cd%
         pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 
-    - name: Install Python Dependencies
+    - name: Environment setup to get latest EXE
+      shell: cmd
+      id: releaseurlsetter
       run: |
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip3 install ta-lib
-        pip install .
+        python .github/workflows/githubutilities.py -d
+
+    - name: Download latest executable
+      shell: cmd
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o pkscreenercli.exe -JL %exe_path%
       
     - name: Configure .env.dev file
       shell: bash

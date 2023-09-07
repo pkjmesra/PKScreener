@@ -41,7 +41,7 @@ on:
       user:
           description: 'Telegram user ID'
           required: false
-          default: '-1001907892864'
+          default: '-1001785195297'
       prerequisites:
           description: 'Run parameters for prerequisites'
           required: false
