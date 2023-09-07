@@ -47,6 +47,7 @@ m1 = menus()
 m2 = menus()
 m3 = menus()
 objectDictionary = {}
+
 # args.scans = True 
 # args.user="-1001907892864" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
@@ -174,9 +175,12 @@ def triggerScanWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","name":"'+f'{scanOptions}'+'"}}'
-        run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
-        sleep(5)
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+        resp = run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
+        if resp.status_code==204:
+            sleep(5)
+        else:
+            break
 
 def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
@@ -184,8 +188,11 @@ def triggerBacktestWorkflowActions():
         branch = "main"
         options = scanOptions.replace("B:,")
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
-        run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
-        sleep(5)
+        resp = run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
+        if resp.status_code==204:
+            sleep(5)
+        else:
+            break
 
 if args.report:
     generateBacktestReportMainPage()
