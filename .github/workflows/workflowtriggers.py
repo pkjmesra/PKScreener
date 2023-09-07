@@ -1,0 +1,190 @@
+"""
+    The MIT License (MIT)
+
+    Copyright (c) 2023 pkjmesra
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+"""
+import argparse
+import os
+import requests
+from time import sleep
+
+argParser = argparse.ArgumentParser()
+required = False
+argParser.add_argument("-s0","--skiplistlevel0", help="skip list of menus for level 0 menus", required=required)
+argParser.add_argument("-s1", "--skiplistlevel1", help="skip list of menus for level 1 menus", required=required)
+argParser.add_argument("-s2","--skiplistlevel2",help="skip list of menus for level 2 menus", required=required)
+argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
+argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
+argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
+
+argsv = argParser.parse_known_args()
+args = argsv[0]
+
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
+
+m0 = menus()
+m1 = menus()
+m2 = menus()
+m3 = menus()
+objectDictionary = {}
+if args.skiplistlevel0 is None:
+    args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
+if args.skiplistlevel1 is None:
+    args.skiplistlevel1 = ",".join(["W","N","E","M","Z","0","1","2","3","4","5","6","7","8","9","10","11","13"])
+if args.skiplistlevel2 is None:
+    args.skiplistlevel2 = ",".join(["0","21","22","23","24","25","26","27","28","42","M","Z"])
+if not args.report and not args.scans and not args.backtests:
+    # By default, just generate the report
+    args.report = True
+
+cmds0 = m0.renderForMenu(
+        selectedMenu=None,
+        skip=args.skiplistlevel0.split(","),
+        asList=True,
+        renderStyle=MenuRenderStyle.STANDALONE,
+    )
+counter = 1
+for mnu0 in cmds0:
+    p0 = mnu0.menuKey.upper()
+    selectedMenu = m0.find(p0)
+    cmds1 = m1.renderForMenu(
+        selectedMenu=selectedMenu,
+        skip=args.skiplistlevel1.split(","),
+        asList=True,
+        renderStyle=MenuRenderStyle.STANDALONE,
+    )
+    for mnu1 in cmds1:
+        p1 = mnu1.menuKey.upper()
+        selectedMenu = m1.find(p1)
+        cmds2 = m2.renderForMenu(
+            selectedMenu=selectedMenu,
+            skip=args.skiplistlevel2.split(","),
+            asList=True,
+            renderStyle=MenuRenderStyle.STANDALONE,
+        )
+        for mnu2 in cmds2:
+            p2 = mnu2.menuKey.upper()
+            if p2 == "0":
+                continue
+            if p2 in ["6", "7"]:
+                selectedMenu = m2.find(p2)
+                cmds3 = m3.renderForMenu(
+                    selectedMenu=selectedMenu,
+                    asList=True,
+                    renderStyle=MenuRenderStyle.STANDALONE,
+                    skip=["0"],
+                )
+                for mnu3 in cmds3:
+                    p3 = mnu3.menuKey.upper()
+                    objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip(),mnu3.menuText.strip()],
+                                                 "td3":f"{p0}_{p1}_{p2}_{p3}"}
+                    counter += 1
+            else:
+                objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip()],
+                                                 "td3":f"{p0}_{p1}_{p2}"}
+                counter += 1
+
+
+def generateBacktestReportMainPage():
+    HTMLHEAD_TEXT="""
+    <html>
+        <body>
+            <span>1. Backtest and Summary Reports for All Nifty Stocks over the last 30-trading-sessions-periods</span><br />
+            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period.</span><br />
+            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row.</span><br />
+            <span><b>Disclaimer: Only for learning purposes! Use at your own risk!</b>></span><br />
+            <table border="1px">
+                <tr>
+                    <th>Srl #</th>
+                    <th>Report Name</th>
+                    <th>Stock-wise Report</th>
+                    <th>Summary Report</th>
+                </tr>"""
+    HTMLFOOTER_TEXT = """
+            </table>
+        </body>
+    </html>
+    """
+    TR_OPENER = "\n            <tr>"
+    TR_CLOSER = "            </tr>\n"
+    TD_GENERAL="\n                <td>{}</td>"
+    TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}_{}_StockSorted.html' target='_blank'>{}</a></td>"
+
+    f = open(os.path.join(os.getcwd(),"BacktestReports.html"), "w")
+    f.write(HTMLHEAD_TEXT)
+    for key in objectDictionary.keys():
+        td2 = " > <br />".join(objectDictionary[key]["td2"])
+        td3 = objectDictionary[key]["td3"]
+        f.writelines([TR_OPENER,
+                    f"{TD_GENERAL}".format(str(key)),
+                    f"{TD_GENERAL}".format(td2),
+                    f"{TD_LINK}".format(td3,"backtest_result",td3),
+                    f"{TD_LINK}".format(td3,"Summary",td3),
+                    TR_CLOSER
+                    ])
+    f.write(HTMLFOOTER_TEXT)
+    f.close()
+
+def run_workflow(command,user,options,workflow_name,postdata):
+    owner, repo="pkjmesra", "PKScreener"
+    ghp_token = ""
+    if "GITHUB_OUTPUT" in os.environ.keys():
+        ghp_token = os.environ['GITHUB_OUTPUT']
+    url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
+    
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {ghp_token}",
+        "Content-Type": "application/json"
+    }
+    resp = requests.postURL(url, data=postdata, headers=headers)
+    if resp.status_code==204:
+        print(f"Workflow {workflow_name} Triggered!")
+    else:
+        print(f"Something went wrong while triggering {workflow_name}")
+    return resp
+
+def triggerScanWorkflowActions():
+    for key in objectDictionary.keys():
+        scanOptions = objectDictionary[key]["td3"]
+        user = "-1001907892864"
+        branch = "main"
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'-a Y -e -p -u {user} -o {scanOptions.replace("_",":")}'+'","name":"'+f'{scanOptions}'+'"}}'
+        run_workflow(scanOptions,user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
+        sleep(5)
+
+def triggerBacktestWorkflowActions():
+    for key in objectDictionary.keys():
+        scanOptions = objectDictionary[key]["td3"]
+        user = "-1001907892864"
+        branch = "main"
+        options = scanOptions.replace("B:","")
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
+        run_workflow(scanOptions,user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
+        sleep(5)
+
+if args.report:
+    generateBacktestReportMainPage()
+if args.backtests:
+    triggerBacktestWorkflowActions()
+if args.scans:
+    triggerScanWorkflowActions()
