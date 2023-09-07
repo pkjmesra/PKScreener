@@ -35,6 +35,7 @@ argParser.add_argument("-s2","--skiplistlevel2",help="skip list of menus for lev
 argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
 argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
 argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
+argParser.add_argument("-u","--user", help="Telegram user id", required=required)
 
 argsv = argParser.parse_known_args()
 args = argsv[0]
@@ -156,7 +157,7 @@ def run_workflow(command,user,options,workflow_name,postdata):
         "Authorization": f"Bearer {ghp_token}",
         "Content-Type": "application/json"
     }
-    resp = requests.postURL(url, data=postdata, headers=headers)
+    resp = requests.post(url, data=postdata, headers=headers, timeout=4)
     if resp.status_code==204:
         print(f"Workflow {workflow_name} Triggered!")
     else:
@@ -166,20 +167,18 @@ def run_workflow(command,user,options,workflow_name,postdata):
 def triggerScanWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
-        user = "-1001907892864"
         branch = "main"
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'-a Y -e -p -u {user} -o {scanOptions.replace("_",":")}'+'","name":"'+f'{scanOptions}'+'"}}'
-        run_workflow(scanOptions,user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","name":"'+f'{scanOptions}'+'"}}'
+        run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
         sleep(5)
 
 def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
-        user = "-1001907892864"
         branch = "main"
         options = scanOptions.replace("B:","")
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
-        run_workflow(scanOptions,user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
+        run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
         sleep(5)
 
 if args.report:

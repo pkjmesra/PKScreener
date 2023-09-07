@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-name: 4.1
+name: 4.1 Scan Alerts Workflow Trigger
 on:
   workflow_dispatch:
     inputs:
@@ -57,25 +57,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
-      run: |
-        python -m pip install --upgrade pip
-        cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-
     - name: Install Python Dependencies
       run: |
-        pip3 install -r requirements.txt
-        pip3 install ta-lib
-        pip3 install .
+        pip3 install pkscreener
 
     - name: Configure env.dev file
       run: |
-        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.close()"
-        python .github/workflows/workflowtriggers.py -s -s0 "S","T","E","U","Z","H","Y","B" -s1 "W","N","E","M","Z","0","2","3","4","5","6","7","8","9","10","11","12","13","14" -s2 "0","21","22","23","24","25","26","27","28","42","M","Z"
+        python .github/workflows/workflowtriggers.py -s -u "-1001907892864" -s0 "S","T","E","U","Z","H","Y","B" -s1 "W","N","E","M","Z","0","2","3","4","5","6","7","8","9","10","11","12","13","14" -s2 "0","21","22","23","24","25","26","27","28","42","M","Z"
       shell: bash
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-
-
