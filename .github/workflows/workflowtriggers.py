@@ -30,7 +30,7 @@ from time import sleep
 argParser = argparse.ArgumentParser()
 required = False
 argParser.add_argument("-s0","--skiplistlevel0", help="skip list of menus for level 0 menus", required=required)
-argParser.add_argument("-s1", "--skiplistlevel1", help="skip list of menus for level 1 menus", required=required)
+argParser.add_argument("-s1","--skiplistlevel1", help="skip list of menus for level 1 menus", required=required)
 argParser.add_argument("-s2","--skiplistlevel2",help="skip list of menus for level 2 menus", required=required)
 argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
 argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
@@ -47,12 +47,18 @@ m1 = menus()
 m2 = menus()
 m3 = menus()
 objectDictionary = {}
+args.scans = True 
+args.user="-1001907892864" 
+args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
+args.skiplistlevel1 ="W,N,E,M,Z,0,2,3,4,5,6,7,8,9,10,11,12,13,14" 
+args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
+
 if args.skiplistlevel0 is None:
     args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
 if args.skiplistlevel1 is None:
-    args.skiplistlevel1 = ",".join(["W","N","E","M","Z","0","1","2","3","4","5","6","7","8","9","10","11","13"])
+    args.skiplistlevel1 = ",".join(["W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13"])
 if args.skiplistlevel2 is None:
-    args.skiplistlevel2 = ",".join(["0","21","22","23","24","25","26","27","28","42","M","Z"])
+    args.skiplistlevel2 = ",".join(["0,21,22,23,24,25,26,27,28,42,M,Z"])
 if not args.report and not args.scans and not args.backtests:
     # By default, just generate the report
     args.report = True
@@ -176,7 +182,7 @@ def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        options = scanOptions.replace("B:","")
+        options = scanOptions.replace("B:,")
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
         run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
         sleep(5)
