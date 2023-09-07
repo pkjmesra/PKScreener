@@ -38,6 +38,10 @@ on:
           description: 'Run parameters'
           required: false
           default: '-a Y -e -o H:'
+      user:
+          description: 'Telegram user ID'
+          required: false
+          default: '-1001907892864'
       prerequisites:
           description: 'Run parameters for prerequisites'
           required: false
