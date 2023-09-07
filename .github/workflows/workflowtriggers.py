@@ -186,7 +186,7 @@ def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        options = scanOptions.replace("B:,")
+        options = scanOptions.replace("B:","")
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
         resp = run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:
