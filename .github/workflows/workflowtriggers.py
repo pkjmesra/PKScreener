@@ -148,7 +148,7 @@ def generateBacktestReportMainPage():
         td3 = objectDictionary[key]["td3"]
         f.writelines([TR_OPENER,
                     f"{TD_GENERAL}".format(str(key)),
-                    f"{TD_GENERAL}".format(td2),
+                    f"{TD_GENERAL}".format(f"{td2}{' (Intraday)' if args.intraday else ''}"),
                     f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}backtest_result",td3),
                     f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}Summary",td3),
                     TR_CLOSER
