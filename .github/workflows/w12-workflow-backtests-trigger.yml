@@ -22,27 +22,27 @@
 #     SOFTWARE.
 
 # """
-name: 4. After-Market Data Gen
+name: 12. Backtests Workflow Trigger
 on:
   workflow_dispatch:
     inputs:
       name:
         description: 'Run Details'
         required: false
-        default: 'Data Download'
+        default: 'PKScreener - Backtests Workflow Trigger'
   schedule:
-  - cron: '58 9 * * 1-5'
+  - cron: '20 10 * * 1-5'
 
 jobs:
 
-  Download_Stock_Data:
+  Backtests_Trigger:
 
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: actions-data-download
+        ref: main
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -57,45 +57,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
-      run: |
-        python -m pip install --upgrade pip
-        cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-
     - name: Install Python Dependencies
       run: |
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip3 install ta-lib
-        pip install .
+        pip3 install pkscreener
 
-    - name: Download Stock Data
-      shell: cmd
+    - name: Trigger Backtests
       run: |
-        rmdir /s /q actions-data-download
-        mkdir actions-data-download
-        python pkscreener/pkscreenercli.py -d -a Y
-        copy "stock_data_*.pkl" "actions-data-download"
-
-    - name: Push Pickle Data
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        git remote update
-        git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        git add actions-data-download/stock_data_*.pkl --force
-        git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
-        git push -v -u origin +actions-data-download
-
-    - name: Squash Commits (Python)
-      shell: cmd
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
+        python .github/workflows/workflowtriggers.py -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
+        python .github/workflows/workflowtriggers.py -b -i -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
+      shell: bash
+      env:
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}

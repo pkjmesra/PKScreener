@@ -91,6 +91,7 @@ screenResults = None
 screenResultsCounter = None
 selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
 stockDict = None
+userPassedArgs = None
 
 def finishScreening(
     downloadOnly,
@@ -492,13 +493,14 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
 
 @tracelog
 def main(userArgs=None):
-    global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, userPassedArgs , loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
     testing=False if userArgs is None else (userArgs.testbuild and userArgs.prodbuild)
     testBuild=False if userArgs is None else (userArgs.testbuild and not testing)
     downloadOnly=False if userArgs is None else userArgs.download
     startupoptions=None if userArgs is None else userArgs.options
     user=None if userArgs is None else userArgs.user
     defaultAnswer = None if userArgs is None else userArgs.answerdefault
+    userPassedArgs = userArgs
     options = []
     screenCounter = multiprocessing.Value("i", 1)
     screenResultsCounter = multiprocessing.Value("i", 0)
@@ -1341,7 +1343,7 @@ def sendTestStatus(screenResults, label, user=None):
     )
 
 def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
-    global menuChoiceHierarchy, selectedChoice
+    global menuChoiceHierarchy, selectedChoice, userPassedArgs
     if optionalName != "Summary":
         Utility.tools.clearScreen()
     pd.set_option("display.max_rows", 300)
@@ -1362,7 +1364,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         if len(selectedChoice[choice]) > 0:
             choices = f"{choices}{selectedChoice[choice]}_"
     filename = (
-        f"PKScreener_{choices}{optionalName}_{sortKey}Sorted.html"
+        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}{optionalName}_{sortKey}Sorted.html"
     )
     headerDict = {0:"<th></th>"}
     index = 1

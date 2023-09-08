@@ -44,7 +44,7 @@ def test_run_workflow_positive(mock_fetcher):
     result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
@@ -59,7 +59,7 @@ def test_run_workflow_negative(mock_fetcher):
     result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
@@ -74,7 +74,7 @@ def test_run_workflow_edge(mock_fetcher):
     result = run_workflow("command", "user","options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
-        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+        "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
@@ -90,7 +90,7 @@ def test_run_workflow_error(mock_fetcher):
         result = run_workflow("command", "user","options")
         assert result == mock_fetcher.side_effect
         mock_fetcher.assert_called_once_with(
-            "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/workflow-backtest_generic.yml/dispatches",
+            "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
             data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
             headers={
                 "Accept": "application/vnd.github+json",
