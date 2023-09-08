@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-name: 4.1 Generic runner for workflows
+name: 4.1.1 Generic runner for scan workflows
 on:
   workflow_dispatch:
     inputs:
@@ -30,10 +30,26 @@ on:
         description: 'Run Details'
         required: false
         default: 'Data Download'
+      ref:
+          description: 'ref branch'
+          required: false
+          default: 'main'
       params:
           description: 'Run parameters'
           required: false
-          default: '-d -a Y'
+          default: '-a Y -e -o H:'
+      user:
+          description: 'Telegram user ID'
+          required: false
+          default: '-1001785195297'
+      prerequisites:
+          description: 'Run parameters for prerequisites'
+          required: false
+          default: 'echo Running now'
+      postrun:
+          description: 'Run parameters for post-run'
+          required: false
+          default: 'echo Finished running'
 
 jobs:
 
@@ -44,7 +60,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: actions-data-download
+        ref: ${{ inputs.ref }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -67,40 +83,31 @@ jobs:
         echo %cd%
         pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 
-    - name: environment setup
+    - name: Environment setup to get latest EXE
       shell: cmd
       id: releaseurlsetter
       run: |
         python .github/workflows/githubutilities.py -d
 
-    - name: Download executable
+    - name: Download latest executable
       shell: cmd
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o pkscreenercli.exe -JL %exe_path%
-        rmdir /s /q actions-data-download
-        mkdir actions-data-download
-        pkscreenercli.exe ${{ inputs.params }}
-        copy "stock_data_*.pkl" "actions-data-download"
 
-    - name: Push Pickle Data
+    - name: Configure env.dev file
       run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        git remote update
-        git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        git add actions-data-download/stock_data_*.pkl --force
-        git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
-        git push -v -u origin +actions-data-download
-
-    - name: Squash Commits (Python)
+        python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+      shell: bash
+      env:
+        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+  
+    - name: Run Scan
       shell: cmd
       run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git fetch
-        git checkout -b actions-data-download origin/actions-data-download
-        python .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
+        ${{ inputs.prerequisites }}
+        pkscreenercli.exe ${{ inputs.params }}
+        ${{ inputs.postrun }}
