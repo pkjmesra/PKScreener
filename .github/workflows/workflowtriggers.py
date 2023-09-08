@@ -48,10 +48,10 @@ m2 = menus()
 m3 = menus()
 objectDictionary = {}
 
-# args.scans = True 
+# args.backtests = True 
 # args.user="-1001785195297" 
-# args.skiplistlevel0 ="S,T,E,U,Z,H,Y,B"
-# args.skiplistlevel1 ="W,N,E,M,Z,0,2,3,4,5,6,7,8,9,10,11,12,13,14" 
+# args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
+# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" 
 # args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
 
 if args.skiplistlevel0 is None:
@@ -186,7 +186,7 @@ def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        options = scanOptions.replace("B:","")
+        options = scanOptions.replace("_",":").replace("B:","")
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
         resp = run_workflow("workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:

@@ -30,8 +30,8 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Scan Alerts Trigger'
-  # schedule:
-  # - cron: '59 9 * * 1-5'
+  schedule:
+  - cron: '59 9 * * 1-5'
 
 jobs:
 
@@ -63,7 +63,7 @@ jobs:
 
     - name: Trigger Backtests
       run: |
-        python .github/workflows/workflowtriggers.py -s -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
+        python .github/workflows/workflowtriggers.py -s -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,B" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
       shell: bash
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}

@@ -70,18 +70,12 @@ jobs:
         echo %cd%
         pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 
-    - name: Environment setup to get latest EXE
-      shell: cmd
-      id: releaseurlsetter
+    - name: Install Python Dependencies
       run: |
-        python .github/workflows/githubutilities.py -d
-
-    - name: Download latest executable
-      shell: cmd
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        curl -o pkscreenercli.exe -JL %exe_path%
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip3 install ta-lib
+        pip install .
       
     - name: Configure .env.dev file
       shell: bash
@@ -90,7 +84,7 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
       run: |
-          python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+          python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
   
     - name: Send notification about this workflow trigger
       shell: bash
