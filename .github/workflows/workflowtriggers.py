@@ -36,6 +36,7 @@ argParser.add_argument("-s3","--skiplistlevel3",help="skip list of menus for lev
 argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
 argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
 argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
+argParser.add_argument("-i","--intraday", action="store_true", help="Trigger backtests for intraday if true", required=required)
 argParser.add_argument("-u","--user", help="Telegram user id", required=required)
 
 argsv = argParser.parse_known_args()
@@ -140,7 +141,7 @@ def generateBacktestReportMainPage():
     TD_GENERAL="\n                <td>{}</td>"
     TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}_{}_StockSorted.html' target='_blank'>{}</a></td>"
 
-    f = open(os.path.join(os.getcwd(),"BacktestReports.html"), "w")
+    f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
     f.write(HTMLHEAD_TEXT)
     for key in objectDictionary.keys():
         td2 = " > <br />".join(objectDictionary[key]["td2"])
@@ -148,8 +149,8 @@ def generateBacktestReportMainPage():
         f.writelines([TR_OPENER,
                     f"{TD_GENERAL}".format(str(key)),
                     f"{TD_GENERAL}".format(td2),
-                    f"{TD_LINK}".format(td3,"backtest_result",td3),
-                    f"{TD_LINK}".format(td3,"Summary",td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}backtest_result",td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}Summary",td3),
                     TR_CLOSER
                     ])
     f.write(HTMLFOOTER_TEXT)
@@ -184,7 +185,7 @@ def triggerScanWorkflowActions():
         else:
             postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
 
-        resp = run_workflow("workflow-alert-scan_generic.yml",postdata)
+        resp = run_workflow("w8-workflow-alert-scan_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
         else:
@@ -195,8 +196,8 @@ def triggerBacktestWorkflowActions():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
         options = scanOptions.replace("_",":").replace("B:","")
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
-        resp = run_workflow("workflow-backtest_generic.yml",postdata)
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'"}}'
+        resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
         else:

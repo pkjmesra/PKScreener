@@ -25,7 +25,7 @@
 # This workflows will upload a Python Package using Twine when a commit is pushed
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
-name: 11. PyPi Publish
+name: 2. PyPi Publish
 
 on:
   workflow_dispatch:
