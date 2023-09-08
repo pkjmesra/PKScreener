@@ -23,7 +23,7 @@
 
 # """
 
-name: 0. New Features - Tests
+name: 10. New Features - Tests
 env:
   package_name: pkscreener
 on:
@@ -78,13 +78,13 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   Test-Source:
-    uses: pkjmesra/PKScreener/.github/workflows/workflow-test-coverage.yml@main
+    uses: pkjmesra/PKScreener/.github/workflows/w11-workflow-test-coverage.yml@main
     with:
       branch-name: ${{ inputs.branch-name }}
     secrets: inherit
 
   Call-prod-scan-test-workflow:
-    uses: pkjmesra/PKScreener/.github/workflows/workflow-prod-scans_Tests.yml@main
+    uses: pkjmesra/PKScreener/.github/workflows/w5-workflow-prod-scans_Tests.yml@main
     with:
       branch-name: ${{ inputs.branch-name }}
     secrets: inherit

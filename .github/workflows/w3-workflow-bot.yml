@@ -22,45 +22,39 @@
 #     SOFTWARE.
 
 # """
-name: 4.1.1 Generic runner for scan workflows
+name: 3. Production Telegram bot
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: 'Run Details'
+      branch-name:
+        description: 'Branch name'
         required: false
-        default: 'Data Download'
-      ref:
-          description: 'ref branch'
-          required: false
-          default: 'main'
-      params:
-          description: 'Run parameters'
-          required: false
-          default: '-a Y -e -o H:'
-      user:
-          description: 'Telegram user ID'
-          required: false
-          default: '-1001785195297'
-      prerequisites:
-          description: 'Run parameters for prerequisites'
-          required: false
-          default: 'echo Running now'
-      postrun:
-          description: 'Run parameters for post-run'
-          required: false
-          default: 'echo Finished running'
+        default: 'main'
+  push:
+    branches: [ main ]
+  # workflow_run:
+  #   workflows: ["0. New Features - Tests"]
+  #   types:
+  #     - completed
+  workflow_call:
+    inputs:
+      branch-name:
+        required: true
+        type: string
+        default: 'new-features'
+  schedule:
+    - cron: '59 * * * *'
 
 jobs:
 
-  Generic_Workflow_Runner:
+  Prod_Telegram_Bot:
 
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: ${{ inputs.ref }}
+        ref: ${{ inputs.branch-name }}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -78,36 +72,29 @@ jobs:
     - name: Install TA-Lib
       run: |
         python -m pip install --upgrade pip
-        pip install requests
         cd .github/dependencies/
         echo %cd%
         pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 
-    - name: Environment setup to get latest EXE
-      shell: cmd
-      id: releaseurlsetter
+    - name: Install Python Dependencies
       run: |
-        python .github/workflows/githubutilities.py -d
-
-    - name: Download latest executable
-      shell: cmd
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        curl -o pkscreenercli.exe -JL %exe_path%
-
+        pip3 install -r requirements.txt
+        pip3 install ta-lib
+        pip3 install .
+        
     - name: Configure env.dev file
       run: |
-        python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.close()"
       shell: bash
       env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-  
-    - name: Run Scan
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+
+    - name: Telegram Bot
+      timeout-minutes: 100
       shell: cmd
       run: |
-        ${{ inputs.prerequisites }}
-        pkscreenercli.exe ${{ inputs.params }}
-        ${{ inputs.postrun }}
+        cd pkscreener/
+        python pkscreenerbot.py

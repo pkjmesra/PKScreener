@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-name: 1. Next day Nifty/Market AI prediction
+name: 4. Next day Nifty/Market AI prediction
 on:
   workflow_dispatch:
     inputs:

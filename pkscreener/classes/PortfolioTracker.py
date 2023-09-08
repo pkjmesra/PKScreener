@@ -171,9 +171,9 @@
 #     folioSheet.update([portfolio.columns.values.tolist()] + portfolio.values.tolist())
 
 # import warnings
-warnings.simplefilter("ignore", DeprecationWarning)
-warnings.simplefilter("ignore", FutureWarning)
-import pandas as pd
+# warnings.simplefilter("ignore", DeprecationWarning)
+# warnings.simplefilter("ignore", FutureWarning)
+# import pandas as pd
 
 # data = {'Name': ['John', 'Mary', 'Peter'],
 #         'Age': [25, 35, 30],
