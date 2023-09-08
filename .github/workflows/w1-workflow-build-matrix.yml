@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-name: 9. pkscreener Build - New Release
+name: 1. pkscreener Build - New Release
 
 on:
   # push:
@@ -244,7 +244,7 @@ jobs:
           make_latest: true
 
   Call-python-publish-workflow:
-      uses: pkjmesra/PKScreener/.github/workflows/python-publish.yml@main
+      uses: pkjmesra/PKScreener/.github/workflows/w2-workflow-python-publish.yml@main
       needs: [Build]
       with:
         branch-name: ${{ needs.Build.outputs.tag }}

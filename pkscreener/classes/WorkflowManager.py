@@ -30,7 +30,7 @@ configManager = ConfigManager.tools()
 
 def run_workflow(command,user,options):
     branch, owner, repo="main", "pkjmesra", "PKScreener"
-    workflow_name = "workflow-backtest_generic.yml"
+    workflow_name = "w13-workflow-backtest_generic.yml"
     _,_,_,ghp_token = get_secrets()
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
     
