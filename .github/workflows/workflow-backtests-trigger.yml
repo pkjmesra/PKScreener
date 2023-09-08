@@ -22,20 +22,20 @@
 #     SOFTWARE.
 
 # """
-name: 2.3 Recent breakouts and volumes
+name: 2.1 Backtests Workflow Trigger
 on:
   workflow_dispatch:
     inputs:
       name:
         description: 'Run Details'
         required: false
-        default: 'PKScreener - Scan Alerts'
+        default: 'PKScreener - Backtests Workflow Trigger'
   schedule:
-  - cron: '0 4,10 * * 1-5'
+  - cron: '59 9 * * 1-5'
 
 jobs:
 
-  Recent_Breakouts_Alert:
+  Backtests_Trigger:
 
     runs-on: windows-latest
 
@@ -57,30 +57,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
-      run: |
-        python -m pip install --upgrade pip
-        cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-
     - name: Install Python Dependencies
       run: |
-        pip3 install -r requirements.txt
-        pip3 install ta-lib
-        pip3 install .
+        pip3 install pkscreener
 
-    - name: Configure env.dev file
+    - name: Trigger Backtests
       run: |
-        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python .github/workflows/workflowtriggers.py -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
       shell: bash
       env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-
-    - name: 2.3 Recent breakouts and volumes
-      shell: cmd
-      run: |
-        cd pkscreener/
-        python pkscreenercli.py -a Y -p -o X:12:2 -e
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
