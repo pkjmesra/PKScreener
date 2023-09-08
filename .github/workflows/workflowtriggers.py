@@ -176,7 +176,7 @@ def triggerScanWorkflowActions():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
-        resp = run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-alert-scan_generic.yml",postdata)
+        resp = run_workflow("workflow-alert-scan_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
         else:
@@ -188,7 +188,7 @@ def triggerBacktestWorkflowActions():
         branch = "main"
         options = scanOptions.replace("B:","")
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}'+'"}}'
-        resp = run_workflow(scanOptions,args.user,scanOptions.replace("_",":"),"workflow-backtest_generic.yml",postdata)
+        resp = run_workflow("workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
         else:
