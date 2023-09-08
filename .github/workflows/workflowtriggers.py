@@ -155,8 +155,8 @@ def generateBacktestReportMainPage():
 def run_workflow(workflow_name,postdata):
     owner, repo="pkjmesra", "PKScreener"
     ghp_token = ""
-    if "GITHUB_OUTPUT" in os.environ.keys():
-        ghp_token = os.environ['GITHUB_OUTPUT']
+    if "GITHUB_TOKEN" in os.environ.keys():
+        ghp_token = os.environ['GITHUB_TOKEN']
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
     
     headers = {
