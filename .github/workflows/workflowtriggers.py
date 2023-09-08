@@ -32,6 +32,7 @@ required = False
 argParser.add_argument("-s0","--skiplistlevel0", help="skip list of menus for level 0 menus", required=required)
 argParser.add_argument("-s1","--skiplistlevel1", help="skip list of menus for level 1 menus", required=required)
 argParser.add_argument("-s2","--skiplistlevel2",help="skip list of menus for level 2 menus", required=required)
+argParser.add_argument("-s3","--skiplistlevel3",help="skip list of menus for level 3 menus", required=required)
 argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
 argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
 argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
@@ -60,6 +61,8 @@ if args.skiplistlevel1 is None:
     args.skiplistlevel1 = ",".join(["W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13"])
 if args.skiplistlevel2 is None:
     args.skiplistlevel2 = ",".join(["0,21,22,23,24,25,26,27,28,42,M,Z"])
+if args.skiplistlevel3 is None:
+    args.skiplistlevel3 = ",".join(["0"])
 if not args.report and not args.scans and not args.backtests:
     # By default, just generate the report
     args.report = True
@@ -99,7 +102,7 @@ for mnu0 in cmds0:
                     selectedMenu=selectedMenu,
                     asList=True,
                     renderStyle=MenuRenderStyle.STANDALONE,
-                    skip=["0"],
+                    skip=args.skiplistlevel3.split(","),
                 )
                 for mnu3 in cmds3:
                     p3 = mnu3.menuKey.upper()
@@ -175,7 +178,12 @@ def triggerScanWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+        if args.user is None or len(args.user) == 0:
+            args.user = ""
+            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+        else:
+            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+
         resp = run_workflow("workflow-alert-scan_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
