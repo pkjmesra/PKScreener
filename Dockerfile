@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-FROM python:3.9.3 as python-builder
+FROM python:3.12.0rc1 as python-builder
 ENV PYTHONUNBUFFERED 1
 ENV PYTHON_TA_LIB_VERSION 0.4.19
 
