@@ -24,8 +24,9 @@
 """
 import argparse
 import os
-import requests
 from time import sleep
+
+import requests
 
 argParser = argparse.ArgumentParser()
 required = False

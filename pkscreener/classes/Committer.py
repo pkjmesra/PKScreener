@@ -40,6 +40,7 @@ def commitTempOutcomes(reportName):
         return
     try:
         if len(os.environ['BACKTEST_NAME']) == 0 or len(os.environ['RUNNER']) == 0:
+            print("This commit does not seem to have been triggered from GitHub Action! Ignoring...")
             return
     except Exception:
         return
@@ -62,7 +63,7 @@ def commitTempOutcomes(reportName):
     execOSCommand(f"git add Backtest-Reports/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
     execOSCommand(f"git add Backtest-Reports/PKScreener_{reportName}_Summary_StockSorted.html --force")
     sleep(1)
-    execOSCommand(f"git commit -m 'GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
+    execOSCommand(f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
     execOSCommand("git push -v -u origin +gh-pages")
     sleep(3)
 
