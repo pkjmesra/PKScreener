@@ -2,11 +2,8 @@
 
 ## What's New?
 1. [v0.41] release
-* Added new scanners X>12>19 (MACD Hisotogram crossing below 0) and X>12>20 (Bullish next day)
-* Enabled intraday scans with command line parameter -i (it will just toggle the default config to intraday at launch)
-* Now backtesting can be triggered from Telegram bot (@nse_pkscreener_bot) as well. It will initiate a workflow that can publish backtest reports to gh-pages repo.
-* Many warning fixes (including those coming from tensorflow and pandas) and several other stability improvements.
-* Enabled 1-on-1 backtest update messaging for user who triggers the backtest.
+* Backtesting for intraday enabled with by default period of 5m when kicked off from github-actions trigger.
+* Access the backtest reports for short/mid/long term at https://pkjmesra.github.io/PKScreener/BacktestReports.html and for intraday at https://pkjmesra.github.io/PKScreener/BacktestReportsIntraday.html
 
 ## Older Releases
 * https://github.com/pkjmesra/PKScreener/releases
