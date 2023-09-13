@@ -196,7 +196,7 @@ def triggerBacktestWorkflowActions():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
         options = scanOptions.replace("_",":").replace("B:","")
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'"}}'
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'"}}'
         resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
