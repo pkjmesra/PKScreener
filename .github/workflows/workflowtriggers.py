@@ -51,7 +51,9 @@ m2 = menus()
 m3 = menus()
 objectDictionary = {}
 
-# args.backtests = True 
+# args.report = True 
+# args.intraday = True
+# args.backtests = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
 # args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" 
@@ -108,12 +110,18 @@ for mnu0 in cmds0:
                 )
                 for mnu3 in cmds3:
                     p3 = mnu3.menuKey.upper()
+                    p_all = f"{p0}_{p1}_{p2}_{p3}"
+                    if p_all.endswith('_'):
+                        p_all = p_all[:-1]
                     objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip(),mnu3.menuText.strip()],
-                                                 "td3":f"{p0}_{p1}_{p2}_{p3}"}
+                                                 "td3":p_all}
                     counter += 1
             else:
+                p_all = f"{p0}_{p1}_{p2}"
+                if p_all.endswith('_'):
+                    p_all = p_all[:-1]
                 objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip()],
-                                                 "td3":f"{p0}_{p1}_{p2}"}
+                                                 "td3":p_all}
                 counter += 1
 
 
@@ -140,7 +148,7 @@ def generateBacktestReportMainPage():
     TR_OPENER = "\n            <tr>"
     TR_CLOSER = "            </tr>\n"
     TD_GENERAL="\n                <td>{}</td>"
-    TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}_{}_StockSorted.html' target='_blank'>{}</a></td>"
+    TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
 
     f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
     f.write(HTMLHEAD_TEXT)
@@ -150,8 +158,8 @@ def generateBacktestReportMainPage():
         f.writelines([TR_OPENER,
                     f"{TD_GENERAL}".format(str(key)),
                     f"{TD_GENERAL}".format(f"{td2}{' (Intraday)' if args.intraday else ''}"),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}backtest_result",td3),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}Summary",td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_backtest_result",td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Summary",td3),
                     TR_CLOSER
                     ])
     f.write(HTMLFOOTER_TEXT)
