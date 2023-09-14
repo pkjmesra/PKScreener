@@ -1168,6 +1168,7 @@ def runScanners(
     backtest_df,
     testing=False
 ):
+    global userPassedArgs
     populateQueues(items, tasks_queue)
     choices = ""
     for choice in selectedChoice:
@@ -1177,6 +1178,7 @@ def runScanners(
             choices = f"{choices}{selectedChoice[choice]}"
     if choices.endswith('_'):
         choices = choices[:-1]
+    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
     try:
         numStocks = len(listStockCodes) * int(iterations)
         dumpFreq = 1
@@ -1360,11 +1362,16 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
     choices = ""
+    choices = ""
     for choice in selectedChoice:
         if len(selectedChoice[choice]) > 0:
-            choices = f"{choices}{selectedChoice[choice]}_"
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{selectedChoice[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
     filename = (
-        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}{optionalName}_{sortKey}Sorted.html"
+        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}_{optionalName}_{sortKey}Sorted.html"
     )
     headerDict = {0:"<th></th>"}
     index = 1
