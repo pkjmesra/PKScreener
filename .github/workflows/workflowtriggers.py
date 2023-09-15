@@ -43,9 +43,8 @@ argParser.add_argument("-u","--user", help="Telegram user id", required=required
 argsv = argParser.parse_known_args()
 args = argsv[0]
 
-from PKDevTools.classes.MenuOptions import MenuRenderStyle
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 
-from pkscreener.classes.MenuOptions import menus
 
 m0 = menus()
 m1 = menus()
