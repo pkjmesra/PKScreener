@@ -39,6 +39,7 @@ try:
     sys.path.append(os.path.abspath("pkscreener"))
 except Exception:
     print("This test must be run from the root of the project!")
+from PKDevTools.classes.MenuOptions import MenuRenderStyle
 from requests_cache import CachedSession
 
 import pkscreener.classes.ConfigManager as ConfigManager
@@ -46,7 +47,7 @@ import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.log import default_logger
-from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
+from pkscreener.classes.MenuOptions import menus
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
