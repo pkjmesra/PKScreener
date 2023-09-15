@@ -213,11 +213,11 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]:https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge
 [MADE-IN-INDIA]:https://en.wikipedia.org/wiki/India
 [Windows-badge]:https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white
-[Windows]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230915.43/pkscreenercli.exe
+[Windows]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230908.42/pkscreenercli.exe
 [Linux-badge]:https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black
-[Linux]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230915.43/pkscreenercli.bin
+[Linux]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230908.42/pkscreenercli.bin
 [Mac OS-badge]:https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000
-[Mac OS]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230915.43/pkscreenercli.run
+[Mac OS]:https://github.com/pkjmesra/PKScreener/releases/download/0.41.20230908.42/pkscreenercli.run
 [GitHub release (latest by date)-badge]:https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge
 [GitHub release (latest by date)]:https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
