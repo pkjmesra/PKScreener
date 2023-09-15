@@ -118,7 +118,6 @@ jobs:
         git fetch
         git checkout -b gh-pages origin/gh-pages
         git pull
-        git pull
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
