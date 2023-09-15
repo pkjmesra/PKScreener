@@ -59,18 +59,18 @@ jobs:
 
     - name: Install Python Dependencies
       run: |
-        pip3 install PKDevTools
+        pip3 install pkscreener
 
     - name: Trigger Intraday Backtests
       run: |
-        pkdevtools_workflowmanager.exe -o pkjmesra -R PKScreener -b -i -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
-      shell: cmd
+        python .github/workflows/workflowtriggers.py -b -i -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
+      shell: bash
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
     - name: Trigger Backtests
       run: |
-        pkdevtools_workflowmanager.exe -o pkjmesra -R PKScreener -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
-      shell: cmd
+        python .github/workflows/workflowtriggers.py -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,23,24,25,26,27,28,42,M,Z"
+      shell: bash
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}

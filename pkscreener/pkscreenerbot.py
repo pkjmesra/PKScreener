@@ -53,9 +53,8 @@ from telegram.constants import ParseMode
 start_time = datetime.now()
 MINUTES_5_IN_SECONDS = 300
 
-from PKDevTools.classes.MenuOptions import MenuRenderStyle
+from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
 
-from pkscreener.classes.MenuOptions import menu, menus
 from pkscreener.classes.WorkflowManager import run_workflow
 from pkscreener.Telegram import get_secrets
 
