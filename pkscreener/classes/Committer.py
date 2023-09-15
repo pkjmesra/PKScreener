@@ -25,7 +25,6 @@
 # import argparse
 import os
 import platform
-from time import sleep
 
 # argParser = argparse.ArgumentParser()
 # required = False
@@ -45,27 +44,17 @@ def commitTempOutcomes(reportName):
     except Exception:
         return
 
-    # execOSCommand("rmdir /s /q Backtest-Reports")
-    # sleep(1)
-    # execOSCommand("mkdir Backtest-Reports")
     execOSCommand(f"copy {os.path.join(os.getcwd(),'PKScreener_*.html')} {os.path.join(os.getcwd(),'Backtest-Reports')}")
-    # sleep(1)
     execOSCommand("git config user.name github-actions")
     execOSCommand("git config user.email github-actions@github.com")
     execOSCommand("git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'")
     execOSCommand("git remote update")
     execOSCommand("git fetch")
-    # sleep(1)
-    # execOSCommand("git checkout -b gh-pages origin/gh-pages")
-    # sleep(1)
     execOSCommand("git pull")
-    # sleep(2)
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Summary_StockSorted.html --force")
-    # sleep(1)
     execOSCommand(f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
     execOSCommand("git push -v -u origin +gh-pages")
-    # sleep(3)
 
 def execOSCommand(command):
     try:

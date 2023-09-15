@@ -29,6 +29,7 @@ pandas #==1.3.5 # Installed as dependency for yfinance
 pandas_ta
 # pickle
 Pillow==9.5.0
+PKDevTools
 # platform
 python-dotenv
 python-telegram-bot
