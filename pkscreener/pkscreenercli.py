@@ -69,10 +69,9 @@ from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
 
 multiprocessing.freeze_support()
-
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ['AUTOGRAPH_VERBOSITY'] = '0'
-
+from pkscreener.classes.IntradayMonitor import intradayMonitor
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
@@ -106,6 +105,13 @@ argParser.add_argument(
     "-i",
     "--intraday",
     help="Use Intraday configurations and use the candlestick duration that is passed. Acceptabel values 1m, 5m, 15m, 1h etc.",
+    required=False,
+)
+argParser.add_argument(
+    "-m",
+    "--monitor",
+    action="store_true",
+    help="Monitor for intraday scanners and their results.",
     required=False,
 )
 argParser.add_argument(
@@ -210,6 +216,11 @@ def pkscreenercli():
         configManager.setConfig(
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
+    if args.monitor:
+        Utility.tools.clearScreen()
+        im = intradayMonitor()
+        im.monitor()
+        sys.exit(0)
     if args.intraday:
         configManager.toggleConfig(candleDuration=args.intraday)
     if args.options is not None and str(args.options) == "0":

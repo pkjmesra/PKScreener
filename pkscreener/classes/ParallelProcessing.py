@@ -79,6 +79,7 @@ class StockConsumer:
         backtestDuration=0,
         backtestPeriodToLookback=30,
         logLevel=logging.NOTSET,
+        monitoring=False,
         hostRef=None,
     ):
         assert (
@@ -199,7 +200,7 @@ class StockConsumer:
                 screeningDictionary["Stock"] = (
                     colorText.BOLD
                     + colorText.BLUE
-                    + f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\"
+                    + (stock if monitoring else f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
                     + colorText.END
                 )
                 saveDictionary["Stock"] = stock

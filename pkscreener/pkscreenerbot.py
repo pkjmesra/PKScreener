@@ -54,7 +54,6 @@ start_time = datetime.now()
 MINUTES_5_IN_SECONDS = 300
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
-
 from pkscreener.classes.WorkflowManager import run_workflow
 from pkscreener.Telegram import get_secrets
 
