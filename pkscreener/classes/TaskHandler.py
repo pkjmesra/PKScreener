@@ -11,6 +11,36 @@ from pkscreener.classes.log import default_logger
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from pkscreener.classes.TaskInputs import taskInputs
+# import copyreg as copy_reg
+# import types
+# def _pickle_method(method):
+#     attached_object = method.im_self or method.im_class
+#     func_name = method.im_func.func_name
+
+#     if func_name.startswith('__'):
+#         func_name = filter(lambda method_name: method_name.startswith('_') and method_name.endswith(func_name), dir(attached_object))[0]
+
+#     return (getattr, (attached_object, func_name))
+
+# copy_reg.pickle(types.MethodType, _pickle_method)
+# from copyreg import pickle
+# from types import MethodType
+
+# def _pickle_method(method):
+#     func_name = method.im_func.__name__
+#     obj = method.im_self
+#     cls = method.im_class
+#     return _unpickle_method, (func_name, obj, cls)
+
+# def _unpickle_method(func_name, obj, cls):
+#     for cls in cls.mro():
+#         try:
+#             func = cls.__dict__[func_name]
+#         except KeyError:
+#             pass
+#         else:
+#             break
+#     return func.__get__(obj, cls)
 
 # usage: pkscreenercli.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
 # pkscreenercli.exe: error: unrecognized arguments: --multiprocessing-fork parent_pid=4620 pipe_handle=708
@@ -31,28 +61,53 @@ configManager = ConfigManager.tools()
 
 class taskHandler:
     def __init__(self,executeOption=None,siblingsCount=1,configManager=None,stocks=[],
-                 stockDict=None,containerName=None,containerTitle=None,dataCallbackHandler=None,progressCallbackHandler=None):
+                 stockDict=None,containerName=None,containerTitle=None):
         self.executeOption = executeOption
         self.siblingsCount = siblingsCount
         self.stocks = stocks
         self.containerName = containerName
         self.containerTitle = containerTitle
         self.stockDict = stockDict
+        self.screenCounter = None
+        self.screenResultsCounter = None
+        self.running = False
+        self.dataCallbackHandler = None
+        self.progressCallbackHandler = None
+        self.keyboardInterruptEvent = None
+        self.configManager = configManager
+        self.fetcher = None
+        self.inputParams = None
+        self.tasks_queue,self.results_queue,self.processCount = None, None, None
+        self.processors = None
+
+    def handlerTickParams(self):
+        return (self.executeOption,
+                self.siblingsCount,
+                self.configManager,
+                self.containerName,
+                self.containerTitle,
+            )
+    
+    def tick(self,executeOption=None,siblingsCount=1,configManager=None,
+                 containerName=None,containerTitle=None, hostRef=None):
+        self.executeOption = executeOption
+        self.siblingsCount = siblingsCount
+        self.configManager = configManager
+        self.stocks = hostRef.stockList
+        self.containerName = containerName
+        self.containerTitle = containerTitle
+        self.stockDict = hostRef.objectDictionary
         self.screenCounter = multiprocessing.Value("i", 1)
         self.screenResultsCounter = multiprocessing.Value("i", 0)
         self.running = False
-        self.dataCallbackHandler = dataCallbackHandler
-        self.progressCallbackHandler = progressCallbackHandler
-        self.keyboardInterruptEvent = multiprocessing.Manager().Event()
-        self.configManager = configManager
+        self.dataCallbackHandler = hostRef.dataCallbackHandler
+        self.progressCallbackHandler = hostRef.progressCallbackHandler
+        self.keyboardInterruptEvent = hostRef.keyboardInterruptEvent
         self.fetcher = Fetcher.tools(self.configManager)
         self.inputParams = self._taskInputsForScan()
-        self.tasks_queue,self.results_queue,self.processCount = self._processorAndQueuePair(len(stocks))
+        self.tasks_queue,self.results_queue,self.processCount = self._processorAndQueuePair(len(self.stocks))
         self.processors = self._processors()
-
-    def tick(self):
-        self.screenCounter = multiprocessing.Value("i", 1)
-        self.screenResultsCounter = multiprocessing.Value("i", 0)
+        self.hostRef = hostRef
         self.screenResults,self.saveResults = self._initDataframes()
         self._startWorkers()
         self._populateTaskQueue()
@@ -133,8 +188,9 @@ class taskHandler:
                     self.screenResults = pd.concat([df_extendedscreen, self.screenResults],
                                                    ignore_index=True) if len(self.screenResults) > 0 else df_extendedscreen
                     self.dataCallbackHandler(self.screenResults[["Stock","%Chng","Volume","LTP"]],self.containerName,self.containerTitle)
+                    # self.dataCallbackHandler(result[0],self.containerName,self.containerTitle)
                 numStocks -= 1
-                self.progressCallbackHandler(f"[{colorText.GREEN}{len(self.stocks)-numStocks}{colorText.END}/{colorText.FAIL}{len(self.stocks)}{colorText.END} Done]. Found {colorText.GREEN}{len(self.screenResults)}{colorText.END} Stocks.",
+                self.progressCallbackHandler(f"[{colorText.GREEN}{len(self.stocks)-numStocks}{colorText.END}/{colorText.FAIL}{len(self.stocks)}{colorText.END} Done]. Found {colorText.GREEN}{len(lstscreen)}{colorText.END} Stocks.",
                                              self.containerName)
         except KeyboardInterrupt:
             try:

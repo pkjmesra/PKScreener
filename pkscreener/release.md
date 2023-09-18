@@ -2,6 +2,7 @@
 
 ## What's New?
 1. [v0.41] release
+* Intraday monitor is now added. You can now monitor upto six different intraday monitors.
 * Backtesting for intraday enabled with by default period of 5m when kicked off from github-actions trigger. This will ensure we can now truly test if the set-up really works for intraday scans or not :-)
 * Access the backtest reports for short/mid/long term at https://pkjmesra.github.io/PKScreener/BacktestReports.html and for intraday at https://pkjmesra.github.io/PKScreener/BacktestReportsIntraday.html
 
