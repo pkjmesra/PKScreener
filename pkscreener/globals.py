@@ -958,9 +958,10 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    fillerPlaceHolder,
-                    backtestPeriod,
+                    (fillerPlaceHolder if menuOption == "B" else 0),
+                    (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
+                    False,
                 )
                 for stock in listStockCodes
             ]
@@ -1154,6 +1155,19 @@ def removeUnknowns(screenResults, saveResults):
         ]
     return screenResults, saveResults
 
+def userReportName(userMenuOptions):
+    global userPassedArgs
+    choices = ""
+    for choice in userMenuOptions:
+        if len(userMenuOptions[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{userMenuOptions[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
+    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    return choices
+
 def runScanners(
     menuOption,
     items,
@@ -1168,17 +1182,9 @@ def runScanners(
     backtest_df,
     testing=False
 ):
-    global userPassedArgs
+    global selectedChoice
     populateQueues(items, tasks_queue)
-    choices = ""
-    for choice in selectedChoice:
-        if len(selectedChoice[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{selectedChoice[choice]}"
-    if choices.endswith('_'):
-        choices = choices[:-1]
-    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    choices = userReportName(selectedChoice)
     try:
         numStocks = len(listStockCodes) * int(iterations)
         dumpFreq = 1

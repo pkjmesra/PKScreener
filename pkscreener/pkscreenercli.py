@@ -26,6 +26,19 @@
 # Pyinstaller compile Windows: pyinstaller --onefile --icon=pkscreener\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
 # Pyinstaller compile Linux  : pyinstaller --onefile --icon=pkscreener/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress
 
+# import copyreg as copy_reg
+# import types
+# def _pickle_method(method):
+#     attached_object = method.im_self or method.im_class
+#     func_name = method.im_func.func_name
+
+#     if func_name.startswith('__'):
+#         func_name = filter(lambda method_name: method_name.startswith('_') and method_name.endswith(func_name), dir(attached_object))[0]
+
+#     return (getattr, (attached_object, func_name))
+
+# copy_reg.pickle(types.MethodType, _pickle_method)
+
 import argparse
 import builtins
 import logging
@@ -69,10 +82,9 @@ from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
 
 multiprocessing.freeze_support()
-
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ['AUTOGRAPH_VERBOSITY'] = '0'
-
+from pkscreener.classes.IntradayMonitor import intradayMonitorInstance
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
@@ -106,6 +118,13 @@ argParser.add_argument(
     "-i",
     "--intraday",
     help="Use Intraday configurations and use the candlestick duration that is passed. Acceptabel values 1m, 5m, 15m, 1h etc.",
+    required=False,
+)
+argParser.add_argument(
+    "-m",
+    "--monitor",
+    action="store_true",
+    help="Monitor for intraday scanners and their results.",
     required=False,
 )
 argParser.add_argument(
@@ -210,6 +229,10 @@ def pkscreenercli():
         configManager.setConfig(
             ConfigManager.parser, default=True, showFileCreatedText=False
         )
+    if args.monitor:
+        Utility.tools.clearScreen()
+        intradayMonitorInstance.monitor()
+        sys.exit(0)
     if args.intraday:
         configManager.toggleConfig(candleDuration=args.intraday)
     if args.options is not None and str(args.options) == "0":

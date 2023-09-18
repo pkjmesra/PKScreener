@@ -45,7 +45,6 @@ args = argsv[0]
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 
-
 m0 = menus()
 m1 = menus()
 m2 = menus()
