@@ -65,11 +65,7 @@ class StockConsumer:
         respChartPattern,
         insideBarToLookback,
         totalSymbols,
-        configManager,
         shouldCache,
-        fetcher,
-        screener,
-        candlePatterns,
         stock,
         newlyListedOnly,
         downloadOnly,
@@ -88,6 +84,10 @@ class StockConsumer:
         screeningDictionary, saveDictionary = self.initResultDictionaries()
         fullData = None
         processedData = None
+        configManager = hostRef.configManager
+        fetcher = hostRef.fetcher
+        screener = hostRef.screener
+        candlePatterns = hostRef.candlePatterns
         try:
             self.setupLoggers(hostRef, screener, logLevel, stock)
             period = configManager.period

@@ -415,7 +415,7 @@ class tools:
                 )
         return nextRun
 
-    def afterMarketStockDataExists():
+    def afterMarketStockDataExists(intraday=False):
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         cache_date = curr  # for monday to friday
@@ -427,16 +427,17 @@ class tools:
         if weekday == 5 or weekday == 6:  # for saturday and sunday
             cache_date = curr - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
-        cache_file = "stock_data_" + str(cache_date) + ".pkl"
+        pattern = f"{'intraday_' if intraday else ''}stock_data_"
+        cache_file = pattern + str(cache_date) + ".pkl"
         exists = False
-        for f in glob.glob("stock_data*.pkl"):
+        for f in glob.glob(f"{pattern}*.pkl"):
             if f.endswith(cache_file):
                 exists = True
                 break
         return exists, cache_file
 
     def saveStockData(stockDict, configManager, loadCount):
-        exists, cache_file = tools.afterMarketStockDataExists()
+        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
 
@@ -465,7 +466,7 @@ class tools:
         defaultAnswer=None,
         retrial=False,
     ):
-        exists, cache_file = tools.afterMarketStockDataExists()
+        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
@@ -764,7 +765,7 @@ class tools:
                         print(
                             colorText.BOLD
                             + colorText.FAIL
-                            + "\n[!] Invalid Input! MA Lenght should be single integer value!\n"
+                            + "\n[!] Invalid Input! MA Length should be single integer value!\n"
                             + colorText.END
                         )
                         raise ValueError
