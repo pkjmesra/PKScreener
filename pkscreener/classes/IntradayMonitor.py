@@ -17,7 +17,6 @@ except ImportError:
     input("Exiting now...")
     sys.exit(0)
 
-from multiprocessing import Process
 from datetime import datetime
 from time import sleep
 
@@ -50,40 +49,58 @@ class Clock:
         return Text(f"PKScreener Intraday Monitor ({ist.ctime()} IST)", style="bold magenta", justify="center")
 
 class ProgressFooter:
-    def __init__(self,progressText,panelName):
+    def __init__(self,progressText,panelName,handler=None):
         self.progressText = progressText
         self.panelName = panelName
+        self.handler = handler
 
     def progressCallback(self,progressText,panelName):
         self.progressText = progressText
 
     """Renders the time at the top of the screen."""
     def __rich__(self) -> Align:
-        return Align.left(Text(f"{self.progressText}",justify="left"),vertical="top")
+        return Align.left(Text(f"{self.progressText} Processing {self.handler.screenCounter}. Found {self.handler.screenResultsCounter}",justify="left"),vertical="top")
 
 class DataPanelUpdater:
-    def __init__(self,screenedResults,panelName,panelTitle):
+    def __init__(self,screenedResults,panelName,panelTitle,data_result_queue=None, width=None):
         self.screenedResults = screenedResults
         self.panelTitle = panelTitle
         self.panelName = panelName
+        self.data_result_queue = data_result_queue
+        self.width = width
 
     def dataCallback(self,screenedResults,panelName,panelTitle):
         self.screenedResults = screenedResults
 
     """Renders the time at the top of the screen."""
     def __rich__(self) -> Panel:
+        if self.data_result_queue is not None:
+            results = self.data_result_queue.get()
+            if results is not None:
+                self.screenedResults = results
         if self.screenedResults is None or len(self.screenedResults) == 0:
             return Panel("",title=f"{colorText.GREEN}{self.panelTitle}{colorText.END}", border_style="blue",
-                                                 expand=False)
-        self.screenedResults.set_index("Stock", inplace=True)
-        self.screenedResults.loc[:, "Volume"] = self.screenedResults.loc[:, "Volume"].apply(
-            lambda x: Utility.tools.formatRatio(x, self.configManager.volumeRatio)
+                                                 expand=True, width=self.width)
+        if "Stock" in self.screenedResults.columns: 
+            self.screenedResults.set_index("Stock", inplace=True)
+        if "Volume" in self.screenedResults.columns: 
+            self.screenedResults.loc[:, "Volume"] = self.screenedResults.loc[:, "Volume"].apply(
+            lambda x: Utility.tools.formatRatio(x, 2.5)
         )
-        # self.layout[panelName].update(f'{self.console.print(tabulate(screenedResults,headers="keys", tablefmt="psql"))}')
-        return Panel(f'{tabulate(self.screenedResults,headers="keys", tablefmt="psql")}',
-                                                #  overflow="ellipsis",no_wrap=True,end=""),
-                                                 title=f"{colorText.GREEN}{self.panelTitle}{colorText.END}", border_style="blue",
-                                                 expand=False)
+        return Panel(
+                        Align.center(
+                            Text(
+                                f'{tabulate(self.screenedResults,headers="keys", tablefmt="heavy_grid",numalign="center",stralign="left",maxcolwidths=[25,15,15,None])}',
+                                justify="left",
+                            ),
+                            vertical="top",
+                        ),
+                        title=f"{colorText.GREEN}{self.panelTitle}{colorText.END}", border_style="blue",width=self.width,
+                    )
+        # return Panel(f'{tabulate(self.screenedResults,headers="keys", tablefmt="psql",numalign="center",stralign="left")}',
+        #                                         #  overflow="ellipsis",no_wrap=True,end=""),
+        #                                          title=f"{colorText.GREEN}{self.panelTitle}{colorText.END}", border_style="blue",
+        #                                          expand=False,width=self.width)
     
 class intradayMonitor:
     def __init__(self):
@@ -158,12 +175,21 @@ class intradayMonitor:
         self.keyboardInterruptEvent = multiprocessing.Manager().Event()
         self.addTaskHandlers()
         self.layout["header"].update(Clock())
-        with Live(self.layout,auto_refresh=True,screen=True,redirect_stderr=False,refresh_per_second=2):
+        with Live(self.layout,auto_refresh=True,screen=False,redirect_stderr=False,refresh_per_second=.5):
             try:
+                for th in self.taskHandlers:
+                    pf1 = ProgressFooter("", f'{th["key"].containerName}_footer',th["key"])
+                    self.layout[f'{th["key"].containerName}_footer'].update(pf1)
+                    pd1 = DataPanelUpdater(None,th["key"].containerName,th["key"].containerTitle,th["value"].result_queue)
+                    self.layout[th["key"].containerName].update(pd1)
                 while True:
                     self.counter = 60
                     for th in self.taskHandlers:
+                        # th.tick()
+                        # Lets start a new process for each widget
                         th["value"].task_queue.put(th["key"].handlerTickParams())
+                        # Each process thread should be able to wrap up and finish to get ready to join.
+                        th["value"].task_queue.put(None)
                     while self.counter > 0:
                         self.counter -= 1
                         sleep(1)
@@ -196,39 +222,37 @@ class intradayMonitor:
 
     def addTaskHandlers(self):
         containerLayouts = ["left_top","left_bottom",
-                            "middle_top","middle_bottom",
-                            "right_top","right_bottom"]
+                            # "middle_top","middle_bottom",
+                            # "right_top","right_bottom"
+                            ]
         containerWidgets = ["5 min Volume breakout","left_bottom Widget",
                     "middle_top Widget","middle_bottom Widget",
                     "right_top Widget","right_bottom Widget"]
         itemCounter = 0
         for item in containerLayouts:
-            t1,p1 = self.getNewTask(containerLayouts[itemCounter],containerWidgets[itemCounter])
+            t1,p1 = self.getNewTask(containerLayouts[itemCounter],containerWidgets[itemCounter],len(containerLayouts))
             itemCounter += 1
             self.taskHandlers.append({"key":t1,"value":p1})
 
-    def getNewTask(self, layoutName, widgetName):
+    def getNewTask(self, layoutName, widgetName,siblings=1):
         stocks = self.listStockCodes
-        pf1 = ProgressFooter("", f"{layoutName}_footer")
-        self.layout[f"{layoutName}_footer"].update(pf1)
-        pd1 = DataPanelUpdater(None,layoutName,widgetName)
-        self.layout[layoutName].update(pd1)
-        t1 = taskHandler(executeOption=11,siblingsCount=2,configManager=self.configManager,
-                        containerName=layoutName,containerTitle=widgetName)
         tasks_queue = multiprocessing.JoinableQueue()
+        results_queue = multiprocessing.Queue()
+        t1 = taskHandler(executeOption=(11 if layoutName=="left_top" else 12),siblingsCount=siblings,configManager=self.configManager,
+                        containerName=layoutName,containerTitle=widgetName)
         p1 = PKMultiProcessorClient(
                 t1.tick,
                 tasks_queue,
-                None,
-                None,
-                None,
+                results_queue,
+                t1.screenCounter,
+                t1.screenResultsCounter,
                 self.stockDict,
                 None,
                 self.keyboardInterruptEvent,
                 default_logger(),
                 stocks,
-                pd1.dataCallback,
-                pf1.progressCallback
+                # pd1.dataCallback,
+                # pf1.progressCallback
             )
         p1.daemon = False
         p1.start()

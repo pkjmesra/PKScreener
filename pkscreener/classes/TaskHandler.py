@@ -11,36 +11,6 @@ from pkscreener.classes.log import default_logger
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from pkscreener.classes.TaskInputs import taskInputs
-# import copyreg as copy_reg
-# import types
-# def _pickle_method(method):
-#     attached_object = method.im_self or method.im_class
-#     func_name = method.im_func.func_name
-
-#     if func_name.startswith('__'):
-#         func_name = filter(lambda method_name: method_name.startswith('_') and method_name.endswith(func_name), dir(attached_object))[0]
-
-#     return (getattr, (attached_object, func_name))
-
-# copy_reg.pickle(types.MethodType, _pickle_method)
-# from copyreg import pickle
-# from types import MethodType
-
-# def _pickle_method(method):
-#     func_name = method.im_func.__name__
-#     obj = method.im_self
-#     cls = method.im_class
-#     return _unpickle_method, (func_name, obj, cls)
-
-# def _unpickle_method(func_name, obj, cls):
-#     for cls in cls.mro():
-#         try:
-#             func = cls.__dict__[func_name]
-#         except KeyError:
-#             pass
-#         else:
-#             break
-#     return func.__get__(obj, cls)
 
 # usage: pkscreenercli.exe [-h] [-a ANSWERDEFAULT] [-c CRONINTERVAL] [-d] [-e] [-o OPTIONS] [-p] [-t] [-l] [-v]
 # pkscreenercli.exe: error: unrecognized arguments: --multiprocessing-fork parent_pid=4620 pipe_handle=708
@@ -67,6 +37,7 @@ class taskHandler:
         self.stocks = stocks
         self.containerName = containerName
         self.containerTitle = containerTitle
+        self.data_result_queue = None
         self.stockDict = stockDict
         self.screenCounter = None
         self.screenResultsCounter = None
@@ -89,13 +60,14 @@ class taskHandler:
             )
     
     def tick(self,executeOption=None,siblingsCount=1,configManager=None,
-                 containerName=None,containerTitle=None, hostRef=None):
+                 containerName=None,containerTitle=None,hostRef=None):
         self.executeOption = executeOption
         self.siblingsCount = siblingsCount
         self.configManager = configManager
         self.stocks = hostRef.stockList
         self.containerName = containerName
         self.containerTitle = containerTitle
+        self.data_result_queue = hostRef.result_queue
         self.stockDict = hostRef.objectDictionary
         self.screenCounter = multiprocessing.Value("i", 1)
         self.screenResultsCounter = multiprocessing.Value("i", 0)
@@ -132,6 +104,8 @@ class taskHandler:
     def _populateTaskQueue(self):
         for item in self.inputParams:
             self.tasks_queue.put(item)
+        for _ in self.processors:
+            self.tasks_queue.put(None)
 
     def _processors(self):
         processors = [
@@ -179,18 +153,25 @@ class taskHandler:
         try:
             numStocks = len(self.stocks)
             lstscreen = []
+            lstsave = []
             while numStocks:
                 result = self.results_queue.get()
                 if result is not None:
                     lstscreen.insert(0,result[0])
+                    lstsave.append(result[1])
                     # create extension
                     df_extendedscreen = pd.DataFrame(lstscreen, columns=self.screenResults.columns)
+                    df_extendedsave = pd.DataFrame(lstsave, columns=self.saveResults.columns)
+                    df_extendedscreen['   LTP   '] = df_extendedsave['LTP']
                     self.screenResults = pd.concat([df_extendedscreen, self.screenResults],
                                                    ignore_index=True) if len(self.screenResults) > 0 else df_extendedscreen
-                    self.dataCallbackHandler(self.screenResults[["Stock","%Chng","Volume","LTP"]],self.containerName,self.containerTitle)
+                    # if self.dataCallbackHandler is not None:
+                        # self.dataCallbackHandler(self.screenResults[["Stock","%Chng","Volume","LTP"]],self.containerName,self.containerTitle)
+                    self.data_result_queue.put(self.screenResults[["Stock","%Chng","Volume","   LTP   "]])
                     # self.dataCallbackHandler(result[0],self.containerName,self.containerTitle)
                 numStocks -= 1
-                self.progressCallbackHandler(f"[{colorText.GREEN}{len(self.stocks)-numStocks}{colorText.END}/{colorText.FAIL}{len(self.stocks)}{colorText.END} Done]. Found {colorText.GREEN}{len(lstscreen)}{colorText.END} Stocks.",
+                if self.progressCallbackHandler is not None:
+                    self.progressCallbackHandler(f"[{colorText.GREEN}{len(self.stocks)-numStocks}{colorText.END}/{colorText.FAIL}{len(self.stocks)}{colorText.END} Done]. Found {colorText.GREEN}{len(lstscreen)}{colorText.END} Stocks.",
                                              self.containerName)
         except KeyboardInterrupt:
             try:
