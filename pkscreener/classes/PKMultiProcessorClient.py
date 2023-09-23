@@ -57,6 +57,9 @@ class PKMultiProcessorClient(multiprocessing.Process):
         proxyServer,
         keyboardInterruptEvent,
         defaultLogger,
+        stockList=None,
+        dataCallbackHandler=None,
+        progressCallbackHandler=None,
     ):
         multiprocessing.Process.__init__(self)
         self.multiprocessingForWindows()
@@ -64,7 +67,7 @@ class PKMultiProcessorClient(multiprocessing.Process):
             processorMethod is not None
         ), "processorMethod argument must not be None. This is the meyhod that will do the processing."
         assert task_queue is not None, "task_queue argument must not be None."
-        assert result_queue is not None, "result_queue argument must not be None."
+        assert (result_queue is not None or dataCallbackHandler is not None), "result_queue or dataCallbackHandler argument must not be None."
         self.processorMethod = processorMethod
         self.task_queue = task_queue
         self.result_queue = result_queue
@@ -89,31 +92,41 @@ class PKMultiProcessorClient(multiprocessing.Process):
 
         self.keyboardInterruptEvent = keyboardInterruptEvent
         if defaultLogger is not None:
-            self.default_logger.info("StockConsumer initialized.")
+            self.default_logger.info("PKMultiProcessorClient initialized.")
         else:
             # Let's get the root logger by default
             self.default_logger = logging.getLogger(name=None)
+        self.stockList = stockList
+        self.dataCallbackHandler = dataCallbackHandler
+        self.progressCallbackHandler = progressCallbackHandler
 
     def run(self):
         try:
             while not self.keyboardInterruptEvent.is_set():
                 try:
-                    next_task = self.task_queue.get()
-                    if next_task is not None:
-                        # Inject a reference to this instance of the client
-                        # so that the task can still get access back to it.
-                        next_task = (*(next_task), self)
+                    next_task = None
+                    answer = None
+                    if self.task_queue is not None:
+                        next_task = self.task_queue.get()
+                        if next_task is not None:
+                            # Inject a reference to this instance of the client
+                            # so that the task can still get access back to it.
+                            next_task = (*(next_task), self)
                 except Empty as e:
                     self.default_logger.debug(e, exc_info=True)
                     continue
                 if next_task is None:
                     self.default_logger.info("No next task in queue")
-                    self.task_queue.task_done()
+                    if self.task_queue is not None:
+                        self.task_queue.task_done()
                     break
-                answer = self.processorMethod(*(next_task))
-                self.task_queue.task_done()
+                if self.processorMethod is not None:
+                    answer = self.processorMethod(*(next_task))
+                if self.task_queue is not None:
+                    self.task_queue.task_done()
                 self.default_logger.info(f"Task done. Result:{answer}")
-                self.result_queue.put(answer)
+                if self.result_queue is not None:
+                    self.result_queue.put(answer)
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)
             sys.exit(0)

@@ -30,6 +30,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import logging
 import multiprocessing
 import sys
+import time
 import urllib
 import warnings
 from datetime import datetime
@@ -958,9 +959,10 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    fillerPlaceHolder,
-                    backtestPeriod,
+                    (actualHistoricalDuration if menuOption == "B" else 0),
+                    (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
+                    False,
                 )
                 for stock in listStockCodes
             ]
@@ -1154,6 +1156,19 @@ def removeUnknowns(screenResults, saveResults):
         ]
     return screenResults, saveResults
 
+def userReportName(userMenuOptions):
+    global userPassedArgs
+    choices = ""
+    for choice in userMenuOptions:
+        if len(userMenuOptions[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{userMenuOptions[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
+    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    return choices
+
 def runScanners(
     menuOption,
     items,
@@ -1168,21 +1183,16 @@ def runScanners(
     backtest_df,
     testing=False
 ):
+    global selectedChoice, userPassedArgs
     populateQueues(items, tasks_queue)
-    choices = ""
-    for choice in selectedChoice:
-        if len(selectedChoice[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{selectedChoice[choice]}"
-    if choices.endswith('_'):
-        choices = choices[:-1]
+    choices = userReportName(selectedChoice)
     try:
         numStocks = len(listStockCodes) * int(iterations)
         dumpFreq = 1
         print(colorText.END + colorText.BOLD)
         bar, spinner = Utility.tools.getProgressbarStyle()
         counter = 0
+        start_time = time.time()
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
@@ -1212,13 +1222,16 @@ def runScanners(
                             backtest_df,
                             sellSignal
                         )
-                        if screenResultsCounter.value >= 50 * dumpFreq:
+                        elapsed_time = time.time() - start_time
+                        if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
                             # Dump results on the screen and into a file every 50 results
                             showBacktestResults(backtest_df)
                             summary_df = backtestSummary(backtest_df)
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
+                        # Commit intermittently if its been running for over 5 hours
+                        if userPassedArgs.prodbuild and elapsed_time >= 5*3600:
                             Committer.commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
@@ -1360,11 +1373,16 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
     choices = ""
+    choices = ""
     for choice in selectedChoice:
         if len(selectedChoice[choice]) > 0:
-            choices = f"{choices}{selectedChoice[choice]}_"
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{selectedChoice[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
     filename = (
-        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}{optionalName}_{sortKey}Sorted.html"
+        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}_{optionalName}_{sortKey}Sorted.html"
     )
     headerDict = {0:"<th></th>"}
     index = 1

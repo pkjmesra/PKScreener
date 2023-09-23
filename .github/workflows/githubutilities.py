@@ -24,9 +24,11 @@
 """
 import argparse
 import os
-import uuid
-import requests 
 import platform
+import uuid
+
+import requests
+
 argParser = argparse.ArgumentParser()
 required = False
 argParser.add_argument("-a","--setoutput", help="set output for GITHUB_OUTPUT env variable", required=required)

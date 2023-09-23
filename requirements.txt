@@ -29,6 +29,7 @@ pandas #==1.3.5 # Installed as dependency for yfinance
 pandas_ta
 # pickle
 Pillow==9.5.0
+PKDevTools>=0.13
 # platform
 python-dotenv
 python-telegram-bot
@@ -37,6 +38,7 @@ pytz
 # random
 # re
 requests_cache
+rich
 scikit-learn #==1.1.1
 scipy>=1.7.3
 # signal
