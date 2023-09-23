@@ -290,34 +290,43 @@ class tools:
         return cond6
 
     # Find stock reversing at given MA
-    def findReversalMA(self, data, screenDict, saveDict, maLength, percentage=0.015):
-        if maLength is None:
-            maLength = 20
+    def findReversalMA(self, data, screenDict, saveDict, maLength, percentage=0.02):
+        maRange = [10,20,50,200]
+        results = []
+        hasReversals = False
         data = data[::-1]
-        if self.configManager.useEMA:
-            maRev = pktalib.EMA(data["Close"], timeperiod=maLength)
-        else:
-            maRev = pktalib.MA(data["Close"], timeperiod=maLength)
-        data.insert(len(data.columns), "maRev", maRev)
-        data = data[::-1].head(3)
-        if (
-            data.equals(
-                data[
-                    (data.Close >= (data.maRev - (data.maRev * percentage)))
-                    & (data.Close <= (data.maRev + (data.maRev * percentage)))
-                ]
-            )
-            and data.head(1)["Close"].iloc[0] >= data.head(1)["maRev"].iloc[0]
-        ):
+        for maLength in maRange:
+            dataCopy = data
+            if self.configManager.useEMA:
+                maRev = pktalib.EMA(dataCopy["Close"], timeperiod=maLength)
+            else:
+                maRev = pktalib.MA(dataCopy["Close"], timeperiod=maLength)
+            try:
+                dataCopy.drop('maRev', axis=1, inplace=True, errors='ignore')
+            except Exception:
+                pass
+            dataCopy.insert(len(dataCopy.columns), "maRev", maRev)
+            dataCopy = dataCopy[::-1].head(3)
+            if (
+                dataCopy.equals(
+                    dataCopy[
+                        (dataCopy.Close >= (dataCopy.maRev - (dataCopy.maRev * percentage)))
+                        & (dataCopy.Close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))
+                    ]
+                )
+                and dataCopy.head(1)["Close"].iloc[0] >= dataCopy.head(1)["maRev"].iloc[0]
+            ):
+                hasReversals = True
+                results.append(str(maLength))
+        if hasReversals:
             screenDict["MA-Signal"] = (
-                colorText.BOLD
-                + colorText.GREEN
-                + f"Reversal-{maLength}MA"
-                + colorText.END
-            )
-            saveDict["MA-Signal"] = f"Reversal-{maLength}MA"
-            return True
-        return False
+                    colorText.BOLD
+                    + colorText.GREEN
+                    + f"Reversal-[{','.join(results)}]MA"
+                    + colorText.END
+                )
+            saveDict["MA-Signal"] = f"Reversal-[{','.join(results)}]MA"
+        return hasReversals
 
     # Find out trend for days to lookback
     def findTrend(self, data, screenDict, saveDict, daysToLookback=None, stockName=""):
