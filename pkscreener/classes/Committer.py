@@ -54,6 +54,7 @@ def commitTempOutcomes(reportName):
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Summary_StockSorted.html --force")
     execOSCommand(f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
+    execOSCommand("git pull")
     execOSCommand("git push -v -u origin +gh-pages")
 
 def execOSCommand(command):

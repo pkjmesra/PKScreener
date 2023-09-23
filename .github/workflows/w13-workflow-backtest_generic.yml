@@ -121,6 +121,7 @@ jobs:
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
+        git pull
         git push -v -u origin +gh-pages
 
     - name: Send notification about finished workflow trigger
