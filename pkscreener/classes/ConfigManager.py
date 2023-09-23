@@ -75,7 +75,9 @@ class tools:
     def default_logger(self, logger):
         self.logger = logger
 
-    def deleteFileWithPattern(self, pattern="stock_data*.pkl", excludeFile=None):
+    def deleteFileWithPattern(self, pattern=None, excludeFile=None):
+        if pattern is None:
+            pattern = f"{'intraday_' if self.isIntradayConfig() else ''}stock_data_*.pkl"
         for f in glob.glob(pattern):
             try:
                 if excludeFile is not None:

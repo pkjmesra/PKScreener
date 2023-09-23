@@ -43,7 +43,16 @@ except ImportError:
     print("Contact developer! Your platform does not support multiprocessing!")
     input("Exiting now...")
     sys.exit(0)
+from pkscreener.classes.CandlePatterns import CandlePatterns
+import pkscreener.classes.ConfigManager as ConfigManager
+import pkscreener.classes.Fetcher as Fetcher
+import pkscreener.classes.Screener as Screener
+from pkscreener.classes.log import default_logger
 
+candlePatterns = CandlePatterns()
+configManager = ConfigManager.tools()
+fetcher = Fetcher.tools(configManager)
+screener = Screener.tools(configManager, default_logger())
 
 class PKMultiProcessorClient(multiprocessing.Process):
     def __init__(
@@ -99,6 +108,10 @@ class PKMultiProcessorClient(multiprocessing.Process):
         self.stockList = stockList
         self.dataCallbackHandler = dataCallbackHandler
         self.progressCallbackHandler = progressCallbackHandler
+        self.fetcher = fetcher
+        self.configManager = configManager
+        self.candlePatterns = candlePatterns
+        self.screener = screener
 
     def run(self):
         try:

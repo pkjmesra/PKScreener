@@ -115,7 +115,9 @@ def finishScreening(
     #     sendTestStatus(screenResults, menuChoiceHierarchy,user=user)
 
 def getDownloadChoices(defaultAnswer=None):
-    exists, cache_file = Utility.tools.afterMarketStockDataExists()
+    global userPassedArgs
+    intraday = True if userPassedArgs.intraday is not None else False
+    exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
             cache_file=cache_file, defaultAnswer=defaultAnswer
@@ -128,7 +130,8 @@ def getDownloadChoices(defaultAnswer=None):
             )
             sys.exit(0)
         else:
-            configManager.deleteFileWithPattern()
+            pattern = f"{'intraday_' if intraday else ''}stock_data_"
+            configManager.deleteFileWithPattern(pattern)
     return "X", 12, 2, {"0": "X", "1": "12", "2": "2"}
 
 
@@ -948,11 +951,7 @@ def main(userArgs=None):
                     respChartPattern,
                     insideBarToLookback,
                     len(listStockCodes),
-                    configManager,
                     configManager.cacheEnabled,
-                    fetcher,
-                    screener,
-                    candlePatterns,
                     stock,
                     newlyListedOnly,
                     downloadOnly,
