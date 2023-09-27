@@ -38,6 +38,10 @@ on:
           description: 'Telegram user'
           required: false
           default: '-1001785195297'
+      intraday:
+            description: 'Intraday?'
+            required: false
+            default: ''
 
 jobs:
 
@@ -120,6 +124,10 @@ jobs:
         git pull
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
+        git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
+        python .github/workflows/workflowtriggers.py -r ${{ inputs.intraday }}
+        git add BacktestReports.html --force
+        git add BacktestReportsIntraday.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
         git pull
         git push -v -u origin +gh-pages

@@ -1364,9 +1364,15 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         return
     backtest_df.drop_duplicates()
     summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy}"
+    lastSummaryRow = None
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
     else:
+        lastRow = backtest_df.iloc[-1,:]
+        if lastRow.iloc[0] == 'SUMMARY':
+            lastSummaryRow = pd.DataFrame(lastRow).transpose()
+            lastSummaryRow.set_index("Stock", inplace=True)
+            lastSummaryRow = lastSummaryRow.iloc[:, lastSummaryRow.columns != 'Stock']
         summaryText = f"{summaryText}\nOverall Summary of (correctness of) Strategy Prediction Positive outcomes:"
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid")
     print(colorText.FAIL+summaryText+colorText.END+"\n")
@@ -1380,8 +1386,9 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
             choices = f"{choices}{selectedChoice[choice]}"
     if choices.endswith('_'):
         choices = choices[:-1]
+        choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
     filename = (
-        f"PKScreener_{choices}{'_i' if userPassedArgs.intraday else ''}_{optionalName}_{sortKey}Sorted.html"
+        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
     )
     headerDict = {0:"<th></th>"}
     index = 1
@@ -1392,20 +1399,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
 
     colored_text = backtest_df.to_html()
     summaryText = summaryText.replace("\n","<br />")
-    colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
-    colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
-    for key in headerDict.keys():
-        if key > 0:
-            colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
-        else:
-            colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
-    colored_text = colored_text.replace(colorText.GREEN,"<span style='color:lightgreen;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.BOLD,"")
-    colored_text = colored_text.replace(colorText.FAIL,"<span style='color:red;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.WARN,"<span style='color:yellow;'>")
-    colored_text = colored_text.replace(colorText.END,"</span>")
-    colored_text = colored_text.replace("\n","")
-    colored_text = colored_text.replace("</table>","</table></span></body></html>")
+    colored_text = reformatTable(summaryText, headerDict, colored_text, sorting=True)
     # Delete any pre-existing backtesting report for the same parameters
     try:
         os.remove(filename)
@@ -1414,6 +1408,44 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     finally:
         with open(filename, "w") as f:
             f.write(colored_text)
+    
+    if lastSummaryRow is not None:
+        oneline_text = lastSummaryRow.to_html(header=False,index=False)
+        oneline_text = reformatTable(summaryText, headerDict, oneline_text, sorting=False)
+        onelineSummaryFile = f"PKScreener_{choices}_OneLine_{optionalName}.html"
+        try:
+            os.remove(onelineSummaryFile)
+        except Exception:
+            pass
+        finally:
+            with open(onelineSummaryFile, "w") as f:
+                f.write(oneline_text)
+
+def reformatTable(summaryText, headerDict, colored_text, sorting=True):
+    if sorting:
+        colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
+        colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
+        for key in headerDict.keys():
+            if key > 0:
+                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
+            else:
+                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
+    else:
+        colored_text = colored_text.replace('<table border="1" class="dataframe">', "")
+        colored_text = colored_text.replace('<tbody>', "")
+        colored_text = colored_text.replace('<tr>', "")
+        colored_text = colored_text.replace('</tr>', "")
+        colored_text = colored_text.replace('</tbody>', "")
+        colored_text = colored_text.replace('</table>', "")
+    colored_text = colored_text.replace(colorText.GREEN,"<span style='background-color:black;color:lightgreen;font-weight:bold;'>")
+    colored_text = colored_text.replace(colorText.BOLD,"")
+    colored_text = colored_text.replace(colorText.FAIL,"<span style='background-color:black;color:red;font-weight:bold;'>")
+    colored_text = colored_text.replace(colorText.WARN,"<span style='background-color:black;color:yellow;'>")
+    colored_text = colored_text.replace(colorText.END,"</span>")
+    colored_text = colored_text.replace("\n","")
+    if sorting:
+        colored_text = colored_text.replace("</table>","</table></span></body></html>")
+    return colored_text
 
 def showOptionErrorMessage():
     print(
