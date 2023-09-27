@@ -139,6 +139,16 @@ def generateBacktestReportMainPage():
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
+                    <th>1-Pd</th>
+                    <th>2-Pd</th>
+                    <th>3-Pd</th>
+                    <th>4-Pd</th>
+                    <th>5-Pd</th>
+                    <th>10-Pd</th>
+                    <th>15-Pd</th>
+                    <th>22-Pd</th>
+                    <th>30-Pd</th>
+                    <th>Overall</th>
                 </tr>"""
     HTMLFOOTER_TEXT = """
             </table>
@@ -148,6 +158,7 @@ def generateBacktestReportMainPage():
     TR_OPENER = "\n            <tr>"
     TR_CLOSER = "            </tr>\n"
     TD_GENERAL="\n                <td>{}</td>"
+    TD_GENERAL_OPEN="\n                {}"
     TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
 
     f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
@@ -155,11 +166,20 @@ def generateBacktestReportMainPage():
     for key in objectDictionary.keys():
         td2 = " > <br />".join(objectDictionary[key]["td2"])
         td3 = objectDictionary[key]["td3"]
+        oneline_summary_file = f"PKScreener_{td3}{'_i' if args.intraday else ''}_OneLine_Summary.html"
+        oneline_summary = "<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>"
+        if os.path.isfile(oneline_summary_file):
+            try:
+                with open(oneline_summary_file, "r") as sf:
+                    oneline_summary = sf.read()
+            except Exception:
+                pass
         f.writelines([TR_OPENER,
                     f"{TD_GENERAL}".format(str(key)),
                     f"{TD_GENERAL}".format(f"{td2}{' (Intraday)' if args.intraday else ''}"),
                     f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_backtest_result",td3),
                     f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Summary",td3),
+                    f"{TD_GENERAL_OPEN}".format(oneline_summary),
                     TR_CLOSER
                     ])
     f.write(HTMLFOOTER_TEXT)
@@ -205,7 +225,7 @@ def triggerBacktestWorkflowActions():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
         options = scanOptions.replace("_",":").replace("B:","")
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'"}}'
+        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'","intraday":"'+f'{"-i" if args.intraday else ""}'+'"}}'
         resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:
             sleep(5)
