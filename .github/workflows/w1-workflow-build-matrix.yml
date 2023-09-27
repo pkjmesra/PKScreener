@@ -35,8 +35,8 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
-  schedule:
-    - cron: '35 11 * * 5'
+  # schedule:
+  #   - cron: '35 11 * * 5'
 
 jobs:
 
