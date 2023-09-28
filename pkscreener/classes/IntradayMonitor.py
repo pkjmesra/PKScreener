@@ -26,9 +26,8 @@ from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
-from rich.text import Text
 from rich.table import Table
-
+from rich.text import Text
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
@@ -36,8 +35,8 @@ import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Utility as Utility
 from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.log import default_logger
-from pkscreener.classes.TaskHandler import taskHandler
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
+from pkscreener.classes.TaskHandler import taskHandler
 
 configManagerLocal = ConfigManager.tools()
 fetcherLocal = Fetcher.tools(configManagerLocal)
