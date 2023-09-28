@@ -168,9 +168,9 @@ def generateBacktestReportMainPage():
         td3 = objectDictionary[key]["td3"]
         oneline_summary_file = f"PKScreener_{td3}{'_i' if args.intraday else ''}_OneLine_Summary.html"
         oneline_summary = "<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>"
-        if os.path.isfile(oneline_summary_file):
+        if os.path.isfile(f"Backtest-Reports/{oneline_summary_file}"):
             try:
-                with open(oneline_summary_file, "r") as sf:
+                with open(f"Backtest-Reports/{oneline_summary_file}", "r") as sf:
                     oneline_summary = sf.read()
             except Exception:
                 pass
