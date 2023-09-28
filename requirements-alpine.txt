@@ -23,7 +23,7 @@ scipy>=1.7.3
 tabulate
 yfinance==0.1.87
 alive-progress==1.6.2
-Pillow==9.5.0
+Pillow==10.0.1
 scikit-learn #==1.1.1
 tensorflow #==2.9.2
 joblib

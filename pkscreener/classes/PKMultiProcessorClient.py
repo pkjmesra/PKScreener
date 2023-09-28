@@ -43,10 +43,10 @@ except ImportError:
     print("Contact developer! Your platform does not support multiprocessing!")
     input("Exiting now...")
     sys.exit(0)
-from pkscreener.classes.CandlePatterns import CandlePatterns
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
+from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.log import default_logger
 
 candlePatterns = CandlePatterns()
