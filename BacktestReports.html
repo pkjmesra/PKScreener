@@ -1,26 +1,27 @@
 
-    <html>
-        <body>
+    <!DOCTYPE html><html>
+    <head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head>
+        <body><span style='background-color:black; color:white;' >
             <span>1. Backtest and Summary Reports for All Nifty Stocks over the last 30-trading-sessions-periods</span><br />
             <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period.</span><br />
             <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row.</span><br />
             <span><b>Disclaimer: Only for learning purposes! Use at your own risk!</b>></span><br />
-            <table border="1px">
+            <table border="1px" id='resultsTable' style='background-color:black; color:white;' >
                 <tr>
                     <th>Srl #</th>
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
-                    <th>1-Pd</th>
-                    <th>2-Pd</th>
-                    <th>3-Pd</th>
-                    <th>4-Pd</th>
-                    <th>5-Pd</th>
-                    <th>10-Pd</th>
-                    <th>15-Pd</th>
-                    <th>22-Pd</th>
-                    <th>30-Pd</th>
-                    <th>Overall</th>
+                    <th onclick='sortTable(4)' style='color:white; text-decoration:underline;' >1-Pd</th>
+                    <th onclick='sortTable(5)' style='color:white; text-decoration:underline;' >2-Pd</th>
+                    <th onclick='sortTable(6)' style='color:white; text-decoration:underline;' >3-Pd</th>
+                    <th onclick='sortTable(7)' style='color:white; text-decoration:underline;' >4-Pd</th>
+                    <th onclick='sortTable(8)' style='color:white; text-decoration:underline;' >5-Pd</th>
+                    <th onclick='sortTable(9)' style='color:white; text-decoration:underline;' >10-Pd</th>
+                    <th onclick='sortTable(10)' style='color:white; text-decoration:underline;' >15-Pd</th>
+                    <th onclick='sortTable(11)' style='color:white; text-decoration:underline;' >22-Pd</th>
+                    <th onclick='sortTable(12)' style='color:white; text-decoration:underline;' >30-Pd</th>
+                    <th onclick='sortTable(13)' style='color:white; text-decoration:underline;' >Overall</th>
                 </tr>
             <tr>
                 <td>1</td>
