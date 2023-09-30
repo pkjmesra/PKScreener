@@ -56,6 +56,8 @@ function sortTable(n) {
     }
   }
 window.addEventListener('load', function() {
+  if (document.getElementsByTagName("TR")[1].firstElementChild.innerText === 'Stock') {
     /*Get rid of the first row with Stocks on all columns*/
-  document.getElementsByTagName("TR")[1].remove()
+    document.getElementsByTagName("TR")[1].remove()
+  }
 })
