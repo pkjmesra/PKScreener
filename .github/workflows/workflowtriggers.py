@@ -160,7 +160,7 @@ def generateBacktestReportMainPage():
     TR_CLOSER = "            </tr>\n"
     TD_GENERAL="\n                <td>{}</td>"
     TD_GENERAL_OPEN="\n                {}"
-    TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
+    TD_LINK="\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
 
     f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
     f.write(HTMLHEAD_TEXT)
