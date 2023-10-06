@@ -1207,16 +1207,16 @@ def runScanners(
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
-            lstFullData = []
-            stocks = []
+            # lstFullData = []
+            # stocks = []
             while numStocks:
                 counter += 1
                 result = results_queue.get()
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
-                    lstFullData.append(result[2])
-                    stocks.append(result[3])
+                    # lstFullData.append(result[2])
+                    # stocks.append(result[3])
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
