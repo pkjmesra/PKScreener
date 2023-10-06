@@ -1241,7 +1241,7 @@ def runScanners(
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
-                        # Commit intermittently if its been running for over 5 hours
+                        # Commit intermittently if its been running for over x hours
                         if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
                             Committer.commitTempOutcomes(choices)
                 numStocks -= 1
