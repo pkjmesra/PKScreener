@@ -1242,7 +1242,7 @@ def runScanners(
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
                         # Commit intermittently if its been running for over 5 hours
-                        if userPassedArgs.prodbuild and elapsed_time >= 5*3600:
+                        if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
                             Committer.commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
