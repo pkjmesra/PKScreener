@@ -121,7 +121,7 @@ def send_message(message, userID=None, parse_type=ParseMode.HTML, list_png=None,
         return
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     if userID is not None and userID !="":
-        LIST_PEOPLE_IDS_CHAT = [userID]
+        LIST_PEOPLE_IDS_CHAT = [int(str(userID).replace("\"",""))]
     if list_png is None or any(elem is None for elem in list_png):
         resp = None
         for people_id in LIST_PEOPLE_IDS_CHAT:

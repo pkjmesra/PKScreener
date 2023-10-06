@@ -1028,8 +1028,8 @@ def main(userArgs=None):
             )
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
-            backtest_df.set_index("Stock", inplace=True)
             summary_df = backtestSummary(backtest_df)
+            backtest_df.set_index("Stock", inplace=True)
             # backtest_df.reset_index(inplace=True)
             # backtest_df.reset_index(drop=True)
             showBacktestResults(backtest_df)
@@ -1207,16 +1207,16 @@ def runScanners(
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
-            lstFullData = []
-            stocks = []
+            # lstFullData = []
+            # stocks = []
             while numStocks:
                 counter += 1
                 result = results_queue.get()
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
-                    lstFullData.append(result[2])
-                    stocks.append(result[3])
+                    # lstFullData.append(result[2])
+                    # stocks.append(result[3])
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
@@ -1241,8 +1241,8 @@ def runScanners(
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
-                        # Commit intermittently if its been running for over 5 hours
-                        if userPassedArgs.prodbuild and elapsed_time >= 5*3600:
+                        # Commit intermittently if its been running for over x hours
+                        if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
                             Committer.commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
