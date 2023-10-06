@@ -51,6 +51,8 @@ on:
           required: false
           default: 'echo Finished running'
 
+run-name: ${{ inputs.name }} Generic runner for scan workflows params- ${{ inputs.params }}
+
 jobs:
 
   Generic_Workflow_Runner:
