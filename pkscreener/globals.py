@@ -1028,8 +1028,8 @@ def main(userArgs=None):
             )
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
-            backtest_df.set_index("Stock", inplace=True)
             summary_df = backtestSummary(backtest_df)
+            backtest_df.set_index("Stock", inplace=True)
             # backtest_df.reset_index(inplace=True)
             # backtest_df.reset_index(drop=True)
             showBacktestResults(backtest_df)
