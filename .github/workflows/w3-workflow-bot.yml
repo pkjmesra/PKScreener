@@ -42,8 +42,8 @@ on:
         required: true
         type: string
         default: 'new-features'
-  schedule:
-    - cron: '59 * * * *'
+  # schedule:
+  #   - cron: '59 * * * *'
 
 jobs:
 
