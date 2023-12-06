@@ -86,7 +86,7 @@ class tools:
             proxy = urllib.request.getproxies()["http"]
             proxy = {"https": proxy}
         except KeyError as e:
-            default_logger().debug(e, exc_info=True)
+            # default_logger().debug(e, exc_info=True)
             proxy = None
         return proxy
 

@@ -53,7 +53,7 @@ class StockConsumer:
     def __init__(self):
         self.isTradingTime = Utility.tools.isTradingTime()
 
-    @tracelog
+    # @tracelog
     def screenStocks(
         self,
         executeOption,
@@ -117,7 +117,7 @@ class StockConsumer:
                     hostRef.processingCounter,
                     totalSymbols,
                 )
-                hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
+                # hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
                 if (
                     (shouldCache
                     and not self.isTradingTime
@@ -125,9 +125,9 @@ class StockConsumer:
                     or downloadOnly
                 ):
                     hostRef.objectDictionary[stock] = data.to_dict("split")
-                    hostRef.default_logger.info(
-                        f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
-                    )
+                    # hostRef.default_logger.info(
+                    #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
+                    # )
                     if downloadOnly:
                         raise Screener.DownloadDataOnly
             else:
@@ -169,7 +169,7 @@ class StockConsumer:
                 )
             if len(data) == 0 or len(data) <= backtestDuration:
                 return None
-            hostRef.default_logger.info(f"Will pre-process data:\n{data.tail(10)}")
+            # hostRef.default_logger.info(f"Will pre-process data:\n{data.tail(10)}")
             if backtestDuration == 0:
                 fullData, processedData = screener.preprocessData(
                     data, daysToLookback=configManager.daysToLookback
@@ -184,18 +184,18 @@ class StockConsumer:
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
                     )
-            hostRef.default_logger.info(
-                f"Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n"
-            )
+            # hostRef.default_logger.info(
+            #     f"Finished pre-processing. processedData:\n{data}\nfullData:{fullData}\n"
+            # )
             if newlyListedOnly:
                 if not screener.validateNewlyListed(fullData, period):
                     raise Screener.NotNewlyListed
 
             with hostRef.processingCounter.get_lock():
                 hostRef.processingCounter.value += 1
-                hostRef.default_logger.info(
-                    f"Processing {stock} in {hostRef.processingCounter.value}th counter"
-                )
+                # hostRef.default_logger.info(
+                #     f"Processing {stock} in {hostRef.processingCounter.value}th counter"
+                # )
             if not processedData.empty:
                 screeningDictionary["Stock"] = (
                     colorText.BOLD
@@ -640,10 +640,12 @@ class StockConsumer:
             hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.DownloadDataOnly as e:
-            hostRef.default_logger.debug(e, exc_info=True)
+            # hostRef.default_logger.debug(e, exc_info=True)
             pass
         except KeyError as e:
             hostRef.default_logger.debug(e, exc_info=True)
+            pass
+        except OSError as e:
             pass
         except Exception as e:
             hostRef.default_logger.debug(e, exc_info=True)
@@ -665,6 +667,8 @@ class StockConsumer:
         # will co ntinue with the screening. Each sub-process would have
         # its own logger but going into the same file/console > to that
         # of the parent logger.
+        if hostRef.default_logger.level > 0:
+            return
         hostRef.default_logger.level = logLevel
         screener.default_logger.level = logLevel
         hostRef.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
