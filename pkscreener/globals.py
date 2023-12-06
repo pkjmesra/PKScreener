@@ -1028,8 +1028,8 @@ def main(userArgs=None):
             )
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
-            backtest_df.set_index("Stock", inplace=True)
             summary_df = backtestSummary(backtest_df)
+            backtest_df.set_index("Stock", inplace=True)
             # backtest_df.reset_index(inplace=True)
             # backtest_df.reset_index(drop=True)
             showBacktestResults(backtest_df)
@@ -1143,6 +1143,31 @@ def printNotifySaveScreenedResults(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
         )
 
+def reformatTable(summaryText, headerDict, colored_text, sorting=True):
+    if sorting:
+        colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
+        colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
+        for key in headerDict.keys():
+            if key > 0:
+                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
+            else:
+                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
+    else:
+        colored_text = colored_text.replace('<table border="1" class="dataframe">', "")
+        colored_text = colored_text.replace('<tbody>', "")
+        colored_text = colored_text.replace('<tr>', "")
+        colored_text = colored_text.replace('</tr>', "")
+        colored_text = colored_text.replace('</tbody>', "")
+        colored_text = colored_text.replace('</table>', "")
+    colored_text = colored_text.replace(colorText.GREEN,"<span style='background-color:black;color:lightgreen;font-weight:bold;'>")
+    colored_text = colored_text.replace(colorText.BOLD,"")
+    colored_text = colored_text.replace(colorText.FAIL,"<span style='background-color:black;color:red;font-weight:bold;'>")
+    colored_text = colored_text.replace(colorText.WARN,"<span style='background-color:black;color:yellow;'>")
+    colored_text = colored_text.replace(colorText.END,"</span>")
+    colored_text = colored_text.replace("\n","")
+    if sorting:
+        colored_text = colored_text.replace("</table>","</table></span></body></html>")
+    return colored_text
 
 def removeUnknowns(screenResults, saveResults):
     for col in screenResults.keys():
@@ -1154,19 +1179,6 @@ def removeUnknowns(screenResults, saveResults):
             saveResults[col].astype(str).str.contains("Unknown") == False
         ]
     return screenResults, saveResults
-
-def userReportName(userMenuOptions):
-    global userPassedArgs
-    choices = ""
-    for choice in userMenuOptions:
-        if len(userMenuOptions[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{userMenuOptions[choice]}"
-    if choices.endswith('_'):
-        choices = choices[:-1]
-    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
-    return choices
 
 def runScanners(
     menuOption,
@@ -1195,16 +1207,16 @@ def runScanners(
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
-            lstFullData = []
-            stocks = []
+            # lstFullData = []
+            # stocks = []
             while numStocks:
                 counter += 1
                 result = results_queue.get()
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
-                    lstFullData.append(result[2])
-                    stocks.append(result[3])
+                    # lstFullData.append(result[2])
+                    # stocks.append(result[3])
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
@@ -1229,8 +1241,8 @@ def runScanners(
                             # summary_df.set_index("Stock", inplace=True)
                             showBacktestResults(summary_df,optionalName="Summary")
                             dumpFreq = dumpFreq + 1
-                        # Commit intermittently if its been running for over 5 hours
-                        if userPassedArgs.prodbuild and elapsed_time >= 5*3600:
+                        # Commit intermittently if its been running for over x hours
+                        if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
                             Committer.commitTempOutcomes(choices)
                 numStocks -= 1
                 progressbar.text(
@@ -1421,32 +1433,6 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
             with open(onelineSummaryFile, "w") as f:
                 f.write(oneline_text)
 
-def reformatTable(summaryText, headerDict, colored_text, sorting=True):
-    if sorting:
-        colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
-        colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
-        for key in headerDict.keys():
-            if key > 0:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
-            else:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
-    else:
-        colored_text = colored_text.replace('<table border="1" class="dataframe">', "")
-        colored_text = colored_text.replace('<tbody>', "")
-        colored_text = colored_text.replace('<tr>', "")
-        colored_text = colored_text.replace('</tr>', "")
-        colored_text = colored_text.replace('</tbody>', "")
-        colored_text = colored_text.replace('</table>', "")
-    colored_text = colored_text.replace(colorText.GREEN,"<span style='background-color:black;color:lightgreen;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.BOLD,"")
-    colored_text = colored_text.replace(colorText.FAIL,"<span style='background-color:black;color:red;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.WARN,"<span style='background-color:black;color:yellow;'>")
-    colored_text = colored_text.replace(colorText.END,"</span>")
-    colored_text = colored_text.replace("\n","")
-    if sorting:
-        colored_text = colored_text.replace("</table>","</table></span></body></html>")
-    return colored_text
-
 def showOptionErrorMessage():
     print(
         colorText.BOLD
@@ -1565,3 +1551,17 @@ def toggleUserConfig():
         + colorText.END
     )
     input("\nPress <Enter> to Continue...\n")
+
+def userReportName(userMenuOptions):
+    global userPassedArgs
+    choices = ""
+    for choice in userMenuOptions:
+        if len(userMenuOptions[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{userMenuOptions[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
+    choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    return choices
+

@@ -56,8 +56,9 @@ objectDictionary = {}
 # args.backtests = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
-# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" 
-# args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
+# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13,14" 
+# args.skiplistlevel2 ="0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,42,M,Z"
+# args.skiplistlevel3 = "0,1,2,4,5,6"
 
 if args.skiplistlevel0 is None:
     args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
@@ -160,7 +161,7 @@ def generateBacktestReportMainPage():
     TR_CLOSER = "            </tr>\n"
     TD_GENERAL="\n                <td>{}</td>"
     TD_GENERAL_OPEN="\n                {}"
-    TD_LINK="\n                <td><a href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
+    TD_LINK="\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
 
     f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
     f.write(HTMLHEAD_TEXT)
@@ -207,7 +208,7 @@ def run_workflow(workflow_name,postdata):
 
 def triggerScanWorkflowActions():
     for key in objectDictionary.keys():
-        scanOptions = objectDictionary[key]["td3"]
+        scanOptions = f'{objectDictionary[key]["td3"]}_D_D_D'
         branch = "main"
         if args.user is None or len(args.user) == 0:
             args.user = ""
@@ -225,7 +226,7 @@ def triggerBacktestWorkflowActions():
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
         branch = "main"
-        options = scanOptions.replace("_",":").replace("B:","")
+        options = f'{scanOptions.replace("_",":").replace("B:","")}:D:D:D'
         postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'","intraday":"'+f'{"-i" if args.intraday else ""}'+'"}}'
         resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
         if resp.status_code==204:

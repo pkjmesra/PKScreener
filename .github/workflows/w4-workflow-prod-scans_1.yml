@@ -30,8 +30,8 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Scan Alerts'
-  schedule:
-  - cron: '59 9 * * 1-5'
+  # schedule:
+  # - cron: '59 9 * * 1-5'
 
 jobs:
 

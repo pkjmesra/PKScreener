@@ -25,8 +25,14 @@
 name: 14. Mark stale issues and pull requests
 
 on:
-  schedule:
-  - cron: '30 11 * * 1'
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Run Details'
+        required: false
+        default: 'PKScreener - Mark stale issues and pull requests'
+  # schedule:
+  # - cron: '30 11 * * 1'
 
 jobs:
   stale:
