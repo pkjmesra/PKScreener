@@ -88,8 +88,10 @@ class StockConsumer:
         fetcher = hostRef.fetcher
         screener = hostRef.screener
         candlePatterns = hostRef.candlePatterns
+        userArgsLog = printCounter
         try:
-            self.setupLoggers(hostRef, screener, logLevel, stock)
+            if userArgsLog:
+                self.setupLoggers(hostRef, screener, logLevel, stock)
             period = configManager.period
             if volumeRatio <= 0:
                 volumeRatio = configManager.volumeRatio
@@ -99,14 +101,16 @@ class StockConsumer:
                     period = "250d"
                 else:
                     period = configManager.period
-            hostRef.default_logger.info(
-                f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
-            )
+            # hostRef.default_logger.info(
+            #     f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
+            # )
+            with hostRef.processingCounter.get_lock():
+                hostData = hostRef.objectDictionary.get(stock)
             if (
                 (not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostRef.objectDictionary.get(stock) is None)
+                or hostData is None)
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -121,10 +125,12 @@ class StockConsumer:
                 if (
                     (shouldCache
                     and not self.isTradingTime
-                    and (hostRef.objectDictionary.get(stock) is None))
+                    and (hostData is None))
                     or downloadOnly
                 ):
-                    hostRef.objectDictionary[stock] = data.to_dict("split")
+                    with hostRef.processingCounter.get_lock():
+                        hostRef.objectDictionary[stock] = data.to_dict("split")
+                        hostData = hostRef.objectDictionary.get(stock)
                     # hostRef.default_logger.info(
                     #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
                     # )
@@ -163,7 +169,7 @@ class StockConsumer:
                         hostRef.default_logger.debug(e, exc_info=True)
                         pass
                     sys.stdout.write("\r\033[K")
-                data = hostRef.objectDictionary.get(stock)
+                data = hostData
                 data = pd.DataFrame(
                     data["data"], columns=data["columns"], index=data["index"]
                 )
@@ -211,6 +217,9 @@ class StockConsumer:
                     minLTP=configManager.minLTP,
                     maxLTP=configManager.maxLTP,
                 )
+                if configManager.stageTwo and not verifyStageTwo:
+                    raise Screener.NotAStageTwoStock
+                
                 consolidationValue = screener.validateConsolidation(
                     processedData,
                     screeningDictionary,
@@ -637,6 +646,9 @@ class StockConsumer:
             hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.NotNewlyListed as e:
+            hostRef.default_logger.debug(e, exc_info=True)
+            pass
+        except Screener.NotAStageTwoStock as e:
             hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.DownloadDataOnly as e:

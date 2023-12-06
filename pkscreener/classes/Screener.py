@@ -59,6 +59,9 @@ class DownloadDataOnly(Exception):
 class NotNewlyListed(Exception):
     pass
 
+# Exception for stocks which are not stage two
+class NotAStageTwoStock(Exception):
+    pass
 
 # Exception for newly listed stocks with candle nos < daysToLookback
 class StockDataNotAdequate(Exception):
@@ -350,11 +353,21 @@ class tools:
             data = data.replace([np.inf, -np.inf], 0)
 
             try:
-                if len(data) < daysToLookback:
-                    raise StockDataNotAdequate
-                slope, c = np.polyfit(
-                    data.index[data.tops > 0], data["tops"][data.tops > 0], 1
+                # if len(data) < daysToLookback:
+                #     self.default_logger.debug(data)
+                #     raise StockDataNotAdequate
+                data = data.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna()
+                if len(data["tops"][data.tops > 0]) > 1:
+                    slope = np.polyfit(data.index[data.tops > 0], data["tops"][data.tops > 0], 1)[0]
+                else: 
+                    slope = 0
+            except np.linalg.LinAlgError as e:
+                self.default_logger.debug(e, exc_info=True)
+                screenDict["Trend"] = (
+                    colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
                 )
+                saveDict["Trend"] = "Unknown"
+                return saveDict["Trend"]
             except Exception as e:
                 self.default_logger.debug(e, exc_info=True)
                 slope, _ = 0, 0
@@ -953,6 +966,8 @@ class tools:
     def validateMomentum(self, data, screenDict, saveDict):
         try:
             data = data.head(3)
+            if len(data) < 3:
+                return False
             for row in data.iterrows():
                 # All 3 candles should be Green and NOT Circuits
                 yc = row[1]["Close"].item()
@@ -995,6 +1010,7 @@ class tools:
                     )
             except IndexError as e:
                 self.default_logger.debug(e, exc_info=True)
+                # self.default_logger.debug(data)
                 pass
             return False
         except Exception as e:
@@ -1186,7 +1202,7 @@ class tools:
         rsi = int(data.head(1)["RSI"].iloc[0])
         saveDict["RSI"] = rsi
         #https://chartink.com/screener/rsi-screening
-        if (rsi >= minRSI and rsi <= maxRSI) or (rsi <= 71 and rsi >= 67):
+        if (rsi >= minRSI and rsi <= maxRSI): # or (rsi <= 71 and rsi >= 67):
             screenDict["RSI"] = (
                 colorText.BOLD + colorText.GREEN + str(rsi) + colorText.END
             )
@@ -1366,6 +1382,8 @@ class tools:
     def validateVolumeSpreadAnalysis(self, data, screenDict, saveDict):
         try:
             data = data.head(2)
+            if len(data) < 2:
+                return False
             try:
                 # Check for previous RED candles
                 # Current candle = 0th, Previous Candle = 1st for following logic

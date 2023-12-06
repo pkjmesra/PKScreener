@@ -317,13 +317,14 @@ class tools:
             self.setConfig(parser, default=True, showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
-    def toggleConfig(self, candleDuration="1d"):
-        candleDuration = candleDuration.lower()
+    def toggleConfig(self, candleDuration):
+        if candleDuration is None:
+            candleDuration = self.duration.lower()
         self.getConfig(parser)
         if candleDuration[-1] in ["d"]:
             self.period = "280d"
             self.cacheEnabled = True
-        if not self.isIntradayConfig() or candleDuration[-1] in ["m","h"]:
+        if candleDuration[-1] in ["m","h"] and not self.isIntradayConfig():
             self.period = "1d"
             self.cacheEnabled = False
         if self.isIntradayConfig():
