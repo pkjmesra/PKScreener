@@ -267,6 +267,12 @@ class StockConsumer:
                     saveDictionary,
                     daysToLookback=configManager.daysToLookback,
                 )
+                isBreaking = screener.findPotentialBreakout(
+                    fullData,
+                    screeningDictionary,
+                    saveDictionary,
+                    daysToLookback=configManager.daysToLookback,
+                ) or isBreaking
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
                         processedData, daysForLowestVolume
@@ -660,7 +666,7 @@ class StockConsumer:
             hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.NotAStageTwoStock as e:
-            hostRef.default_logger.debug(e, exc_info=True)
+            # hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.DownloadDataOnly as e:
             # hostRef.default_logger.debug(e, exc_info=True)

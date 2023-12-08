@@ -294,6 +294,38 @@ class tools:
         cond6 = cond5 and (recent["SMA50"].iloc[0] > recent["SMA200"].iloc[0])
         return cond6
 
+    # Find potential breakout stocks
+    # This scanner filters stocks whose current close price + 5% is higher 
+    # than the highest High price in past 200 candles and the maximum high 
+    # in the previous 30 candles is lower than the highest high made in the 
+    # previous 200 candles, starting from the previous 30th candle. At the 
+    # same time the current candle volume is higher than 200 SMA of volume.
+    def findPotentialBreakout(self, data, screenDict, saveDict, daysToLookback):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data.head(231)
+        recent = data.head(1)
+        recentVolume = recent["Volume"].iloc[0]
+        recentClose = round(recent["Close"].iloc[0] * 1.05, 2)
+        highestHigh200 = round(data.head(201).tail(200).describe()["High"]["max"], 2)
+        highestHigh30 = round(data.head(31).tail(30).describe()["High"]["max"], 2)
+        highestHigh200From30 = round(data.tail(200).describe()["High"]["max"], 2)
+        data = data.head(200)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        vol = data.rolling(window=200).mean()
+        data["SMA200V"] = vol["Volume"]
+        recent = data.tail(1)
+        sma200v = recent["SMA200V"].iloc[0]
+        if np.isnan(recentClose) or np.isnan(highestHigh200) or np.isnan(highestHigh30) or np.isnan(highestHigh200From30) or np.isnan(recentVolume) or np.isnan(sma200v):
+            return False
+        if (recentClose > highestHigh200) and (highestHigh30 < highestHigh200From30) and (recentVolume > sma200v):
+            saveDict["Breakout"] = saveDict["Breakout"] + "(Potential)"
+            screenDict["Breakout"] = screenDict["Breakout"] + (
+                colorText.BOLD + colorText.GREEN + " (Potential)" + colorText.END
+            )
+            return True
+        return False
+    
     # Find stock reversing at given MA
     def findReversalMA(self, data, screenDict, saveDict, maLength, percentage=0.02):
         maRange = [10,20,50,200]
