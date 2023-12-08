@@ -101,7 +101,7 @@ Followin scanners are already implemented. Others are `In Progress`
 * Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `10` is `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
 
 # Building from source repo
-* Install python 3.9 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
+* Install python 3.11 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
 * Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .

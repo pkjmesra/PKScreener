@@ -381,7 +381,9 @@ class StockConsumer:
                             isBuyingTrendline = screener.findTrendlines(
                                 fullData, screeningDictionary, saveDictionary
                             )
-
+                with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
+                    isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
+                
                 with hostRef.processingResultsCounter.get_lock():
                     hostRef.default_logger.info(
                         f"Processing results for {stock} in {hostRef.processingResultsCounter.value}th results counter"
@@ -505,6 +507,15 @@ class StockConsumer:
                                 backtestDuration,
                             )
                         elif reversalOption == 6 and isNR:
+                            hostRef.processingResultsCounter.value += 1
+                            return (
+                                screeningDictionary,
+                                saveDictionary,
+                                data,
+                                stock,
+                                backtestDuration,
+                            )
+                        elif reversalOption == 7 and isLorentzian:
                             hostRef.processingResultsCounter.value += 1
                             return (
                                 screeningDictionary,

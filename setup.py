@@ -101,13 +101,10 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
     install_requires=install_requires,
     keywords=["NSE", "Technical Indicators", "Scanning", "Stock Scanners"],
     test_suite="test",
 ),
-python_requires = (">=3.9",)
+python_requires = (">=3.11",)
