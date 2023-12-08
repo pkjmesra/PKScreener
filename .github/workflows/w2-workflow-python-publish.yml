@@ -47,8 +47,8 @@ on:
         type: string
         default: 'x.y.z'
 
-  # schedule:
-  #   - cron: '30 7 * * 6'
+  schedule:
+    - cron: '30 7 * * 6'
   workflow_call:
     inputs:
       branch-name:
