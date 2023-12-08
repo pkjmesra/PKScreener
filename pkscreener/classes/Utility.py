@@ -855,11 +855,11 @@ class tools:
         return bar, spinner
 
     def getNiftyModel(retrial=False):
-        files = ["nifty_model_v2.h5", "nifty_model_v2.pkl"]
+        files = ["nifty_model_v3.h5", "nifty_model_v3.pkl"]
         model = None
         urls = [
-            "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v2.h5",
-            "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v2.pkl",
+            "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v3.h5",
+            "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v3.pkl",
         ]
         if os.path.isfile(files[0]) and os.path.isfile(files[1]):
             file_age = (time.time() - os.path.getmtime(files[0])) / 604800
