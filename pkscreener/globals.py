@@ -1220,7 +1220,7 @@ def runScanners(
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
-                        backtest_df = updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays)
+                        backtest_df = updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df)
                 
                 numStocks -= 1
                 progressbar.text(
@@ -1257,7 +1257,7 @@ def runScanners(
         logging.shutdown()
     return screenResults, saveResults, backtest_df
 
-def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays):
+def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df):
     sellSignal = (
                                 str(selectedChoice["2"]) in ["6","7"] and 
                                 str(selectedChoice["3"]) in ["2"]
@@ -1272,14 +1272,14 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
                                 sellSignal
                             )
     elapsed_time = time.time() - start_time
-    if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
-                                # Dump results on the screen and into a file every 50 results
-        showBacktestResults(backtest_df)
-        summary_df = backtestSummary(backtest_df)
-                                # summary_df.set_index("Stock", inplace=True)
-        showBacktestResults(summary_df,optionalName="Summary")
-        dumpFreq = dumpFreq + 1
-                            # Commit intermittently if its been running for over x hours
+    # if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
+    #     # Dump results on the screen and into a file every 50 results
+    #     showBacktestResults(backtest_df)
+    #     summary_df = backtestSummary(backtest_df)
+    #     # summary_df.set_index("Stock", inplace=True)
+    #     showBacktestResults(summary_df,optionalName="Summary")
+    #     dumpFreq = dumpFreq + 1
+    # Commit intermittently if its been running for over x hours
     if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
         Committer.commitTempOutcomes(choices)
     return backtest_df
