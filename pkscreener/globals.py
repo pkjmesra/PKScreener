@@ -726,6 +726,10 @@ def main(userArgs=None):
             return
         else:
             selectedChoice["3"] = str(popOption)
+        if popOption == 3:
+            df = fetcher.fetchMorningstarTopDividendsYieldStocks()
+            printNotifySaveScreenedResults(df,df,selectedChoice,menuChoiceHierarchy,False,None)
+            return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return

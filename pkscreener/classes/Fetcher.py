@@ -431,3 +431,27 @@ class tools:
             )
             return None
         return data
+
+    def fetchMorningstarTopDividendsYieldStocks(self):
+        url = "https://lt.morningstar.com/api/rest.svc/g9vi2nsqjb/security/screener?page=1&pageSize=50&sortOrder=dividendYield%20desc&outputType=json&version=1&languageId=en&currencyId=BAS&universeIds=E0EXG%24XBOM%7CE0EXG%24XNSE&securityDataPoints=secId%2Cname%2CexchangeId%2CsectorId%2CindustryId%2CmarketCap%2CdividendYield%2CclosePrice%2CpriceCurrency%2CPEGRatio%2CpeRatio%2CquantitativeStarRating%2CequityStyleBox%2CgbrReturnM0%2CgbrReturnD1%2CgbrReturnW1%2CgbrReturnM1%2CgbrReturnM3%2CgbrReturnM6%2CgbrReturnM12%2CgbrReturnM36%2CgbrReturnM60%2CgbrReturnM120%2CrevenueGrowth3Y%2CdebtEquityRatio%2CnetMargin%2Croattm%2Croettm%2Cexchange&filters=&term="
+        res = self.fetchURL(url)
+        if res is None or res.status_code != 200:
+            return None
+        try:
+            data = pd.read_json(StringIO(res.text))
+            rows = data["rows"]
+            output = pd.DataFrame()
+            for row in rows:
+                df_row = pd.DataFrame([row], columns=["name", "marketCap","exchangeId", "dividendYield", "closePrice","peRatio"])
+                output = pd.concat([output, df_row], ignore_index=True)
+            
+            output.loc[:, "marketCap"] = output.loc[:, "marketCap"].apply(
+                    lambda x: str(x/10000000) + " Cr" 
+                )
+            output.loc[:, "dividendYield"] = output.loc[:, "dividendYield"].apply(
+                    lambda x: str(x) + " %" 
+                )
+            return output
+        except:
+            pass
+        return None
