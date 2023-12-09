@@ -56,7 +56,8 @@ from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
                                             level2_X_MenuDict,
                                             level3_X_ChartPattern_MenuDict,
-                                            level3_X_Reversal_MenuDict, menus)
+                                            level3_X_Reversal_MenuDict, 
+                                            level3_X_PopularStocks_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
@@ -711,14 +712,28 @@ def main(userArgs=None):
             configManager.volumeRatio = float(volumeRatio)
     if executeOption == 12:
         configManager.toggleConfig(candleDuration="15m")
+    if executeOption == 21:
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 4:
+            popOption = int(options[3])
+            if popOption >= 0 and popOption <= 3:
+                pass
+        else:
+            popOption = Utility.tools.promptPopularStocks(
+                selectedMenu
+            )
+        if popOption is None or popOption == 0:
+            return
+        else:
+            selectedChoice["3"] = str(popOption)
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 21 and executeOption <= 39:
+    if executeOption >= 22 and executeOption <= 39:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 21 to 39 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 22 to 39 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
@@ -828,6 +843,11 @@ def main(userArgs=None):
                         menuChoiceHierarchy = (
                             menuChoiceHierarchy
                             + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+                    elif selectedChoice["2"] == "21":
+                        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_PopularStocks_MenuDict[selectedChoice["3"]].strip()}'
                         )
                     print(
                         colorText.BOLD
@@ -1506,7 +1526,6 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "21",
             "22",
             "23",
             "24",

@@ -85,13 +85,13 @@ level2_X_MenuDict = {
     "18": "Bullish Aroon(14) Crossover",
     "19": "MACD Histogram x below 0       ",
     "20": "Bullish for next day",
-    "21": "RSI entering bullish territory     ",
+    "21": "Most Popular Stocks     ",
     "23": "Bearish CCI crossover           ",
     "24": "RSI above 30 and price > psar      ",
     "25": "Intraday Momentum Build-up      ",
     "26": "Extremely bullish daily close      ",
     "27": "Rising RSI                      ",
-    "28": "Dividend Yield",
+    "28": "RSI entering bullish territory",
     "42": "Show Last Screened Results",
     "M": "Back to the Top/Main menu",
     "Z": "Exit (Ctrl + C)",
@@ -115,7 +115,12 @@ level3_X_ChartPattern_MenuDict = {
     "6": "Narrow Range (NRx) Reversal",
     "0": "Cancel",
 }
-
+level3_X_PopularStocks_MenuDict = {
+    "1": "Shares bought/sold by Mutual Funds/FIIs",
+    "2": "Shareholding by number of Mutual Funds/FIIs",
+    "3": "Dividend Yield",
+    "0": "Cancel",
+}
 
 class MenuRenderStyle(Enum):
     STANDALONE = 1
@@ -272,21 +277,27 @@ class menus:
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
-                return (
-                    self.renderLevel3_X_Reversal_Menus(
+                if selectedMenu.menuKey == "6":
+                    return self.renderLevel3_X_Reversal_Menus(
+                            skip=skip,
+                            asList=asList,
+                            renderStyle=renderStyle,
+                            parent=selectedMenu,
+                        )
+                elif selectedMenu.menuKey == "7":
+                    return self.renderLevel3_X_ChartPattern_Menus(
                         skip=skip,
                         asList=asList,
                         renderStyle=renderStyle,
                         parent=selectedMenu,
                     )
-                    if selectedMenu.menuKey == "6"
-                    else self.renderLevel3_X_ChartPattern_Menus(
+                elif selectedMenu.menuKey == "21":
+                    return self.renderLevel3_X_PopularStocks_Menus(
                         skip=skip,
                         asList=asList,
                         renderStyle=renderStyle,
                         parent=selectedMenu,
                     )
-                )
 
     def find(self, key=None):
         if key is not None:
@@ -455,3 +466,43 @@ class menus:
                 + colorText.END
             )
             return menuText
+
+    def renderLevel3_X_PopularStocks_Menus(
+        self, skip=[], asList=False, renderStyle=MenuRenderStyle.STANDALONE, parent=None
+    ):
+        menuText = self.fromDictionary(
+            level3_X_PopularStocks_MenuDict,
+            renderExceptionKeys=["0"],
+            renderStyle=renderStyle
+            if renderStyle is not None
+            else MenuRenderStyle.STANDALONE,
+            skip=skip,
+            parent=parent,
+        ).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(
+                colorText.BOLD
+                + colorText.WARN
+                + "[+] Select an option: "
+                + colorText.END
+            )
+            print(
+                colorText.BOLD
+                + menuText
+                + """
+
+        """
+                + colorText.END
+            )
+            return menuText
+        
+# Fundamentally good compnaies but nearing 52 week low
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0005
+
+# Dividend Gems
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0027
+
+# Cash rich small caps
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0017

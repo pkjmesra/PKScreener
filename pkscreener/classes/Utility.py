@@ -736,6 +736,31 @@ class tools:
         m = menus()
         return m.renderForMenu(menu)
 
+    # Prompt for Popular stocks
+    def promptPopularStocks(menu=None):
+        try:
+            tools.promptMenus(menu=menu)
+            resp = int(
+                input(
+                    colorText.BOLD
+                    + colorText.WARN
+                    + """[+] Select Option:"""
+                    + colorText.END
+                )
+            )
+            if resp >= 0 and resp <= 3:
+                return resp
+            raise ValueError
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
+            input(
+                colorText.BOLD
+                + colorText.FAIL
+                + "\n[+] Invalid Option Selected. Press <Enter> to try again..."
+                + colorText.END
+            )
+            return None
+        
     # Prompt for Reversal screening
     def promptReversalScreening(menu=None):
         try:
