@@ -1341,10 +1341,10 @@ def saveNotifyResultsFile(
         filename = Utility.tools.promptSaveResults(
             saveResults, defaultAnswer=defaultAnswer
         )
-        if filename is not None:
-            sendMessageToTelegramChannel(
-                document_filePath=filename, caption=caption, user=user
-            )
+        # if filename is not None:
+        #     sendMessageToTelegramChannel(
+        #         document_filePath=filename, caption=caption, user=user
+        #     )
         print(
             colorText.BOLD
             + colorText.WARN

@@ -435,7 +435,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "17",
                     "18",
                     "19",
-                    "20"
+                    "20",
+                    "21"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
@@ -742,7 +743,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             cmds = m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
@@ -781,7 +781,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
@@ -832,7 +831,8 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "17",
                     "18",
                     "19",
-                    "20"
+                    "20",
+                    "21"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
@@ -941,7 +941,6 @@ def addCommandsForMenuItems(application):
             cmds2 = m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
