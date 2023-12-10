@@ -1,5 +1,6 @@
 alive-progress==1.6.2
 # argparse
+bs4
 # builtins
 # collections
 # configparser
