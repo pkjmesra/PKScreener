@@ -29,7 +29,7 @@ on:
       name:
         description: 'Run Details'
         required: false
-        default: 'Data Download'
+        default: ''
       ref:
           description: 'ref branch'
           required: false
@@ -51,7 +51,7 @@ on:
           required: false
           default: 'echo Finished running'
 
-run-name: ${{ inputs.name }} Generic runner for scan workflows params- ${{ inputs.params }}
+run-name: ${{ inputs.name }} Generic runner for scan - ${{ inputs.params }}
 
 jobs:
 
