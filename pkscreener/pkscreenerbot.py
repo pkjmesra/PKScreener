@@ -935,6 +935,8 @@ def addCommandsForMenuItems(application):
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
             if p1 in ["N","0"]:
+                if p1 in ["N"]:
+                    application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
                 continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
