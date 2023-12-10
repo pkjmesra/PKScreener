@@ -45,7 +45,7 @@ scipy>=1.7.3
 # subprocess
 # sys
 # ta-lib # Install this separately
-TA-Lib-Precompiled
+# TA-Lib-Precompiled
 tabulate
 telegram
 tensorflow #==2.9.2
