@@ -387,8 +387,8 @@ class StockConsumer:
                             isBuyingTrendline = screener.findTrendlines(
                                 fullData, screeningDictionary, saveDictionary
                             )
-                with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
-                    isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
+                # with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
+                #     isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
                 
                 with hostRef.processingResultsCounter.get_lock():
                     hostRef.default_logger.info(
@@ -521,15 +521,15 @@ class StockConsumer:
                                 stock,
                                 backtestDuration,
                             )
-                        elif reversalOption == 7 and isLorentzian:
-                            hostRef.processingResultsCounter.value += 1
-                            return (
-                                screeningDictionary,
-                                saveDictionary,
-                                data,
-                                stock,
-                                backtestDuration,
-                            )
+                        # elif reversalOption == 7 and isLorentzian:
+                        #     hostRef.processingResultsCounter.value += 1
+                        #     return (
+                        #         screeningDictionary,
+                        #         saveDictionary,
+                        #         data,
+                        #         stock,
+                        #         backtestDuration,
+                        #     )
                     if executeOption == 7 and isLtpValid:
                         if respChartPattern < 3 and isInsideBar:
                             hostRef.processingResultsCounter.value += 1

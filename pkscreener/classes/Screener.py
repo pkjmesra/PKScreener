@@ -39,7 +39,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 import pkscreener.classes.Utility as Utility
-from advanced_ta import LorentzianClassification
+# from advanced_ta import LorentzianClassification
 
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
@@ -940,22 +940,22 @@ class tools:
         return False
 
     # Validate Lorentzian Classification signal  
-    def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
-        # lookFor: 1-Any, 2-Buy, 3-Sell
-        data = data[::-1]               # Reverse the dataframe
-        data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
-        lc = LorentzianClassification(data=data)
-        if lc.df.iloc[-1]['isNewBuySignal']:
-            screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
-            saveDict['Pattern'] = f'Lorentzian-Buy'
-            if lookFor != 3:
-                return True
-        elif lc.df.iloc[-1]['isNewSellSignal']:
-            screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
-            saveDict['Pattern'] = f'Lorentzian-Sell'
-            if lookFor != 2:
-                return True
-        return False
+    # def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
+    #     # lookFor: 1-Any, 2-Buy, 3-Sell
+    #     data = data[::-1]               # Reverse the dataframe
+    #     data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
+    #     lc = LorentzianClassification(data=data)
+    #     if lc.df.iloc[-1]['isNewBuySignal']:
+    #         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
+    #         saveDict['Pattern'] = f'Lorentzian-Buy'
+    #         if lookFor != 3:
+    #             return True
+    #     elif lc.df.iloc[-1]['isNewSellSignal']:
+    #         screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
+    #         saveDict['Pattern'] = f'Lorentzian-Sell'
+    #         if lookFor != 2:
+    #             return True
+    #     return False
     
     # Validate if recent volume is lowest of last 'N' Days
     def validateLowestVolume(self, data, daysForLowestVolume):
