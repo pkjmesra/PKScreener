@@ -85,7 +85,7 @@ level2_X_MenuDict = {
     "18": "Bullish Aroon(14) Crossover",
     "19": "MACD Histogram x below 0       ",
     "20": "Bullish for next day",
-    "21": "Most Popular Stocks     ",
+    "21": "Most Popular Stocks            ",
     "23": "Bearish CCI crossover           ",
     "24": "RSI above 30 and price > psar      ",
     "25": "Intraday Momentum Build-up      ",
