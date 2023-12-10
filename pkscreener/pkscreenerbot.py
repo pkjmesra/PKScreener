@@ -960,7 +960,7 @@ def addCommandsForMenuItems(application):
                 application.add_handler(
                     CommandHandler(f"{p0}_{p1}_{p2}", command_handler)
                 )
-                if p2 in ["6", "7"]:
+                if p2 in ["6", "7", "21"]:
                     selectedMenu = m2.find(p2)
                     cmds3 = m3.renderForMenu(
                         selectedMenu=selectedMenu,
