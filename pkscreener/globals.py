@@ -727,8 +727,9 @@ def main(userArgs=None):
         else:
             selectedChoice["3"] = str(popOption)
         if popOption == 3:
-            df = fetcher.fetchMorningstarTopDividendsYieldStocks()
-            printNotifySaveScreenedResults(df,df,selectedChoice,menuChoiceHierarchy,False,None)
+            updateMenuChoiceHierarchy()
+            screenResults = fetcher.fetchMorningstarTopDividendsYieldStocks()
+            printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
             return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
@@ -837,30 +838,7 @@ def main(userArgs=None):
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}>{level2_X_MenuDict[selectedChoice["2"]].strip()}'
-                    if selectedChoice["2"] == "6":
-                        menuChoiceHierarchy = (
-                            menuChoiceHierarchy
-                            + f'>{level3_X_Reversal_MenuDict[selectedChoice["3"]].strip()}'
-                        )
-                    elif selectedChoice["2"] == "7":
-                        menuChoiceHierarchy = (
-                            menuChoiceHierarchy
-                            + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
-                        )
-                    elif selectedChoice["2"] == "21":
-                        menuChoiceHierarchy = (
-                            menuChoiceHierarchy
-                            + f'>{level3_X_PopularStocks_MenuDict[selectedChoice["3"]].strip()}'
-                        )
-                    print(
-                        colorText.BOLD
-                        + colorText.FAIL
-                        + "[+] You chose: "
-                        + menuChoiceHierarchy
-                        + colorText.END
-                    )
-                    default_logger().info(menuChoiceHierarchy)
+                    updateMenuChoiceHierarchy()
                 if listStockCodes is None or len(listStockCodes) == 0:
                     listStockCodes = fetcher.fetchStockCodes(
                         tickerOption, stockCode=None
@@ -1111,6 +1089,33 @@ def main(userArgs=None):
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
+
+def updateMenuChoiceHierarchy():
+    global selectedChoice, menuChoiceHierarchy
+    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}>{level2_X_MenuDict[selectedChoice["2"]].strip()}'
+    if selectedChoice["2"] == "6":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_Reversal_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    elif selectedChoice["2"] == "7":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    elif selectedChoice["2"] == "21":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_PopularStocks_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "[+] You chose: "
+        + menuChoiceHierarchy
+        + colorText.END
+    )
+    default_logger().info(menuChoiceHierarchy)
 
 
 def populateQueues(items, tasks_queue):

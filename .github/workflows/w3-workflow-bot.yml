@@ -30,20 +30,20 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
-  # push:
-  #   branches: [ main ]
-  # workflow_run:
-  #   workflows: ["0. New Features - Tests"]
-  #   types:
-  #     - completed
-  workflow_call:
-    inputs:
-      branch-name:
-        required: true
-        type: string
-        default: 'new-features'
-  # schedule:
-  #   - cron: '59 * * * *'
+  push:
+    branches: [ main ]
+    # workflow_run:
+    #   workflows: ["0. New Features - Tests"]
+    #   types:
+    #     - completed
+    # workflow_call:
+    #   inputs:
+    #     branch-name:
+    #       required: true
+    #       type: string
+    #       default: 'new-features'
+  schedule:
+    - cron: '59 * * * *'
 
 jobs:
 
@@ -56,10 +56,10 @@ jobs:
       with:
         ref: ${{ inputs.branch-name }}
 
-    - name: Set up Python 3.11
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.11
+        python-version: 3.9
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
