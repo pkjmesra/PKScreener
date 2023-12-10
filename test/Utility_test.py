@@ -416,9 +416,9 @@ def test_getNiftyModel():
         # Mocking the keras.models.load_model() function
         mock_load_model = Mock()
         m1 = str(mock_load_model)
-        f = open("nifty_model_v3.h5","wb")
+        f = open("nifty_model_v2.h5","wb")
         f.close()
-        pd.DataFrame().to_pickle("nifty_model_v3.pkl")
+        pd.DataFrame().to_pickle("nifty_model_v2.pkl")
         with patch("keras.models.load_model", return_value=mock_load_model) as mock_keras_load_model:
             # Mocking the joblib.load() function
             mock_joblib_load = Mock()
@@ -426,11 +426,11 @@ def test_getNiftyModel():
             with patch("joblib.load", return_value=mock_joblib_load) as mock_joblib_load:
                 result = tools.getNiftyModel(retrial=True)
                 # Assert that os.path.isfile called twice with the correct argument
-                mock_isfile.assert_called_with("nifty_model_v3.pkl")
+                mock_isfile.assert_called_with("nifty_model_v2.pkl")
                 # Assert that keras.models.load_model() is called with the correct argument
-                mock_keras_load_model.assert_called_with("nifty_model_v3.h5")
+                mock_keras_load_model.assert_called_with("nifty_model_v2.h5")
                 # Assert that joblib.load() is called with the correct argument
-                mock_joblib_load.assert_called_with("nifty_model_v3.pkl")
+                mock_joblib_load.assert_called_with("nifty_model_v2.pkl")
                 # Assert that the result is the correct tuple
                 assert (str(result[0]), str(result[1])) == (m1, m2)
 
