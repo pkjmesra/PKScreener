@@ -726,11 +726,13 @@ def main(userArgs=None):
             return
         else:
             selectedChoice["3"] = str(popOption)
+        updateMenuChoiceHierarchy()
         if popOption == 3:
-            updateMenuChoiceHierarchy()
             screenResults = fetcher.fetchMorningstarTopDividendsYieldStocks()
-            printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
-            return
+        elif popOption > 0 and popOption <=2:
+            screenResults = fetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
+        printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
+        return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
