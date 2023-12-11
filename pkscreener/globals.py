@@ -648,10 +648,10 @@ def main(userArgs=None):
                     if str(options[4]).isnumeric():
                         insideBarToLookback = int(options[4])
                     elif str(options[4]).upper() == 'D':
-                        insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
+                        insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.05
                 elif defaultAnswer =='Y' and user is not None:
                     # bot mode
-                    insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.02
+                    insideBarToLookback = 7 if respChartPattern in [1, 2] else 0.05
                 else:
                     (
                         respChartPattern,

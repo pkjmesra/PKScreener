@@ -853,7 +853,7 @@ class tools:
                     input(
                         colorText.BOLD
                         + colorText.WARN
-                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : "
+                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-5%)? : "
                         + colorText.END
                     )
                 )
