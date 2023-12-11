@@ -631,9 +631,9 @@ class tools:
     # --data-raw '{"query":"531889","highlightPostTag":" ","highlightPreTag":" ","restrictHighlightAndSnippetArrays":true}' \
     # --compressed
     # https://simplywall.st/stocks/in/tech/bse-530343/genus-power-infrastructures-shares
-
-    def fetchMorningstarStocksPerformanceForExchange(self, exchange="NSE"):
-        url = "https://lt.morningstar.com/api/rest.svc/g9vi2nsqjb/security/screener?page=1&pageSize=2500&sortOrder=name%20asc&outputType=json&version=1&languageId=en&currencyId=BAS&universeIds={0}&securityDataPoints=secId%2Cname%2CexchangeId%2CsectorId%2CindustryId%2CmarketCap%2CdividendYield%2CclosePrice%2CpriceCurrency%2CPEGRatio%2CpeRatio%2CquantitativeStarRating%2CequityStyleBox%2CgbrReturnM0%2CgbrReturnD1%2CgbrReturnW1%2CgbrReturnM1%2CgbrReturnM3%2CgbrReturnM6%2CgbrReturnM12%2CgbrReturnM36%2CgbrReturnM60%2CgbrReturnM120%2CrevenueGrowth3Y%2CdebtEquityRatio%2CnetMargin%2Croattm%2Croettm%2Cexchange&filters=&term=".format("E0EXG%24XNSE" if exchange == "NSE" else "E0EXG%24XBOM")
+    # https://lt.morningstar.com/api/rest.svc/g9vi2nsqjb/security/screener?languageId=en&currencyId=BAS&universeIds=E0EXG%24XBOM%7CE0EXG%24XNSE&outputType=json&filterDataPoints=sectorId%7CindustryId&filters=%7B%7D
+    def fetchMorningstarStocksPerformanceForExchange(self):
+        url = "https://lt.morningstar.com/api/rest.svc/g9vi2nsqjb/security/screener?page=1&pageSize=2500&sortOrder=name%20asc&outputType=json&version=1&languageId=en&currencyId=BAS&universeIds=E0EXG%24XBOM%7CE0EXG%24XNSE&securityDataPoints=secId%2Cname%2CexchangeId%2CsectorId%2CindustryId%2CmarketCap%2CdividendYield%2CclosePrice%2CpriceCurrency%2CPEGRatio%2CpeRatio%2CquantitativeStarRating%2CequityStyleBox%2CgbrReturnM0%2CgbrReturnD1%2CgbrReturnW1%2CgbrReturnM1%2CgbrReturnM3%2CgbrReturnM6%2CgbrReturnM12%2CgbrReturnM36%2CgbrReturnM60%2CgbrReturnM120%2CrevenueGrowth3Y%2CdebtEquityRatio%2CnetMargin%2Croattm%2Croettm%2Cexchange&filters=&term="
         res = self.fetchURL(url)
         if res is None or res.status_code != 200:
             return None
@@ -644,7 +644,8 @@ class tools:
             for row in rows:
                 df_row = pd.DataFrame([row]), #columns=["name", "marketCap","exchangeId", "dividendYield", "closePrice","peRatio"])
                 output = pd.concat([output, df_row[0]], ignore_index=True)
-            output.drop_duplicates(subset=['name'], keep='last',inplace=True)
+            output.drop_duplicates(subset=['name'], keep='first',inplace=True)
+            output = output[["name","exchangeId","sectorId","industryId","closePrice","gbrReturnM0","gbrReturnD1","gbrReturnW1","gbrReturnM1","gbrReturnM3","gbrReturnM6","gbrReturnM12","gbrReturnM36","gbrReturnM60","gbrReturnM120","marketCap","dividendYield","peRatio","quantitativeStarRating","equityStyleBox","revenueGrowth3Y","debtEquityRatio","netMargin","roattm","roettm","PEGRatio"]]
             output.rename(
                 columns={
                     "name": f"Stock",

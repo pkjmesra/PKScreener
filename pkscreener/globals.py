@@ -668,7 +668,7 @@ def main(userArgs=None):
             respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(
                 selectedMenu
             )
-        if respChartPattern is None or insideBarToLookback is None or respChartPattern == 0 or insideBarToLookback == 0:
+        if respChartPattern is None or insideBarToLookback is None or respChartPattern == 0:
             return
         else:
             selectedChoice["3"] = str(respChartPattern)
@@ -732,15 +732,38 @@ def main(userArgs=None):
         elif popOption > 0 and popOption <=2:
             screenResults = fetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
         printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
+        input("Press <Enter> to continue...")
+        return
+    if executeOption == 22:
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 4:
+            popOption = int(options[3])
+            if popOption >= 0 and popOption <= 3:
+                pass
+        else:
+            popOption = Utility.tools.promptPopularStocks(
+                selectedMenu
+            )
+        if popOption is None or popOption == 0:
+            return
+        else:
+            selectedChoice["3"] = str(popOption)
+        updateMenuChoiceHierarchy()
+        if popOption == 3:
+            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange()
+        elif popOption > 0 and popOption <=2:
+            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange(exchange="BSE")
+        printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
+        input("Press <Enter> to continue...")
         return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 22 and executeOption <= 39:
+    if executeOption >= 23 and executeOption <= 39:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 22 to 39 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 23 to 39 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
