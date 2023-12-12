@@ -400,7 +400,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             mns.append(menu().create("P", "Previous Options", 2))
         elif str(selection[2]).isnumeric():
             preSelection = f"{selection[0]}_{selection[1]}_{selection[2]}"
-            if selection[2] in ["6", "7"]:
+            if selection[2] in ["6", "7", "21"]:
                 menuText = m3.renderForMenu(
                     m2.find(selection[2]),
                     renderStyle=MenuRenderStyle.STANDALONE,
@@ -505,19 +505,23 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 async def launchScreener(options, user, context, optionChoices, update):
     try:
         if str(optionChoices.upper()).startswith("X"):
-            Popen(
-                [
-                    "pkscreener",
-                    "-a",
-                    "Y",
-                    "-e",
-                    "-p",
-                    "-o",
-                    str(options.upper()),
-                    "-u",
-                    str(user.id),
-                ]
-            )
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
+            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
+            # Popen(
+            #     [
+            #         "pkscreener",
+            #         "-a",
+            #         "Y",
+            #         "-e",
+            #         "-p",
+            #         "-o",
+            #         str(options.upper()),
+            #         "-u",
+            #         str(user.id),
+            #     ]
+            # )
         elif str(optionChoices.upper()).startswith("B"):
             optionChoices = optionChoices.replace(" ","").replace(">","_")
             while(optionChoices.endswith('_')):
@@ -795,7 +799,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            if selection[2] in ["6", "7"]:
+            if selection[2] in ["6", "7", "21"]:
                 selectedMenu = m2.find(selection[2].upper())
                 cmds = m3.renderForMenu(
                     selectedMenu=selectedMenu,
