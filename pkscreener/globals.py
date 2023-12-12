@@ -1153,6 +1153,9 @@ def populateQueues(items, tasks_queue):
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     Utility.tools.clearScreen()
     print(
         colorText.BOLD
@@ -1359,6 +1362,9 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
 def saveNotifyResultsFile(
     screenResults, saveResults, defaultAnswer, menuChoiceHierarchy, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
         filename = Utility.tools.promptSaveResults(
@@ -1391,6 +1397,9 @@ def saveNotifyResultsFile(
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     if user is not None and caption is not None:
         caption = f"{caption.replace('&',' n ')}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
     if message is not None:
