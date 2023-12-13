@@ -71,7 +71,7 @@ from pkscreener.classes.log import default_logger
 multiprocessing.freeze_support()
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ['AUTOGRAPH_VERBOSITY'] = '0'
-from pkscreener.classes.IntradayMonitor import intradayMonitorInstance
+# from pkscreener.classes.IntradayMonitor import intradayMonitorInstance
 
 # Argument Parsing for test purpose
 argParser = argparse.ArgumentParser()
@@ -218,7 +218,8 @@ def pkscreenercli():
         )
     if args.monitor:
         Utility.tools.clearScreen()
-        intradayMonitorInstance.monitor()
+        print("Not Implemented Yet!")
+        # intradayMonitorInstance.monitor()
         sys.exit(0)
     if args.intraday:
         configManager.toggleConfig(candleDuration=args.intraday)

@@ -40,3 +40,4 @@ class colorText:
     END = "\033[0m"
     BOLD = "\033[1m"
     UNDR = "\033[4m"
+    WHITE = "\033[97m"

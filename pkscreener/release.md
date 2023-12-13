@@ -1,9 +1,9 @@
 [![MADE-IN-INDIA](https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge)](https://en.wikipedia.org/wiki/India) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge)](#) [![GitHub all releases](https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge)](#) [![MADE_WITH](https://img.shields.io/badge/BUILT%20USING-PYTHON-yellow?style=for-the-badge&logo=python&logoColor=yellow)](https://www.python.org/)
 
 ## What's New?
-1. [v0.41] release
-* Backtest report now has an added summary right here (https://pkjmesra.github.io/PKScreener/BacktestReports.html)
-* Access the backtest reports for short/mid/long term at https://pkjmesra.github.io/PKScreener/BacktestReports.html and for intraday at https://pkjmesra.github.io/PKScreener/BacktestReportsIntraday.html
+1. [v0.42] release
+* Added the stocks based on fund house popularity. Try the X > 12 > 21> options.
+* You can now see which stocks the mutual funds are investing into and where they are selling out.
 
 ## Older Releases
 * https://github.com/pkjmesra/PKScreener/releases

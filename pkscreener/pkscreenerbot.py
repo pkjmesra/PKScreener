@@ -400,7 +400,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             mns.append(menu().create("P", "Previous Options", 2))
         elif str(selection[2]).isnumeric():
             preSelection = f"{selection[0]}_{selection[1]}_{selection[2]}"
-            if selection[2] in ["6", "7"]:
+            if selection[2] in ["6", "7", "21"]:
                 menuText = m3.renderForMenu(
                     m2.find(selection[2]),
                     renderStyle=MenuRenderStyle.STANDALONE,
@@ -435,7 +435,8 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "17",
                     "18",
                     "19",
-                    "20"
+                    "20",
+                    "21"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
@@ -455,7 +456,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         optionChoices = (
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
-        menuText = f"Thank you for choosing {optionChoices}. You will receive the results soon! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@APL \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra\n\nSince it is running on a low-end server, it might take from a few seconds to a few minutes. You will get notified here when the results arrive!"
+        menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 5 minutes! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@APL \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
@@ -503,25 +504,29 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 
 async def launchScreener(options, user, context, optionChoices, update):
     try:
-        if str(optionChoices.upper()).startswith("X"):
-            Popen(
-                [
-                    "pkscreener",
-                    "-a",
-                    "Y",
-                    "-e",
-                    "-p",
-                    "-o",
-                    str(options.upper()),
-                    "-u",
-                    str(user.id),
-                ]
-            )
-        elif str(optionChoices.upper()).startswith("B"):
+        if str(optionChoices.upper()).startswith("B"):
             optionChoices = optionChoices.replace(" ","").replace(">","_")
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()))
+        else:
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
+            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
+            # Popen(
+            #     [
+            #         "pkscreener",
+            #         "-a",
+            #         "Y",
+            #         "-e",
+            #         "-p",
+            #         "-o",
+            #         str(options.upper()),
+            #         "-u",
+            #         str(user.id),
+            #     ]
+            # )
     except Exception:
         await start(update, context)
 
@@ -742,7 +747,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             cmds = m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
@@ -781,7 +785,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
@@ -796,7 +799,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            if selection[2] in ["6", "7"]:
+            if selection[2] in ["6", "7", "21"]:
                 selectedMenu = m2.find(selection[2].upper())
                 cmds = m3.renderForMenu(
                     selectedMenu=selectedMenu,
@@ -832,7 +835,8 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "17",
                     "18",
                     "19",
-                    "20"
+                    "20",
+                    "21"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
@@ -862,7 +866,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def sendRequestSubmitted(optionChoices, update, context):
-    menuText = f"Thank you for choosing {optionChoices}. You will receive the results soon! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@APL \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra\n\nSince it is running on a low-end server, it might take from a few seconds to a few minutes. You will get notified here when the results arrive!"
+    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 5 minutes! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@APL \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
     await update.message.reply_text(menuText)
     await help_command(update=update, context=context)
     await shareUpdateWithChannel(
@@ -935,13 +939,14 @@ def addCommandsForMenuItems(application):
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
             if p1 in ["N","0"]:
+                if p1 in ["N"]:
+                    application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
                 continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
             cmds2 = m2.renderForMenu(
                 selectedMenu=selectedMenu,
                 skip=[
-                    "21",
                     "22",
                     "23",
                     "24",
@@ -961,7 +966,7 @@ def addCommandsForMenuItems(application):
                 application.add_handler(
                     CommandHandler(f"{p0}_{p1}_{p2}", command_handler)
                 )
-                if p2 in ["6", "7"]:
+                if p2 in ["6", "7", "21"]:
                     selectedMenu = m2.find(p2)
                     cmds3 = m3.renderForMenu(
                         selectedMenu=selectedMenu,

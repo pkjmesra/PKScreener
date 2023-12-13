@@ -56,7 +56,8 @@ from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
                                             level2_X_MenuDict,
                                             level3_X_ChartPattern_MenuDict,
-                                            level3_X_Reversal_MenuDict, menus)
+                                            level3_X_Reversal_MenuDict, 
+                                            level3_X_PopularStocks_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
 from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
@@ -116,7 +117,9 @@ def finishScreening(
 
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
-    intraday = True if userPassedArgs.intraday is not None else False
+    configManager.getConfig(ConfigManager.parser)
+    intradayConfig = configManager.isIntradayConfig()
+    intraday = True if (intradayConfig or userPassedArgs.intraday is not None) else False
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -667,7 +670,7 @@ def main(userArgs=None):
             respChartPattern, insideBarToLookback = Utility.tools.promptChartPatterns(
                 selectedMenu
             )
-        if respChartPattern is None or insideBarToLookback is None or respChartPattern == 0 or insideBarToLookback == 0:
+        if respChartPattern is None or insideBarToLookback is None or respChartPattern == 0:
             return
         else:
             selectedChoice["3"] = str(respChartPattern)
@@ -711,14 +714,58 @@ def main(userArgs=None):
             configManager.volumeRatio = float(volumeRatio)
     if executeOption == 12:
         configManager.toggleConfig(candleDuration="15m")
+    if executeOption == 21:
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 4:
+            popOption = int(options[3])
+            if popOption >= 0 and popOption <= 3:
+                pass
+        else:
+            popOption = Utility.tools.promptPopularStocks(
+                selectedMenu
+            )
+        if popOption is None or popOption == 0:
+            return
+        else:
+            selectedChoice["3"] = str(popOption)
+        updateMenuChoiceHierarchy()
+        if popOption == 3:
+            screenResults = fetcher.fetchMorningstarTopDividendsYieldStocks()
+        elif popOption > 0 and popOption <=2:
+            screenResults = fetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
+        printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
+        input("Press <Enter> to continue...")
+        return
+    if executeOption == 22:
+        selectedMenu = m2.find(str(executeOption))
+        if len(options) >= 4:
+            popOption = int(options[3])
+            if popOption >= 0 and popOption <= 3:
+                pass
+        else:
+            popOption = Utility.tools.promptPopularStocks(
+                selectedMenu
+            )
+        if popOption is None or popOption == 0:
+            return
+        else:
+            selectedChoice["3"] = str(popOption)
+        updateMenuChoiceHierarchy()
+        if popOption == 3:
+            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange()
+        elif popOption > 0 and popOption <=2:
+            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange(exchange="BSE")
+        printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
+        input("Press <Enter> to continue...")
+        return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 21 and executeOption <= 39:
+    if executeOption >= 24 and executeOption <= 41:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 21 to 39 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 24 to 41 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
@@ -747,7 +794,7 @@ def main(userArgs=None):
                     data=fetcher.fetchLatestNiftyDaily(proxyServer=fetcher.proxyServer)
                 )
                 sendMessageToTelegramChannel(
-                    message=f"Nifty AI prediction for the next day: {pText}. {sText}\n\nYou may wish to check the backtest results for all previous day scan results for all Nifty Stocks:\nhttps://pkjmesra.github.io/PKScreener/BacktestReports.html",
+                    message=f"Nifty AI prediction for the next day: {pText}. {sText}.",
                     user=user,
                 )
                 if defaultAnswer is None:
@@ -818,25 +865,7 @@ def main(userArgs=None):
                     return
             else:
                 if not downloadOnly:
-                    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}>{level2_X_MenuDict[selectedChoice["2"]].strip()}'
-                    if selectedChoice["2"] == "6":
-                        menuChoiceHierarchy = (
-                            menuChoiceHierarchy
-                            + f'>{level3_X_Reversal_MenuDict[selectedChoice["3"]].strip()}'
-                        )
-                    elif selectedChoice["2"] == "7":
-                        menuChoiceHierarchy = (
-                            menuChoiceHierarchy
-                            + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
-                        )
-                    print(
-                        colorText.BOLD
-                        + colorText.FAIL
-                        + "[+] You chose: "
-                        + menuChoiceHierarchy
-                        + colorText.END
-                    )
-                    default_logger().info(menuChoiceHierarchy)
+                    updateMenuChoiceHierarchy()
                 if listStockCodes is None or len(listStockCodes) == 0:
                     listStockCodes = fetcher.fetchStockCodes(
                         tickerOption, stockCode=None
@@ -1088,6 +1117,33 @@ def main(userArgs=None):
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
 
+def updateMenuChoiceHierarchy():
+    global selectedChoice, menuChoiceHierarchy
+    menuChoiceHierarchy = f'{level0MenuDict[selectedChoice["0"]].strip()}>{level1_X_MenuDict[selectedChoice["1"]].strip()}>{level2_X_MenuDict[selectedChoice["2"]].strip()}'
+    if selectedChoice["2"] == "6":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_Reversal_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    elif selectedChoice["2"] == "7":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_ChartPattern_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    elif selectedChoice["2"] == "21":
+        menuChoiceHierarchy = (
+                            menuChoiceHierarchy
+                            + f'>{level3_X_PopularStocks_MenuDict[selectedChoice["3"]].strip()}'
+                        )
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "[+] You chose: "
+        + menuChoiceHierarchy
+        + colorText.END
+    )
+    default_logger().info(menuChoiceHierarchy)
+
 
 def populateQueues(items, tasks_queue):
     for item in items:
@@ -1099,6 +1155,9 @@ def populateQueues(items, tasks_queue):
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     Utility.tools.clearScreen()
     print(
         colorText.BOLD
@@ -1220,30 +1279,8 @@ def runScanners(
                     sampleDays = result[4]
                     # Backtest for results
                     if menuOption == "B":
-                        sellSignal = (
-                            str(selectedChoice["2"]) in ["6","7"] and 
-                            str(selectedChoice["3"]) in ["2"]
-                            ) or selectedChoice["2"] in ["15","16","19"]
-                        backtest_df = backtest(
-                            result[3],
-                            result[2],
-                            result[0],
-                            backtestPeriod,
-                            sampleDays,
-                            backtest_df,
-                            sellSignal
-                        )
-                        elapsed_time = time.time() - start_time
-                        if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
-                            # Dump results on the screen and into a file every 50 results
-                            showBacktestResults(backtest_df)
-                            summary_df = backtestSummary(backtest_df)
-                            # summary_df.set_index("Stock", inplace=True)
-                            showBacktestResults(summary_df,optionalName="Summary")
-                            dumpFreq = dumpFreq + 1
-                        # Commit intermittently if its been running for over x hours
-                        if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
-                            Committer.commitTempOutcomes(choices)
+                        backtest_df = updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df)
+                
                 numStocks -= 1
                 progressbar.text(
                     colorText.BOLD
@@ -1279,6 +1316,33 @@ def runScanners(
         logging.shutdown()
     return screenResults, saveResults, backtest_df
 
+def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df):
+    sellSignal = (
+                                str(selectedChoice["2"]) in ["6","7"] and 
+                                str(selectedChoice["3"]) in ["2"]
+                                ) or selectedChoice["2"] in ["15","16","19"]
+    backtest_df = backtest(
+                                result[3],
+                                result[2],
+                                result[0],
+                                backtestPeriod,
+                                sampleDays,
+                                backtest_df,
+                                sellSignal
+                            )
+    elapsed_time = time.time() - start_time
+    # if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
+    #     # Dump results on the screen and into a file every 50 results
+    #     showBacktestResults(backtest_df)
+    #     summary_df = backtestSummary(backtest_df)
+    #     # summary_df.set_index("Stock", inplace=True)
+    #     showBacktestResults(summary_df,optionalName="Summary")
+    #     dumpFreq = dumpFreq + 1
+    # Commit intermittently if its been running for over x hours
+    if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
+        Committer.commitTempOutcomes(choices)
+    return backtest_df
+
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
     if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
@@ -1300,15 +1364,18 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
 def saveNotifyResultsFile(
     screenResults, saveResults, defaultAnswer, menuChoiceHierarchy, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
         filename = Utility.tools.promptSaveResults(
             saveResults, defaultAnswer=defaultAnswer
         )
-        if filename is not None:
-            sendMessageToTelegramChannel(
-                document_filePath=filename, caption=caption, user=user
-            )
+        # if filename is not None:
+        #     sendMessageToTelegramChannel(
+        #         document_filePath=filename, caption=caption, user=user
+        #     )
         print(
             colorText.BOLD
             + colorText.WARN
@@ -1332,8 +1399,11 @@ def saveNotifyResultsFile(
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None
 ):
+    global userPassedArgs
+    if user is None and userPassedArgs.user is not None:
+        user = userPassedArgs.user
     if user is not None and caption is not None:
-        caption = f"{caption.replace('&',' n ')}. You may wish to check the backtest results for all previous day scan results for all Nifty Stocks: https://pkjmesra.github.io/PKScreener/BacktestReports.html" 
+        caption = f"{caption.replace('&',' n ')}." 
     if message is not None:
         try:
             message = message.replace('&',' n ')
@@ -1501,14 +1571,12 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "21",
-            "22",
-            "23",
             "24",
             "25",
             "26",
             "27",
             "28",
+            "29"
             "42",
         ],
     )
@@ -1540,7 +1608,7 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
             break
 
 def toggleUserConfig():
-    configManager.toggleConfig()
+    configManager.toggleConfig(candleDuration="1d" if configManager.isIntradayConfig() else "1m")
     print(
         colorText.BOLD
         + colorText.GREEN

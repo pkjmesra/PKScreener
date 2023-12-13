@@ -152,6 +152,12 @@ jobs:
         cd pkscreener/
         python pkscreenercli.py -a Y -p -t -o X:12:14 -e
 
+    - name: 21. Most Popular stocks by change of shares
+      shell: cmd
+      run: |
+        cd pkscreener/
+        python pkscreenercli.py -a Y -p -o X:12:21:1 -e
+
     - name: 1. Next day Nifty/Market AI prediction
       shell: cmd
       run: |

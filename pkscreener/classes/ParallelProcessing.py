@@ -88,8 +88,10 @@ class StockConsumer:
         fetcher = hostRef.fetcher
         screener = hostRef.screener
         candlePatterns = hostRef.candlePatterns
+        userArgsLog = printCounter
         try:
-            self.setupLoggers(hostRef, screener, logLevel, stock)
+            if userArgsLog:
+                self.setupLoggers(hostRef, screener, logLevel, stock)
             period = configManager.period
             if volumeRatio <= 0:
                 volumeRatio = configManager.volumeRatio
@@ -99,14 +101,16 @@ class StockConsumer:
                     period = "250d"
                 else:
                     period = configManager.period
-            hostRef.default_logger.info(
-                f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
-            )
+            # hostRef.default_logger.info(
+            #     f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
+            # )
+            with hostRef.processingCounter.get_lock():
+                hostData = hostRef.objectDictionary.get(stock)
             if (
                 (not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostRef.objectDictionary.get(stock) is None)
+                or hostData is None)
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -121,10 +125,12 @@ class StockConsumer:
                 if (
                     (shouldCache
                     and not self.isTradingTime
-                    and (hostRef.objectDictionary.get(stock) is None))
+                    and (hostData is None))
                     or downloadOnly
                 ):
-                    hostRef.objectDictionary[stock] = data.to_dict("split")
+                    with hostRef.processingCounter.get_lock():
+                        hostRef.objectDictionary[stock] = data.to_dict("split")
+                        hostData = hostRef.objectDictionary.get(stock)
                     # hostRef.default_logger.info(
                     #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
                     # )
@@ -163,7 +169,7 @@ class StockConsumer:
                         hostRef.default_logger.debug(e, exc_info=True)
                         pass
                     sys.stdout.write("\r\033[K")
-                data = hostRef.objectDictionary.get(stock)
+                data = hostData
                 data = pd.DataFrame(
                     data["data"], columns=data["columns"], index=data["index"]
                 )
@@ -198,8 +204,7 @@ class StockConsumer:
                 # )
             if not processedData.empty:
                 screeningDictionary["Stock"] = (
-                    colorText.BOLD
-                    + colorText.BLUE
+                    colorText.WHITE
                     + (stock if monitoring else f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
                     + colorText.END
                 )
@@ -211,6 +216,9 @@ class StockConsumer:
                     minLTP=configManager.minLTP,
                     maxLTP=configManager.maxLTP,
                 )
+                if configManager.stageTwo and not verifyStageTwo:
+                    raise Screener.NotAStageTwoStock
+                
                 consolidationValue = screener.validateConsolidation(
                     processedData,
                     screeningDictionary,
@@ -252,12 +260,22 @@ class StockConsumer:
                     saveDictionary,
                     volumeRatio=volumeRatio,
                 )
-                isBreaking = screener.findBreakout(
+                isBreaking = screener.findBreakoutValue(
                     processedData,
                     screeningDictionary,
                     saveDictionary,
                     daysToLookback=configManager.daysToLookback,
+                    alreadyBrokenout=(executeOption == 2)
                 )
+                if executeOption == 1:
+                    isPotentialBreaking = screener.findPotentialBreakout(
+                        fullData,
+                        screeningDictionary,
+                        saveDictionary,
+                        daysToLookback=configManager.daysToLookback,
+                    )
+                if executeOption == 23:
+                    isBreakingOutNow = screener.findBreakingoutNow(processedData)
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
                         processedData, daysForLowestVolume
@@ -372,7 +390,9 @@ class StockConsumer:
                             isBuyingTrendline = screener.findTrendlines(
                                 fullData, screeningDictionary, saveDictionary
                             )
-
+                # with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
+                #     isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
+                
                 with hostRef.processingResultsCounter.get_lock():
                     hostRef.default_logger.info(
                         f"Processing results for {stock} in {hostRef.processingResultsCounter.value}th results counter"
@@ -387,8 +407,8 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        (executeOption == 1 or executeOption == 2)
-                        and isBreaking
+                        ((executeOption == 1 and (isBreaking or isPotentialBreaking)) or 
+                         (executeOption == 2 and isBreaking))
                         and isVolumeHigh
                         and isLtpValid
                     ):
@@ -401,7 +421,7 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        (executeOption == 1 or executeOption == 3)
+                        (executeOption == 3)
                         and (
                             consolidationValue <= configManager.consolidationPercentage
                             and consolidationValue != 0
@@ -504,6 +524,15 @@ class StockConsumer:
                                 stock,
                                 backtestDuration,
                             )
+                        # elif reversalOption == 7 and isLorentzian:
+                        #     hostRef.processingResultsCounter.value += 1
+                        #     return (
+                        #         screeningDictionary,
+                        #         saveDictionary,
+                        #         data,
+                        #         stock,
+                        #         backtestDuration,
+                        #     )
                     if executeOption == 7 and isLtpValid:
                         if respChartPattern < 3 and isInsideBar:
                             hostRef.processingResultsCounter.value += 1
@@ -619,7 +648,8 @@ class StockConsumer:
                         (executeOption == 17 and is52WeekHighBreakout) or 
                         (executeOption == 18 and isLtpValid and isAroonCrossover) or
                         (executeOption == 19 and macdHistBelow0) or
-                        (executeOption == 20 and bullishForTomorrow)
+                        (executeOption == 20 and bullishForTomorrow) or
+                        (executeOption == 23 and isBreakingOutNow)
                     ):
                         hostRef.processingResultsCounter.value += 1
                         return (
@@ -638,6 +668,9 @@ class StockConsumer:
             pass
         except Screener.NotNewlyListed as e:
             hostRef.default_logger.debug(e, exc_info=True)
+            pass
+        except Screener.NotAStageTwoStock as e:
+            # hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.DownloadDataOnly as e:
             # hostRef.default_logger.debug(e, exc_info=True)

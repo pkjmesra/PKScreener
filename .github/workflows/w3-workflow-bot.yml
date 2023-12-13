@@ -30,20 +30,20 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
-  # push:
-  #   branches: [ main ]
-  # workflow_run:
-  #   workflows: ["0. New Features - Tests"]
-  #   types:
-  #     - completed
-  workflow_call:
-    inputs:
-      branch-name:
-        required: true
-        type: string
-        default: 'new-features'
-  # schedule:
-  #   - cron: '59 * * * *'
+  push:
+    branches: [ main ]
+    # workflow_run:
+    #   workflows: ["0. New Features - Tests"]
+    #   types:
+    #     - completed
+    # workflow_call:
+    #   inputs:
+    #     branch-name:
+    #       required: true
+    #       type: string
+    #       default: 'new-features'
+  schedule:
+    - cron: '59 * * * *'
 
 jobs:
 

@@ -31,8 +31,8 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Mark stale issues and pull requests'
-  # schedule:
-  # - cron: '30 11 * * 1'
+  schedule:
+  - cron: '30 11 * * 1'
 
 jobs:
   stale:

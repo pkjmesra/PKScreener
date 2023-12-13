@@ -74,7 +74,7 @@ def initTelegram():
         try:
             Channel_Id, TOKEN, chat_idADMIN,_ = get_secrets()
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
+            # default_logger().debug(e, exc_info=True)
             # print(
             #     "[+] Telegram token and secrets are not configured!\n[+] See https://github.com/pkjmesra/pkscreener#creating-your-own-telegram-channel-to-receive-your-own-alerts"
             # )

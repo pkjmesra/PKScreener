@@ -199,6 +199,7 @@ class tools:
             colorText.GREEN: "green",
             colorText.WARN: "yellow",
             colorText.FAIL: "red",
+            colorText.WHITE: "blue"
         }
         cleanedUpStyledValue = cellStyledValue
         cellFillColor = "white"
@@ -466,6 +467,8 @@ class tools:
         defaultAnswer=None,
         retrial=False,
     ):
+        if downloadOnly:
+            return
         exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
@@ -736,6 +739,31 @@ class tools:
         m = menus()
         return m.renderForMenu(menu)
 
+    # Prompt for Popular stocks
+    def promptPopularStocks(menu=None):
+        try:
+            tools.promptMenus(menu=menu)
+            resp = int(
+                input(
+                    colorText.BOLD
+                    + colorText.WARN
+                    + """[+] Select Option:"""
+                    + colorText.END
+                )
+            )
+            if resp >= 0 and resp <= 3:
+                return resp
+            raise ValueError
+        except ValueError as e:
+            default_logger().debug(e, exc_info=True)
+            input(
+                colorText.BOLD
+                + colorText.FAIL
+                + "\n[+] Invalid Option Selected. Press <Enter> to try again..."
+                + colorText.END
+            )
+            return None
+        
     # Prompt for Reversal screening
     def promptReversalScreening(menu=None):
         try:
@@ -748,7 +776,7 @@ class tools:
                     + colorText.END
                 )
             )
-            if resp >= 0 and resp <= 6:
+            if resp >= 0 and resp <= 7:
                 if resp == 4:
                     try:
                         maLength = int(
@@ -828,7 +856,7 @@ class tools:
                     input(
                         colorText.BOLD
                         + colorText.WARN
-                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : "
+                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-5%)? : "
                         + colorText.END
                     )
                 )
