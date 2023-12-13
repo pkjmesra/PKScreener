@@ -133,7 +133,24 @@ class tools:
         up = recent[f"AROONU_{period}"].iloc[0]
         down = recent[f"AROOND_{period}"].iloc[0]
         return up > down
-    
+
+    # Find accurate breakout value
+    def findBreakingoutNow(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        recent = data.head(1)
+        recentCandleHeight = self.getCandleBodyHeight(recent)
+        if len(data) < 11 or recentCandleHeight <= 0:
+            return False
+        totalCandleHeight = 0
+        candle = 0
+        while candle < 10:
+            candle +=1
+            candleHeight =  abs(self.getCandleBodyHeight(data[candle:]))
+            totalCandleHeight += candleHeight
+        
+        return (recentCandleHeight > 0 and totalCandleHeight > 0 and (recentCandleHeight >= 3*(float(totalCandleHeight/candle))))
+
     # Find accurate breakout value
     def findBreakoutValue(self, data, screenDict, saveDict, daysToLookback,alreadyBrokenout=False):
         data = data.fillna(0)
@@ -514,6 +531,10 @@ class tools:
     # True = Bullish, False = Bearish
     def getCandleType(self, dailyData):
         return bool(dailyData["Close"].iloc[0] >= dailyData["Open"].iloc[0])
+
+    def getCandleBodyHeight(self, dailyData):
+        bodyHeight = dailyData["Close"].iloc[0] - dailyData["Open"].iloc[0]
+        return bodyHeight
 
     def getNiftyPrediction(self, data):
         import warnings

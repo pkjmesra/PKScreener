@@ -274,6 +274,8 @@ class StockConsumer:
                         saveDictionary,
                         daysToLookback=configManager.daysToLookback,
                     )
+                if executeOption == 23:
+                    isBreakingOutNow = screener.findBreakingoutNow(processedData)
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
                         processedData, daysForLowestVolume
@@ -646,7 +648,8 @@ class StockConsumer:
                         (executeOption == 17 and is52WeekHighBreakout) or 
                         (executeOption == 18 and isLtpValid and isAroonCrossover) or
                         (executeOption == 19 and macdHistBelow0) or
-                        (executeOption == 20 and bullishForTomorrow)
+                        (executeOption == 20 and bullishForTomorrow) or
+                        (executeOption == 23 and isBreakingOutNow)
                     ):
                         hostRef.processingResultsCounter.value += 1
                         return (

@@ -467,6 +467,8 @@ class tools:
         defaultAnswer=None,
         retrial=False,
     ):
+        if downloadOnly:
+            return
         exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
