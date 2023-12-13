@@ -135,120 +135,120 @@ class tools:
         return up > down
     
     # Find accurate breakout value
-    def findBreakout(self, data, screenDict, saveDict, daysToLookback):
+    def findBreakoutValue(self, data, screenDict, saveDict, daysToLookback,alreadyBrokenout=False):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         data = data[1:]
-        hs = round(data.describe()["High"]["max"], 2)
-        hc = round(data.describe()["Close"]["max"], 2)
-        rc = round(recent["Close"].iloc[0], 2)
-        if np.isnan(hc) or np.isnan(hs):
+        maxHigh = round(data.describe()["High"]["max"], 2)
+        maxClose = round(data.describe()["Close"]["max"], 2)
+        recentClose = round(recent["Close"].iloc[0], 2)
+        if np.isnan(maxClose) or np.isnan(maxHigh):
             saveDict["Breakout"] = "BO: Unknown"
             screenDict["Breakout"] = (
                 colorText.BOLD + colorText.WARN + "BO: Unknown" + colorText.END
             )
             self.default_logger.info(
-                f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({hs}) or max-close ({hc}) are not defined.'
+                f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({maxHigh}) or max-close ({maxClose}) are not defined.'
             )
             return False
-        if hs > hc:
-            if (hs - hc) <= (hs * 2 / 100):
-                saveDict["Breakout"] = "BO: " + str(hc)
-                if rc >= hc:
+        if maxHigh > maxClose:
+            if (maxHigh - maxClose) <= (maxHigh * 2 / 100):
+                saveDict["Breakout"] = "BO: " + str(maxClose)
+                if recentClose >= maxClose:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
-                        + str(hc)
+                        + str(maxClose)
                         + " R: "
-                        + str(hs)
+                        + str(maxHigh)
                         + colorText.END
                     )
                     self.default_logger.info(
-                        f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({hs}) >= max-close ({hc})'
+                        f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({maxHigh}) >= max-close ({maxClose})'
                     )
-                    return True and self.getCandleType(recent)
+                    return True and alreadyBrokenout and self.getCandleType(recent)
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({hs}) < max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({maxHigh}) < max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
                     colorText.BOLD
                     + colorText.FAIL
                     + "BO: "
-                    + str(hc)
+                    + str(maxClose)
                     + " R: "
-                    + str(hs)
+                    + str(maxHigh)
                     + colorText.END
                 )
-                return False
-            noOfHigherShadows = len(data[data.High > hc])
+                return not alreadyBrokenout
+            noOfHigherShadows = len(data[data.High > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
-                saveDict["Breakout"] = "BO: " + str(hs)
-                if rc >= hs:
+                saveDict["Breakout"] = "BO: " + str(maxHigh)
+                if recentClose >= maxHigh:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
-                        + str(hs)
+                        + str(maxHigh)
                         + colorText.END
                     )
                     self.default_logger.info(
-                        f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-high ({hs})'
+                        f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-high ({maxHigh})'
                     )
-                    return True and self.getCandleType(recent)
+                    return True and alreadyBrokenout and self.getCandleType(recent)
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})'
+                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
+                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh) + colorText.END
                 )
-                return False
-            saveDict["Breakout"] = "BO: " + str(hc) + ", R: " + str(hs)
-            if rc >= hc:
+                return not alreadyBrokenout
+            saveDict["Breakout"] = "BO: " + str(maxClose) + ", R: " + str(maxHigh)
+            if recentClose >= maxClose:
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
                     colorText.BOLD
                     + colorText.GREEN
                     + "BO: "
-                    + str(hc)
+                    + str(maxClose)
                     + " R: "
-                    + str(hs)
+                    + str(maxHigh)
                     + colorText.END
                 )
-                return True and self.getCandleType(recent)
+                return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
-                f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})'
+                f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
             )
             screenDict["Breakout"] = (
                 colorText.BOLD
                 + colorText.FAIL
                 + "BO: "
-                + str(hc)
+                + str(maxClose)
                 + " R: "
-                + str(hs)
+                + str(maxHigh)
                 + colorText.END
             )
-            return False
+            return not alreadyBrokenout
         else:
-            saveDict["Breakout"] = "BO: " + str(hc)
-            if rc >= hc:
+            saveDict["Breakout"] = "BO: " + str(maxClose)
+            if recentClose >= maxClose:
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
+                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose) + colorText.END
                 )
-                return True and self.getCandleType(recent)
+                return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
-                f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) < max-close ({hc})'
+                f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) < max-close ({maxClose})'
             )
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
+                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose) + colorText.END
             )
-            return False
+            return not alreadyBrokenout
 
     # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10
     def findBullishIntradayRSIMACD(self, data):

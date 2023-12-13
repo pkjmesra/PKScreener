@@ -204,8 +204,7 @@ class StockConsumer:
                 # )
             if not processedData.empty:
                 screeningDictionary["Stock"] = (
-                    colorText.BOLD
-                    + colorText.BLUE
+                    colorText.WHITE
                     + (stock if monitoring else f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
                     + colorText.END
                 )
@@ -261,18 +260,20 @@ class StockConsumer:
                     saveDictionary,
                     volumeRatio=volumeRatio,
                 )
-                isBreaking = screener.findBreakout(
+                isBreaking = screener.findBreakoutValue(
                     processedData,
                     screeningDictionary,
                     saveDictionary,
                     daysToLookback=configManager.daysToLookback,
+                    alreadyBrokenout=(executeOption == 2)
                 )
-                isBreaking = screener.findPotentialBreakout(
-                    fullData,
-                    screeningDictionary,
-                    saveDictionary,
-                    daysToLookback=configManager.daysToLookback,
-                ) or isBreaking
+                if executeOption == 1:
+                    isPotentialBreaking = screener.findPotentialBreakout(
+                        fullData,
+                        screeningDictionary,
+                        saveDictionary,
+                        daysToLookback=configManager.daysToLookback,
+                    )
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
                         processedData, daysForLowestVolume
@@ -404,8 +405,8 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        (executeOption == 1 or executeOption == 2)
-                        and isBreaking
+                        ((executeOption == 1 and (isBreaking or isPotentialBreaking)) or 
+                         (executeOption == 2 and isBreaking))
                         and isVolumeHigh
                         and isLtpValid
                     ):
@@ -418,7 +419,7 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        (executeOption == 1 or executeOption == 3)
+                        (executeOption == 3)
                         and (
                             consolidationValue <= configManager.consolidationPercentage
                             and consolidationValue != 0

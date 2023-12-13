@@ -199,6 +199,7 @@ class tools:
             colorText.GREEN: "green",
             colorText.WARN: "yellow",
             colorText.FAIL: "red",
+            colorText.WHITE: "blue"
         }
         cleanedUpStyledValue = cellStyledValue
         cellFillColor = "white"

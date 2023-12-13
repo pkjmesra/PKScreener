@@ -66,7 +66,7 @@ level1_X_MenuDict = {
 level2_X_MenuDict = {
     "0": "Full Screening (Shows Technical Parameters without any criterion)",
     "1": "Probable Breakouts              ",
-    "2": "Recent Breakouts & Volumes",
+    "2": "Today's Breakouts",
     "3": "Consolidating stocks            ",
     "4": "Lowest Volume in last 'N'-days (Early Breakout Detection)",
     "5": "RSI screening                   ",
