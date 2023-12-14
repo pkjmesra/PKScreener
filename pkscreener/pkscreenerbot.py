@@ -840,7 +840,10 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "18",
                     "19",
                     "20",
-                    "21"
+                    "21",
+                    "22",
+                    "23",
+                    "24"
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
