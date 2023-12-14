@@ -1010,6 +1010,24 @@ class tools:
     #             return True
     #     return False
     
+    # validate if the stock has been having lower lows, lower highs
+    def validateLowerHighsLowerLows(self, data):
+        day0 = data
+        day1 = data[1:]
+        day2 = data[2:]
+        day3 = data[3:]
+        lowerHighs = (day0["High"].iloc[0] < day1["High"].iloc[0]) and \
+                        (day1["High"].iloc[0] < day2["High"].iloc[0]) and \
+                        (day2["High"].iloc[0] < day3["High"].iloc[0])
+        lowerLows = (day0["Low"].iloc[0] < day1["Low"].iloc[0]) and \
+                        (day1["Low"].iloc[0] < day2["Low"].iloc[0]) and \
+                        (day2["Low"].iloc[0] < day3["Low"].iloc[0])
+        higherRSI = (day0["RSI"].iloc[0] < day1["RSI"].iloc[0]) and \
+                        (day1["RSI"].iloc[0] < day2["RSI"].iloc[0]) and \
+                        (day2["RSI"].iloc[0] < day3["RSI"].iloc[0]) and \
+                        day0["RSI"].iloc[0] >= 50
+        return lowerHighs and lowerLows and higherRSI
+    
     # Validate if recent volume is lowest of last 'N' Days
     def validateLowestVolume(self, data, daysForLowestVolume):
         data = data.fillna(0)

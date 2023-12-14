@@ -762,7 +762,7 @@ def main(userArgs=None):
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 25 and executeOption <= 41:
+    if executeOption >= 26 and executeOption <= 41:
         print(
             colorText.BOLD
             + colorText.FAIL
@@ -948,15 +948,16 @@ def main(userArgs=None):
                 + "[+] Starting download.. Press Ctrl+C to stop!\n"
             )
 
-        suggestedHistoricalDuration = (
-            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
-        )
+        suggestedHistoricalDuration = backtestPeriod
+        #(
+        #     getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
+        # )
         # Number of days from past, including the backtest duration chosen by the user
         # that we will need to consider to evaluate the data. If the user choses 10-period
         # backtesting, we will need to have the past 6-months or whatever is returned by
         # x = getHistoricalDays and 10 days of recent data. So total rows to consider
         # will be x + 10 days.
-        samplingDuration = (suggestedHistoricalDuration + backtestPeriod + 1) if menuOption == "B" else 2
+        samplingDuration = (backtestPeriod + 1) if menuOption == "B" else 2
         fillerPlaceHolder = 1 if menuOption == "B" else 2
         backtest_df = None
         if menuOption.upper() == "B":
@@ -1573,7 +1574,6 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "25",
             "26",
             "27",
             "28",

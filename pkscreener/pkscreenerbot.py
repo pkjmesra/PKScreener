@@ -754,7 +754,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 selectedMenu=selectedMenu,
                 skip=[
                     "22",
-                    "25",
                     "26",
                     "27",
                     "28",
@@ -791,7 +790,6 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 selectedMenu=selectedMenu,
                 skip=[
                     "22",
-                    "25",
                     "26",
                     "27",
                     "28",
@@ -955,7 +953,6 @@ def addCommandsForMenuItems(application):
                 selectedMenu=selectedMenu,
                 skip=[
                     "22",
-                    "25",
                     "26",
                     "27",
                     "28",

@@ -280,6 +280,8 @@ class StockConsumer:
                     isBreakingOutNow = screener.findBreakingoutNow(processedData)
                 if executeOption == 24:
                     higherHighsLowsClose = screener.validateHigherHighsHigherLowsHigherClose(fullData)
+                if executeOption == 25:
+                    hasLowerLows = screener.validateLowerHighsLowerLows(processedData)
                 if executeOption == 4:
                     isLowestVolume = screener.validateLowestVolume(
                         processedData, daysForLowestVolume
@@ -654,7 +656,8 @@ class StockConsumer:
                         (executeOption == 19 and macdHistBelow0) or
                         (executeOption == 20 and bullishForTomorrow) or
                         (executeOption == 23 and isBreakingOutNow) or
-                        (executeOption == 24 and higherHighsLowsClose)
+                        (executeOption == 24 and higherHighsLowsClose) or
+                        (executeOption == 25 and hasLowerLows)
                     ):
                         hostRef.processingResultsCounter.value += 1
                         return (
