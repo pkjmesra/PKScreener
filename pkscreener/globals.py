@@ -94,7 +94,7 @@ screenResultsCounter = None
 selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
 stockDict = None
 userPassedArgs = None
-
+elapsed_time = 0
 def finishScreening(
     downloadOnly,
     testing,
@@ -1155,7 +1155,7 @@ def populateQueues(items, tasks_queue):
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
-    global userPassedArgs
+    global userPassedArgs, elapsed_time
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
@@ -1171,7 +1171,7 @@ def printNotifySaveScreenedResults(
     if len(screenResults) >= 1:
         if not testing and len(screenResults) <= 100:
             # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found).{caption}"
+            caption = f"<b>({len(saveResults)}</b> stocks found in {elapsed_time} sec).{caption}"
             markdown_results = tabulate(
                 saveResults, headers="keys", tablefmt="grid"
             )
@@ -1193,7 +1193,7 @@ def printNotifySaveScreenedResults(
         print(
             colorText.BOLD
             + colorText.GREEN
-            + f"[+] Found {len(screenResults)} Stocks."
+            + f"[+] Found {len(screenResults)} Stocks in {elapsed_time} sec."
             + colorText.END
         )
         Utility.tools.setLastScreenedResults(screenResults)
@@ -1253,7 +1253,7 @@ def runScanners(
     backtest_df,
     testing=False
 ):
-    global selectedChoice, userPassedArgs
+    global selectedChoice, userPassedArgs, elapsed_time
     populateQueues(items, tasks_queue)
     choices = userReportName(selectedChoice)
     try:
@@ -1293,7 +1293,7 @@ def runScanners(
                 # stock or if we've already tried screening through 5% of the list. 
                 if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.05)):
                     break
-
+        elapsed_time = time.time() - start_time
         if menuOption == "X":
             # create extension
             df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
@@ -1317,6 +1317,7 @@ def runScanners(
     return screenResults, saveResults, backtest_df
 
 def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df):
+    global elapsed_time
     sellSignal = (
                                 str(selectedChoice["2"]) in ["6","7"] and 
                                 str(selectedChoice["3"]) in ["2"]
@@ -1403,17 +1404,17 @@ def sendMessageToTelegramChannel(
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     if user is not None and caption is not None:
-        caption = f"{caption.replace('&',' n ')}." 
+        caption = f"{caption.replace('&','n')}." 
     if message is not None:
         try:
-            message = message.replace('&',' n ')
+            message = message.replace('&','n')
             send_message(message, userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
     if photo_filePath is not None:
         try:
             if caption is not None:
-                caption = f"{caption.replace('&',' n ')}"
+                caption = f"{caption.replace('&','n')}"
             send_document(photo_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
@@ -1422,7 +1423,7 @@ def sendMessageToTelegramChannel(
     if document_filePath is not None:
         try:
             if caption is not None:
-                caption = f"{caption.replace('&',' n ')}"
+                caption = f"{caption.replace('&','n')}"
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)

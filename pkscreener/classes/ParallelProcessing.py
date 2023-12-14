@@ -104,8 +104,7 @@ class StockConsumer:
             # hostRef.default_logger.info(
             #     f"For stock:{stock}, stock exists in objectDictionary:{hostRef.objectDictionary.get(stock)}, cacheEnabled:{configManager.cacheEnabled}, isTradingTime:{self.isTradingTime}, downloadOnly:{downloadOnly}"
             # )
-            with hostRef.processingCounter.get_lock():
-                hostData = hostRef.objectDictionary.get(stock)
+            hostData = hostRef.objectDictionary.get(stock)
             if (
                 (not shouldCache
                 or downloadOnly
@@ -128,9 +127,8 @@ class StockConsumer:
                     and (hostData is None))
                     or downloadOnly
                 ):
-                    with hostRef.processingCounter.get_lock():
-                        hostRef.objectDictionary[stock] = data.to_dict("split")
-                        hostData = hostRef.objectDictionary.get(stock)
+                    hostRef.objectDictionary[stock] = data.to_dict("split")
+                    hostData = hostRef.objectDictionary.get(stock)
                     # hostRef.default_logger.info(
                     #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
                     # )
@@ -394,9 +392,9 @@ class StockConsumer:
                 #     isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
                 
                 with hostRef.processingResultsCounter.get_lock():
-                    hostRef.default_logger.info(
-                        f"Processing results for {stock} in {hostRef.processingResultsCounter.value}th results counter"
-                    )
+                    # hostRef.default_logger.info(
+                    #     f"Processing results for {stock} in {hostRef.processingResultsCounter.value}th results counter"
+                    # )
                     if executeOption == 0:
                         hostRef.processingResultsCounter.value += 1
                         return (
