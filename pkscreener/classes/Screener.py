@@ -896,7 +896,7 @@ class tools:
                         (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
                         (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
                         day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
-        reversedData = data[::-1]
+        reversedData = data[::-1].copy()
         reversedData['SUPERT'] = pktalib.supertrend(reversedData,7,3)['SUPERT_7_3.0']
         reversedData['EMA8'] = pktalib.EMA(reversedData["Close"], timeperiod=9)
         higherClose = higherClose and \
