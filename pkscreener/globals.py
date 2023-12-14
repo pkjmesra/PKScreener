@@ -1171,7 +1171,7 @@ def printNotifySaveScreenedResults(
     if len(screenResults) >= 1:
         if not testing and len(screenResults) <= 100:
             # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found in {elapsed_time} sec).{caption}"
+            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec).{caption}"
             markdown_results = tabulate(
                 saveResults, headers="keys", tablefmt="grid"
             )
@@ -1193,7 +1193,7 @@ def printNotifySaveScreenedResults(
         print(
             colorText.BOLD
             + colorText.GREEN
-            + f"[+] Found {len(screenResults)} Stocks in {elapsed_time} sec."
+            + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
             + colorText.END
         )
         Utility.tools.setLastScreenedResults(screenResults)
