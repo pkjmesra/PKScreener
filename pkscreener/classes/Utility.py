@@ -724,7 +724,7 @@ class tools:
                 input(
                     colorText.BOLD
                     + colorText.WARN
-                    + "\n[+] Enter Min Volume ratio value (Default = 2): "
+                    + "\n[+] Enter Min Volume ratio value (Default = 2.5): "
                     + colorText.END
                 )
             )
@@ -856,7 +856,7 @@ class tools:
                     input(
                         colorText.BOLD
                         + colorText.WARN
-                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-5%)? : "
+                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : "
                         + colorText.END
                     )
                 )

@@ -117,9 +117,10 @@ def finishScreening(
 
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
+    argsIntraday = userPassedArgs.intraday if (userPassedArgs is not None and userPassedArgs.intraday is not None) else False
     configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
-    intraday = True if (intradayConfig or userPassedArgs.intraday is not None) else False
+    intraday = True if (intradayConfig or argsIntraday) else False
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -761,11 +762,11 @@ def main(userArgs=None):
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 24 and executeOption <= 41:
+    if executeOption >= 25 and executeOption <= 41:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 24 to 41 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 25 to 41 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
@@ -1572,7 +1573,6 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "24",
             "25",
             "26",
             "27",

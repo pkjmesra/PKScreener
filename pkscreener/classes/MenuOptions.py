@@ -88,7 +88,7 @@ level2_X_MenuDict = {
     "21": "Most Popular Stocks            ",
     "22": "View Stock Performance         ",
     "23": "Breaking out now               ",
-    "24": "Bearish CCI crossover           ",
+    "24": "Higher Highs,Lows & Close      ",
     "25": "RSI above 30 and price > psar      ",
     "26": "Intraday Momentum Build-up      ",
     "27": "Extremely bullish daily close      ",

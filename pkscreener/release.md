@@ -2,6 +2,7 @@
 
 ## What's New?
 1. [v0.42] release
+* Added the option to scan all such stocks showing higher highs, higher lows and higher close trend. Try X > 12 > 24.
 * Added the option to view the currently breaking out stocks. Try option X > 12 > 23.
 * Added the stocks based on fund house popularity. Try the X > 12 > 21> options.
 * You can now see which stocks the mutual funds are investing into and where they are selling out.
