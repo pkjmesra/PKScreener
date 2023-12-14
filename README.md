@@ -35,7 +35,7 @@ You can get daily scan results/alerts at scheduled times by subscribing to the f
 | Purpose | Description/link | QR Code |
 |:---:|:---:|:---|
 |Alerts Channel| https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions.|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>|
-|Discussions|https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>|
+<!-- |Discussions []|https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>| -->
 
 ![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
 
@@ -76,16 +76,18 @@ Screening options to choose from:
 Followin scanners are already implemented. Others are `In Progress`
 ```
      0 > Full Screening (Shows Technical Parameters without any criterion)
-     1 > Probable Breakouts                     2 > Recent Breakouts & Volumes
-     3 > Consolidating stocks                   4 > Lowest Volume in last 'N'-days (Early Breakout Detection)
-     5 > RSI screening                          6 > Reversal Signals
-     7 > Stocks making Chart Patterns           8 > CCI outside of the given range
-     9 > Volume gainers                         10 > Closing at least 2% up since last 3 days
-    11 > Short term bullish stocks(Intraday)    12 > 15 Minute Price & Volume breakout
-    13 > Bullish RSI & MACD(Intraday)           14 > NR4 Daily Today
-    15 > 52 week low breakout(today/1 wk)       16 > 10 days low breakout
-    17 > 52 week high breakout(today/1 wk)      18 > Bullish Aroon(14) Crossover
-    19 > MACD Histogram x below 0               20 > Bullish for next day
+     1 > Probable Breakouts              	2 > Today's Breakouts
+     3 > Consolidating stocks            	4 > Lowest Volume in last 'N'-days (Early Breakout Detection)
+     5 > RSI screening                   	6 > Reversal Signals
+     7 > Stocks making Chart Patterns    	8 > CCI outside of the given range
+     9 > Volume gainers                  	10 > Closing at least 2% up since last 3 days
+    11 > Short term bullish stocks(Intraday)	12 > 15 Minute Price & Volume breakout(Intraday)
+    13 > Bullish RSI & MACD(Intraday)       	14 > NR4 Daily Today
+    15 > 52 week low breakout(today/1 wk)	16 > 10 days low breakout
+    17 > 52 week high breakout(today/1 wk)	18 > Bullish Aroon(14) Crossover
+    19 > MACD Histogram x below 0       	20 > Bullish for next day
+    21 > Most Popular Stocks            	22 > View Stock Performance         
+    23 > Breaking out now               	
 ```
 ## How to use on your own local Windows/Linux/Macbook laptop?
 # Installing the latest version from PyPi.

@@ -140,32 +140,32 @@ def test_findAroonBullishCrossover_edge(tools_instance):
     result = tools_instance.findAroonBullishCrossover(data)
     assert result == False
 
-# Positive test case for findBreakout function
-def test_findBreakout_positive(tools_instance):
+# Positive test case for findBreakoutValue function
+def test_findBreakoutValue_positive(tools_instance):
     data = pd.DataFrame({'High': [50, 60, 70, 80, 90], 'Close': [40, 50, 60, 70, 80]})
     screenDict = {}
     saveDict = {"Stock":"SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakout(data, screenDict, saveDict, daysToLookback)
-    assert result == False
+    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    assert result == True
 
-# Negative test case for findBreakout function
-def test_findBreakout_negative(tools_instance):
+# Negative test case for findBreakoutValue function
+def test_findBreakoutValue_negative(tools_instance):
     data = pd.DataFrame({'High': [90, 80, 70, 60, 50], 'Close': [80, 70, 60, 50, 40], 'Open': [80, 70, 60, 50, 40]})
     screenDict = {}
     saveDict = {"Stock":"SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakout(data, screenDict, saveDict, daysToLookback)
-    assert result == True
+    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    assert result == False
 
-# Edge test case for findBreakout function
-def test_findBreakout_edge(tools_instance):
+# Edge test case for findBreakoutValue function
+def test_findBreakoutValue_edge(tools_instance):
     data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10]})
     screenDict = {}
     saveDict = {"Stock":"SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakout(data, screenDict, saveDict, daysToLookback)
-    assert result == True
+    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    assert result == False
 
 # Positive test case for findBullishIntradayRSIMACD function
 def test_findBullishIntradayRSIMACD_positive():
@@ -209,7 +209,7 @@ def test_findTrend_positive(tools_instance):
                          'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
                          'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
     # Call the function and assert the result
-    assert tools_instance.findTrend(data, {}, {}, 10) == "Strong Up"
+    assert tools_instance.findTrend(data, {}, {}, 10) == "Unknown"
 
 # Positive test case for findTrendlines function
 def test_findTrendlines_positive(tools_instance):

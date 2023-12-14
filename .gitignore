@@ -5,11 +5,12 @@ test/*.ini
 __pycache__/
 .vscode/
 *.xlsx
-*.pkl
+*last_screened_*.pkl
+*stock_data_*.pkl
 *.spec
 .DS_Store
 Help
-*.h5
+# *.h5
 *.ini
 *.env
 *.dev

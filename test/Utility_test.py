@@ -300,7 +300,7 @@ def test_promptVolumeMultiplier():
         result = tools.promptVolumeMultiplier()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_once_with(
-            colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2): " + colorText.END
+            colorText.BOLD + colorText.WARN + "\n[+] Enter Min Volume ratio value (Default = 2.5): " + colorText.END
         )
         # Assert that the result is 2
         assert result == 2

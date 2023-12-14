@@ -39,6 +39,8 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 import pkscreener.classes.Utility as Utility
+# from advanced_ta import LorentzianClassification
+
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
 
@@ -59,6 +61,13 @@ class DownloadDataOnly(Exception):
 class NotNewlyListed(Exception):
     pass
 
+# Exception for stocks which are not stage two
+class NotAStageTwoStock(Exception):
+    pass
+
+# Exception for stocks which are low in volume as per configuration of 'minimumVolume'
+class NotEnoughVolumeAsPerConfig(Exception):
+    pass
 
 # Exception for newly listed stocks with candle nos < daysToLookback
 class StockDataNotAdequate(Exception):
@@ -128,122 +137,139 @@ class tools:
         up = recent[f"AROONU_{period}"].iloc[0]
         down = recent[f"AROOND_{period}"].iloc[0]
         return up > down
-    
+
     # Find accurate breakout value
-    def findBreakout(self, data, screenDict, saveDict, daysToLookback):
+    def findBreakingoutNow(self, data):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        recent = data.head(1)
+        recentCandleHeight = self.getCandleBodyHeight(recent)
+        if len(data) < 11 or recentCandleHeight <= 0:
+            return False
+        totalCandleHeight = 0
+        candle = 0
+        while candle < 10:
+            candle +=1
+            candleHeight =  abs(self.getCandleBodyHeight(data[candle:]))
+            totalCandleHeight += candleHeight
+        
+        return (recentCandleHeight > 0 and totalCandleHeight > 0 and (recentCandleHeight >= 3*(float(totalCandleHeight/candle))))
+
+    # Find accurate breakout value
+    def findBreakoutValue(self, data, screenDict, saveDict, daysToLookback,alreadyBrokenout=False):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         data = data[1:]
-        hs = round(data.describe()["High"]["max"], 2)
-        hc = round(data.describe()["Close"]["max"], 2)
-        rc = round(recent["Close"].iloc[0], 2)
-        if np.isnan(hc) or np.isnan(hs):
+        maxHigh = round(data.describe()["High"]["max"], 2)
+        maxClose = round(data.describe()["Close"]["max"], 2)
+        recentClose = round(recent["Close"].iloc[0], 2)
+        if np.isnan(maxClose) or np.isnan(maxHigh):
             saveDict["Breakout"] = "BO: Unknown"
             screenDict["Breakout"] = (
                 colorText.BOLD + colorText.WARN + "BO: Unknown" + colorText.END
             )
             self.default_logger.info(
-                f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({hs}) or max-close ({hc}) are not defined.'
+                f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({maxHigh}) or max-close ({maxClose}) are not defined.'
             )
             return False
-        if hs > hc:
-            if (hs - hc) <= (hs * 2 / 100):
-                saveDict["Breakout"] = "BO: " + str(hc)
-                if rc >= hc:
+        if maxHigh > maxClose:
+            if (maxHigh - maxClose) <= (maxHigh * 2 / 100):
+                saveDict["Breakout"] = "BO: " + str(maxClose)
+                if recentClose >= maxClose:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
-                        + str(hc)
+                        + str(maxClose)
                         + " R: "
-                        + str(hs)
+                        + str(maxHigh)
                         + colorText.END
                     )
                     self.default_logger.info(
-                        f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({hs}) >= max-close ({hc})'
+                        f'Stock:{saveDict["Stock"]}, has a breakout because max-high ({maxHigh}) >= max-close ({maxClose})'
                     )
-                    return True and self.getCandleType(recent)
+                    return True and alreadyBrokenout and self.getCandleType(recent)
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({hs}) < max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because max-high ({maxHigh}) < max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
                     colorText.BOLD
                     + colorText.FAIL
                     + "BO: "
-                    + str(hc)
+                    + str(maxClose)
                     + " R: "
-                    + str(hs)
+                    + str(maxHigh)
                     + colorText.END
                 )
-                return False
-            noOfHigherShadows = len(data[data.High > hc])
+                return not alreadyBrokenout
+            noOfHigherShadows = len(data[data.High > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
-                saveDict["Breakout"] = "BO: " + str(hs)
-                if rc >= hs:
+                saveDict["Breakout"] = "BO: " + str(maxHigh)
+                if recentClose >= maxHigh:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
-                        + str(hs)
+                        + str(maxHigh)
                         + colorText.END
                     )
                     self.default_logger.info(
-                        f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-high ({hs})'
+                        f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-high ({maxHigh})'
                     )
-                    return True and self.getCandleType(recent)
+                    return True and alreadyBrokenout and self.getCandleType(recent)
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})'
+                    f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.FAIL + "BO: " + str(hs) + colorText.END
+                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh) + colorText.END
                 )
-                return False
-            saveDict["Breakout"] = "BO: " + str(hc) + ", R: " + str(hs)
-            if rc >= hc:
+                return not alreadyBrokenout
+            saveDict["Breakout"] = "BO: " + str(maxClose) + ", R: " + str(maxHigh)
+            if recentClose >= maxClose:
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
                     colorText.BOLD
                     + colorText.GREEN
                     + "BO: "
-                    + str(hc)
+                    + str(maxClose)
                     + " R: "
-                    + str(hs)
+                    + str(maxHigh)
                     + colorText.END
                 )
-                return True and self.getCandleType(recent)
+                return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
-                f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({rc}) < max-high ({hs})'
+                f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
             )
             screenDict["Breakout"] = (
                 colorText.BOLD
                 + colorText.FAIL
                 + "BO: "
-                + str(hc)
+                + str(maxClose)
                 + " R: "
-                + str(hs)
+                + str(maxHigh)
                 + colorText.END
             )
-            return False
+            return not alreadyBrokenout
         else:
-            saveDict["Breakout"] = "BO: " + str(hc)
-            if rc >= hc:
+            saveDict["Breakout"] = "BO: " + str(maxClose)
+            if recentClose >= maxClose:
                 self.default_logger.info(
-                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) >= max-close ({hc})'
+                    f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.GREEN + "BO: " + str(hc) + colorText.END
+                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose) + colorText.END
                 )
-                return True and self.getCandleType(recent)
+                return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
-                f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({rc}) < max-close ({hc})'
+                f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) < max-close ({maxClose})'
             )
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.FAIL + "BO: " + str(hc) + colorText.END
+                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose) + colorText.END
             )
-            return False
+            return not alreadyBrokenout
 
     # Find stocks that are bullish intraday: RSI crosses 55, Macd Histogram positive, price above EMA 10
     def findBullishIntradayRSIMACD(self, data):
@@ -289,6 +315,38 @@ class tools:
         cond6 = cond5 and (recent["SMA50"].iloc[0] > recent["SMA200"].iloc[0])
         return cond6
 
+    # Find potential breakout stocks
+    # This scanner filters stocks whose current close price + 5% is higher 
+    # than the highest High price in past 200 candles and the maximum high 
+    # in the previous 30 candles is lower than the highest high made in the 
+    # previous 200 candles, starting from the previous 30th candle. At the 
+    # same time the current candle volume is higher than 200 SMA of volume.
+    def findPotentialBreakout(self, data, screenDict, saveDict, daysToLookback):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data.head(231)
+        recent = data.head(1)
+        recentVolume = recent["Volume"].iloc[0]
+        recentClose = round(recent["Close"].iloc[0] * 1.05, 2)
+        highestHigh200 = round(data.head(201).tail(200).describe()["High"]["max"], 2)
+        highestHigh30 = round(data.head(31).tail(30).describe()["High"]["max"], 2)
+        highestHigh200From30 = round(data.tail(200).describe()["High"]["max"], 2)
+        data = data.head(200)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+        vol = data.rolling(window=200).mean()
+        data["SMA200V"] = vol["Volume"]
+        recent = data.tail(1)
+        sma200v = recent["SMA200V"].iloc[0]
+        if np.isnan(recentClose) or np.isnan(highestHigh200) or np.isnan(highestHigh30) or np.isnan(highestHigh200From30) or np.isnan(recentVolume) or np.isnan(sma200v):
+            return False
+        if (recentClose > highestHigh200) and (highestHigh30 < highestHigh200From30) and (recentVolume > sma200v):
+            saveDict["Breakout"] = saveDict["Breakout"] + "(Potential)"
+            screenDict["Breakout"] = screenDict["Breakout"] + (
+                colorText.BOLD + colorText.GREEN + " (Potential)" + colorText.END
+            )
+            return True
+        return False
+    
     # Find stock reversing at given MA
     def findReversalMA(self, data, screenDict, saveDict, maLength, percentage=0.02):
         maRange = [10,20,50,200]
@@ -350,11 +408,21 @@ class tools:
             data = data.replace([np.inf, -np.inf], 0)
 
             try:
-                if len(data) < daysToLookback:
-                    raise StockDataNotAdequate
-                slope, c = np.polyfit(
-                    data.index[data.tops > 0], data["tops"][data.tops > 0], 1
+                # if len(data) < daysToLookback:
+                #     self.default_logger.debug(data)
+                #     raise StockDataNotAdequate
+                data = data.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna()
+                if len(data["tops"][data.tops > 0]) > 1:
+                    slope = np.polyfit(data.index[data.tops > 0], data["tops"][data.tops > 0], 1)[0]
+                else: 
+                    slope = 0
+            except np.linalg.LinAlgError as e:
+                self.default_logger.debug(e, exc_info=True)
+                screenDict["Trend"] = (
+                    colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
                 )
+                saveDict["Trend"] = "Unknown"
+                return saveDict["Trend"]
             except Exception as e:
                 self.default_logger.debug(e, exc_info=True)
                 slope, _ = 0, 0
@@ -467,6 +535,10 @@ class tools:
     # True = Bullish, False = Bearish
     def getCandleType(self, dailyData):
         return bool(dailyData["Close"].iloc[0] >= dailyData["Open"].iloc[0])
+
+    def getCandleBodyHeight(self, dailyData):
+        bodyHeight = dailyData["Close"].iloc[0] - dailyData["Open"].iloc[0]
+        return bodyHeight
 
     def getNiftyPrediction(self, data):
         import warnings
@@ -804,6 +876,34 @@ class tools:
         saveDict["Consol."] = f'Range:{str(round((abs((hc-lc)/hc)*100),1))+"%"}'
         return round((abs((hc - lc) / hc) * 100), 1)
 
+    # validate if the stock has been having higher highs, higher lows
+    # and higher close with latest close > supertrend and 8-EMA.
+    def validateHigherHighsHigherLowsHigherClose(self, data):
+        day0 = data
+        day1 = data[1:]
+        day2 = data[2:]
+        day3 = data[3:]
+        higherHighs = (day0["High"].iloc[0] > day1["High"].iloc[0]) and \
+                        (day1["High"].iloc[0] > day2["High"].iloc[0]) and \
+                        (day2["High"].iloc[0] > day3["High"].iloc[0])
+        higherLows = (day0["Low"].iloc[0] > day1["Low"].iloc[0]) and \
+                        (day1["Low"].iloc[0] > day2["Low"].iloc[0]) and \
+                        (day2["Low"].iloc[0] > day3["Low"].iloc[0])
+        higherClose = (day0["Close"].iloc[0] > day1["Close"].iloc[0]) and \
+                        (day1["Close"].iloc[0] > day2["Close"].iloc[0]) and \
+                        (day2["Close"].iloc[0] > day3["Close"].iloc[0])
+        higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
+                        (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
+                        (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
+                        day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
+        reversedData = data[::-1].copy()
+        reversedData['SUPERT'] = pktalib.supertrend(reversedData,7,3)['SUPERT_7_3.0']
+        reversedData['EMA8'] = pktalib.EMA(reversedData["Close"], timeperiod=9)
+        higherClose = higherClose and \
+                        day0["Close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0] and \
+                        day0["Close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
+        return higherHighs and higherLows and higherClose
+    
     # Validate 'Inside Bar' structure for recent days
     def validateInsideBar(
         self, data, screenDict, saveDict, chartPattern=1, daysToLookback=5
@@ -892,6 +992,42 @@ class tools:
             return True
         return False
 
+    # Validate Lorentzian Classification signal  
+    # def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
+    #     # lookFor: 1-Any, 2-Buy, 3-Sell
+    #     data = data[::-1]               # Reverse the dataframe
+    #     data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
+    #     lc = LorentzianClassification(data=data)
+    #     if lc.df.iloc[-1]['isNewBuySignal']:
+    #         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
+    #         saveDict['Pattern'] = f'Lorentzian-Buy'
+    #         if lookFor != 3:
+    #             return True
+    #     elif lc.df.iloc[-1]['isNewSellSignal']:
+    #         screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
+    #         saveDict['Pattern'] = f'Lorentzian-Sell'
+    #         if lookFor != 2:
+    #             return True
+    #     return False
+    
+    # validate if the stock has been having lower lows, lower highs
+    def validateLowerHighsLowerLows(self, data):
+        day0 = data
+        day1 = data[1:]
+        day2 = data[2:]
+        day3 = data[3:]
+        lowerHighs = (day0["High"].iloc[0] < day1["High"].iloc[0]) and \
+                        (day1["High"].iloc[0] < day2["High"].iloc[0]) and \
+                        (day2["High"].iloc[0] < day3["High"].iloc[0])
+        lowerLows = (day0["Low"].iloc[0] < day1["Low"].iloc[0]) and \
+                        (day1["Low"].iloc[0] < day2["Low"].iloc[0]) and \
+                        (day2["Low"].iloc[0] < day3["Low"].iloc[0])
+        higherRSI = (day0["RSI"].iloc[0] < day1["RSI"].iloc[0]) and \
+                        (day1["RSI"].iloc[0] < day2["RSI"].iloc[0]) and \
+                        (day2["RSI"].iloc[0] < day3["RSI"].iloc[0]) and \
+                        day0["RSI"].iloc[0] >= 50
+        return lowerHighs and lowerLows and higherRSI
+    
     # Validate if recent volume is lowest of last 'N' Days
     def validateLowestVolume(self, data, daysForLowestVolume):
         data = data.fillna(0)
@@ -953,6 +1089,8 @@ class tools:
     def validateMomentum(self, data, screenDict, saveDict):
         try:
             data = data.head(3)
+            if len(data) < 3:
+                return False
             for row in data.iterrows():
                 # All 3 candles should be Green and NOT Circuits
                 yc = row[1]["Close"].item()
@@ -995,6 +1133,7 @@ class tools:
                     )
             except IndexError as e:
                 self.default_logger.debug(e, exc_info=True)
+                # self.default_logger.debug(data)
                 pass
             return False
         except Exception as e:
@@ -1186,7 +1325,7 @@ class tools:
         rsi = int(data.head(1)["RSI"].iloc[0])
         saveDict["RSI"] = rsi
         #https://chartink.com/screener/rsi-screening
-        if (rsi >= minRSI and rsi <= maxRSI) or (rsi <= 71 and rsi >= 67):
+        if (rsi >= minRSI and rsi <= maxRSI): # or (rsi <= 71 and rsi >= 67):
             screenDict["RSI"] = (
                 colorText.BOLD + colorText.GREEN + str(rsi) + colorText.END
             )
@@ -1335,37 +1474,33 @@ class tools:
         return False
 
     # Validate if volume of last day is higher than avg
-    def validateVolume(self, data, screenDict, saveDict, volumeRatio=2.5):
+    def validateVolume(self, data, screenDict, saveDict, volumeRatio=2.5, minVolume=100):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
+        hasMinimumVolume = recent["VolMA"].iloc[0] >= minVolume
         if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
             saveDict["Volume"] = 0  # "Unknown"
-            screenDict[
-                "Volume"
-            ] = 0  # colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
-            return True
+            screenDict["Volume"] = 0
+            return True, hasMinimumVolume
         ratio = round(recent["Volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
-        saveDict["Volume"] = ratio  # str(ratio)+"x"
+        saveDict["Volume"] = ratio
         if (
             ratio >= volumeRatio
             and ratio != np.nan
             and (not math.isinf(ratio))
-            and (ratio != 20)
         ):
-            screenDict[
-                "Volume"
-            ] = ratio  # colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
-            return True
-        screenDict[
-            "Volume"
-        ] = ratio  # colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
-        return False
+            screenDict["Volume"] = ratio
+            return True, hasMinimumVolume
+        screenDict["Volume"] = ratio
+        return False, hasMinimumVolume
 
     # Find if stock is validating volume spread analysis
     def validateVolumeSpreadAnalysis(self, data, screenDict, saveDict):
         try:
             data = data.head(2)
+            if len(data) < 2:
+                return False
             try:
                 # Check for previous RED candles
                 # Current candle = 0th, Previous Candle = 1st for following logic

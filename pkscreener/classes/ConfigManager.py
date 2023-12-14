@@ -65,6 +65,7 @@ class tools:
         self.longTimeout = 4
         self.maxNetworkRetryCount = 10
         self.backtestPeriod = 30
+        self.minVolume = 100000
         self.logger = None
 
     @property
@@ -117,6 +118,7 @@ class tools:
             parser.set("config", "longTimeout", str(self.longTimeout))
             parser.set("config", "maxNetworkRetryCount", str(self.maxNetworkRetryCount))
             parser.set("config", "backtestPeriod", str(self.backtestPeriod))
+            parser.set("config", "minimumVolume", str(self.minVolume))
             try:
                 fp = open("pkscreener.ini", "w")
                 parser.write(fp)
@@ -151,10 +153,10 @@ class tools:
                 + colorText.END
             )
             self.period = input(
-                "[+] Enter number of days for which stock data to be downloaded (Days)(Optimal = 365): "
+                "[+] Enter number of days for which stock data to be downloaded (Days)(Optimal = 280): "
             )
             self.daysToLookback = input(
-                "[+] Number of recent days (TimeFrame) to screen for Breakout/Consolidation (Days)(Optimal = 20): "
+                "[+] Number of recent days (TimeFrame) to screen for Breakout/Consolidation (Days)(Optimal = 30): "
             )
             self.duration = input(
                 "[+] Enter Duration of each candle (Days)(Optimal = 1): "
@@ -208,6 +210,9 @@ class tools:
             self.backtestPeriod = input(
                 "[+] Number of days in the past for backtesting(in days)(Optimal = 30): "
             )
+            self.minVolume = input(
+                "[+] Minimum per day traded volume of any stock (number)(Optimal = 100000): "
+            )
             parser.set("config", "period", self.period + "d")
             parser.set("config", "daysToLookback", self.daysToLookback)
             parser.set("config", "duration", self.duration + "d")
@@ -226,6 +231,7 @@ class tools:
             parser.set("config", "longTimeout", self.longTimeout)
             parser.set("config", "maxNetworkRetryCount", self.maxNetworkRetryCount)
             parser.set("config", "backtestPeriod", self.backtestPeriod)
+            parser.set("config", "minimumVolume", self.minVolume)
             # delete stock data due to config change
             self.deleteFileWithPattern()
             print(
@@ -301,6 +307,7 @@ class tools:
                 self.longTimeout = float(parser.get("config", "longTimeout"))
                 self.maxNetworkRetryCount = int(parser.get("config", "maxNetworkRetryCount"))
                 self.backtestPeriod = int(parser.get("config", "backtestPeriod"))
+                self.minVolume = int(parser.get("config", "minimumVolume"))
             except configparser.NoOptionError as e:
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
@@ -317,19 +324,22 @@ class tools:
             self.setConfig(parser, default=True, showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
-    def toggleConfig(self, candleDuration="1d"):
-        candleDuration = candleDuration.lower()
+    def toggleConfig(self, candleDuration):
+        if candleDuration is None:
+            candleDuration = self.duration.lower()
         self.getConfig(parser)
         if candleDuration[-1] in ["d"]:
             self.period = "280d"
             self.cacheEnabled = True
-        if not self.isIntradayConfig() or candleDuration[-1] in ["m","h"]:
+        if candleDuration[-1] in ["m","h"] and not self.isIntradayConfig():
             self.period = "1d"
             self.cacheEnabled = False
         if self.isIntradayConfig():
             self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "1m"
+            self.daysToLookback = 120 # At least the past 2 hours
         else:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
+            self.daysToLookback = 30 # At least the past 1.5 month
         self.setConfig(parser, default=True, showFileCreatedText=False)
         # Delete any cached *.pkl data
         self.deleteFileWithPattern()

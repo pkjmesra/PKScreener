@@ -137,7 +137,7 @@ class PKMultiProcessorClient(multiprocessing.Process):
                     answer = self.processorMethod(*(next_task))
                 if self.task_queue is not None:
                     self.task_queue.task_done()
-                self.default_logger.info(f"Task done. Result:{answer}")
+                # self.default_logger.info(f"Task done. Result:{answer}")
                 if self.result_queue is not None:
                     self.result_queue.put(answer)
         except Exception as e:

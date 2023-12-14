@@ -35,6 +35,11 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+      sendNotification:
+        description: 'Should we send notification to public telegram channel about this release?'
+        required: false
+        type: string
+        default: 'no'
   # schedule:
   #   - cron: '35 11 * * 5'
 
@@ -67,6 +72,7 @@ jobs:
     outputs:
         version: ${{ steps.vars.outputs.THIS_VERSION }}
         tag: refs/tags/${{ steps.vars.outputs.THIS_VERSION }}
+        sendNotification: ${{ inputs.sendNotification }}
     strategy:
       matrix:
         include:
@@ -249,4 +255,5 @@ jobs:
       with:
         branch-name: ${{ needs.Build.outputs.tag }}
         version: ${{ needs.Build.outputs.version }}
+        sendNotification: ${{ needs.Build.outputs.sendNotification }}
       secrets: inherit

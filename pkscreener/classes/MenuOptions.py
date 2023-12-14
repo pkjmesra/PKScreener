@@ -66,7 +66,7 @@ level1_X_MenuDict = {
 level2_X_MenuDict = {
     "0": "Full Screening (Shows Technical Parameters without any criterion)",
     "1": "Probable Breakouts              ",
-    "2": "Recent Breakouts & Volumes",
+    "2": "Today's Breakouts",
     "3": "Consolidating stocks            ",
     "4": "Lowest Volume in last 'N'-days (Early Breakout Detection)",
     "5": "RSI screening                   ",
@@ -85,13 +85,16 @@ level2_X_MenuDict = {
     "18": "Bullish Aroon(14) Crossover",
     "19": "MACD Histogram x below 0       ",
     "20": "Bullish for next day",
-    "21": "RSI entering bullish territory     ",
-    "23": "Bearish CCI crossover           ",
-    "24": "RSI above 30 and price > psar      ",
-    "25": "Intraday Momentum Build-up      ",
-    "26": "Extremely bullish daily close      ",
-    "27": "Rising RSI                      ",
-    "28": "Dividend Yield",
+    "21": "Most Popular Stocks            ",
+    "22": "View Stock Performance         ",
+    "23": "Breaking out now               ",
+    "24": "Higher Highs,Lows & Close      ",
+    "25": "Lower Highs,Lows (Watch for Reversal)",
+    "26": "RSI above 30 and price > psar      ",
+    "27": "Intraday Momentum Build-up      ",
+    "28": "Extremely bullish daily close      ",
+    "29": "Rising RSI                      ",
+    "30": "RSI entering bullish territory",
     "42": "Show Last Screened Results",
     "M": "Back to the Top/Main menu",
     "Z": "Exit (Ctrl + C)",
@@ -103,6 +106,7 @@ level3_X_Reversal_MenuDict = {
     "4": "Reversal at Moving Average (Bullish Reversal)",
     "5": "Volume Spread Analysis (Bullish VSA Reversal)",
     "6": "Narrow Range (NRx) Reversal",
+    # "7": "Lorentzian Classifier (Machine Learning based indicator)",
     "0": "Cancel",
 }
 level3_X_ChartPattern_MenuDict = {
@@ -111,10 +115,21 @@ level3_X_ChartPattern_MenuDict = {
     "3": "The Confluence (50 & 200 MA/EMA)",
     "4": "VCP (Experimental)",
     "5": "Buying at Trendline (Ideal for Swing/Mid/Long term)",
-    "6": "Narrow Range (NRx) Reversal",
+    "0": "Cancel",
+}
+level3_X_PopularStocks_MenuDict = {
+    "1": "Shares bought/sold by Mutual Funds/FIIs",
+    "2": "Shareholding by number of Mutual Funds/FIIs",
+    "3": "Dividend Yield",
     "0": "Cancel",
 }
 
+level3_X_StockPerformance_MenuDict = {
+    "1": "Short term",
+    "2": "Medium term",
+    "3": "Long term",
+    "0": "Cancel",
+}
 
 class MenuRenderStyle(Enum):
     STANDALONE = 1
@@ -271,21 +286,34 @@ class menus:
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
-                return (
-                    self.renderLevel3_X_Reversal_Menus(
+                if selectedMenu.menuKey == "6":
+                    return self.renderLevel3_X_Reversal_Menus(
+                            skip=skip,
+                            asList=asList,
+                            renderStyle=renderStyle,
+                            parent=selectedMenu,
+                        )
+                elif selectedMenu.menuKey == "7":
+                    return self.renderLevel3_X_ChartPattern_Menus(
                         skip=skip,
                         asList=asList,
                         renderStyle=renderStyle,
                         parent=selectedMenu,
                     )
-                    if selectedMenu.menuKey == "6"
-                    else self.renderLevel3_X_ChartPattern_Menus(
+                elif selectedMenu.menuKey == "21":
+                    return self.renderLevel3_X_PopularStocks_Menus(
                         skip=skip,
                         asList=asList,
                         renderStyle=renderStyle,
                         parent=selectedMenu,
                     )
-                )
+                elif selectedMenu.menuKey == "22":
+                    return self.renderLevel3_X_StockPerformance_Menus(
+                        skip=skip,
+                        asList=asList,
+                        renderStyle=renderStyle,
+                        parent=selectedMenu,
+                    )
 
     def find(self, key=None):
         if key is not None:
@@ -454,3 +482,73 @@ class menus:
                 + colorText.END
             )
             return menuText
+
+    def renderLevel3_X_PopularStocks_Menus(
+        self, skip=[], asList=False, renderStyle=MenuRenderStyle.STANDALONE, parent=None
+    ):
+        menuText = self.fromDictionary(
+            level3_X_PopularStocks_MenuDict,
+            renderExceptionKeys=["0"],
+            renderStyle=renderStyle
+            if renderStyle is not None
+            else MenuRenderStyle.STANDALONE,
+            skip=skip,
+            parent=parent,
+        ).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(
+                colorText.BOLD
+                + colorText.WARN
+                + "[+] Select an option: "
+                + colorText.END
+            )
+            print(
+                colorText.BOLD
+                + menuText
+                + """
+
+        """
+                + colorText.END
+            )
+            return menuText
+
+    def renderLevel3_X_StockPerformance_Menus(
+        self, skip=[], asList=False, renderStyle=MenuRenderStyle.STANDALONE, parent=None
+    ):
+        menuText = self.fromDictionary(
+            level3_X_StockPerformance_MenuDict,
+            renderExceptionKeys=["0"],
+            renderStyle=renderStyle
+            if renderStyle is not None
+            else MenuRenderStyle.STANDALONE,
+            skip=skip,
+            parent=parent,
+        ).render(asList=asList)
+        if asList:
+            return menuText
+        else:
+            print(
+                colorText.BOLD
+                + colorText.WARN
+                + "[+] Select an option: "
+                + colorText.END
+            )
+            print(
+                colorText.BOLD
+                + menuText
+                + """
+
+        """
+                + colorText.END
+            )
+            return menuText     
+# Fundamentally good compnaies but nearing 52 week low
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0005
+
+# Dividend Gems
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0027
+
+# Cash rich small caps
+# https://www.tickertape.in/screener/equity/prebuilt/SCR0017

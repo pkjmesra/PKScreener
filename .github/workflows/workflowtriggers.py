@@ -56,15 +56,16 @@ objectDictionary = {}
 # args.backtests = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
-# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" 
-# args.skiplistlevel2 ="0,21,22,23,24,25,26,27,28,42,M,Z"
+# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13,14" 
+# args.skiplistlevel2 ="0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,42,M,Z"
+# args.skiplistlevel3 = "0,1,2,4,5,6"
 
 if args.skiplistlevel0 is None:
     args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
 if args.skiplistlevel1 is None:
     args.skiplistlevel1 = ",".join(["W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13"])
 if args.skiplistlevel2 is None:
-    args.skiplistlevel2 = ",".join(["0,21,22,23,24,25,26,27,28,42,M,Z"])
+    args.skiplistlevel2 = ",".join(["0,21,22,25,26,27,28,42,M,Z"])
 if args.skiplistlevel3 is None:
     args.skiplistlevel3 = ",".join(["0"])
 if not args.report and not args.scans and not args.backtests:
@@ -100,7 +101,7 @@ for mnu0 in cmds0:
             p2 = mnu2.menuKey.upper()
             if p2 == "0":
                 continue
-            if p2 in ["6", "7"]:
+            if p2 in ["6", "7", "21"]:
                 selectedMenu = m2.find(p2)
                 cmds3 = m3.renderForMenu(
                     selectedMenu=selectedMenu,
