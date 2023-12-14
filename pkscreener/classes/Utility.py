@@ -228,7 +228,7 @@ class tools:
         artColor = "green"
         menuColor = "red"
         gridColor = "black"
-        repoText = "https://GitHub.com/pkjmesra/pkscreener/"
+        repoText = "Source: https://GitHub.com/pkjmesra/pkscreener/  | Telegram: https://t.me/PKScreener | Learning purposes ONLY. No legal liability."
         screenLines = styledTable.splitlines()
         unstyledLines = table.splitlines()
         artfont = ImageFont.truetype(fontPath, 30)
@@ -238,7 +238,7 @@ class tools:
         text_width, text_height = font.getsize_multiline(table)
         im = Image.new(
             "RGB",
-            (text_width + 15, arttext_height + text_height + label_height + 15),
+            (text_width + 15, arttext_height + text_height + label_height + 30),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -724,7 +724,7 @@ class tools:
                 input(
                     colorText.BOLD
                     + colorText.WARN
-                    + "\n[+] Enter Min Volume ratio value (Default = 2): "
+                    + "\n[+] Enter Min Volume ratio value (Default = 2.5): "
                     + colorText.END
                 )
             )
@@ -856,7 +856,7 @@ class tools:
                     input(
                         colorText.BOLD
                         + colorText.WARN
-                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-5%)? : "
+                        + "\n[+] Enter Percentage within which all MA/EMAs should be (Ideal: 1-2%)? : "
                         + colorText.END
                     )
                 )

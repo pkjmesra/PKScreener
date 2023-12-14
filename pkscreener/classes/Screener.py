@@ -65,6 +65,10 @@ class NotNewlyListed(Exception):
 class NotAStageTwoStock(Exception):
     pass
 
+# Exception for stocks which are low in volume as per configuration of 'minimumVolume'
+class NotEnoughVolumeAsPerConfig(Exception):
+    pass
+
 # Exception for newly listed stocks with candle nos < daysToLookback
 class StockDataNotAdequate(Exception):
     pass
@@ -872,6 +876,34 @@ class tools:
         saveDict["Consol."] = f'Range:{str(round((abs((hc-lc)/hc)*100),1))+"%"}'
         return round((abs((hc - lc) / hc) * 100), 1)
 
+    # validate if the stock has been having higher highs, higher lows
+    # and higher close with latest close > supertrend and 8-EMA.
+    def validateHigherHighsHigherLowsHigherClose(self, data):
+        day0 = data
+        day1 = data[1:]
+        day2 = data[2:]
+        day3 = data[3:]
+        higherHighs = (day0["High"].iloc[0] > day1["High"].iloc[0]) and \
+                        (day1["High"].iloc[0] > day2["High"].iloc[0]) and \
+                        (day2["High"].iloc[0] > day3["High"].iloc[0])
+        higherLows = (day0["Low"].iloc[0] > day1["Low"].iloc[0]) and \
+                        (day1["Low"].iloc[0] > day2["Low"].iloc[0]) and \
+                        (day2["Low"].iloc[0] > day3["Low"].iloc[0])
+        higherClose = (day0["Close"].iloc[0] > day1["Close"].iloc[0]) and \
+                        (day1["Close"].iloc[0] > day2["Close"].iloc[0]) and \
+                        (day2["Close"].iloc[0] > day3["Close"].iloc[0])
+        higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
+                        (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
+                        (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
+                        day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
+        reversedData = data[::-1].copy()
+        reversedData['SUPERT'] = pktalib.supertrend(reversedData,7,3)['SUPERT_7_3.0']
+        reversedData['EMA8'] = pktalib.EMA(reversedData["Close"], timeperiod=9)
+        higherClose = higherClose and \
+                        day0["Close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0] and \
+                        day0["Close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
+        return higherHighs and higherLows and higherClose
+    
     # Validate 'Inside Bar' structure for recent days
     def validateInsideBar(
         self, data, screenDict, saveDict, chartPattern=1, daysToLookback=5
@@ -977,6 +1009,24 @@ class tools:
     #         if lookFor != 2:
     #             return True
     #     return False
+    
+    # validate if the stock has been having lower lows, lower highs
+    def validateLowerHighsLowerLows(self, data):
+        day0 = data
+        day1 = data[1:]
+        day2 = data[2:]
+        day3 = data[3:]
+        lowerHighs = (day0["High"].iloc[0] < day1["High"].iloc[0]) and \
+                        (day1["High"].iloc[0] < day2["High"].iloc[0]) and \
+                        (day2["High"].iloc[0] < day3["High"].iloc[0])
+        lowerLows = (day0["Low"].iloc[0] < day1["Low"].iloc[0]) and \
+                        (day1["Low"].iloc[0] < day2["Low"].iloc[0]) and \
+                        (day2["Low"].iloc[0] < day3["Low"].iloc[0])
+        higherRSI = (day0["RSI"].iloc[0] < day1["RSI"].iloc[0]) and \
+                        (day1["RSI"].iloc[0] < day2["RSI"].iloc[0]) and \
+                        (day2["RSI"].iloc[0] < day3["RSI"].iloc[0]) and \
+                        day0["RSI"].iloc[0] >= 50
+        return lowerHighs and lowerLows and higherRSI
     
     # Validate if recent volume is lowest of last 'N' Days
     def validateLowestVolume(self, data, daysForLowestVolume):
@@ -1424,32 +1474,26 @@ class tools:
         return False
 
     # Validate if volume of last day is higher than avg
-    def validateVolume(self, data, screenDict, saveDict, volumeRatio=2.5):
+    def validateVolume(self, data, screenDict, saveDict, volumeRatio=2.5, minVolume=100):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
+        hasMinimumVolume = recent["VolMA"].iloc[0] >= minVolume
         if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
             saveDict["Volume"] = 0  # "Unknown"
-            screenDict[
-                "Volume"
-            ] = 0  # colorText.BOLD + colorText.WARN + "Unknown" + colorText.END
-            return True
+            screenDict["Volume"] = 0
+            return True, hasMinimumVolume
         ratio = round(recent["Volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
-        saveDict["Volume"] = ratio  # str(ratio)+"x"
+        saveDict["Volume"] = ratio
         if (
             ratio >= volumeRatio
             and ratio != np.nan
             and (not math.isinf(ratio))
-            and (ratio != 20)
         ):
-            screenDict[
-                "Volume"
-            ] = ratio  # colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
-            return True
-        screenDict[
-            "Volume"
-        ] = ratio  # colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
-        return False
+            screenDict["Volume"] = ratio
+            return True, hasMinimumVolume
+        screenDict["Volume"] = ratio
+        return False, hasMinimumVolume
 
     # Find if stock is validating volume spread analysis
     def validateVolumeSpreadAnalysis(self, data, screenDict, saveDict):

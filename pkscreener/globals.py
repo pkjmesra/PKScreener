@@ -94,7 +94,7 @@ screenResultsCounter = None
 selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
 stockDict = None
 userPassedArgs = None
-
+elapsed_time = 0
 def finishScreening(
     downloadOnly,
     testing,
@@ -117,9 +117,10 @@ def finishScreening(
 
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
+    argsIntraday = userPassedArgs.intraday if (userPassedArgs is not None and userPassedArgs.intraday is not None) else False
     configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
-    intraday = True if (intradayConfig or userPassedArgs.intraday is not None) else False
+    intraday = True if (intradayConfig or argsIntraday) else False
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -761,11 +762,11 @@ def main(userArgs=None):
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
         return
-    if executeOption >= 24 and executeOption <= 41:
+    if executeOption >= 26 and executeOption <= 41:
         print(
             colorText.BOLD
             + colorText.FAIL
-            + "\n[+] Error: Option 24 to 41 Not implemented yet! Press <Enter> to continue."
+            + "\n[+] Error: Option 25 to 41 Not implemented yet! Press <Enter> to continue."
             + colorText.END
         )
         input("Press <Enter> to continue...")
@@ -947,15 +948,16 @@ def main(userArgs=None):
                 + "[+] Starting download.. Press Ctrl+C to stop!\n"
             )
 
-        suggestedHistoricalDuration = (
-            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
-        )
+        suggestedHistoricalDuration = backtestPeriod
+        #(
+        #     getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
+        # )
         # Number of days from past, including the backtest duration chosen by the user
         # that we will need to consider to evaluate the data. If the user choses 10-period
         # backtesting, we will need to have the past 6-months or whatever is returned by
         # x = getHistoricalDays and 10 days of recent data. So total rows to consider
         # will be x + 10 days.
-        samplingDuration = (suggestedHistoricalDuration + backtestPeriod + 1) if menuOption == "B" else 2
+        samplingDuration = (backtestPeriod + 1) if menuOption == "B" else 2
         fillerPlaceHolder = 1 if menuOption == "B" else 2
         backtest_df = None
         if menuOption.upper() == "B":
@@ -1155,7 +1157,7 @@ def populateQueues(items, tasks_queue):
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
-    global userPassedArgs
+    global userPassedArgs, elapsed_time
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
@@ -1171,7 +1173,7 @@ def printNotifySaveScreenedResults(
     if len(screenResults) >= 1:
         if not testing and len(screenResults) <= 100:
             # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found).{caption}"
+            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec).{caption}"
             markdown_results = tabulate(
                 saveResults, headers="keys", tablefmt="grid"
             )
@@ -1193,7 +1195,7 @@ def printNotifySaveScreenedResults(
         print(
             colorText.BOLD
             + colorText.GREEN
-            + f"[+] Found {len(screenResults)} Stocks."
+            + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
             + colorText.END
         )
         Utility.tools.setLastScreenedResults(screenResults)
@@ -1253,7 +1255,7 @@ def runScanners(
     backtest_df,
     testing=False
 ):
-    global selectedChoice, userPassedArgs
+    global selectedChoice, userPassedArgs, elapsed_time
     populateQueues(items, tasks_queue)
     choices = userReportName(selectedChoice)
     try:
@@ -1293,7 +1295,7 @@ def runScanners(
                 # stock or if we've already tried screening through 5% of the list. 
                 if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.05)):
                     break
-
+        elapsed_time = time.time() - start_time
         if menuOption == "X":
             # create extension
             df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
@@ -1317,6 +1319,7 @@ def runScanners(
     return screenResults, saveResults, backtest_df
 
 def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df):
+    global elapsed_time
     sellSignal = (
                                 str(selectedChoice["2"]) in ["6","7"] and 
                                 str(selectedChoice["3"]) in ["2"]
@@ -1403,17 +1406,17 @@ def sendMessageToTelegramChannel(
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     if user is not None and caption is not None:
-        caption = f"{caption.replace('&',' n ')}." 
+        caption = f"{caption.replace('&','n')}." 
     if message is not None:
         try:
-            message = message.replace('&',' n ')
+            message = message.replace('&','n')
             send_message(message, userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
     if photo_filePath is not None:
         try:
             if caption is not None:
-                caption = f"{caption.replace('&',' n ')}"
+                caption = f"{caption.replace('&','n')}"
             send_document(photo_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
@@ -1422,7 +1425,7 @@ def sendMessageToTelegramChannel(
     if document_filePath is not None:
         try:
             if caption is not None:
-                caption = f"{caption.replace('&',' n ')}"
+                caption = f"{caption.replace('&','n')}"
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
@@ -1571,8 +1574,6 @@ def takeBacktestInputs(
         executeOption = executeOption,
         skip=[
             "0",
-            "24",
-            "25",
             "26",
             "27",
             "28",

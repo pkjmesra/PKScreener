@@ -151,6 +151,14 @@ class pktalib:
         return ichimokudf
 
     @classmethod
+    def supertrend(self, df, length=7, multiplier=3):
+        import pandas_ta as ta
+        sti = ta.supertrend(df['High'], df['Low'], df['Close'], length=length, multiplier=multiplier)
+        # trend, direction, long, short
+        # SUPERT_7_3.0  SUPERTd_7_3.0  SUPERTl_7_3.0  SUPERTs_7_3.0
+        return sti
+    
+    @classmethod
     def CDLMORNINGSTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "morningstar")
