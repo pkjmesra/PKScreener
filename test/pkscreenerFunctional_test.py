@@ -51,7 +51,7 @@ from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
 
-session = CachedSession("pkscreener_cache", cache_control=True)
+session = CachedSession("PKDevTools_cache", cache_control=True)
 last_release = 0
 configManager = ConfigManager.tools()
 fetcher = Fetcher.tools(configManager)

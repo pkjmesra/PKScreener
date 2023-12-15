@@ -70,7 +70,7 @@ from PKDevTools.classes import Archiver
 from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
-session = CachedSession("pkscreener_cache", cache_control=True)
+session = CachedSession("PKDevTools_cache", cache_control=True)
 fetcher = Fetcher.tools(ConfigManager.tools())
 artText = """
     $$$$$$      $$   $$      $$$$$                                                        

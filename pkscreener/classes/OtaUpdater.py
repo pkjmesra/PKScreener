@@ -43,7 +43,7 @@ from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 
 session = CachedSession(
-    "pkscreener_cache",
+    "PKDevTools_cache",
     expire_after=timedelta(days=1),
     stale_if_error=True,
 )

@@ -22,21 +22,13 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   28/04/2021
- *  Description         :   Class for handling networking for fetching stock codes and data
-"""
 
 import csv
-import json
 import os
 import random
 import sys
 import urllib
 import warnings
-from datetime import timedelta
 from io import StringIO
 from bs4 import BeautifulSoup
 
@@ -44,136 +36,16 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import requests
-import requests_cache
 import yfinance as yf
-from html import escape
-from requests.exceptions import ConnectTimeout, ReadTimeout
-from requests_cache import CachedSession
-from urllib3.exceptions import ReadTimeoutError
 
+from PKDevTools.classes.Fetcher import fetcher, StockDataEmptyException
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 from PKDevTools.classes.SuppressOutput import SuppressOutput
-from pkscreener.classes.PKHTMLScraper import FinancialsDownloader
-
-requests.packages.urllib3.util.connection.HAS_IPV6 = False
-session = CachedSession(
-    "pkscreener_cache",
-    expire_after=timedelta(hours=6),
-    stale_if_error=True,
-)
-
-# Exception class if yfinance stock delisted
-
-
-class StockDataEmptyException(Exception):
-    pass
-
 
 # This Class Handles Fetching of Stock Data over the internet
 
-class tools:
-    def __init__(self, configManager):
-        self.configManager = configManager
-        self._proxy = None
-        pass
-    
-    @property
-    def proxyServer(self):
-        if self._proxy is None:
-            self._proxy = self._getProxyServer()
-        return self._proxy
-    
-    def _getProxyServer(self):
-        # Get system wide proxy for networking
-        try:
-            proxy = urllib.request.getproxies()["http"]
-            proxy = {"https": proxy}
-        except KeyError as e:
-            # default_logger().debug(e, exc_info=True)
-            proxy = None
-        return proxy
-
-    def postURL(self, url, data=None, headers={}, trial=1):
-        try:
-            response = None
-            requestor = session
-            # We should try to switch to requests lib if cached_session 
-            # begin to give some problem after we've tried for
-            # 50% of the configured retrials.
-            if trial >= int(self.configManager.maxNetworkRetryCount/2):
-                requestor = requests
-            response = requestor.post(
-                            url,
-                            proxies=self.proxyServer,
-                            data = data,
-                            headers=headers,
-                            timeout=trial*self.configManager.generalTimeout,
-                        )
-        except (ConnectTimeout,ReadTimeoutError,ReadTimeout) as e:
-            default_logger().debug(e, exc_info=True)
-            if trial <= int(self.configManager.maxNetworkRetryCount):
-                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request timed-out. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
-                return self.postURL(url, data=data, headers=headers,trial=trial+1)
-        except Exception as e:
-            # Something went wrong with the CachedSession.
-            default_logger().debug(e, exc_info=True)
-            if trial <= int(self.configManager.maxNetworkRetryCount):
-                if trial <= 1:
-                    # Let's try and restart the cache
-                    self.configManager.restartRequestsCache()
-                elif trial > 1 and requests_cache.is_installed():
-                    # REstarting didn't fix it. We need to disable the cache altogether.
-                    requests_cache.clear()
-                    requests_cache.uninstall_cache()
-                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request failed. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
-                return self.postURL(url, data=data, headers=headers,trial=trial+1)
-        if trial > 1 and not requests_cache.is_installed():
-            # Let's try and re-enable the caching behaviour before exiting.
-            # Maybe there was something wrong with this request, but the next
-            # request should have access to cache.
-            self.configManager.restartRequestsCache()
-        return response
-
-    def fetchURL(self, url, stream=False, trial=1):
-        try:
-            response = None
-            requestor = session
-            # We should try to switch to requests lib if cached_session 
-            # begin to give some problem after we've tried for
-            # 50% of the configured retrials.
-            if trial >= int(self.configManager.maxNetworkRetryCount/2):
-                requestor = requests
-            response = requestor.get(
-                            url,
-                            proxies=self.proxyServer,
-                            stream = stream,
-                            timeout=trial*self.configManager.generalTimeout,
-                        ) 
-        except (ConnectTimeout,ReadTimeoutError,ReadTimeout) as e:
-            default_logger().debug(e, exc_info=True)
-            if trial <= int(self.configManager.maxNetworkRetryCount):
-                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request timed-out. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
-                return self.fetchURL(url, stream=stream, trial=trial+1)
-        except Exception as e:
-            # Something went wrong with the CachedSession.
-            default_logger().debug(e, exc_info=True)
-            if trial <= int(self.configManager.maxNetworkRetryCount):
-                if trial <= 1:
-                    # Let's try and restart the cache
-                    self.configManager.restartRequestsCache()
-                elif trial > 1 and requests_cache.is_installed():
-                    # REstarting didn't fix it. We need to disable the cache altogether.
-                    requests_cache.clear()
-                    requests_cache.uninstall_cache()
-                print(colorText.BOLD + colorText.FAIL + f"[+] Network Request failed. Going for {trial} of {self.configManager.maxNetworkRetryCount}th trial..." + colorText.END, end="")
-                return self.fetchURL(url, stream=stream, trial=trial+1)
-        if trial > 1 and not requests_cache.is_installed():
-            # Let's try and re-enable the caching behaviour before exiting.
-            # Maybe there was something wrong with this request, but the next
-            # request should have access to cache.
-            self.configManager.restartRequestsCache()
-        return response
+class tools(fetcher):
                 
     def fetchCodes(self, tickerOption):
         listStockCodes = []

@@ -64,7 +64,7 @@ def disableSysOut(input=True):
 from time import sleep
 
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes import log as log
+from PKDevTools.classes import log as log
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 
