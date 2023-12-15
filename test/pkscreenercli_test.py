@@ -25,10 +25,10 @@ import logging
 from unittest.mock import patch
 
 import pytest
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 from pkscreener import pkscreenercli
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
 from pkscreener.globals import shutdown
 
 
@@ -104,7 +104,7 @@ def test_intraday_enabled():
 
 # Positive test case - Test if setupLogger function is called when logging is enabled
 def test_setupLogger_logging_enabled():
-    with patch('pkscreener.classes.log.setup_custom_logger') as mock_setup_logger:
+    with patch('PKDevTools.classes.log.setup_custom_logger') as mock_setup_logger:
         with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
             with pytest.raises(SystemExit):
                 pkscreenercli.args.log = True
@@ -115,7 +115,7 @@ def test_setupLogger_logging_enabled():
 
 # Negative test case - Test if setupLogger function is not called when logging is disabled
 def test_setupLogger_logging_disabled():
-    with patch('pkscreener.classes.log.setup_custom_logger') as mock_setup_logger:
+    with patch('PKDevTools.classes.log.setup_custom_logger') as mock_setup_logger:
         with patch('pkscreener.classes.Utility.tools.isTradingTime') as mock_is_trading_time:
             mock_is_trading_time.return_value = False
             mock_setup_logger.assert_not_called()

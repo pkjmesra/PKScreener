@@ -34,16 +34,16 @@ import subprocess
 import sys
 from datetime import timedelta
 
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 from requests_cache import CachedSession
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
 
 session = CachedSession(
-    "pkscreener_cache",
+    "PKDevTools_cache",
     expire_after=timedelta(days=1),
     stale_if_error=True,
 )
@@ -52,7 +52,7 @@ session = CachedSession(
 class OTAUpdater:
     developmentVersion = "d"
     _configManager = ConfigManager.tools()
-    _tools = Fetcher.tools(_configManager)
+    _tools = Fetcher.screenerStockDataFetcher(_configManager)
     configManager = _configManager 
     fetcher = _tools
     # Download and replace exe through other process for Windows

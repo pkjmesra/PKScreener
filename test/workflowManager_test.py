@@ -27,7 +27,7 @@ from unittest.mock import patch
 import pytest
 
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes.Fetcher import tools
+from pkscreener.classes.Fetcher import screenerStockDataFetcher
 from pkscreener.classes.WorkflowManager import run_workflow
 from pkscreener.Telegram import get_secrets
 
@@ -35,7 +35,7 @@ configManager = ConfigManager.tools()
 
 @pytest.fixture
 def mock_fetcher():
-    with patch.object(tools, 'postURL') as mock_postURL:
+    with patch.object(screenerStockDataFetcher, 'postURL') as mock_postURL:
         yield mock_postURL
 
 def test_run_workflow_positive(mock_fetcher):

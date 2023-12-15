@@ -32,8 +32,8 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytz
+from PKDevTools.classes.ColorText import colorText
 
-from pkscreener.classes.ColorText import colorText
 from pkscreener.classes.Utility import tools
 
 

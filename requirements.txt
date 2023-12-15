@@ -11,7 +11,7 @@ bs4
 # functools
 # genericpath
 # glob
-gspread
+# gspread
 # html
 # importlib
 # inspect
@@ -31,6 +31,7 @@ pandas_ta
 # pickle
 Pillow==9.5.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
 PKDevTools
+PKNSETools
 # platform
 python-dotenv
 python-telegram-bot
