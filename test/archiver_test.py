@@ -43,7 +43,7 @@ from PKDevTools.classes.Archiver import (cacheFile, findFile,
 # Positive test case: fileName is not None
 def test_resolveFilePath_positive():
     fileName = "test_file.txt"
-    expected_dirPath = os.path.join(tempfile.gettempdir(), "pkscreener")
+    expected_dirPath = os.path.join(tempfile.gettempdir(), "PKDevTools")
     expected_filePath = os.path.join(expected_dirPath, fileName)
     
     result = resolveFilePath(fileName)
@@ -53,7 +53,7 @@ def test_resolveFilePath_positive():
 # Positive test case: fileName is None
 def test_resolveFilePath_positive_fileName_none():
     fileName = None
-    expected_dirPath = os.path.join(tempfile.gettempdir(), "pkscreener")
+    expected_dirPath = os.path.join(tempfile.gettempdir(), "PKDevTools")
     expected_filePath = os.path.join(expected_dirPath, "")
     
     result = resolveFilePath(fileName)
@@ -222,7 +222,7 @@ def test_readData_negative_empty_data(mock_resolveFilePath):
 # Edge test case: fileName is a long string
 def test_resolveFilePath_edge_long_fileName():
     fileName = "a" * 1000
-    expected_dirPath = os.path.join(tempfile.gettempdir(), "pkscreener")
+    expected_dirPath = os.path.join(tempfile.gettempdir(), "PKDevTools")
     expected_filePath = os.path.join(expected_dirPath, fileName)
     
     result = resolveFilePath(fileName)
@@ -232,7 +232,7 @@ def test_resolveFilePath_edge_long_fileName():
 # Edge test case: fileName is a space
 def test_resolveFilePath_edge_space_fileName():
     fileName = " "
-    expected_dirPath = os.path.join(tempfile.gettempdir(), "pkscreener")
+    expected_dirPath = os.path.join(tempfile.gettempdir(), "PKDevTools")
     expected_filePath = os.path.join(expected_dirPath, fileName)
     
     result = resolveFilePath(fileName)
