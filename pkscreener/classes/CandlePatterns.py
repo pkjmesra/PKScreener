@@ -29,7 +29,7 @@
  *  Description         :   Class for analyzing candle-stick patterns
 """
 
-from pkscreener.classes.ColorText import colorText
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.Pktalib import pktalib
 
 

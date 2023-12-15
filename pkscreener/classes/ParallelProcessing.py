@@ -44,9 +44,9 @@ import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.CandlePatterns import CandlePatterns
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import tracelog
-from pkscreener.classes.SuppressOutput import SuppressOutput
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import tracelog
+from PKDevTools.classes.SuppressOutput import SuppressOutput
 
 
 class StockConsumer:

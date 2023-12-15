@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pkscreener.classes.ColorText import colorText
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
 

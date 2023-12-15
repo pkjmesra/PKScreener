@@ -35,7 +35,7 @@ import pandas as pd
 import pytest
 import pytz
 
-from pkscreener.classes.Archiver import (cacheFile, findFile,
+from PKDevTools.classes.Archiver import (cacheFile, findFile,
                                          get_last_modified_datetime, readData,
                                          resolveFilePath, safe_open_w,
                                          saveData, utc_to_ist)
@@ -82,7 +82,7 @@ def test_utc_to_ist_positive():
     assert result == expected_ist_dt
 
 # Positive test case: cache file
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_cacheFile_positive(mock_resolveFilePath):
     bData = b"test data"
     fileName = "test_file.txt"
@@ -99,7 +99,7 @@ def test_cacheFile_positive(mock_resolveFilePath):
         assert f.read() == bData
 
 # Positive test case: file exists
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_findFile_positive(mock_resolveFilePath):
     fileName = "test_file.txt"
     expected_filePath = "test_file.txt"
@@ -120,7 +120,7 @@ def test_findFile_positive(mock_resolveFilePath):
     # assert result_last_modified == expected_last_modified
 
 # Positive test case: save data
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_saveData_positive(mock_resolveFilePath):
     data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
     fileName = "test_file.pkl"
@@ -134,7 +134,7 @@ def test_saveData_positive(mock_resolveFilePath):
     assert result_data.equals(data)
 
 # Positive test case: read data
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_readData_positive(mock_resolveFilePath):
     data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
     fileName = "test_file.pkl"
@@ -172,7 +172,7 @@ def test_utc_to_ist_negative():
         utc_to_ist(utc_dt)
 
 # Negative test case: cache file with invalid file path
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_cacheFile_negative(mock_resolveFilePath):
     bData = b"test data"
     fileName = "test_file.txt"
@@ -183,7 +183,7 @@ def test_cacheFile_negative(mock_resolveFilePath):
         cacheFile(bData, fileName)
 
 # Negative test case: file does not exist
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_findFile_negative(mock_resolveFilePath):
     fileName = "nonexistent_file.txt"
     expected_filePath = "path/to/nonexistent_file.txt"
@@ -197,7 +197,7 @@ def test_findFile_negative(mock_resolveFilePath):
     assert result_last_modified is None
 
 # Negative test case: save empty data
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_saveData_negative_empty_data(mock_resolveFilePath):
     data = pd.DataFrame()
     fileName = "test_file.pkl"
@@ -208,7 +208,7 @@ def test_saveData_negative_empty_data(mock_resolveFilePath):
     mock_resolveFilePath.assert_not_called()
 
 # Negative test case: read empty data
-@patch("pkscreener.classes.Archiver.resolveFilePath")
+@patch("PKDevTools.classes.Archiver.resolveFilePath")
 def test_readData_negative_empty_data(mock_resolveFilePath):
     fileName = "test_file.pkl"
     mock_resolveFilePath.return_value = "path/to/test_file.pkl"

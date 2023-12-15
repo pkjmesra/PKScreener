@@ -4,7 +4,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 from pkscreener.classes.CandlePatterns import CandlePatterns
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.log import default_logger
 
 candlePatternsLocal = CandlePatterns()
 configManagerLocal = ConfigManager.tools()

@@ -32,8 +32,8 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 from pkscreener import Imports
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 if Imports["talib"]:
     import talib

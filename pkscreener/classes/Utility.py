@@ -47,7 +47,7 @@ import pytz
 from genericpath import isfile
 
 from pkscreener import Imports
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.log import default_logger
 
 if Imports["keras"]:
     import keras
@@ -65,8 +65,9 @@ from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
-from pkscreener.classes import VERSION, Archiver, Changelog
-from pkscreener.classes.ColorText import colorText
+from pkscreener.classes import VERSION, Changelog
+from PKDevTools.classes import Archiver
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
 session = CachedSession("pkscreener_cache", cache_control=True)

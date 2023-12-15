@@ -25,8 +25,8 @@
 from enum import Enum
 
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 configManager = ConfigManager.tools()
 

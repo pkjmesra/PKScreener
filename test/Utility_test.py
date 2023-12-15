@@ -33,7 +33,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytz
 
-from pkscreener.classes.ColorText import colorText
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.Utility import tools
 
 

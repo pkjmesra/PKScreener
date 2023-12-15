@@ -39,8 +39,8 @@ from requests_cache import CachedSession
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 session = CachedSession(
     "pkscreener_cache",

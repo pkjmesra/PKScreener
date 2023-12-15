@@ -34,7 +34,7 @@ import pytest
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Utility as Utility
-from pkscreener.classes.log import default_logger as dl
+from PKDevTools.classes.log import default_logger as dl
 from pkscreener.classes.Screener import tools
 
 

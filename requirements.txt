@@ -11,7 +11,7 @@ bs4
 # functools
 # genericpath
 # glob
-gspread
+# gspread
 # html
 # importlib
 # inspect

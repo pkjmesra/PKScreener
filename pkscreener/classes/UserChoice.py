@@ -22,7 +22,7 @@
     SOFTWARE.
 
 """
-from pkscreener.classes.ColorText import colorText
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
 

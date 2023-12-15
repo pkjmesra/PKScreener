@@ -48,8 +48,8 @@ from pkscreener.classes.Pktalib import pktalib
 if Imports["scipy"]:
     from scipy.stats import linregress
 
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.SuppressOutput import SuppressOutput
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.SuppressOutput import SuppressOutput
 
 
 # Exception for only downloading stock data and not screening

@@ -45,7 +45,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
 from pkscreener.classes import VERSION, Changelog
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.log import default_logger
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menus
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main

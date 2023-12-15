@@ -51,9 +51,9 @@ from requests.exceptions import ConnectTimeout, ReadTimeout
 from requests_cache import CachedSession
 from urllib3.exceptions import ReadTimeoutError
 
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
-from pkscreener.classes.SuppressOutput import SuppressOutput
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
+from PKDevTools.classes.SuppressOutput import SuppressOutput
 from pkscreener.classes.PKHTMLScraper import FinancialsDownloader
 
 requests.packages.urllib3.util.connection.HAS_IPV6 = False

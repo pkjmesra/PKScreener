@@ -36,8 +36,8 @@ import sys
 
 import requests_cache
 
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
 

@@ -36,7 +36,7 @@ from dotenv import dotenv_values
 from telegram.constants import ParseMode
 
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.log import default_logger
 
 # from io import BytesIO
 # from PIL import Image

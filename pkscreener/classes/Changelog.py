@@ -29,7 +29,7 @@
  *  Description         :   Class for maintaining changelog
 """
 
-from pkscreener.classes.ColorText import colorText
+from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
 
