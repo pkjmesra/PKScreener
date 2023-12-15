@@ -27,7 +27,6 @@ from queue import Queue
 from unittest.mock import Mock, patch
 
 import pytest
-
 from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
 
 

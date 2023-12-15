@@ -38,15 +38,15 @@ import numpy as np
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.Fetcher import StockDataEmptyException
+from PKDevTools.classes.log import tracelog
+from PKDevTools.classes.SuppressOutput import SuppressOutput
 
-import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.CandlePatterns import CandlePatterns
-from PKDevTools.classes.ColorText import colorText
-from PKDevTools.classes.log import tracelog
-from PKDevTools.classes.SuppressOutput import SuppressOutput
 
 
 class StockConsumer:
@@ -671,7 +671,7 @@ class StockConsumer:
         except KeyboardInterrupt:
             # Capturing Ctr+C Here isn't a great idea
             pass
-        except Fetcher.StockDataEmptyException as e:
+        except StockDataEmptyException as e:
             hostRef.default_logger.debug(e, exc_info=True)
             pass
         except Screener.NotNewlyListed as e:

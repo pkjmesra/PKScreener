@@ -63,10 +63,11 @@ def disableSysOut(input=True):
 
 from time import sleep
 
-import pkscreener.classes.ConfigManager as ConfigManager
 from PKDevTools.classes import log as log
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
+
+import pkscreener.classes.ConfigManager as ConfigManager
 
 multiprocessing.freeze_support()
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"

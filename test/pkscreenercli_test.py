@@ -25,10 +25,10 @@ import logging
 from unittest.mock import patch
 
 import pytest
-
-from pkscreener import pkscreenercli
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
+
+from pkscreener import pkscreenercli
 from pkscreener.globals import shutdown
 
 

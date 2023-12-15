@@ -30,6 +30,7 @@
 """
 
 from PKDevTools.classes.ColorText import colorText
+
 from pkscreener.classes.OtaUpdater import OTAUpdater
 
 

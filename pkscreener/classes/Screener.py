@@ -39,10 +39,11 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 import pkscreener.classes.Utility as Utility
-# from advanced_ta import LorentzianClassification
-
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
+
+# from advanced_ta import LorentzianClassification
+
 
 # from sklearn.preprocessing import StandardScaler
 if Imports["scipy"]:

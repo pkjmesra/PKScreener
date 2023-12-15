@@ -31,10 +31,10 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
+from PKDevTools.classes.log import default_logger as dl
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Utility as Utility
-from PKDevTools.classes.log import default_logger as dl
 from pkscreener.classes.Screener import tools
 
 

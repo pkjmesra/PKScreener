@@ -24,9 +24,10 @@
 """
 from enum import Enum
 
-import pkscreener.classes.ConfigManager as ConfigManager
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
+
+import pkscreener.classes.ConfigManager as ConfigManager
 
 configManager = ConfigManager.tools()
 

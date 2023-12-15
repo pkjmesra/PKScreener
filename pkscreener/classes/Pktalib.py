@@ -30,10 +30,10 @@ import numpy as np
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
-
-from pkscreener import Imports
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
+
+from pkscreener import Imports
 
 if Imports["talib"]:
     import talib

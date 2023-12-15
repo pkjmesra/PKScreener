@@ -45,9 +45,9 @@ import joblib
 import numpy as np
 import pytz
 from genericpath import isfile
+from PKDevTools.classes.log import default_logger
 
 from pkscreener import Imports
-from PKDevTools.classes.log import default_logger
 
 if Imports["keras"]:
     import keras
@@ -60,18 +60,18 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
 from PIL import Image, ImageDraw, ImageFont
+from PKDevTools.classes import Archiver
+from PKDevTools.classes.ColorText import colorText
 from requests_cache import CachedSession
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION, Changelog
-from PKDevTools.classes import Archiver
-from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes.MenuOptions import menus
 
 session = CachedSession("PKDevTools_cache", cache_control=True)
-fetcher = Fetcher.tools(ConfigManager.tools())
+fetcher = Fetcher.screenerStockDataFetcher(ConfigManager.tools())
 artText = """
     $$$$$$      $$   $$      $$$$$                                                        
     $$    $$    $$  $$      $$   $$                         $$$$       $$$$                  $$$$         

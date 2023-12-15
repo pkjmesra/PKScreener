@@ -35,7 +35,6 @@ import os
 import sys
 
 import requests_cache
-
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 
