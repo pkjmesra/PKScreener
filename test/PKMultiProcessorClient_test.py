@@ -27,8 +27,7 @@ from queue import Queue
 from unittest.mock import Mock, patch
 
 import pytest
-
-from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
+from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
 
 
 @pytest.fixture(autouse=True)

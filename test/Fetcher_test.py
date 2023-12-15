@@ -30,11 +30,12 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
+from PKDevTools.classes.Fetcher import StockDataEmptyException
 from requests.exceptions import ConnectTimeout, ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 from pkscreener.classes import ConfigManager
-from pkscreener.classes.Fetcher import StockDataEmptyException, tools
+from pkscreener.classes.Fetcher import screenerStockDataFetcher
 
 
 @pytest.fixture
@@ -43,13 +44,13 @@ def configManager():
 
 @pytest.fixture
 def tools_instance(configManager):
-    return tools(configManager)
+    return screenerStockDataFetcher(configManager)
 
 def test_fetchCodes_positive(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
         mock_get.return_value.status_code = 200
         mock_get.return_value.text = "SYMBOL\nAAPL\nGOOG\n"
-        result = tools_instance.fetchCodes(12)
+        result = tools_instance.fetchNiftyCodes(12)
         assert result == ['AAPL', 'GOOG']
         mock_get.assert_called_once_with(
             "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
@@ -60,11 +61,11 @@ def test_fetchCodes_positive(configManager, tools_instance):
 
 def test_fetchCodes_positive_proxy(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
-        with patch('pkscreener.classes.Fetcher.tools._getProxyServer') as mock_proxy:
+        with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher._getProxyServer') as mock_proxy:
             mock_proxy.return_value = {"https": "127.0.0.1:8080"}
             mock_get.return_value.status_code = 200
             mock_get.return_value.text = "SYMBOL\nAAPL\nGOOG\n"
-            result = tools_instance.fetchCodes(12)
+            result = tools_instance.fetchNiftyCodes(12)
             assert result == ['AAPL', 'GOOG']
             mock_get.assert_called_once_with(
                 "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
@@ -75,11 +76,11 @@ def test_fetchCodes_positive_proxy(configManager, tools_instance):
 
 def test_fetchCodes_negative(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
-        with patch('pkscreener.classes.Fetcher.tools._getProxyServer') as mock_proxy:
+        with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher._getProxyServer') as mock_proxy:
             mock_proxy.return_value = {"https": "127.0.0.1:8080"}
             mock_get.side_effect = Exception("Error fetching data")
             with pytest.raises(Exception):
-                result = tools_instance.fetchCodes(12)
+                result = tools_instance.fetchNiftyCodes(12)
                 assert result == []
                 mock_get.assert_called_once_with(
                     "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
@@ -91,7 +92,7 @@ def test_fetchCodes_negative(configManager, tools_instance):
 def test_fetchCodes_ReadTimeoutError_negative(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
         mock_get.side_effect = ReadTimeoutError(None,None,"Error fetching data")
-        result = tools_instance.fetchCodes(12)
+        result = tools_instance.fetchNiftyCodes(12)
         assert len(result) > 0
         1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
 
@@ -112,14 +113,14 @@ def test_fetchCodes_Exception_fallback_requests(configManager, tools_instance):
             1 < mock_get.call_count <= int(configManager.maxNetworkRetryCount)
 
 def test_fetchStockCodes_positive(configManager, tools_instance):
-    with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:
+    with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher.fetchNiftyCodes') as mock_fetchCodes:
         mock_fetchCodes.return_value = ['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG',]
         result = tools_instance.fetchStockCodes(1)
         assert len(result) == len(['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG'])
         mock_fetchCodes.assert_called_once_with(1)
 
 def test_fetchStockCodes_positive_proxy(configManager, tools_instance):
-    with patch('pkscreener.classes.Fetcher.tools._getProxyServer') as mock_proxy:
+    with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher._getProxyServer') as mock_proxy:
         with patch('requests_cache.CachedSession.get') as mock_get:
             mock_proxy.return_value = {"https": "127.0.0.1:8080"}
             mock_get.return_value.status_code = 200
@@ -129,7 +130,7 @@ def test_fetchStockCodes_positive_proxy(configManager, tools_instance):
             mock_get.assert_called_with(ANY, proxies=mock_proxy.return_value, stream=False, timeout=ANY)
 
 def test_fetchStockCodes_negative(configManager, tools_instance):
-    with patch('pkscreener.classes.Fetcher.tools.fetchCodes') as mock_fetchCodes:
+    with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher.fetchNiftyCodes') as mock_fetchCodes:
         mock_fetchCodes.side_effect = Exception("Error fetching stock codes")
         with pytest.raises(Exception):
             result = tools_instance.fetchStockCodes(1)

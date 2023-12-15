@@ -23,7 +23,7 @@
 
 """
 import pkscreener.classes.ConfigManager as ConfigManager
-from pkscreener.classes.Fetcher import tools
+from pkscreener.classes.Fetcher import screenerStockDataFetcher
 from pkscreener.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
@@ -51,7 +51,7 @@ def run_workflow(command,user,options,workflowType="B"):
         "Content-Type": "application/json"
     }
     
-    fetcher = tools(configManager)
+    fetcher = screenerStockDataFetcher(configManager)
     resp = fetcher.postURL(url, data=data, headers=headers)
     if resp.status_code==204:
         print(f"Workflow {workflow_name} Triggered!")

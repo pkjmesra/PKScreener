@@ -35,9 +35,8 @@ import os
 import sys
 
 import requests_cache
-
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
 
@@ -352,7 +351,7 @@ class tools:
                 requests_cache.clear()
                 requests_cache.uninstall_cache()
             self.deleteFileWithPattern("*_cache.sqlite")
-            requests_cache.install_cache('pkscreener_cache')
+            requests_cache.install_cache('PKDevTools_cache')
         except Exception as e:
             self.default_logger.debug(e, exc_info=True)
             

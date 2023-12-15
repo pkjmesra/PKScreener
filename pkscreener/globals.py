@@ -42,6 +42,11 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger, tracelog
+from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
+from PKNSETools.morningstartools.PKMorningstarDataFetcher import \
+    morningstarDataFetcher
 from tabulate import tabulate
 
 import pkscreener.classes.ConfigManager as ConfigManager
@@ -51,16 +56,13 @@ import pkscreener.classes.Utility as Utility
 from pkscreener.classes import VERSION, Committer
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.log import default_logger, tracelog
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
                                             level2_X_MenuDict,
                                             level3_X_ChartPattern_MenuDict,
-                                            level3_X_Reversal_MenuDict, 
-                                            level3_X_PopularStocks_MenuDict, menus)
+                                            level3_X_PopularStocks_MenuDict,
+                                            level3_X_Reversal_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
-from pkscreener.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from pkscreener.Telegram import (is_token_telegram_configured, send_document,
                                  send_message)
 
@@ -76,7 +78,8 @@ np.seterr(divide="ignore", invalid="ignore")
 candlePatterns = CandlePatterns()
 configManager = ConfigManager.tools()
 defaultAnswer = None
-fetcher = Fetcher.tools(configManager)
+fetcher = Fetcher.screenerStockDataFetcher(configManager)
+mstarFetcher = morningstarDataFetcher(configManager)
 keyboardInterruptEvent = None
 loadCount = 0
 loadedStockData = False
@@ -731,9 +734,9 @@ def main(userArgs=None):
             selectedChoice["3"] = str(popOption)
         updateMenuChoiceHierarchy()
         if popOption == 3:
-            screenResults = fetcher.fetchMorningstarTopDividendsYieldStocks()
+            screenResults = mstarFetcher.fetchMorningstarTopDividendsYieldStocks()
         elif popOption > 0 and popOption <=2:
-            screenResults = fetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
+            screenResults = mstarFetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
         printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
         input("Press <Enter> to continue...")
         return
@@ -753,9 +756,9 @@ def main(userArgs=None):
             selectedChoice["3"] = str(popOption)
         updateMenuChoiceHierarchy()
         if popOption == 3:
-            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange()
+            screenResults = mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
         elif popOption > 0 and popOption <=2:
-            screenResults = fetcher.fetchMorningstarStocksPerformanceForExchange(exchange="BSE")
+            screenResults = mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
         printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
         input("Press <Enter> to continue...")
         return
@@ -897,35 +900,6 @@ def main(userArgs=None):
             and not loadedStockData
             and not testing
         ):
-            dfsd = None  # Archiver.readData(f'SD_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            dfsc = None  # Archiver.readData(f'SC_{Utility.tools.tradingDate()}_{selectedChoice["0"]}_{selectedChoice["1"]}_{selectedChoice["2"]}_{selectedChoice["3"]}.pkl')
-            if dfsc is not None and dfsd is not None:
-                print(
-                    colorText.BOLD
-                    + colorText.WARN
-                    + "[+] Found local results already saved in cache for selected option!\n"
-                )
-                printNotifySaveScreenedResults(
-                    dfsc, dfsd, selectedChoice, menuChoiceHierarchy, testing, user=user
-                )
-                finishScreening(
-                    downloadOnly,
-                    testing,
-                    stockDict,
-                    configManager,
-                    len(screenResults),
-                    testBuild,
-                    screenResults,
-                    saveResults,
-                    user,
-                )
-                return
-            else:
-                print(
-                    colorText.BOLD
-                    + colorText.WARN
-                    + "[+] No local results cache for selected option! Will screen afresh...\n"
-                )
             Utility.tools.loadStockData(
                 stockDict,
                 configManager,
@@ -1000,6 +974,10 @@ def main(userArgs=None):
             fillerPlaceHolder = fillerPlaceHolder + 1
             actualHistoricalDuration = samplingDuration - fillerPlaceHolder
         tasks_queue, results_queue, totalConsumers = initQueues(len(items))
+        cp = CandlePatterns()
+        cm = ConfigManager.tools()
+        f = Fetcher.screenerStockDataFetcher(configManager)
+        scr = Screener.tools(configManager, default_logger())
         consumers = [
             PKMultiProcessorClient(
                 StockConsumer().screenStocks,
@@ -1011,6 +989,10 @@ def main(userArgs=None):
                 fetcher.proxyServer,
                 keyboardInterruptEvent,
                 default_logger(),
+                f,
+                cm,
+                cp,
+                scr
             )
             for _ in range(totalConsumers)
         ]

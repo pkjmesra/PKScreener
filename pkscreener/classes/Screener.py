@@ -39,17 +39,18 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 
 import pkscreener.classes.Utility as Utility
-# from advanced_ta import LorentzianClassification
-
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
+
+# from advanced_ta import LorentzianClassification
+
 
 # from sklearn.preprocessing import StandardScaler
 if Imports["scipy"]:
     from scipy.stats import linregress
 
-from pkscreener.classes.ColorText import colorText
-from pkscreener.classes.SuppressOutput import SuppressOutput
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.SuppressOutput import SuppressOutput
 
 
 # Exception for only downloading stock data and not screening
