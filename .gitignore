@@ -10,7 +10,7 @@ __pycache__/
 *.spec
 .DS_Store
 Help
-# *.h5
+*.h5
 *.ini
 *.env
 *.dev
@@ -32,4 +32,3 @@ pkscreener/classes/__pycache__
 *.png
 *.jpg
 *.pdf
-

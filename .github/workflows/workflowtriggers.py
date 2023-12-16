@@ -27,6 +27,7 @@ import os
 from time import sleep
 
 import requests
+import sys
 
 argParser = argparse.ArgumentParser()
 required = False
@@ -232,7 +233,7 @@ def triggerBacktestWorkflowActions(launchLocal=False):
             from pkscreener.pkscreenercli import argParser as agp
             from pkscreener import pkscreenercli
             options = "B:30:{0}".format(options)
-            ag = agp.parse_known_args(args=["-e","-p","-a","Y","-o",options])[0]
+            ag = agp.parse_known_args(args=["-e","-p","-a","Y","-o",options,"-v"])[0]
             pkscreenercli.args = ag
             pkscreenercli.pkscreenercli()
         else:
@@ -243,6 +244,8 @@ def triggerBacktestWorkflowActions(launchLocal=False):
                 sleep(5)
             else:
                 break
+    if launchLocal:
+        sys.exit(0)
 
 if args.report:
     generateBacktestReportMainPage()
