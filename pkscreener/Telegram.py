@@ -42,7 +42,6 @@ import pkscreener.classes.ConfigManager as ConfigManager
 # from PIL import Image
 
 
-TOKEN = "00000000xxxxxxx"
 # URL_TELE = f"https://api.telegram.org/bot{TOKEN}/getUpdates"
 # **DOCU**
 # 5.2 Configure chatID and tokes in Telegram
@@ -70,6 +69,7 @@ LIST_PEOPLE_IDS_CHAT = [Channel_Id]
 
 def initTelegram():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
+    TOKEN = "00000000xxxxxxx"
     if chat_idADMIN == "" or botsUrl == "":
         try:
             Channel_Id, TOKEN, chat_idADMIN,_ = get_secrets()
@@ -99,7 +99,7 @@ def get_secrets():
 def is_token_telegram_configured():
     global chat_idADMIN, botsUrl, Channel_Id, LIST_PEOPLE_IDS_CHAT, TOKEN
     initTelegram()
-    if TOKEN == "00000000xxxxxxx":
+    if TOKEN == "00000000xxxxxxx" or len(TOKEN) < 1:
         # print(
         #     "[+] There is no value for the telegram TOKEN. It is required to telegram someone.\n[+] See tutorial: https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token"
         # )

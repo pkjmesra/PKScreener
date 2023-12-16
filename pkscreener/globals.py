@@ -1129,12 +1129,13 @@ def updateMenuChoiceHierarchy():
     default_logger().info(menuChoiceHierarchy)
 
 
-def populateQueues(items, tasks_queue):
+def populateQueues(items, tasks_queue, exit=False):
     for item in items:
         tasks_queue.put(item)
-    # Append exit signal for each process indicated by None
-    for _ in range(multiprocessing.cpu_count()):
-        tasks_queue.put(None)
+    if exit:
+        # Append exit signal for each process indicated by None
+        for _ in range(multiprocessing.cpu_count()):
+            tasks_queue.put(None)
 
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
@@ -1238,10 +1239,10 @@ def runScanners(
     testing=False
 ):
     global selectedChoice, userPassedArgs, elapsed_time
-    populateQueues(items, tasks_queue)
     choices = userReportName(selectedChoice)
     try:
         numStocks = len(listStockCodes) * int(iterations)
+        queueCounter = 0
         dumpFreq = 1
         print(colorText.END + colorText.BOLD)
         bar, spinner = Utility.tools.getProgressbarStyle()
@@ -1250,18 +1251,15 @@ def runScanners(
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
-            # lstFullData = []
-            # stocks = []
             while numStocks:
+                if counter == 0 and queueCounter < int(iterations) and numStocks > 0:
+                    populateQueues(items[len(listStockCodes)*queueCounter:len(listStockCodes)*(queueCounter+1)], tasks_queue, queueCounter+1 == int(iterations))
                 counter += 1
                 result = results_queue.get()
                 if result is not None:
                     lstscreen.append(result[0])
                     lstsave.append(result[1])
-                    # lstFullData.append(result[2])
-                    # stocks.append(result[3])
                     sampleDays = result[4]
-                    # Backtest for results
                     if menuOption == "B":
                         backtest_df = updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result, sampleDays,backtest_df)
                 
@@ -1277,6 +1275,9 @@ def runScanners(
                 # stock or if we've already tried screening through 5% of the list. 
                 if testing and (len(lstscreen) >= 1 or counter >= int(len(listStockCodes)*.05)):
                     break
+                if counter >= len(listStockCodes):
+                    queueCounter += 1
+                    counter = 0
         elapsed_time = time.time() - start_time
         if menuOption == "X":
             # create extension
