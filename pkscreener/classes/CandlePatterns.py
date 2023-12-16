@@ -22,12 +22,6 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   11/04/2021
- *  Description         :   Class for analyzing candle-stick patterns
-"""
 
 from PKDevTools.classes.ColorText import colorText
 
