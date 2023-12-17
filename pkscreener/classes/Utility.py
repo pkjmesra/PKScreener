@@ -232,9 +232,10 @@ class tools:
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
         label_width, label_height = font.getsize_multiline(label)
         text_width, text_height = font.getsize_multiline(table)
+        repotext_width, repotext_height = font.getsize_multiline(repoText)
         im = Image.new(
             "RGB",
-            (text_width + 15, arttext_height + text_height + label_height + 30),
+            (text_width + 15, arttext_height + text_height + label_height + repotext_height + 30),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -242,9 +243,10 @@ class tools:
         draw.text((7, 7), artText, font=artfont, fill=artColor)
         # selected menu options and As of DateTime
         draw.text((7, 8 + arttext_height), f"As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > {label}", font=font, fill=menuColor)
+        
         lineNumber = 0
         colPixelRunValue = 7
-        rowPixelRunValue = 9 + arttext_height + label_height
+        rowPixelRunValue = 10 + arttext_height + label_height + repotext_height
         separator = "|"
         sep_width, sep_height = font.getsize_multiline(separator)
         for line in screenLines:
@@ -313,9 +315,7 @@ class tools:
                 colPixelRunValue = 7
                 rowPixelRunValue = rowPixelRunValue + line_height + 1
             lineNumber = lineNumber + 1
-        draw.text(
-            (colPixelRunValue, rowPixelRunValue), repoText, font=font, fill=menuColor
-        )
+        draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         im.save(filename, format="png", bitmap_format="png")
         # im.show()
 
