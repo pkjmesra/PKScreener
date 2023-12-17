@@ -24,7 +24,7 @@
 """
 from unittest.mock import ANY, MagicMock, patch
 
-from pkscreener.Telegram import (get_secrets, initTelegram,
+from PKDevTools.classes.Telegram import (get_secrets, initTelegram,
                                  is_token_telegram_configured, send_document,
                                  send_exception, send_message, send_photo)
 
@@ -46,7 +46,7 @@ def test_get_secrets():
 
 # Negative test case when get_secrets can raise an exception for non existent key
 def test_inittelegram_exception_negative():
-    with patch('pkscreener.Telegram.get_secrets') as mock_get_secrets:
+    with patch('PKDevTools.classes.Telegram.get_secrets') as mock_get_secrets:
         with patch("builtins.print") as mock_print:
             mock_get_secrets.side_effect = Exception("KeyError: Key not found")
             initTelegram()
@@ -59,7 +59,7 @@ def test_is_token_telegram_configured():
 
 # Positive test case: Check if the function sends an exception message
 def test_send_exception():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         ex = Exception("Test exception")
         result = send_exception(ex, "Extra message")
@@ -67,7 +67,7 @@ def test_send_exception():
 
 # Positive test case: Check if the function sends a message
 def test_send_message():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.get') as mock_requests_get:
             mock_requests_get.return_value = MagicMock()
@@ -76,7 +76,7 @@ def test_send_message():
 
 # Positive test case: Check if the function sends a photo
 def test_send_photo():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.return_value = MagicMock()
@@ -87,7 +87,7 @@ def test_send_photo():
 
 # Positive test case: Check if the function sends a document
 def test_send_document():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.return_value = MagicMock()
@@ -98,19 +98,19 @@ def test_send_document():
 
 # Edge test case: Check if the function retries sending a document when an exception occurs
 def test_send_document_retry():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.side_effect = [Exception(), MagicMock()]
             f = open("test.pdf","wb")
             f.close()
-            with patch('pkscreener.Telegram.send_document') as mock_send_document:
+            with patch('PKDevTools.classes.Telegram.send_document') as mock_send_document:
                 send_document("test.pdf",retryCount=0)
                 mock_send_document.assert_called_with("test.pdf","",None, retryCount=1)
 
 # Edge test case: Check if the function sends a document with a message ID
 def test_send_document_with_message_id():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.return_value = MagicMock()
@@ -119,7 +119,7 @@ def test_send_document_with_message_id():
 
 # Edge test case: Check if the function sends a document with a user ID
 def test_send_document_with_user_id():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.return_value = MagicMock()
@@ -128,7 +128,7 @@ def test_send_document_with_user_id():
 
 # Edge test case: Check if the function sends a document with a message ID and user ID
 def test_send_document_with_message_id_and_user_id():
-    with patch('pkscreener.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
+    with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
             mock_requests_post.return_value = MagicMock()
@@ -176,7 +176,7 @@ def test_send_message_negative():
 def test_send_message_exception_negative():
     message = "Test message"
     with patch('requests.get') as mock_get:
-        with patch('pkscreener.Telegram.send_message') as mock_send_message:
+        with patch('PKDevTools.classes.Telegram.send_message') as mock_send_message:
             mock_get.side_effect = Exception("Error with Telegram API")
             send_message(message)
             mock_send_message.assert_called_once_with(message=message, parse_type=ANY, list_png=ANY, userID=ANY, retrial=True)
@@ -201,7 +201,7 @@ def test_send_document_exception_negative():
     documentFilePath = "test.pdf"
     message = "Test message"
     with patch('requests.post') as mock_post:
-        with patch('pkscreener.Telegram.send_document') as mock_send_document:
+        with patch('PKDevTools.classes.Telegram.send_document') as mock_send_document:
             mock_post.side_effect = Exception("Error with Telegram API")
             send_document(documentFilePath, message)
             mock_send_document.assert_called_once_with(documentFilePath, message,None, retryCount=1)
@@ -210,7 +210,7 @@ def test_send_photo_exception_negative():
     photoFilePath = "test.jpg"
     message = "Test message"
     with patch('requests.post') as mock_post:
-        with patch('pkscreener.Telegram.send_photo') as mock_send_photo:
+        with patch('PKDevTools.classes.Telegram.send_photo') as mock_send_photo:
             mock_post.side_effect = Exception("Error with Telegram API")
             send_photo(photoFilePath, message)
             mock_send_photo.assert_called_once_with(photoFilePath=photoFilePath, message=message, message_id=None, userID=None, retrial=True)

@@ -63,7 +63,7 @@ from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
                                             level3_X_Reversal_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
-from pkscreener.Telegram import (is_token_telegram_configured, send_document,
+from PKDevTools.classes.Telegram import (is_token_telegram_configured, send_document,
                                  send_message)
 
 multiprocessing.freeze_support()

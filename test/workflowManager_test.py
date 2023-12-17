@@ -29,7 +29,7 @@ import pytest
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.Fetcher import screenerStockDataFetcher
 from pkscreener.classes.WorkflowManager import run_workflow
-from pkscreener.Telegram import get_secrets
+from PKDevTools.classes.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 
