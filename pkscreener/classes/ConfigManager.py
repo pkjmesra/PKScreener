@@ -22,12 +22,6 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   28/04/2021
- *  Description         :   Class for managing the user configuration
-"""
 
 import configparser
 import glob

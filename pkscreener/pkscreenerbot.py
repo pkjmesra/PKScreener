@@ -55,7 +55,7 @@ MINUTES_5_IN_SECONDS = 300
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
 from pkscreener.classes.WorkflowManager import run_workflow
-from pkscreener.Telegram import get_secrets
+from PKDevTools.classes.Telegram import get_secrets
 
 try:
     from telegram import __version_info__

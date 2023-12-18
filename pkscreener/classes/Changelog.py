@@ -22,12 +22,6 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   28/04/2021
- *  Description         :   Class for maintaining changelog
-"""
 
 from PKDevTools.classes.ColorText import colorText
 

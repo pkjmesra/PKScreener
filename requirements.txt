@@ -33,8 +33,6 @@ Pillow==9.5.0 # Keep at this version because getsize_multiline is deprecated/rem
 PKDevTools
 PKNSETools
 # platform
-python-dotenv
-python-telegram-bot
 pytz
 # queue
 # random
@@ -49,7 +47,6 @@ scipy>=1.7.3
 # ta-lib # Install this separately
 # TA-Lib-Precompiled
 tabulate
-telegram
 tensorflow #==2.9.2
 # tempfile
 # time

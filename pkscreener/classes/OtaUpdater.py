@@ -22,12 +22,6 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi
- *  Created             :   21/04/2021
- *  Description         :   Class for handling OTA updates
-"""
 
 import platform
 import subprocess

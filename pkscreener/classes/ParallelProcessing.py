@@ -22,13 +22,6 @@
     SOFTWARE.
 
 """
-"""
- *  Project             :   Screenipy
- *  Author              :   Pranjal Joshi, Swar Patel
- *  Created             :   18/05/2021
- *  Description         :   Class for managing multiprocessing
-"""
-
 import logging
 import sys
 import warnings
@@ -171,7 +164,7 @@ class StockConsumer:
                 data = pd.DataFrame(
                     data["data"], columns=data["columns"], index=data["index"]
                 )
-            if len(data) == 0 or len(data) <= backtestDuration:
+            if len(data) == 0 or len(data) < backtestDuration:
                 return None
             # hostRef.default_logger.info(f"Will pre-process data:\n{data.tail(10)}")
             if backtestDuration == 0:
@@ -181,10 +174,10 @@ class StockConsumer:
             else:
                 if data is None or fullData is None or processedData is None:
                     # We want to have the nth day treated as today when pre-processing where n = backtestDuration row from the bottom
-                    inputData = data.head(len(data) - backtestDuration + 1)
+                    inputData = data.tail(backtestDuration + 1)
                     # This will have all the rows in future from the date under consideration 
                     # at the bottom of fullData (or at the top of inputData)
-                    data = data.tail(backtestDuration).head(backtestPeriodToLookback+1)
+                    # data = data.tail(backtestDuration).head(backtestPeriodToLookback+1)
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
                     )
@@ -214,7 +207,7 @@ class StockConsumer:
                     minLTP=configManager.minLTP,
                     maxLTP=configManager.maxLTP,
                 )
-                if configManager.stageTwo and not verifyStageTwo:
+                if configManager.stageTwo and not verifyStageTwo and executeOption > 0:
                     raise Screener.NotAStageTwoStock
                 minVolume = configManager.minVolume / (1000 if configManager.isIntradayConfig() else 1)
                 hasMinVolumeRatio, hasMinVolQty = screener.validateVolume(
@@ -224,7 +217,7 @@ class StockConsumer:
                     volumeRatio=volumeRatio,
                     minVolume=minVolume
                 )
-                if not hasMinVolQty:
+                if not hasMinVolQty and executeOption > 0:
                     raise Screener.NotEnoughVolumeAsPerConfig
                 
                 consolidationValue = screener.validateConsolidation(

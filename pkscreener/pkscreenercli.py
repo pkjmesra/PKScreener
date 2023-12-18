@@ -257,6 +257,8 @@ def runApplicationForScreening(tools):
                 runApplication()
             if args.exit or args.user is not None:
                 break
+        if args.v:
+            return
         sys.exit(0)
     except Exception as e:
         default_logger().debug(e, exc_info=True)

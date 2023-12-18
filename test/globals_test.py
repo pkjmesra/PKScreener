@@ -92,14 +92,17 @@ def test_handleScannerExecuteOption4_positive():
 def test_populateQueues_positive():
     items = [(1, 2, 3), (4, 5, 6), (7, 8, 9)]
     tasks_queue = multiprocessing.JoinableQueue()
-    populateQueues(items, tasks_queue)
     if "Darwin" in platform.system():
         # On Mac, using qsize raises error
         # assert not tasks_queue.empty()
         pass
     else:
+        populateQueues(items, tasks_queue, exit=True)
         # Raises NotImplementedError on Mac OSX because of broken sem_getvalue()
         assert tasks_queue.qsize() == len(items) + multiprocessing.cpu_count()
+        populateQueues(items, tasks_queue)
+        # Raises NotImplementedError on Mac OSX because of broken sem_getvalue()
+        assert tasks_queue.qsize() == len(items)
 
 # Negative test cases
 
