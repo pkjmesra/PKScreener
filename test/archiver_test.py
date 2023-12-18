@@ -50,6 +50,7 @@ def test_resolveFilePath_positive():
     
     assert result == expected_filePath
 
+
 # Positive test case: fileName is None
 def test_resolveFilePath_positive_fileName_none():
     fileName = None
@@ -70,6 +71,7 @@ def test_get_last_modified_datetime_positive():
     result = get_last_modified_datetime(file_path)
     
     assert result == expected_last_modified
+    os.remove("test_file.txt")
 
 # Positive test case: convert UTC to IST
 def test_utc_to_ist_positive():
@@ -96,6 +98,7 @@ def test_cacheFile_positive(mock_resolveFilePath):
     mock_resolveFilePath.assert_called_once_with(fileName)
     with open(expected_filePath, "rb") as f:
         assert f.read() == bData
+    os.remove("test_file.txt")
 
 # Positive test case: file exists
 @patch("PKDevTools.classes.Archiver.resolveFilePath")
@@ -117,6 +120,7 @@ def test_findFile_positive(mock_resolveFilePath):
     assert result_bData == expected_bData
     assert result_filePath == expected_filePath
     # assert result_last_modified == expected_last_modified
+    os.remove("test_file.txt")
 
 # Positive test case: save data
 @patch("PKDevTools.classes.Archiver.resolveFilePath")
@@ -131,6 +135,7 @@ def test_saveData_positive(mock_resolveFilePath):
     mock_resolveFilePath.assert_called_once_with(fileName)
     result_data = pd.read_pickle(expected_filePath)
     assert result_data.equals(data)
+    os.remove("test_file.pkl")
 
 # Positive test case: read data
 @patch("PKDevTools.classes.Archiver.resolveFilePath")
@@ -146,6 +151,7 @@ def test_readData_positive(mock_resolveFilePath):
     mock_resolveFilePath.assert_called_once_with(fileName)
     assert result_data.equals(data)
     assert result_filePath == expected_filePath
+    os.remove("test_file.pkl")
     # assert result_last_modified == datetime.utcfromtimestamp(os.path.getmtime(expected_filePath))
 
 # Negative test case: fileName is empty

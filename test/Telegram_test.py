@@ -22,6 +22,7 @@
     SOFTWARE.
 
 """
+import os
 from unittest.mock import ANY, MagicMock, patch
 
 from PKDevTools.classes.Telegram import (get_secrets, initTelegram,
@@ -84,6 +85,7 @@ def test_send_photo():
             f.close()
             result = send_photo("test.jpg")
             assert result is not None
+            os.remove("test.jpg")
 
 # Positive test case: Check if the function sends a document
 def test_send_document():
@@ -95,6 +97,7 @@ def test_send_document():
             f.close()
             result = send_document("test.pdf")
             assert result is not None
+            os.remove("test.pdf")
 
 # Edge test case: Check if the function retries sending a document when an exception occurs
 def test_send_document_retry():
@@ -107,33 +110,43 @@ def test_send_document_retry():
             with patch('PKDevTools.classes.Telegram.send_document') as mock_send_document:
                 send_document("test.pdf",retryCount=0)
                 mock_send_document.assert_called_with("test.pdf","",None, retryCount=1)
+                os.remove("test.pdf")
 
 # Edge test case: Check if the function sends a document with a message ID
 def test_send_document_with_message_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
+            f = open("test.pdf","wb")
+            f.close()
             mock_requests_post.return_value = MagicMock()
             result = send_document("test.pdf", message_id=123456)
             assert result is not None
+            os.remove("test.pdf")
 
 # Edge test case: Check if the function sends a document with a user ID
 def test_send_document_with_user_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
+            f = open("test.pdf","wb")
+            f.close()
             mock_requests_post.return_value = MagicMock()
             result = send_document("test.pdf", userID="987654321")
             assert result is not None
+            os.remove("test.pdf")
 
 # Edge test case: Check if the function sends a document with a message ID and user ID
 def test_send_document_with_message_id_and_user_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
         with patch('requests.post') as mock_requests_post:
+            f = open("test.pdf","wb")
+            f.close()
             mock_requests_post.return_value = MagicMock()
             result = send_document("test.pdf", message_id=123456, userID="987654321")
             assert result is not None
+            os.remove("test.pdf")
 
 # Positive test cases
 def test_send_message_positive():
@@ -150,20 +163,27 @@ def test_send_photo_positive():
     message = "Test message"
     expected_response = "Success"
     with patch('requests.post') as mock_post:
+        f = open("test.jpg","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_photo(photoFilePath, message)
         assert response.text == expected_response
+        os.remove("test.jpg")
 
 def test_send_document_positive():
     documentFilePath = "test.pdf"
     message = "Test message"
     expected_response = "Success"
     with patch('requests.post') as mock_post:
+        f = open("test.pdf","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_document(documentFilePath, message)
         assert response.text == expected_response
+        os.remove("test.pdf")
+        
 
 # Negative test cases
 def test_send_message_negative():
@@ -185,35 +205,47 @@ def test_send_photo_negative():
     photoFilePath = "test.jpg"
     message = "Test message"
     with patch('requests.post') as mock_post:
+        f = open("test.jpg","wb")
+        f.close()
         mock_post.return_value.status_code = 500
         response = send_photo(photoFilePath, message)
         assert response.status_code == 500
+        os.remove("test.jpg")
 
 def test_send_document_negative():
     documentFilePath = "test.pdf"
     message = "Test message"
     with patch('requests.post') as mock_post:
+        f = open("test.pdf","wb")
+        f.close()
         mock_post.return_value.status_code = 500
         response = send_document(documentFilePath, message)
         assert response.status_code == 500
+        os.remove("test.pdf")
 
 def test_send_document_exception_negative():
     documentFilePath = "test.pdf"
     message = "Test message"
     with patch('requests.post') as mock_post:
         with patch('PKDevTools.classes.Telegram.send_document') as mock_send_document:
+            f = open("test.pdf","wb")
+            f.close()
             mock_post.side_effect = Exception("Error with Telegram API")
             send_document(documentFilePath, message)
             mock_send_document.assert_called_once_with(documentFilePath, message,None, retryCount=1)
+            os.remove("test.pdf")
 
 def test_send_photo_exception_negative():
     photoFilePath = "test.jpg"
     message = "Test message"
     with patch('requests.post') as mock_post:
         with patch('PKDevTools.classes.Telegram.send_photo') as mock_send_photo:
+            f = open("test.jpg","wb")
+            f.close()
             mock_post.side_effect = Exception("Error with Telegram API")
             send_photo(photoFilePath, message)
             mock_send_photo.assert_called_once_with(photoFilePath=photoFilePath, message=message, message_id=None, userID=None, retrial=True)
+            os.remove("test.jpg")
 
 # Edge test cases
 def test_send_message_edge():
@@ -230,20 +262,26 @@ def test_send_photo_edge():
     message = ""
     expected_response = "Success"    
     with patch('requests.post') as mock_post:
+        f = open("test.jpg","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_photo(photoFilePath, message)
         assert response.text == expected_response
+        os.remove("test.jpg")
 
 def test_send_document_edge():
     documentFilePath = "test.pdf"
     message = ""
     expected_response = "Success"
     with patch('requests.post') as mock_post:
+        f = open("test.pdf","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_document(documentFilePath, message)
         assert response.text == expected_response
+        os.remove("test.pdf")
 
 # Test case for sending message to specific user
 def test_send_message_to_user():
@@ -263,10 +301,13 @@ def test_send_photo_to_user():
     userID = "123456789"
     expected_response = "Success"
     with patch('requests.post') as mock_post:
+        f = open("test.jpg","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_photo(photoFilePath, message, userID=userID)
         assert response.text == expected_response
+        os.remove("test.jpg")
 
 # Test case for sending document to specific user
 def test_send_document_to_user():
@@ -275,7 +316,10 @@ def test_send_document_to_user():
     userID = "123456789"
     expected_response = "Success"
     with patch('requests.post') as mock_post:
+        f = open("test.pdf","wb")
+        f.close()
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = expected_response
         response = send_document(documentFilePath, message, userID=userID)
         assert response.text == expected_response
+        os.remove("test.pdf")
