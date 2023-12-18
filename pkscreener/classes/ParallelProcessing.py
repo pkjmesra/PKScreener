@@ -173,11 +173,14 @@ class StockConsumer:
                 )
             else:
                 if data is None or fullData is None or processedData is None:
+                    # data will have the oldest date at the top and the most recent
+                    # date will be at the bottom
                     # We want to have the nth day treated as today when pre-processing where n = backtestDuration row from the bottom
-                    inputData = data.tail(backtestDuration + 1)
-                    # This will have all the rows in future from the date under consideration 
-                    # at the bottom of fullData (or at the top of inputData)
-                    # data = data.tail(backtestDuration).head(backtestPeriodToLookback+1)
+                    inputData = data.head(len(data) - backtestDuration)
+                    # imputData will have the last row as the date for which the entire calculation
+                    # and prediction is being done
+                    data = data.tail(backtestDuration + 1) #.head(backtestPeriodToLookback+1)
+                    # data has the last row from inputData at the top.
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
                     )

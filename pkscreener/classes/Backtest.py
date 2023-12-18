@@ -65,10 +65,11 @@ def backtest(
         backTestedData = pd.DataFrame(
             columns=[
                 "Stock",
-                "Base-Date",
+                "Date",
                 "Volume",
                 "Trend",
                 "MA-Signal",
+                "LTP",
                 "1-Pd",
                 "2-Pd",
                 "3-Pd",
@@ -82,10 +83,11 @@ def backtest(
         )
     backTestedStock = {
         "Stock": "",
-        "Base-Date": "",
+        "Date": "",
         "Volume": "",
         "Trend": "",
         "MA-Signal": "",
+        "LTP": "",
         "1-Pd": "",
         "2-Pd": "",
         "3-Pd": "",
@@ -97,12 +99,13 @@ def backtest(
         "30-Pd": "",
     }
     backTestedStock["Stock"] = stock
-    backTestedStock["Base-Date"] = str(previous_recent.iloc[:, 0][0]).split(" ")[
+    backTestedStock["Date"] = str(previous_recent.iloc[:, 0][0]).split(" ")[
         0
     ]  # Date or index column
     backTestedStock["Volume"] = screenedDict["Volume"]
     backTestedStock["Trend"] = screenedDict["Trend"]
     backTestedStock["MA-Signal"] = screenedDict["MA-Signal"]
+    backTestedStock["LTP"] = screenedDict["LTP"]
     for prd in calcPeriods:
         if abs(prd) <= periods:
             try:
