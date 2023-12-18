@@ -159,6 +159,11 @@ class pktalib:
         return sti
     
     @classmethod
+    def psar(self, high, low, acceleration=0.02, maximum=0.2):
+        psar = talib.SAR(high, low, acceleration=acceleration, maximum=maximum)
+        return psar
+    
+    @classmethod
     def CDLMORNINGSTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "morningstar")

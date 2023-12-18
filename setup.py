@@ -68,7 +68,7 @@ setup(
     name=__PACKAGENAME__,
     packages=setuptools.find_packages(where=".", exclude=["docs", "test"]),
     include_package_data=True,  # include everything in source control
-    package_data={__PACKAGENAME__: [__PACKAGENAME__ + ".ini", 'courbd.ttf']},
+    package_data={__PACKAGENAME__: [__PACKAGENAME__ + ".ini", 'courbd.ttf', 'LICENSE','LICENSE-Screenipy']},
     # ...but exclude README.txt from all packages
     exclude_package_data={"": ["*.yml"]},
     version=VERSION,

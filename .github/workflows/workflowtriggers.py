@@ -27,6 +27,7 @@ import os
 from time import sleep
 
 import requests
+import sys
 
 argParser = argparse.ArgumentParser()
 required = False
@@ -39,6 +40,7 @@ argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans 
 argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
 argParser.add_argument("-i","--intraday", action="store_true", help="Trigger backtests for intraday if true", required=required)
 argParser.add_argument("-u","--user", help="Telegram user id", required=required)
+argParser.add_argument("-l","--local", help="Launch locally", required=required, action=argparse.BooleanOptionalAction)
 
 argsv = argParser.parse_known_args()
 args = argsv[0]
@@ -54,6 +56,7 @@ objectDictionary = {}
 # args.report = True 
 # args.intraday = True
 # args.backtests = True
+# args.local = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
 # args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13,14" 
@@ -222,21 +225,31 @@ def triggerScanWorkflowActions():
         else:
             break
 
-def triggerBacktestWorkflowActions():
+def triggerBacktestWorkflowActions(launchLocal=False):
     for key in objectDictionary.keys():
         scanOptions = objectDictionary[key]["td3"]
-        branch = "main"
         options = f'{scanOptions.replace("_",":").replace("B:","")}:D:D:D'
-        postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'","intraday":"'+f'{"-i" if args.intraday else ""}'+'"}}'
-        resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
-        if resp.status_code==204:
-            sleep(5)
+        if launchLocal:
+            from pkscreener.pkscreenercli import argParser as agp
+            from pkscreener import pkscreenercli
+            options = "B:30:{0}".format(options)
+            ag = agp.parse_known_args(args=["-e","-p","-a","Y","-o",options,"-v"])[0]
+            pkscreenercli.args = ag
+            pkscreenercli.pkscreenercli()
         else:
-            break
+            branch = "main"
+            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 5m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'","intraday":"'+f'{"-i" if args.intraday else ""}'+'"}}'
+            resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
+            if resp.status_code==204:
+                sleep(5)
+            else:
+                break
+    if launchLocal:
+        sys.exit(0)
 
 if args.report:
     generateBacktestReportMainPage()
 if args.backtests:
-    triggerBacktestWorkflowActions()
+    triggerBacktestWorkflowActions(args.local)
 if args.scans:
     triggerScanWorkflowActions()

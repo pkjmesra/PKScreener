@@ -100,7 +100,7 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
           cd pkscreener
-          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
+          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
           cd ..
           
     - name: Run backtest
@@ -144,5 +144,5 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
           cd pkscreener
-          python -c "import os; from pkscreener.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
+          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
           cd ..
