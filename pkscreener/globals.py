@@ -941,7 +941,7 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {configManager.duration} days of historical data will be considered for backtesting. You can change this in User Config.\n"
+                + f"[+] A total of {configManager.backtestPeriod} days of historical data will be considered for backtesting. You can change this in User Config.\n"
             )
         items = []
         actualHistoricalDuration = samplingDuration - fillerPlaceHolder
