@@ -100,7 +100,7 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
           cd pkscreener
-          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
+          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_DateSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_DateSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
           cd ..
           
     - name: Run backtest
@@ -125,8 +125,8 @@ jobs:
         git fetch
         git checkout -b gh-pages origin/gh-pages
         git pull
-        git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
-        git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_DateSorted.html --force
+        git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_DateSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_OneLine_Summary.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
         git pull
@@ -144,5 +144,5 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
           cd pkscreener
-          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
+          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_DateSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_DateSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
           cd ..
