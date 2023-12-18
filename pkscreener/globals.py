@@ -1045,16 +1045,10 @@ def main(userArgs=None):
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
             summary_df = backtestSummary(backtest_df)
-            backtest_df.set_index("Stock", inplace=True)
-            # backtest_df.reset_index(inplace=True)
-            # backtest_df.reset_index(drop=True)
             showBacktestResults(backtest_df)
-
-            summary_df.set_index("Stock", inplace=True)
-            # summary_df.reset_index(inplace=True)
-            # summary_df.reset_index(drop=True)
             showBacktestResults(summary_df,optionalName="Summary")
-
+            summary_df.set_index("Stock", inplace=True)
+            backtest_df.set_index("Stock", inplace=True)
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
@@ -1425,7 +1419,7 @@ def sendTestStatus(screenResults, label, user=None):
         message=f"{msg}: Found {len(screenResults)} Stocks for {label}", user=user
     )
 
-def showBacktestResults(backtest_df, sortKey="Date",optionalName='backtest_result'):
+def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
     global menuChoiceHierarchy, selectedChoice, userPassedArgs
     if optionalName != "Summary":
         Utility.tools.clearScreen()
