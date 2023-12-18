@@ -941,7 +941,7 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {suggestedHistoricalDuration} days of historical data will be considered for backtesting. You can change this in User Config.\n"
+                + f"[+] A total of {configManager.duration} days of historical data will be considered for backtesting. You can change this in User Config.\n"
             )
         items = []
         actualHistoricalDuration = samplingDuration - fillerPlaceHolder
@@ -1058,7 +1058,7 @@ def main(userArgs=None):
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
-                "D": "Base-Date",
+                "D": "Date",
                 "1": "1-Pd",
                 "2": "2-Pd",
                 "3": "3-Pd",
@@ -1425,7 +1425,7 @@ def sendTestStatus(screenResults, label, user=None):
         message=f"{msg}: Found {len(screenResults)} Stocks for {label}", user=user
     )
 
-def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
+def showBacktestResults(backtest_df, sortKey="Date",optionalName='backtest_result'):
     global menuChoiceHierarchy, selectedChoice, userPassedArgs
     if optionalName != "Summary":
         Utility.tools.clearScreen()
