@@ -109,12 +109,15 @@ def finishScreening(
     saveResults,
     user=None,
 ):
-    global defaultAnswer, menuChoiceHierarchy
+    global defaultAnswer, menuChoiceHierarchy, userPassedArgs, selectedChoice
     saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount)
     if not testBuild and not downloadOnly and not testing:
         saveNotifyResultsFile(
             screenResults, saveResults, defaultAnswer, menuChoiceHierarchy, user=user
         )
+    # if not userPassedArgs.exit:
+    #     userPassedArgs.options = "{0}:{1}:".format(selectedChoice["0"],selectedChoice["1"])
+    #     main(userArgs=userPassedArgs) 
     # elif testing:
     #     sendTestStatus(screenResults, menuChoiceHierarchy,user=user)
 

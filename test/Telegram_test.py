@@ -55,7 +55,7 @@ def test_inittelegram_exception_negative():
 # Positive test case: Check if the function returns True when the token is configured
 def test_is_token_telegram_configured():
     result = is_token_telegram_configured()
-    assert result is False
+    assert result is True
 
 # Positive test case: Check if the function sends an exception message
 def test_send_exception():
