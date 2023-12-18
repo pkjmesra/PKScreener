@@ -1097,6 +1097,8 @@ def main(userArgs=None):
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
+    if executeOption == 12 and configManager.isIntradayConfig():
+        configManager.toggleConfig(candleDuration="1d")
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
