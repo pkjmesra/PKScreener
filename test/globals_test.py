@@ -102,7 +102,7 @@ def test_populateQueues_positive():
         assert tasks_queue.qsize() == len(items) + multiprocessing.cpu_count()
         populateQueues(items, tasks_queue)
         # Raises NotImplementedError on Mac OSX because of broken sem_getvalue()
-        assert tasks_queue.qsize() == len(items)
+        assert tasks_queue.qsize() == 2*len(items) + multiprocessing.cpu_count()
 
 # Negative test cases
 
