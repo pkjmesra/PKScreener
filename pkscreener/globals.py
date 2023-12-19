@@ -966,7 +966,7 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    (actualHistoricalDuration if menuOption == "B" else 0),
+                    (actualHistoricalDuration if menuOption == "B" else (0 if userPassedArgs.backtestdaysago is None else int(userPassedArgs.backtestdaysago))),
                     (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
                     False,
@@ -1049,6 +1049,8 @@ def main(userArgs=None):
             showBacktestResults(summary_df,optionalName="Summary")
             summary_df.set_index("Stock", inplace=True)
             backtest_df.set_index("Stock", inplace=True)
+            showBacktestResults(backtest_df)
+            showBacktestResults(summary_df,optionalName="Summary")
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
