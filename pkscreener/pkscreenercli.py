@@ -83,7 +83,6 @@ argParser.add_argument(
     required=False,
 )
 argParser.add_argument(
-    "-b",
     "--backtestdaysago",
     help="Run scanner for -b days ago from today.",
     required=False,
