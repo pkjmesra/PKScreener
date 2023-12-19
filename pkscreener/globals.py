@@ -508,6 +508,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
 @tracelog
 def main(userArgs=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, userPassedArgs , loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
     testing=False if userArgs is None else (userArgs.testbuild and userArgs.prodbuild)
     testBuild=False if userArgs is None else (userArgs.testbuild and not testing)
     downloadOnly=False if userArgs is None else userArgs.download
