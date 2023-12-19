@@ -68,7 +68,7 @@ if args.skiplistlevel0 is None:
 if args.skiplistlevel1 is None:
     args.skiplistlevel1 = ",".join(["W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13"])
 if args.skiplistlevel2 is None:
-    args.skiplistlevel2 = ",".join(["0,21,22,25,26,27,28,42,M,Z"])
+    args.skiplistlevel2 = ",".join(["0,21,22,25,26,27,28,29,30,42,M,Z"])
 if args.skiplistlevel3 is None:
     args.skiplistlevel3 = ",".join(["0"])
 if not args.report and not args.scans and not args.backtests:
