@@ -132,29 +132,37 @@ for mnu0 in cmds0:
 def generateBacktestReportMainPage():
     HTMLHEAD_TEXT="""
     <!DOCTYPE html><html>
-    <head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head>
-        <body><span style='background-color:black; color:white;' >
+        <head>
+            <script type='application/javascript' src='pkscreener/classes/tableSorting.js' ></script>
+            <style type='text/css'>
+                body, table {background-color: black; color: white;} 
+                table, th, td {border: 1px solid white;}
+                th {cursor: pointer; color:white; text-decoration:underline;}
+            </style>
+        </head>
+        <body>
+            <span style='background-color:black; color:white;' >
             <span>1. Backtest and Summary Reports for All Nifty Stocks over the last 30-trading-sessions-periods</span><br />
-            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period.</span><br />
-            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row.</span><br />
+            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period. The percentages are actual gains/losses.</span><br />
+            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row. For example, 80 percent in summary report means, the prediction under that strategy was correct 80 percent of the time.</span><br />
             <span><b>Disclaimer: Only for learning purposes! Use at your own risk!</b>></span><br />
-            <table border="1px" id='resultsTable' style='background-color:black; color:white;' >
-                <tr>
+            <table id='resultsTable' style='' >
+                <thead><tr>
                     <th>Srl #</th>
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
-                    <th onclick='sortTable(4)' style='color:white; text-decoration:underline;' >1-Pd</th>
-                    <th onclick='sortTable(5)' style='color:white; text-decoration:underline;' >2-Pd</th>
-                    <th onclick='sortTable(6)' style='color:white; text-decoration:underline;' >3-Pd</th>
-                    <th onclick='sortTable(7)' style='color:white; text-decoration:underline;' >4-Pd</th>
-                    <th onclick='sortTable(8)' style='color:white; text-decoration:underline;' >5-Pd</th>
-                    <th onclick='sortTable(9)' style='color:white; text-decoration:underline;' >10-Pd</th>
-                    <th onclick='sortTable(10)' style='color:white; text-decoration:underline;' >15-Pd</th>
-                    <th onclick='sortTable(11)' style='color:white; text-decoration:underline;' >22-Pd</th>
-                    <th onclick='sortTable(12)' style='color:white; text-decoration:underline;' >30-Pd</th>
-                    <th onclick='sortTable(13)' style='color:white; text-decoration:underline;' >Overall</th>
-                </tr>"""
+                    <th>1-Pd</th>
+                    <th>2-Pd</th>
+                    <th>3-Pd</th>
+                    <th>4-Pd</th>
+                    <th>5-Pd</th>
+                    <th>10-Pd</th>
+                    <th>15-Pd</th>
+                    <th>22-Pd</th>
+                    <th>30-Pd</th>
+                    <th>Overall</th>
+                </tr></thead>"""
     HTMLFOOTER_TEXT = """
             </table>
         </body>
