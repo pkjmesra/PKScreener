@@ -1,62 +1,70 @@
 
     <!DOCTYPE html><html>
-    <head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head>
-        <body><span style='background-color:black; color:white;' >
+        <head>
+            <script type='application/javascript' src='pkscreener/classes/tableSorting.js' ></script>
+            <style type='text/css'>
+                body, table {background-color: black; color: white;} 
+                table, th, td {border: 1px solid white;}
+                th {cursor: pointer; color:white; text-decoration:underline;}
+            </style>
+        </head>
+        <body>
+            <span style='background-color:black; color:white;' >
             <span>1. Backtest and Summary Reports for All Nifty Stocks over the last 30-trading-sessions-periods</span><br />
-            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period.</span><br />
-            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row.</span><br />
+            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period. The percentages are actual gains/losses.</span><br />
+            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row. For example, 80 percent in summary report means, the prediction under that strategy was correct 80 percent of the time.</span><br />
             <span><b>Disclaimer: Only for learning purposes! Use at your own risk!</b>></span><br />
-            <table border="1px" id='resultsTable' style='background-color:black; color:white;' >
-                <tr>
+            <table id='resultsTable' style='' >
+                <thead><tr>
                     <th>Srl #</th>
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
-                    <th onclick='sortTable(4)' style='color:white; text-decoration:underline;' >1-Pd</th>
-                    <th onclick='sortTable(5)' style='color:white; text-decoration:underline;' >2-Pd</th>
-                    <th onclick='sortTable(6)' style='color:white; text-decoration:underline;' >3-Pd</th>
-                    <th onclick='sortTable(7)' style='color:white; text-decoration:underline;' >4-Pd</th>
-                    <th onclick='sortTable(8)' style='color:white; text-decoration:underline;' >5-Pd</th>
-                    <th onclick='sortTable(9)' style='color:white; text-decoration:underline;' >10-Pd</th>
-                    <th onclick='sortTable(10)' style='color:white; text-decoration:underline;' >15-Pd</th>
-                    <th onclick='sortTable(11)' style='color:white; text-decoration:underline;' >22-Pd</th>
-                    <th onclick='sortTable(12)' style='color:white; text-decoration:underline;' >30-Pd</th>
-                    <th onclick='sortTable(13)' style='color:white; text-decoration:underline;' >Overall</th>
-                </tr>
+                    <th>1-Pd</th>
+                    <th>2-Pd</th>
+                    <th>3-Pd</th>
+                    <th>4-Pd</th>
+                    <th>5-Pd</th>
+                    <th>10-Pd</th>
+                    <th>15-Pd</th>
+                    <th>22-Pd</th>
+                    <th>30-Pd</th>
+                    <th>Overall</th>
+                </tr></thead>
             <tr>
                 <td>1</td>
                 <td>Nifty (All Stocks) > <br />Probable Breakouts</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_1_backtest_result_StockSorted.html' target='_blank'>B_12_1</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_1_Summary_StockSorted.html' target='_blank'>B_12_1</a></td>
-                            <td><span style='background-color:black;color:yellow;'>60.00%</span> of (55)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>52.73%</span> of (55)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>58.18%</span> of (55)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>52.73%</span> of (55)</td>      <td><span style='background-color:black;color:yellow;'>61.82%</span> of (55)</td>      <td><span style='background-color:black;color:yellow;'>63.64%</span> of (55)</td>      <td><span style='background-color:black;color:yellow;'>65.45%</span> of (55)</td>      <td><span style='background-color:black;color:yellow;'>74.55%</span> of (55)</td>      <td><span style='background-color:black;color:lightgreen;font-weight:bold;'>81.48%</span> of (27)</td>      <td><span style='background-color:black;color:yellow;'>62.31%</span> of (467)</td>                  </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>55.13%</span> of (78)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>48.72%</span> of (78)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>43.59%</span> of (78)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>44.87%</span> of (78)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>51.28%</span> of (78)</td>      <td><span style='background-color:black;color:yellow;'>65.38%</span> of (78)</td>      <td><span style='background-color:black;color:yellow;'>67.95%</span> of (78)</td>      <td><span style='background-color:black;color:yellow;'>72.37%</span> of (76)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.46%</span> of (37)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.30%</span> of (659)</td>                  </tr>
 
             <tr>
                 <td>2</td>
                 <td>Nifty (All Stocks) > <br />Today's Breakouts</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_2_backtest_result_StockSorted.html' target='_blank'>B_12_2</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_2_Summary_StockSorted.html' target='_blank'>B_12_2</a></td>
-                            <td><span style='background-color:black;color:red;font-weight:bold;'>48.59%</span> of (566)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>50.00%</span> of (540)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>52.04%</span> of (515)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.80%</span> of (493)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.16%</span> of (463)</td>      <td><span style='background-color:black;color:yellow;'>60.27%</span> of (365)</td>      <td><span style='background-color:black;color:yellow;'>63.54%</span> of (288)</td>      <td><span style='background-color:black;color:yellow;'>70.25%</span> of (158)</td>      <td><span style='background-color:black;color:yellow;'>79.31%</span> of (29)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>55.31%</span> of (3417)</td>                  </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>45.52%</span> of (569)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>48.27%</span> of (549)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>50.00%</span> of (522)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>52.91%</span> of (499)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>53.14%</span> of (478)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>57.80%</span> of (372)</td>      <td><span style='background-color:black;color:yellow;'>62.63%</span> of (289)</td>      <td><span style='background-color:black;color:yellow;'>69.77%</span> of (172)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.26%</span> of (27)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>52.78%</span> of (3477)</td>                  </tr>
 
             <tr>
                 <td>3</td>
                 <td>Nifty (All Stocks) > <br />Consolidating stocks</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_3_backtest_result_StockSorted.html' target='_blank'>B_12_3</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_3_Summary_StockSorted.html' target='_blank'>B_12_3</a></td>
-                            <td><span style='background-color:black;color:red;font-weight:bold;'>58.77%</span> of (730)</td>      <td><span style='background-color:black;color:yellow;'>60.88%</span> of (703)</td>      <td><span style='background-color:black;color:yellow;'>63.24%</span> of (672)</td>      <td><span style='background-color:black;color:yellow;'>62.15%</span> of (642)</td>      <td><span style='background-color:black;color:yellow;'>63.68%</span> of (614)</td>      <td><span style='background-color:black;color:yellow;'>66.80%</span> of (485)</td>      <td><span style='background-color:black;color:yellow;'>68.18%</span> of (396)</td>      <td><span style='background-color:black;color:yellow;'>76.25%</span> of (299)</td>      <td><span style='background-color:black;color:lightgreen;font-weight:bold;'>86.80%</span> of (197)</td>      <td><span style='background-color:black;color:yellow;'>64.69%</span> of (4738)</td>                  </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>52.99%</span> of (736)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.74%</span> of (705)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>57.23%</span> of (678)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.04%</span> of (647)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.71%</span> of (618)</td>      <td><span style='background-color:black;color:yellow;'>66.26%</span> of (489)</td>      <td><span style='background-color:black;color:yellow;'>69.92%</span> of (389)</td>      <td><span style='background-color:black;color:yellow;'>76.39%</span> of (288)</td>      <td><span style='background-color:black;color:lightgreen;font-weight:bold;'>80.32%</span> of (188)</td>      <td><span style='background-color:black;color:yellow;'>61.12%</span> of (4738)</td>                  </tr>
 
             <tr>
                 <td>4</td>
                 <td>Nifty (All Stocks) > <br />Lowest Volume in last 'N'-days (Early Breakout Detection)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_4_backtest_result_StockSorted.html' target='_blank'>B_12_4</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_4_Summary_StockSorted.html' target='_blank'>B_12_4</a></td>
-                            <td><span style='background-color:black;color:red;font-weight:bold;'>50.24%</span> of (2745)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>51.71%</span> of (2636)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>54.16%</span> of (2537)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.12%</span> of (2461)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>58.24%</span> of (2335)</td>      <td><span style='background-color:black;color:yellow;'>61.78%</span> of (1834)</td>      <td><span style='background-color:black;color:yellow;'>65.85%</span> of (1464)</td>      <td><span style='background-color:black;color:yellow;'>70.85%</span> of (796)</td>      <td><span style='background-color:black;color:lightgreen;font-weight:bold;'>81.68%</span> of (202)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.93%</span> of (17010)</td>                  </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>46.76%</span> of (2774)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>48.85%</span> of (2655)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>51.00%</span> of (2547)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>54.08%</span> of (2448)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>55.96%</span> of (2373)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.78%</span> of (1855)</td>      <td><span style='background-color:black;color:yellow;'>64.19%</span> of (1455)</td>      <td><span style='background-color:black;color:yellow;'>69.26%</span> of (771)</td>      <td><span style='background-color:black;color:yellow;'>74.05%</span> of (158)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>54.23%</span> of (17036)</td>                  </tr>
 
             <tr>
                 <td>5</td>
                 <td>Nifty (All Stocks) > <br />RSI screening</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_5_backtest_result_StockSorted.html' target='_blank'>B_12_5</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_5_Summary_StockSorted.html' target='_blank'>B_12_5</a></td>
-                            <td><span style='background-color:black;color:red;font-weight:bold;'>51.23%</span> of (9306)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>53.22%</span> of (8976)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>54.94%</span> of (8644)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>56.00%</span> of (8319)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>58.00%</span> of (8002)</td>      <td><span style='background-color:black;color:yellow;'>61.50%</span> of (6489)</td>      <td><span style='background-color:black;color:yellow;'>65.21%</span> of (5048)</td>      <td><span style='background-color:black;color:yellow;'>73.30%</span> of (3127)</td>      <td><span style='background-color:black;color:lightgreen;font-weight:bold;'>81.99%</span> of (944)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>57.67%</span> of (58855)</td>                  </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>48.04%</span> of (9330)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>50.34%</span> of (9008)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>51.63%</span> of (8677)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>53.40%</span> of (8345)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>55.85%</span> of (8021)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>59.61%</span> of (6487)</td>      <td><span style='background-color:black;color:yellow;'>63.29%</span> of (5048)</td>      <td><span style='background-color:black;color:yellow;'>70.84%</span> of (3104)</td>      <td><span style='background-color:black;color:yellow;'>70.02%</span> of (944)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>54.87%</span> of (58964)</td>                  </tr>
 
             <tr>
                 <td>6</td>
