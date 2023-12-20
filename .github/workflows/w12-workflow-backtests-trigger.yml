@@ -30,8 +30,8 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Backtests Workflow Trigger'
-  # schedule:
-  # - cron: '20 10 * * 1-5'
+  schedule:
+  - cron: '20 15 * * 1-5'
 
 jobs:
 
