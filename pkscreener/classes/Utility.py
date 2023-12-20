@@ -161,6 +161,24 @@ class tools:
                 + colorText.END
             )
 
+    def formattedBacktestOutput(outcome,pnlStats=False):
+        if not pnlStats:
+            if outcome >= 80:
+                return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
+            if outcome >= 60:
+                return f'{colorText.WARN}{"%.2f%%" % outcome}{colorText.END}'
+            return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
+        else:
+            if outcome >= 0:
+                return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
+            return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
+        
+    def getFormattedBacktestSummary(x,pnlStats=False):
+        if x is not None and "%" in str(x):
+            values = x.split("%")
+            return "{0} {1}".format(tools.formattedBacktestOutput(float(values[0]),pnlStats),values[1])
+        return x
+    
     def formatRatio(ratio, volumeRatio):
         if (
             ratio >= volumeRatio
@@ -181,6 +199,7 @@ class tools:
             colorText.GREEN,
             colorText.WARN,
             colorText.FAIL,
+            colorText.WHITE,
         ]
         cleanedUpStyledValue = styledText
         for style in styles:
@@ -198,7 +217,7 @@ class tools:
             colorText.WHITE: "blue"
         }
         cleanedUpStyledValue = cellStyledValue
-        cellFillColor = "white"
+        cellFillColor = "black"
         for style in otherStyles:
             cleanedUpStyledValue = cleanedUpStyledValue.replace(style, "")
         for style in mainStyles:
@@ -208,7 +227,7 @@ class tools:
                 break
         return cellFillColor, cleanedUpStyledValue
 
-    def tableToImage(table, styledTable, filename, label):
+    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
         fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf'
@@ -225,96 +244,106 @@ class tools:
         menuColor = "red"
         gridColor = "black"
         repoText = "Source: https://GitHub.com/pkjmesra/pkscreener/  | Telegram: https://t.me/PKScreener | Learning purposes ONLY. No legal liability."
-        screenLines = styledTable.splitlines()
-        unstyledLines = table.splitlines()
+        
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
         label_width, label_height = font.getsize_multiline(label)
         text_width, text_height = font.getsize_multiline(table)
+        bt_text_width, bt_text_height = font.getsize_multiline(backtestSummary)
+        btd_text_width, btd_text_height = font.getsize_multiline(backtestDetail)
         repotext_width, repotext_height = font.getsize_multiline(repoText)
         im = Image.new(
             "RGB",
-            (text_width + 15, arttext_height + text_height + label_height + repotext_height + 30),
+            (15+(bt_text_width if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + 30),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
         # artwork
         draw.text((7, 7), artText, font=artfont, fill=artColor)
         # selected menu options and As of DateTime
-        draw.text((7, 8 + arttext_height), f"As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > {label}", font=font, fill=menuColor)
+        draw.text((7, 8 + arttext_height), f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > {label}", font=font, fill=menuColor)
         
-        lineNumber = 0
-        colPixelRunValue = 7
         rowPixelRunValue = 10 + arttext_height + label_height + repotext_height
         separator = "|"
         sep_width, sep_height = font.getsize_multiline(separator)
-        for line in screenLines:
-            line_width, line_height = font.getsize_multiline(line)
-            # Print the header columns and bottom grid line
-            if (
-                lineNumber == 0
-                or (lineNumber % 2) == 0
-                or lineNumber == len(screenLines) - 1
-            ):
-                draw.text(
-                    (colPixelRunValue, rowPixelRunValue),
-                    line,
-                    font=font,
-                    fill=gridColor,
-                )
-                rowPixelRunValue = rowPixelRunValue + line_height + 1
-            elif lineNumber == 1:
-                draw.text(
-                    (colPixelRunValue, rowPixelRunValue),
-                    line,
-                    font=font,
-                    fill=gridColor,
-                )
-                rowPixelRunValue = rowPixelRunValue + line_height + 1
-            else:
-                valueScreenCols = line.split(separator)
-                columnNumber = 0
-                del valueScreenCols[0]
-                del valueScreenCols[-1]
-                for val in valueScreenCols:
-                    unstyledLine = unstyledLines[lineNumber]
-                    style, cleanValue = tools.getCellColor(val)
-                    if columnNumber == 0:
-                        cleanValue = unstyledLine.split(separator)[1]
-                        style = gridColor
-                    if bgColor == "white" and style == "yellow":
-                        # Yellow on a white background is difficult to read
-                        style = "blue"
-                    elif bgColor == "black" and style == "blue":
-                        # blue on a black background is difficult to read
-                        style = "yellow"
-                    col_width, col_height = font.getsize_multiline(cleanValue)
+        dfs_to_print = [styledTable, backtestSummary, backtestDetail]
+        unstyled_dfs = [table, backtestSummary, backtestDetail]
+        counter = 0
+        for df in dfs_to_print:
+            if df is None or len(df) == 0:
+                continue
+            unstyledLines = unstyled_dfs[counter].splitlines()
+            lineNumber = 0
+            colPixelRunValue = 7
+            screenLines = df.splitlines()
+            for line in screenLines:
+                line_width, line_height = font.getsize_multiline(line)
+                # Print the header columns and bottom grid line
+                if (
+                    lineNumber == 0
+                    or (lineNumber % 2) == 0
+                    or lineNumber == len(screenLines) - 1
+                ):
+                    draw.text(
+                        (colPixelRunValue, rowPixelRunValue),
+                        line,
+                        font=font,
+                        fill=gridColor,
+                    )
+                    rowPixelRunValue = rowPixelRunValue + line_height + 1
+                elif lineNumber == 1:
+                    draw.text(
+                        (colPixelRunValue, rowPixelRunValue),
+                        line,
+                        font=font,
+                        fill=gridColor,
+                    )
+                    rowPixelRunValue = rowPixelRunValue + line_height + 1
+                else:
+                    valueScreenCols = line.split(separator)
+                    columnNumber = 0
+                    del valueScreenCols[0]
+                    del valueScreenCols[-1]
+                    for val in valueScreenCols:
+                        unstyledLine = unstyledLines[lineNumber]
+                        style, cleanValue = tools.getCellColor(val)
+                        if columnNumber == 0:
+                            cleanValue = unstyledLine.split(separator)[1]
+                            style = gridColor
+                        if bgColor == "white" and style == "yellow":
+                            # Yellow on a white background is difficult to read
+                            style = "blue"
+                        elif bgColor == "black" and style == "blue":
+                            # blue on a black background is difficult to read
+                            style = "yellow"
+                        col_width, col_height = font.getsize_multiline(cleanValue)
+                        draw.text(
+                            (colPixelRunValue, rowPixelRunValue),
+                            separator,
+                            font=font,
+                            fill=gridColor,
+                        )
+                        colPixelRunValue = colPixelRunValue + sep_width
+                        draw.text(
+                            (colPixelRunValue, rowPixelRunValue),
+                            cleanValue,
+                            font=font,
+                            fill=style,
+                        )
+                        colPixelRunValue = colPixelRunValue + col_width
+                        columnNumber = columnNumber + 1
+                    # Close the row with the separator
                     draw.text(
                         (colPixelRunValue, rowPixelRunValue),
                         separator,
                         font=font,
                         fill=gridColor,
                     )
-                    colPixelRunValue = colPixelRunValue + sep_width
-                    draw.text(
-                        (colPixelRunValue, rowPixelRunValue),
-                        cleanValue,
-                        font=font,
-                        fill=style,
-                    )
-                    colPixelRunValue = colPixelRunValue + col_width
-                    columnNumber = columnNumber + 1
-                # Close the row with the separator
-                draw.text(
-                    (colPixelRunValue, rowPixelRunValue),
-                    separator,
-                    font=font,
-                    fill=gridColor,
-                )
-                colPixelRunValue = 7
-                rowPixelRunValue = rowPixelRunValue + line_height + 1
-            lineNumber = lineNumber + 1
+                    colPixelRunValue = 7
+                    rowPixelRunValue = rowPixelRunValue + line_height + 1
+                lineNumber = lineNumber + 1
+            counter += 1
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         im.save(filename, format="png", bitmap_format="png")
         # im.show()

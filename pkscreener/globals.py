@@ -194,6 +194,35 @@ def getScannerMenuChoices(
         default_logger().debug(e, exc_info=True)
     return menuOption, tickerOption, executeOption, selectedChoice
 
+def getSummaryCorrectnessOfStrategy(resultdf):
+    global selectedChoice
+    summarydf = None
+    detaildf = None
+    try:
+        results = resultdf.copy()
+        reportNameSummary = "PKScreener_B_{0}_{1}_Summary_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
+        reportNameDetail = "PKScreener_B_{0}_{1}_backtest_result_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
+        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary))
+        dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail))
+        
+        if len(dfs) > 0:
+            df = dfs[0]
+            summarydf = df[df['Stock'] == 'SUMMARY']
+            for col in summarydf.columns:
+                summarydf.loc[:, col] = summarydf.loc[:, col].apply(
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x)
+                )
+        if len(dfd) > 0:
+            df = dfd[0]
+            results.reset_index(inplace=True)
+            detaildf = df[df['Stock'].isin(results['Stock'])]
+            for col in detaildf.columns:
+                detaildf.loc[:, col] = detaildf.loc[:, col].apply(
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x,pnlStats=True)
+                )
+    except:
+        pass
+    return summarydf, detaildf
 
 def getTestBuildChoices(tickerOption=None, executeOption=None, menuOption=None):
     if (
@@ -508,6 +537,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
 @tracelog
 def main(userArgs=None):
     global screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDict, userPassedArgs , loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly
+    selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
     testing=False if userArgs is None else (userArgs.testbuild and userArgs.prodbuild)
     testBuild=False if userArgs is None else (userArgs.testbuild and not testing)
     downloadOnly=False if userArgs is None else userArgs.download
@@ -966,7 +996,7 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    (actualHistoricalDuration if menuOption == "B" else 0),
+                    (actualHistoricalDuration if menuOption == "B" else (0 if userPassedArgs.backtestdaysago is None else int(userPassedArgs.backtestdaysago))),
                     (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
                     False,
@@ -1045,10 +1075,15 @@ def main(userArgs=None):
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
             summary_df = backtestSummary(backtest_df)
+            backtest_df.loc[:, "Date"] = backtest_df.loc[:, "Date"].apply(
+                lambda x: x.replace("-","/")
+            )
             showBacktestResults(backtest_df)
             showBacktestResults(summary_df,optionalName="Summary")
-            summary_df.set_index("Stock", inplace=True)
-            backtest_df.set_index("Stock", inplace=True)
+            # summary_df.set_index("Stock", inplace=True)
+            # backtest_df.set_index("Stock", inplace=True)
+            # showBacktestResults(backtest_df)
+            # showBacktestResults(summary_df,optionalName="Summary")
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
@@ -1097,6 +1132,9 @@ def main(userArgs=None):
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
+    if configManager.isIntradayConfig():
+        isIntraday = (userPassedArgs.intraday is not None)
+        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d")
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
@@ -1141,14 +1179,20 @@ def printNotifySaveScreenedResults(
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
+    topChoiceLabel = f"[+] You chose: {menuChoiceHierarchy}\n[+] The backtests summary of correctness from past for this choice is also included.\n"
     print(
         colorText.BOLD
         + colorText.FAIL
-        + f"[+] You chose: {menuChoiceHierarchy}\n"
+        + topChoiceLabel
         + colorText.END
     )
+    summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
+    tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
+    tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
+    print(tabulated_backtest_summary)
+    print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
         if not testing and len(screenResults) <= 100:
@@ -1163,7 +1207,9 @@ def printNotifySaveScreenedResults(
                     markdown_results,
                     tabulated_results,
                     pngName,
-                    menuChoiceHierarchy,
+                    topChoiceLabel,
+                    backtestSummary=tabulated_backtest_summary,
+                    backtestDetail=tabulated_backtest_detail,
                 )
                 sendMessageToTelegramChannel(
                     message=None, photo_filePath=pngName, caption=caption, user=user
@@ -1186,13 +1232,14 @@ def printNotifySaveScreenedResults(
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
-        colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
-        colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
+        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;}</style></head><body><span style='color:white;' >"
+        colored_text = colored_text.replace("<table", f"{tableText}{summaryText}<br /><table")
+        colored_text = colored_text.replace("<table ", "<table id='resultsTable' ")
         for key in headerDict.keys():
             if key > 0:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
+                colored_text = colored_text.replace(headerDict[key], f"<th>{headerDict[key][4:]}")
             else:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
+                colored_text = colored_text.replace(headerDict[key], f"<th>Stock{headerDict[key][4:]}")
     else:
         colored_text = colored_text.replace('<table border="1" class="dataframe">', "")
         colored_text = colored_text.replace('<tbody>', "")
@@ -1439,7 +1486,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
             lastSummaryRow.set_index("Stock", inplace=True)
             lastSummaryRow = lastSummaryRow.iloc[:, lastSummaryRow.columns != 'Stock']
         summaryText = f"{summaryText}\nOverall Summary of (correctness of) Strategy Prediction Positive outcomes:"
-    tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid")
+    tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid", showindex=False)
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
     choices = ""
@@ -1462,7 +1509,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
             headerDict[index] = f"<th>{col}</th>"
             index += 1
 
-    colored_text = backtest_df.to_html()
+    colored_text = backtest_df.to_html(index=False)
     summaryText = summaryText.replace("\n","<br />")
     colored_text = reformatTable(summaryText, headerDict, colored_text, sorting=True)
     # Delete any pre-existing backtesting report for the same parameters

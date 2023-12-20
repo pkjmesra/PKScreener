@@ -47,7 +47,8 @@ def sample_screened_dict():
     screened_dict = {
         'Volume': 1000,
         'Trend': 'Up',
-        'MA-Signal': 'Buy'
+        'MA-Signal': 'Buy',
+        'LTP': 100
     }
     return screened_dict
 
@@ -90,6 +91,7 @@ def sample_summary_data():
         "Stock": ["AAPL", "AAPL", "AAPL", "AAPL", "AAPL", "AAPL", "AAPL", "AAPL", "AAPL", "AAPL"],
         "Date": ["2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01", "2022-01-01"],
         "Volume": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+        "LTP": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
         "Trend": ["Up", "Up", "Down", "Up", "Down", "Up", "Down", "Up", "Down", "Up"],
         "MA-Signal": ["Buy", "Buy", "Sell", "Buy", "Sell", "Buy", "Sell", "Buy", "Sell", "Buy"],
         "1-Pd": ["10%", "20%", "-5%", "15%", "-10%", "25%", "-15%", "30%", "-20%", "35%"],

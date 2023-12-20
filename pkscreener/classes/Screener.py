@@ -463,8 +463,8 @@ class tools:
     # Find stocks approching to long term trendlines
     def findTrendlines(self, data, screenDict, saveDict, percentage=0.05):
         period = int("".join(c for c in self.configManager.period if c.isdigit()))
-        if len(data) < period:
-            return False
+        # if len(data) < period:
+        #     return False
 
         data = data[::-1]
         data["Number"] = np.arange(len(data)) + 1

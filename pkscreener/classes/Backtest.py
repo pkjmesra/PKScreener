@@ -30,6 +30,7 @@ import pandas as pd
 from PKDevTools.classes.ColorText import colorText
 
 from pkscreener.classes.ConfigManager import parser, tools
+from pkscreener.classes import Utility
 
 configManager = tools()
 configManager.getConfig(parser)
@@ -166,12 +167,12 @@ def backtestSummary(df):
                 if col_positives+col_negatives == 0:
                     summary[col] = "-"
                 else:
-                    summary[col] = f'{formattedOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
+                    summary[col] = f'{Utility.tools.formattedBacktestOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
         overAllRowPrediction = (group_positives*100/(group_positives+group_negatives))
         if group_positives+group_negatives == 0:
             summary['Overall'] = "-"
         else:
-            summary['Overall'] = f'{formattedOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
+            summary['Overall'] = f'{Utility.tools.formattedBacktestOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
         summaryList.append(summary)
         summary = {}
         net_positives += group_positives
@@ -185,18 +186,12 @@ def backtestSummary(df):
         if col_positives+col_negatives == 0:
             summary[col] = "-"
         else:
-            summary[col] = f'{formattedOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
+            summary[col] = f'{Utility.tools.formattedBacktestOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
     if net_positives+net_negatives == 0:
         summary['Overall'] = "-"
     else:
-        summary['Overall'] = f'{formattedOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
+        summary['Overall'] = f'{Utility.tools.formattedBacktestOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
     summaryList.append(summary)
     summary_df = pd.DataFrame(summaryList, columns=summary.keys())
     return summary_df
 
-def formattedOutput(outcome):
-    if outcome >= 80:
-        return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
-    if outcome >= 60:
-        return f'{colorText.WARN}{"%.2f%%" % outcome}{colorText.END}'
-    return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
