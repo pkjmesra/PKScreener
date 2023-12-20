@@ -346,7 +346,7 @@ class tools:
             counter += 1
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         im.save(filename, format="png", bitmap_format="png")
-        im.show()
+        # im.show()
 
     def tradingDate(simulate=False, day=None):
         curr = tools.currentDateTime(simulate=simulate,day=day)
