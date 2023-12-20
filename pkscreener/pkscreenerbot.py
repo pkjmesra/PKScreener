@@ -634,12 +634,8 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message is not None and (abs(update.message.from_user.id) in [
-        Channel_Id,
-        GROUP_CHAT_ID,
-    ] or update.message.from_user.username in ["GroupAnonymousBot"]):
-        # We want to avoid sending any help message back to channel or group.
-        return START_ROUTES
+    if _shouldAvoidResponse(update):
+        return
     msg = update.effective_message
     m = re.match("\s*/([0-9a-zA-Z_-]+)\s*(.*)", msg.text)
     cmd = m.group(1).lower()
@@ -888,20 +884,7 @@ async def shareUpdateWithChannel(update, context, optionChoices=""):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    sentFrom = []
-    if update.callback_query is not None:
-        sentFrom.append(abs(update.callback_query.from_user.id))
-    if update.message is not None and update.message.from_user is not None:
-        sentFrom.append(abs(update.message.from_user.id))
-    if update.channel_post is not None:
-        if update.channel_post.chat is not None:
-            sentFrom.append(abs(update.channel_post.chat.id))
-        if update.channel_post.sender_chat is not None:
-            sentFrom.append(abs(update.channel_post.sender_chat.id))
-
-    if abs(int(Channel_Id)) in sentFrom or abs(int(GROUP_CHAT_ID)) in sentFrom:
-        # We want to avoid sending any help message back to channel
-        # or group in response to our own messages
+    if _shouldAvoidResponse(update):
         return
 
     cmds = m0.renderForMenu(
@@ -922,6 +905,30 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await context.bot.send_message(
         chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
     )
+
+def _shouldAvoidResponse(update):
+    sentFrom = []
+    if update.callback_query is not None:
+        sentFrom.append(abs(update.callback_query.from_user.id))
+    if update.message is not None and update.message.from_user is not None:
+        sentFrom.append(abs(update.message.from_user.id))
+        if update.message.from_user.username is not None:
+            sentFrom.append(abs(update.message.from_user.username))
+    if update.channel_post is not None:
+        if update.channel_post.chat is not None:
+            sentFrom.append(abs(update.channel_post.chat.id))
+        if update.channel_post.sender_chat is not None:
+            sentFrom.append(abs(update.channel_post.sender_chat.id))
+
+    if abs(int(Channel_Id)) in sentFrom or \
+        abs(int(GROUP_CHAT_ID)) in sentFrom or \
+        "GroupAnonymousBot" in sentFrom or \
+        "PKScreener" in sentFrom or \
+        "PKScreeners" in sentFrom:
+        # We want to avoid sending any help message back to channel
+        # or group in response to our own messages
+        return True
+    return False
 
 
 def addCommandsForMenuItems(application):

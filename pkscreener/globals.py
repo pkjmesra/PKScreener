@@ -1046,6 +1046,9 @@ def main(userArgs=None):
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
             summary_df = backtestSummary(backtest_df)
+            backtest_df.loc[:, "Date"] = backtest_df.loc[:, "Date"].apply(
+                lambda x: x.replace("-","/")
+            )
             showBacktestResults(backtest_df)
             showBacktestResults(summary_df,optionalName="Summary")
             summary_df.set_index("Stock", inplace=True)
@@ -1100,8 +1103,9 @@ def main(userArgs=None):
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
         newlyListedOnly = False
-    if executeOption == 12 and configManager.isIntradayConfig():
-        configManager.toggleConfig(candleDuration="1d")
+    if configManager.isIntradayConfig():
+        isIntraday = (userPassedArgs.intraday is not None)
+        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d")
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
@@ -1191,13 +1195,14 @@ def printNotifySaveScreenedResults(
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
-        colored_text = colored_text.replace("<table", f"<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head><body><span style='background-color:black; color:white;' >{summaryText}<br /><table")
-        colored_text = colored_text.replace("<table ", "<table id='resultsTable' style='background-color:black; color:white;' ")
+        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;}</style></head><body><span style='color:white;' >"
+        colored_text = colored_text.replace("<table", f"{tableText}{summaryText}<br /><table")
+        colored_text = colored_text.replace("<table ", "<table id='resultsTable' ")
         for key in headerDict.keys():
             if key > 0:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>{headerDict[key][4:]}")
+                colored_text = colored_text.replace(headerDict[key], f"<th>{headerDict[key][4:]}")
             else:
-                colored_text = colored_text.replace(headerDict[key], f"<th onclick='sortTable({key})' style='color:white; text-decoration:underline;'>Stock{headerDict[key][4:]}")
+                colored_text = colored_text.replace(headerDict[key], f"<th>Stock{headerDict[key][4:]}")
     else:
         colored_text = colored_text.replace('<table border="1" class="dataframe">', "")
         colored_text = colored_text.replace('<tbody>', "")
