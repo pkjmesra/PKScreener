@@ -228,7 +228,7 @@ def pkscreenercli():
         # intradayMonitorInstance.monitor()
         sys.exit(0)
     if args.intraday:
-        configManager.toggleConfig(candleDuration=args.intraday)
+        configManager.toggleConfig(candleDuration=args.intraday, clearCache=False)
     if args.options is not None and str(args.options) == "0":
         # Must be from unit tests to be able to break out of loops via eventing
         args.options = None
@@ -248,6 +248,8 @@ def pkscreenercli():
             + "[+] Download ONLY mode! Stocks will not be screened!"
             + colorText.END
         )
+        if args.intraday is None:
+            configManager.toggleConfig(candleDuration="1d", clearCache=False)
         runApplication()
         sys.exit(0)
     else:

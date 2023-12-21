@@ -126,6 +126,8 @@ class StockConsumer:
                     #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
                     # )
                     if downloadOnly:
+                        with hostRef.processingResultsCounter.get_lock():
+                            hostRef.processingResultsCounter.value += 1
                         raise Screener.DownloadDataOnly
             else:
                 if printCounter:
