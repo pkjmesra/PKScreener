@@ -209,16 +209,23 @@ def getSummaryCorrectnessOfStrategy(resultdf):
             summarydf = df[df['Stock'] == 'SUMMARY']
             for col in summarydf.columns:
                 summarydf.loc[:, col] = summarydf.loc[:, col].apply(
-                    lambda x: Utility.tools.getFormattedBacktestSummary(x)
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x,columnName=col)
                 )
+            summarydf = summarydf.replace(np.nan, '', regex=True)
         if len(dfd) > 0:
             df = dfd[0]
             results.reset_index(inplace=True)
             detaildf = df[df['Stock'].isin(results['Stock'])]
             for col in detaildf.columns:
                 detaildf.loc[:, col] = detaildf.loc[:, col].apply(
-                    lambda x: Utility.tools.getFormattedBacktestSummary(x,pnlStats=True)
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x,pnlStats=True,columnName=col)
                 )
+            detaildf = detaildf.replace(np.nan, '', regex=True)
+            detaildf.loc[:, "Volume"] = detaildf.loc[:, "Volume"].apply(
+                lambda x: Utility.tools.formatRatio(x, configManager.volumeRatio)
+            )
+            detaildf.sort_values(['Stock', 'Date'], ascending=[True, False], inplace=True)
+            detaildf.rename(columns={"LTP": "LTP on Date",},inplace=True,)
     except:
         pass
     return summarydf, detaildf
@@ -1178,11 +1185,10 @@ def printNotifySaveScreenedResults(
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
-    topChoiceLabel = f"[+] You chose: {menuChoiceHierarchy}\n[+] The backtests summary of correctness from past for this choice is also included.\n"
     print(
         colorText.BOLD
         + colorText.FAIL
-        + topChoiceLabel
+        + f"[+] You chose: {menuChoiceHierarchy}"
         + colorText.END
     )
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
@@ -1190,7 +1196,19 @@ def printNotifySaveScreenedResults(
     tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
+        + colorText.END
+    )
     print(tabulated_backtest_summary)
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
+        + colorText.END
+    )
     print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
@@ -1206,7 +1224,7 @@ def printNotifySaveScreenedResults(
                     markdown_results,
                     tabulated_results,
                     pngName,
-                    topChoiceLabel,
+                    menuChoiceHierarchy,
                     backtestSummary=tabulated_backtest_summary,
                     backtestDetail=tabulated_backtest_detail,
                 )
@@ -1439,6 +1457,8 @@ def sendMessageToTelegramChannel(
             send_message(message, userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
+    else:
+        message = ""
     if photo_filePath is not None:
         try:
             if caption is not None:
@@ -1457,6 +1477,9 @@ def sendMessageToTelegramChannel(
             sleep(1)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
+    if user is not None:
+        # Send an update to dev channel
+        send_message("Responded back to userId:{0} with {1}.{2}".format(user,caption,message), userID="-1001785195297")
 
 
 def sendTestStatus(screenResults, label, user=None):
