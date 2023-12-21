@@ -246,20 +246,21 @@ class tools:
         artColor = "green"
         menuColor = "red"
         gridColor = "black"
-        repoText = f"     Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
-        legendText = "\n     [+] Understanding this report:\n\n     *** 1. Stock ***: This is the NSE symbol/ticker for a given company. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions. There are generally 20 trading sessions each month. 3. Breakout (30Prds): The BO is Breakout level based on the last 30 trading sessions. R is the next resistance level(if available).\n"
-        legendText= f"{legendText}     An investor should consider both BO & R level to analyse entry/exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out. *** 3. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. LTP in green/red means the\n"
-        legendText= f"{legendText}     stock price has increased/decreased since last trading session. (1.5%,1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 4. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means the price rose from previous\n"
-        legendText= f"{legendText}     trading session. Red means it fell. *** 5. Volume ***: This shows the relative volume in the most recent trading day/today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means today's volume so far has been at\n"
-        legendText= f"{legendText}     least 2.5 times more than the avg volume of last 20 sessions. If the volume is in red, it means the given date's volume is less than 2.5 times the avg volume of the last 20 sessions. *** 6. MA-Signal ***: It shows the price trend of the given stock by analyzing various 50-200 moving/exponential averages crossover strategies. Do a Google search for the shown MA-Signals\n"
-        legendText= f"{legendText}     to learn about them more. If it's in green, the signal is bullish. Red means bearish. *** 7. RSI ***: Relative Strength Index is a momentum index which describes 14-period relative strength at the given price. Generally, below 30 is considered oversold and above 80 is considered overbought. *** 8. Trend(30Prds) ***: It shows the average trendline computed based on the\n"
-        legendText= f"{legendText}     last 30 trading sessions. Their strength is displayed depending on the steepness of the trendlines. (Strong/Weak) Up/Down shows how high/low the demand is respectively. A Sideways trend is the horizontal price movement that occurs when the forces of supply and demand are nearly equal. *** 9. Pattern ***: It shows if the chart or the candle (from the candlestick chart) is\n"
-        legendText= f"{legendText}     forming any known pattern in the recent timeframe or as per the selected screening options. Do a google search for the shown pattern names to learn. *** 10. CCI ***: The Commodity Channel Index (CCI) is a technical indicator that measures the difference between the current price and the historical average price of the given stock. Generally below -100 is considered oversold\n"
-        legendText= f"{legendText}     and above 100 is considered overbought. If the CCI is < -100 or CCI is > 100 and the Trend(30Prds) is Stronf/Weak Up, it is shown in green. Otherwise it's in red. *** 11. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that it found in the last 30 trading sessions under the same scan\n"
-        legendText= f"{legendText}     options. Similarly, 61.69% of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scan options (for example, Momentum Gainers), out of which 57.87%\n"
-        legendText= f"{legendText}     of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 12. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss able/grid means the stock price increased by 4.17% in the next 1 trading session. If it's in\n"
-        legendText= f"{legendText}     red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was founf under the chosen scan options in the past 30 trading sessions.\n"
-        repoText = f"{repoText}\n{legendText}"
+        repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
+        repoText = f"{repoText}\n[+] Understanding this report:\n"
+        legendText= "\n*** 1. Stock ***: This is the NSE symbol/ticker for a given company. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions. There are generally 20 trading sessions each month. 3. *** Breakout (30Prds) *** : The BO is Breakout level based on the last 30 trading sessions. R is the next resistance level (if available).\n"
+        legendText= f"{legendText}An investor should consider both BO & R level to analyse entry/exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out. *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the\n"
+        legendText= f"{legendText}stock price has increased/decreased since last trading session. (1.5%,1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous\n"
+        legendText= f"{legendText}trading session. Red means it fell. *** 6. Volume ***: This shows the relative volume in the most recent trading day/today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at\n"
+        legendText= f"{legendText}least 2.5 times more than the avg volume of last 20 sessions. If the volume is in red, it means the given date's volume is less than 2.5 times the avg volume of the last 20 sessions. *** 7. MA-Signal ***: It shows the price trend of the given stock by analyzing various 50-200 moving/exponential averages crossover strategies. Perform a Google search for the shown MA-Signals\n"
+        legendText= f"{legendText}to learn about them more. If it's in green, the signal is bullish. Red means bearish. *** 8. RSI ***: Relative Strength Index is a momentum index which describes 14-period relative strength at the given price. Generally, below 30 is considered oversold and above 80 is considered overbought. *** 9. Trend(30Prds) ***: This describes the average trendline computed based on the\n"
+        legendText= f"{legendText}last 30 trading sessions. Their strength is displayed depending on the steepness of the trendlines. (Strong/Weak) Up/Down shows how high/low the demand is respectively. A Sideways trend is the horizontal price movement that occurs when the forces of supply and demand are nearly equal. *** 10. Pattern ***: This shows if the chart or the candle (from the candlestick chart) is\n"
+        legendText= f"{legendText}forming any known pattern in the recent timeframe or as per the selected screening options. Do a google search for the shown pattern names to learn. *** 11. CCI ***: The Commodity Channel Index (CCI) is a technical indicator that measures the difference between the current price and the historical average price of the given stock. Generally below -100 is considered oversold\n"
+        legendText= f"{legendText}and above 100 is considered overbought. If the CCI is < -100 or CCI is > 100 and the Trend(30Prds) is Stronf/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan\n"
+        legendText= f"{legendText}options. Similarly, 61.69% of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%\n"
+        legendText= f"{legendText}of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss able/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in\n"
+        legendText= f"{legendText}red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was founf under the chosen scan options in the past 30 trading sessions.\n"
+
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
@@ -268,14 +269,16 @@ class tools:
         bt_text_width, bt_text_height = font.getsize_multiline(backtestSummary)
         btd_text_width, btd_text_height = font.getsize_multiline(backtestDetail)
         repotext_width, repotext_height = font.getsize_multiline(repoText)
+        legendtext_width, legendtext_height = font.getsize_multiline(legendText)
         im = Image.new(
             "RGB",
-            ((int(0.7*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + 6* label_height + repotext_height + 30),
+            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
+        startColValue = 200
         # artwork
-        draw.text((20, 7), artText, font=artfont, fill=artColor)
+        draw.text((startColValue-60, 7), artText, font=artfont, fill=artColor)
         rowPixelRunValue = 10 + arttext_height
         separator = "|"
         sep_width, sep_height = font.getsize_multiline(separator)
@@ -286,7 +289,7 @@ class tools:
                        "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
         counter = 0
         for df in dfs_to_print:
-            colPixelRunValue = 20
+            colPixelRunValue = startColValue
             # selected menu options and As of DateTime
             draw.text((colPixelRunValue, rowPixelRunValue), titleLabels[counter], font=font, fill=menuColor)
             rowPixelRunValue = rowPixelRunValue + label_height
@@ -358,12 +361,13 @@ class tools:
                         font=font,
                         fill=gridColor,
                     )
-                    colPixelRunValue = 20
+                    colPixelRunValue = startColValue
                     rowPixelRunValue = rowPixelRunValue + line_height + 1
                 lineNumber = lineNumber + 1
             counter += 1
             rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
+        draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
         im.save(filename, format="png", bitmap_format="png")
         # im.show()
 
