@@ -486,8 +486,8 @@ class tools:
                 break
         return exists, cache_file
 
-    def saveStockData(stockDict, configManager, loadCount):
-        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
+    def saveStockData(stockDict, configManager, loadCount, intraday=False):
+        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig() or intraday)
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
 

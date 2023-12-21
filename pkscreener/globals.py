@@ -123,10 +123,10 @@ def finishScreening(
 
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
-    argsIntraday = userPassedArgs.intraday if (userPassedArgs is not None and userPassedArgs.intraday is not None) else False
+    argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
     configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
-    intraday = True if (intradayConfig or argsIntraday) else False
+    intraday = (intradayConfig or argsIntraday)
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -142,7 +142,7 @@ def getDownloadChoices(defaultAnswer=None):
         else:
             pattern = f"{'intraday_' if intraday else ''}stock_data_"
             configManager.deleteFileWithPattern(pattern)
-    return "X", 12, 2, {"0": "X", "1": "12", "2": "2"}
+    return "X", 12, 0, {"0": "X", "1": "12", "2": "0"}
 
 
 def getHistoricalDays(numStocks, testing):
@@ -1392,6 +1392,11 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
 
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
+    global userPassedArgs
+    argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
+    configManager.getConfig(ConfigManager.parser)
+    intradayConfig = configManager.isIntradayConfig()
+    intraday = (intradayConfig or argsIntraday)
     if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
         print(
             colorText.BOLD
@@ -1400,7 +1405,7 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
             + colorText.END,
             end="",
         )
-        Utility.tools.saveStockData(stockDict, configManager, loadCount)
+        Utility.tools.saveStockData(stockDict, configManager, loadCount, intraday)
     else:
         print(
             colorText.BOLD + colorText.GREEN + "[+] Skipped Saving!" + colorText.END,
