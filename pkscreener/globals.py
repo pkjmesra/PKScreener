@@ -123,10 +123,10 @@ def finishScreening(
 
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
-    argsIntraday = userPassedArgs.intraday if (userPassedArgs is not None and userPassedArgs.intraday is not None) else False
+    argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
     configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
-    intraday = True if (intradayConfig or argsIntraday) else False
+    intraday = (intradayConfig or argsIntraday)
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
     if exists:
         shouldReplace = Utility.tools.promptFileExists(
@@ -142,7 +142,7 @@ def getDownloadChoices(defaultAnswer=None):
         else:
             pattern = f"{'intraday_' if intraday else ''}stock_data_"
             configManager.deleteFileWithPattern(pattern)
-    return "X", 12, 2, {"0": "X", "1": "12", "2": "2"}
+    return "X", 12, 0, {"0": "X", "1": "12", "2": "0"}
 
 
 def getHistoricalDays(numStocks, testing):
@@ -195,31 +195,37 @@ def getScannerMenuChoices(
     return menuOption, tickerOption, executeOption, selectedChoice
 
 def getSummaryCorrectnessOfStrategy(resultdf):
-    global selectedChoice
     summarydf = None
     detaildf = None
     try:
         results = resultdf.copy()
-        reportNameSummary = "PKScreener_B_{0}_{1}_Summary_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
-        reportNameDetail = "PKScreener_B_{0}_{1}_backtest_result_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
-        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary))
-        dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail))
+        _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
+        _ , reportNameDetail = getBacktestReportFilename()
+        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary.replace("_X_","_B_")))
+        dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail.replace("_X_","_B_")))
         
         if len(dfs) > 0:
             df = dfs[0]
             summarydf = df[df['Stock'] == 'SUMMARY']
             for col in summarydf.columns:
                 summarydf.loc[:, col] = summarydf.loc[:, col].apply(
-                    lambda x: Utility.tools.getFormattedBacktestSummary(x)
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x,columnName=col)
                 )
+            summarydf = summarydf.replace(np.nan, '', regex=True)
         if len(dfd) > 0:
             df = dfd[0]
             results.reset_index(inplace=True)
             detaildf = df[df['Stock'].isin(results['Stock'])]
             for col in detaildf.columns:
                 detaildf.loc[:, col] = detaildf.loc[:, col].apply(
-                    lambda x: Utility.tools.getFormattedBacktestSummary(x,pnlStats=True)
+                    lambda x: Utility.tools.getFormattedBacktestSummary(x,pnlStats=True,columnName=col)
                 )
+            detaildf = detaildf.replace(np.nan, '', regex=True)
+            detaildf.loc[:, "Volume"] = detaildf.loc[:, "Volume"].apply(
+                lambda x: Utility.tools.formatRatio(x, configManager.volumeRatio)
+            )
+            detaildf.sort_values(['Stock', 'Date'], ascending=[True, False], inplace=True)
+            detaildf.rename(columns={"LTP": "LTP on Date",},inplace=True,)
     except:
         pass
     return summarydf, detaildf
@@ -1179,11 +1185,10 @@ def printNotifySaveScreenedResults(
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
-    topChoiceLabel = f"[+] You chose: {menuChoiceHierarchy}\n[+] The backtests summary of correctness from past for this choice is also included.\n"
     print(
         colorText.BOLD
         + colorText.FAIL
-        + topChoiceLabel
+        + f"[+] You chose: {menuChoiceHierarchy}"
         + colorText.END
     )
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
@@ -1191,7 +1196,19 @@ def printNotifySaveScreenedResults(
     tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
+        + colorText.END
+    )
     print(tabulated_backtest_summary)
+    print(
+        colorText.BOLD
+        + colorText.FAIL
+        + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
+        + colorText.END
+    )
     print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
@@ -1207,7 +1224,7 @@ def printNotifySaveScreenedResults(
                     markdown_results,
                     tabulated_results,
                     pngName,
-                    topChoiceLabel,
+                    menuChoiceHierarchy,
                     backtestSummary=tabulated_backtest_summary,
                     backtestDetail=tabulated_backtest_detail,
                 )
@@ -1375,6 +1392,11 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
 
 
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
+    global userPassedArgs
+    argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
+    configManager.getConfig(ConfigManager.parser)
+    intradayConfig = configManager.isIntradayConfig()
+    intraday = (intradayConfig or argsIntraday)
     if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
         print(
             colorText.BOLD
@@ -1383,7 +1405,7 @@ def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCoun
             + colorText.END,
             end="",
         )
-        Utility.tools.saveStockData(stockDict, configManager, loadCount)
+        Utility.tools.saveStockData(stockDict, configManager, loadCount, intraday)
     else:
         print(
             colorText.BOLD + colorText.GREEN + "[+] Skipped Saving!" + colorText.END,
@@ -1440,6 +1462,8 @@ def sendMessageToTelegramChannel(
             send_message(message, userID=user)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
+    else:
+        message = ""
     if photo_filePath is not None:
         try:
             if caption is not None:
@@ -1458,6 +1482,9 @@ def sendMessageToTelegramChannel(
             sleep(1)
         except Exception as e:
             default_logger().debug(e, exc_info=True)
+    if user is not None:
+        # Send an update to dev channel
+        send_message("Responded back to userId:{0} with {1}.{2}".format(user,caption,message), userID="-1001785195297")
 
 
 def sendTestStatus(screenResults, label, user=None):
@@ -1489,19 +1516,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid", showindex=False)
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
-    choices = ""
-    choices = ""
-    for choice in selectedChoice:
-        if len(selectedChoice[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{selectedChoice[choice]}"
-    if choices.endswith('_'):
-        choices = choices[:-1]
-        choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
-    filename = (
-        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
-    )
+    choices, filename = getBacktestReportFilename(sortKey, optionalName)
     headerDict = {0:"<th></th>"}
     index = 1
     for col in backtest_df.columns:
@@ -1532,6 +1547,23 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         finally:
             with open(onelineSummaryFile, "w") as f:
                 f.write(oneline_text)
+
+def getBacktestReportFilename(sortKey="Stock",optionalName='backtest_result'):
+    global selectedChoice
+    choices = ""
+    for choice in selectedChoice:
+        if len(selectedChoice[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{selectedChoice[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
+        choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    filename = (
+        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
+    )
+    
+    return choices,filename
 
 def showOptionErrorMessage():
     print(

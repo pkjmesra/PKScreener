@@ -161,22 +161,26 @@ class tools:
                 + colorText.END
             )
 
-    def formattedBacktestOutput(outcome,pnlStats=False):
+    def formattedBacktestOutput(outcome,pnlStats=False, htmlOutput=True):
         if not pnlStats:
-            if outcome >= 80:
+            if htmlOutput:
+                if outcome >= 80:
+                    return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
+                if outcome >= 60:
+                    return f'{colorText.WARN}{"%.2f%%" % outcome}{colorText.END}'
+                return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
+            else:
                 return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
-            if outcome >= 60:
-                return f'{colorText.WARN}{"%.2f%%" % outcome}{colorText.END}'
-            return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
         else:
             if outcome >= 0:
                 return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
             return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
         
-    def getFormattedBacktestSummary(x,pnlStats=False):
+    def getFormattedBacktestSummary(x,pnlStats=False,columnName=None):
         if x is not None and "%" in str(x):
             values = x.split("%")
-            return "{0} {1}".format(tools.formattedBacktestOutput(float(values[0]),pnlStats),values[1])
+            if len(values) ==2 and columnName is not None and ("-Pd" in columnName or "Overall" in columnName):
+                return "{0}{1}".format(tools.formattedBacktestOutput(float(values[0]),pnlStats=pnlStats,htmlOutput=False),values[1])
         return x
     
     def formatRatio(ratio, volumeRatio):
@@ -184,7 +188,6 @@ class tools:
             ratio >= volumeRatio
             and ratio != np.nan
             and (not math.isinf(ratio))
-            and (ratio != 20)
         ):
             return colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
         return colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
@@ -243,8 +246,21 @@ class tools:
         artColor = "green"
         menuColor = "red"
         gridColor = "black"
-        repoText = "Source: https://GitHub.com/pkjmesra/pkscreener/  | Telegram: https://t.me/PKScreener | Learning purposes ONLY. No legal liability."
-        
+        repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
+        repoText = f"{repoText}\n[+] Understanding this report:\n"
+        legendText= "\n*** 1. Stock ***: This is the NSE symbol/ticker for a given company. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions. There are generally 20 trading sessions each month. 3. *** Breakout (30Prds) *** : The BO is Breakout level based on the last 30 trading sessions. R is the next resistance level (if available).\n"
+        legendText= f"{legendText}An investor should consider both BO & R level to analyse entry/exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out. *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the\n"
+        legendText= f"{legendText}stock price has increased/decreased since last trading session. (1.5%,1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous\n"
+        legendText= f"{legendText}trading session. Red means it fell. *** 6. Volume ***: This shows the relative volume in the most recent trading day/today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at\n"
+        legendText= f"{legendText}least 2.5 times more than the avg volume of last 20 sessions. If the volume is in red, it means the given date's volume is less than 2.5 times the avg volume of the last 20 sessions. *** 7. MA-Signal ***: It shows the price trend of the given stock by analyzing various 50-200 moving/exponential averages crossover strategies. Perform a Google search for the shown MA-Signals\n"
+        legendText= f"{legendText}to learn about them more. If it's in green, the signal is bullish. Red means bearish. *** 8. RSI ***: Relative Strength Index is a momentum index which describes 14-period relative strength at the given price. Generally, below 30 is considered oversold and above 80 is considered overbought. *** 9. Trend(30Prds) ***: This describes the average trendline computed based on the\n"
+        legendText= f"{legendText}last 30 trading sessions. Their strength is displayed depending on the steepness of the trendlines. (Strong/Weak) Up/Down shows how high/low the demand is respectively. A Sideways trend is the horizontal price movement that occurs when the forces of supply and demand are nearly equal. *** 10. Pattern ***: This shows if the chart or the candle (from the candlestick chart) is\n"
+        legendText= f"{legendText}forming any known pattern in the recent timeframe or as per the selected screening options. Do a google search for the shown pattern names to learn. *** 11. CCI ***: The Commodity Channel Index (CCI) is a technical indicator that measures the difference between the current price and the historical average price of the given stock. Generally below -100 is considered oversold\n"
+        legendText= f"{legendText}and above 100 is considered overbought. If the CCI is < -100 or CCI is > 100 and the Trend(30Prds) is Stronf/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan\n"
+        legendText= f"{legendText}options. Similarly, 61.69% of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%\n"
+        legendText= f"{legendText}of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss able/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in\n"
+        legendText= f"{legendText}red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was founf under the chosen scan options in the past 30 trading sessions.\n"
+
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
@@ -253,29 +269,34 @@ class tools:
         bt_text_width, bt_text_height = font.getsize_multiline(backtestSummary)
         btd_text_width, btd_text_height = font.getsize_multiline(backtestDetail)
         repotext_width, repotext_height = font.getsize_multiline(repoText)
+        legendtext_width, legendtext_height = font.getsize_multiline(legendText)
         im = Image.new(
             "RGB",
-            (15+(bt_text_width if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + 30),
+            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
+        startColValue = 200
         # artwork
-        draw.text((7, 7), artText, font=artfont, fill=artColor)
-        # selected menu options and As of DateTime
-        draw.text((7, 8 + arttext_height), f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > {label}", font=font, fill=menuColor)
-        
-        rowPixelRunValue = 10 + arttext_height + label_height + repotext_height
+        draw.text((startColValue-60, 7), artText, font=artfont, fill=artColor)
+        rowPixelRunValue = 10 + arttext_height
         separator = "|"
         sep_width, sep_height = font.getsize_multiline(separator)
         dfs_to_print = [styledTable, backtestSummary, backtestDetail]
         unstyled_dfs = [table, backtestSummary, backtestDetail]
+        titleLabels = [f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}",
+                       "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
+                       "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
         counter = 0
         for df in dfs_to_print:
+            colPixelRunValue = startColValue
+            # selected menu options and As of DateTime
+            draw.text((colPixelRunValue, rowPixelRunValue), titleLabels[counter], font=font, fill=menuColor)
+            rowPixelRunValue = rowPixelRunValue + label_height
             if df is None or len(df) == 0:
                 continue
             unstyledLines = unstyled_dfs[counter].splitlines()
             lineNumber = 0
-            colPixelRunValue = 7
             screenLines = df.splitlines()
             for line in screenLines:
                 line_width, line_height = font.getsize_multiline(line)
@@ -340,12 +361,15 @@ class tools:
                         font=font,
                         fill=gridColor,
                     )
-                    colPixelRunValue = 7
+                    colPixelRunValue = startColValue
                     rowPixelRunValue = rowPixelRunValue + line_height + 1
                 lineNumber = lineNumber + 1
             counter += 1
+            rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
-        im.save(filename, format="png", bitmap_format="png")
+        draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
+        # im = im.resize((100,40), Image.ANTIALIAS)
+        im.save(filename, format="png", bitmap_format="png")#,optimize=True, quality=50)
         # im.show()
 
     def tradingDate(simulate=False, day=None):
@@ -462,8 +486,8 @@ class tools:
                 break
         return exists, cache_file
 
-    def saveStockData(stockDict, configManager, loadCount):
-        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
+    def saveStockData(stockDict, configManager, loadCount, intraday=False):
+        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig() or intraday)
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
 
