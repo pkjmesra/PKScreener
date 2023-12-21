@@ -110,7 +110,7 @@ argParser.add_argument(
 argParser.add_argument(
     "-i",
     "--intraday",
-    help="Use Intraday configurations and use the candlestick duration that is passed. Acceptabel values 1m, 5m, 15m, 1h etc.",
+    help="Use Intraday configurations and use the candlestick duration that is passed. Acceptable values 1m, 5m, 10m, 15m, 1h etc.",
     required=False,
 )
 argParser.add_argument(

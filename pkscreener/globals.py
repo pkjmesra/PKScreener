@@ -1140,7 +1140,7 @@ def main(userArgs=None):
         newlyListedOnly = False
     if configManager.isIntradayConfig():
         isIntraday = (userPassedArgs.intraday is not None)
-        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d", clearCache=False)
+        configManager.toggleConfig(candleDuration="10m" if isIntraday else "1d", clearCache=False)
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
@@ -1667,7 +1667,7 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
             break
 
 def toggleUserConfig():
-    configManager.toggleConfig(candleDuration="1d" if configManager.isIntradayConfig() else "1m")
+    configManager.toggleConfig(candleDuration="1d" if configManager.isIntradayConfig() else "10m")
     print(
         colorText.BOLD
         + colorText.GREEN

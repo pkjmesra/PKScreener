@@ -326,9 +326,9 @@ class tools:
             self.cacheEnabled = True
         if candleDuration[-1] in ["m","h"] and not self.isIntradayConfig():
             self.period = "1d"
-            self.cacheEnabled = False
+            self.cacheEnabled = True
         if self.isIntradayConfig():
-            self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "1m"
+            self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "10m"
             self.daysToLookback = 120 # At least the past 2 hours
         else:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"

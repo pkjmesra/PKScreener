@@ -520,7 +520,8 @@ class tools:
     ):
         if downloadOnly:
             return
-        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig())
+        isIntraday = configManager.isIntradayConfig()
+        exists, cache_file = tools.afterMarketStockDataExists(isIntraday)
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
@@ -563,8 +564,8 @@ class tools:
                         configManager.deleteFileWithPattern()
         if (
             not stockDataLoaded
-            and ConfigManager.default_period == configManager.period
-            and ConfigManager.default_duration == configManager.duration
+            and ("1d" if isIntraday else ConfigManager.default_period) == configManager.period
+            and ("10m" if isIntraday else ConfigManager.default_duration) == configManager.duration
         ):
             cache_url = (
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
