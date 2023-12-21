@@ -77,6 +77,7 @@ np.seterr(divide="ignore", invalid="ignore")
 # Variabls
 candlePatterns = CandlePatterns()
 configManager = ConfigManager.tools()
+configManager.getConfig(ConfigManager.parser)
 defaultAnswer = None
 fetcher = Fetcher.screenerStockDataFetcher(configManager)
 mstarFetcher = morningstarDataFetcher(configManager)
@@ -124,7 +125,6 @@ def finishScreening(
 def getDownloadChoices(defaultAnswer=None):
     global userPassedArgs
     argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
-    configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
     intraday = (intradayConfig or argsIntraday)
     exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
@@ -1014,7 +1014,7 @@ def main(userArgs=None):
             actualHistoricalDuration = samplingDuration - fillerPlaceHolder
         tasks_queue, results_queue, totalConsumers = initQueues(len(items))
         cp = CandlePatterns()
-        cm = ConfigManager.tools()
+        cm = configManager
         f = Fetcher.screenerStockDataFetcher(configManager)
         scr = Screener.tools(configManager, default_logger())
         consumers = [
@@ -1140,7 +1140,7 @@ def main(userArgs=None):
         newlyListedOnly = False
     if configManager.isIntradayConfig():
         isIntraday = (userPassedArgs.intraday is not None)
-        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d")
+        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d", clearCache=False)
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
@@ -1394,7 +1394,6 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
 def saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount):
     global userPassedArgs
     argsIntraday = (userPassedArgs is not None and userPassedArgs.intraday is not None)
-    configManager.getConfig(ConfigManager.parser)
     intradayConfig = configManager.isIntradayConfig()
     intraday = (intradayConfig or argsIntraday)
     if downloadOnly or (configManager.cacheEnabled and not Utility.tools.isTradingTime() and not testing):
