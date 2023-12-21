@@ -135,7 +135,7 @@ Followin scanners are already implemented. Others are `In Progress`
 * Once done, you can also save the results in an excel file.
 
 ## Backtests
-You can now use the *Backtests* menu to backtest any of the selected strategies.
+You can now use the *Backtests* menu to backtest any of the selected strategies. See https://pkjmesra.github.io/PKScreener/BacktestReports.html
 ![backtest](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/backtest.png)
 
 * Once done, you can also view the output html file saved at the same location from where you launched the app.
@@ -196,6 +196,8 @@ TOKEN=Your_Bot_Token_Here
 chat_idADMIN=Your_Own_ID_Here
 ```
 3. From now on, you will begin to receive your own alerts on your telegram channel.
+![alerts](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/alerts.png)
+
 
 ## Troubleshooting and Logs:
 If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreenercli.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the `logsEnabled` value to `y`, save & close it and then run `python pkscreenercli.py`.
