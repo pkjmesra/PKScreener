@@ -195,15 +195,14 @@ def getScannerMenuChoices(
     return menuOption, tickerOption, executeOption, selectedChoice
 
 def getSummaryCorrectnessOfStrategy(resultdf):
-    global selectedChoice
     summarydf = None
     detaildf = None
     try:
         results = resultdf.copy()
-        reportNameSummary = "PKScreener_B_{0}_{1}_Summary_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
-        reportNameDetail = "PKScreener_B_{0}_{1}_backtest_result_StockSorted.html".format(selectedChoice['1'],selectedChoice['2'])
-        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary))
-        dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail))
+        _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
+        _ , reportNameDetail = getBacktestReportFilename()
+        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary.replace("_X_","_B_")))
+        dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail.replace("_X_","_B_")))
         
         if len(dfs) > 0:
             df = dfs[0]
@@ -1489,19 +1488,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid", showindex=False)
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
-    choices = ""
-    choices = ""
-    for choice in selectedChoice:
-        if len(selectedChoice[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{selectedChoice[choice]}"
-    if choices.endswith('_'):
-        choices = choices[:-1]
-        choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
-    filename = (
-        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
-    )
+    choices, filename = getBacktestReportFilename(sortKey, optionalName)
     headerDict = {0:"<th></th>"}
     index = 1
     for col in backtest_df.columns:
@@ -1532,6 +1519,23 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         finally:
             with open(onelineSummaryFile, "w") as f:
                 f.write(oneline_text)
+
+def getBacktestReportFilename(sortKey="Stock",optionalName='backtest_result'):
+    global selectedChoice
+    choices = ""
+    for choice in selectedChoice:
+        if len(selectedChoice[choice]) > 0:
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{selectedChoice[choice]}"
+    if choices.endswith('_'):
+        choices = choices[:-1]
+        choices = f"{choices}{'_i' if userPassedArgs.intraday else ''}"
+    filename = (
+        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
+    )
+    
+    return choices,filename
 
 def showOptionErrorMessage():
     print(
