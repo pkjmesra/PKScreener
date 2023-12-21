@@ -85,7 +85,7 @@ jobs:
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
         copy "stock_data_*.pkl" "actions-data-download"
-        pkscreenercli.exe -d -a Y -i 1m
+        pkscreenercli.exe -d -a Y -i 10m
         copy "intraday_stock_data_*.pkl" "actions-data-download"
 
     - name: Push Pickle Data
