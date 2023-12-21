@@ -368,7 +368,8 @@ class tools:
             rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
-        im.save(filename, format="png", bitmap_format="png")
+        # im = im.resize((100,40), Image.ANTIALIAS)
+        im.save(filename, format="png", bitmap_format="png")#,optimize=True, quality=50)
         # im.show()
 
     def tradingDate(simulate=False, day=None):
