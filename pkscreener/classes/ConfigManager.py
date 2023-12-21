@@ -317,7 +317,7 @@ class tools:
             self.setConfig(parser, default=True, showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
-    def toggleConfig(self, candleDuration):
+    def toggleConfig(self, candleDuration,clearCache=True):
         if candleDuration is None:
             candleDuration = self.duration.lower()
         self.getConfig(parser)
@@ -334,10 +334,11 @@ class tools:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
             self.daysToLookback = 30 # At least the past 1.5 month
         self.setConfig(parser, default=True, showFileCreatedText=False)
-        # Delete any cached *.pkl data
-        self.deleteFileWithPattern()
-        # Delete any cached session data
-        self.restartRequestsCache()
+        if clearCache:
+            # Delete any cached *.pkl data
+            self.deleteFileWithPattern()
+            # Delete any cached session data
+            self.restartRequestsCache()
 
     def restartRequestsCache(self):
         try:

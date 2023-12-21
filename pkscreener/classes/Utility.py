@@ -490,20 +490,22 @@ class tools:
         exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig() or intraday)
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
-
+        cache_file = os.path.join(os.getcwd(),cache_file)
         if not os.path.exists(cache_file) or len(stockDict) > (loadCount + 1):
-            with open(cache_file, "wb") as f:
-                try:
-                    pickle.dump(stockDict.copy(), f)
+            try:
+                with open(cache_file, "wb") as f:
+                    pickle.dump(stockDict.copy(), f,protocol=pickle.HIGHEST_PROTOCOL)
                     print(colorText.BOLD + colorText.GREEN + "=> Done." + colorText.END)
-                except pickle.PicklingError as e:
-                    default_logger().debug(e, exc_info=True)
-                    print(
-                        colorText.BOLD
-                        + colorText.FAIL
-                        + "=> Error while Caching Stock Data."
-                        + colorText.END
-                    )
+            except pickle.PicklingError as e:
+                default_logger().debug(e, exc_info=True)
+                print(
+                    colorText.BOLD
+                    + colorText.FAIL
+                    + "=> Error while Caching Stock Data."
+                    + colorText.END
+                )
+            except Exception as e:
+                default_logger().debug(e, exc_info=True)
         else:
             print(
                 colorText.BOLD + colorText.GREEN + "=> Already Cached." + colorText.END
