@@ -961,23 +961,23 @@ def main(userArgs=None):
                 + "[+] Starting download.. Press Ctrl+C to stop!\n"
             )
 
-        suggestedHistoricalDuration = backtestPeriod
-        #(
-        #     getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
-        # )
+        suggestedHistoricalDuration = \
+        (
+            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
+        )
         # Number of days from past, including the backtest duration chosen by the user
         # that we will need to consider to evaluate the data. If the user choses 10-period
         # backtesting, we will need to have the past 6-months or whatever is returned by
         # x = getHistoricalDays and 10 days of recent data. So total rows to consider
         # will be x + 10 days.
-        samplingDuration = (backtestPeriod + 1) if menuOption == "B" else 2
+        samplingDuration = (suggestedHistoricalDuration + 1) if menuOption == "B" else 2
         fillerPlaceHolder = 1 if menuOption == "B" else 2
         backtest_df = None
         if menuOption.upper() == "B":
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {configManager.backtestPeriod} days of historical data will be considered for backtesting. You can change this in User Config.\n"
+                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config.\n"
             )
         items = []
         actualHistoricalDuration = samplingDuration - fillerPlaceHolder
@@ -1057,7 +1057,8 @@ def main(userArgs=None):
             screenResults, saveResults = labelDataForPrinting(
                 screenResults, saveResults, configManager, volumeRatio
             )
-            screenResults, saveResults = removeUnknowns(screenResults, saveResults)
+            if not newlyListedOnly and not configManager.showunknowntrends:
+                screenResults, saveResults = removeUnknowns(screenResults, saveResults)
             printNotifySaveScreenedResults(
                 screenResults,
                 saveResults,

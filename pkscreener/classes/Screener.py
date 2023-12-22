@@ -1039,6 +1039,7 @@ class tools:
 
     # Validate LTP within limits
     def validateLTP(self, data, screenDict, saveDict, minLTP=None, maxLTP=None):
+        ltpValid = False
         if minLTP is None:
             minLTP = self.configManager.minLTP
         if maxLTP is None:
@@ -1064,13 +1065,15 @@ class tools:
             yearlyHigh = data.head(250).max()["Close"]
             if ltp < (2 * yearlyLow) or ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
-        if ltp >= minLTP and ltp <= maxLTP and verifyStageTwo:
+                screenDict["Stock"] = colorText.FAIL + saveDict["Stock"] + colorText.END
+        if ltp >= minLTP and ltp <= maxLTP:
+            ltpValid = True
             saveDict["LTP"] = str((" %.2f" % ltp))
             screenDict["LTP"] = colorText.GREEN + ("%.2f" % ltp) + colorText.END
-            return True, verifyStageTwo
+            return ltpValid, verifyStageTwo
         screenDict["LTP"] = colorText.FAIL + ("%.2f" % ltp) + colorText.END
         saveDict["LTP"] = str((" %.2f" % ltp))
-        return False, verifyStageTwo
+        return ltpValid, verifyStageTwo
 
     # Find stocks that are bearish intraday: Macd Histogram negative
     def validateMACDHistogramBelow0(self, data):
@@ -1473,7 +1476,8 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
-        hasMinimumVolume = recent["VolMA"].iloc[0] >= minVolume
+        # Either the rolling volume of past 20 sessions or today's volume should be > min volume
+        hasMinimumVolume = (recent["VolMA"].iloc[0] >= minVolume or recent["Volume"].iloc[0] >= minVolume)
         if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
             saveDict["Volume"] = 0  # "Unknown"
             screenDict["Volume"] = 0
