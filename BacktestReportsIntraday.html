@@ -1,28 +1,36 @@
 
     <!DOCTYPE html><html>
-    <head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script></head>
-        <body><span style='background-color:black; color:white;' >
+        <head>
+            <script type='application/javascript' src='pkscreener/classes/tableSorting.js' ></script>
+            <style type='text/css'>
+                body, table {background-color: black; color: white;} 
+                table, th, td {border: 1px solid white;}
+                th {cursor: pointer; color:white; text-decoration:underline;}
+            </style>
+        </head>
+        <body>
+            <span style='background-color:black; color:white;' >
             <span>1. Backtest and Summary Reports for All Nifty Stocks over the last 30-trading-sessions-periods</span><br />
-            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period.</span><br />
-            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row.</span><br />
+            <span>2. Backtest report for a given scan strategy shows what profit/loss one would have incurred following that strategy over that given x-trading-period. The percentages are actual gains/losses.</span><br />
+            <span>3. Summary report shows the overall correctness of the strategy outcome for a given period and then overall for all periods combined altogether in the last row. For example, 80 percent in summary report means, the prediction under that strategy was correct 80 percent of the time.</span><br />
             <span><b>Disclaimer: Only for learning purposes! Use at your own risk!</b>></span><br />
-            <table border="1px" id='resultsTable' style='background-color:black; color:white;' >
-                <tr>
+            <table id='resultsTable' style='' >
+                <thead><tr>
                     <th>Srl #</th>
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
-                    <th onclick='sortTable(4)' style='color:white; text-decoration:underline;' >1-Pd</th>
-                    <th onclick='sortTable(5)' style='color:white; text-decoration:underline;' >2-Pd</th>
-                    <th onclick='sortTable(6)' style='color:white; text-decoration:underline;' >3-Pd</th>
-                    <th onclick='sortTable(7)' style='color:white; text-decoration:underline;' >4-Pd</th>
-                    <th onclick='sortTable(8)' style='color:white; text-decoration:underline;' >5-Pd</th>
-                    <th onclick='sortTable(9)' style='color:white; text-decoration:underline;' >10-Pd</th>
-                    <th onclick='sortTable(10)' style='color:white; text-decoration:underline;' >15-Pd</th>
-                    <th onclick='sortTable(11)' style='color:white; text-decoration:underline;' >22-Pd</th>
-                    <th onclick='sortTable(12)' style='color:white; text-decoration:underline;' >30-Pd</th>
-                    <th onclick='sortTable(13)' style='color:white; text-decoration:underline;' >Overall</th>
-                </tr>
+                    <th>1-Pd</th>
+                    <th>2-Pd</th>
+                    <th>3-Pd</th>
+                    <th>4-Pd</th>
+                    <th>5-Pd</th>
+                    <th>10-Pd</th>
+                    <th>15-Pd</th>
+                    <th>22-Pd</th>
+                    <th>30-Pd</th>
+                    <th>Overall</th>
+                </tr></thead>
             <tr>
                 <td>1</td>
                 <td>Nifty (All Stocks) > <br />Probable Breakouts (Intraday)</td>
@@ -35,7 +43,7 @@
                 <td>Nifty (All Stocks) > <br />Today's Breakouts (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_2_i_backtest_result_StockSorted.html' target='_blank'>B_12_2</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_2_i_Summary_StockSorted.html' target='_blank'>B_12_2</a></td>
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
+                            <td><span style='background-color:black;color:red;font-weight:bold;'>59.59%</span> of (1037)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>55.29%</span> of (993)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>51.16%</span> of (946)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>49.27%</span> of (891)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>46.40%</span> of (862)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>47.01%</span> of (719)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>43.23%</span> of (613)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>47.63%</span> of (317)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>58.33%</span> of (24)</td>      <td><span style='background-color:black;color:red;font-weight:bold;'>50.89%</span> of (6402)</td>                  </tr>
 
             <tr>
                 <td>3</td>
@@ -242,247 +250,233 @@
 
             <tr>
                 <td>32</td>
-                <td>Nifty (All Stocks) > <br />Rising RSI (Intraday)</td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_29_i_backtest_result_StockSorted.html' target='_blank'>B_12_29</a></td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_29_i_Summary_StockSorted.html' target='_blank'>B_12_29</a></td>
+                <td>Nifty (All Stocks) > <br />Lower Highs,Lows (Watch for Reversal) (Intraday)</td>
+                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_25_i_backtest_result_StockSorted.html' target='_blank'>B_12_25</a></td>
+                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_25_i_Summary_StockSorted.html' target='_blank'>B_12_25</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
                 <td>33</td>
-                <td>Nifty (All Stocks) > <br />RSI entering bullish territory (Intraday)</td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_30_i_backtest_result_StockSorted.html' target='_blank'>B_12_30</a></td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_12_30_i_Summary_StockSorted.html' target='_blank'>B_12_30</a></td>
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
-
-            <tr>
-                <td>34</td>
                 <td>F&O Stocks Only > <br />Probable Breakouts (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_1_i_backtest_result_StockSorted.html' target='_blank'>B_14_1</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_1_i_Summary_StockSorted.html' target='_blank'>B_14_1</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>35</td>
+                <td>34</td>
                 <td>F&O Stocks Only > <br />Today's Breakouts (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_2_i_backtest_result_StockSorted.html' target='_blank'>B_14_2</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_2_i_Summary_StockSorted.html' target='_blank'>B_14_2</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>36</td>
+                <td>35</td>
                 <td>F&O Stocks Only > <br />Consolidating stocks (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_3_i_backtest_result_StockSorted.html' target='_blank'>B_14_3</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_3_i_Summary_StockSorted.html' target='_blank'>B_14_3</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>37</td>
+                <td>36</td>
                 <td>F&O Stocks Only > <br />Lowest Volume in last 'N'-days (Early Breakout Detection) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_4_i_backtest_result_StockSorted.html' target='_blank'>B_14_4</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_4_i_Summary_StockSorted.html' target='_blank'>B_14_4</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>38</td>
+                <td>37</td>
                 <td>F&O Stocks Only > <br />RSI screening (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_5_i_backtest_result_StockSorted.html' target='_blank'>B_14_5</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_5_i_Summary_StockSorted.html' target='_blank'>B_14_5</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>39</td>
+                <td>38</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Buy Signals (Bullish Reversal) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_1_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_1</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_1_i_Summary_StockSorted.html' target='_blank'>B_14_6_1</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>40</td>
+                <td>39</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Sell Signals (Bearish Reversal) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_2_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_2</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_2_i_Summary_StockSorted.html' target='_blank'>B_14_6_2</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>41</td>
+                <td>40</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Momentum Gainers (Rising Bullish Momentum) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_3_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_3</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_3_i_Summary_StockSorted.html' target='_blank'>B_14_6_3</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>42</td>
+                <td>41</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Reversal at Moving Average (Bullish Reversal) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_4_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_4</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_4_i_Summary_StockSorted.html' target='_blank'>B_14_6_4</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>43</td>
+                <td>42</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Volume Spread Analysis (Bullish VSA Reversal) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_5_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_5</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_5_i_Summary_StockSorted.html' target='_blank'>B_14_6_5</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>44</td>
+                <td>43</td>
                 <td>F&O Stocks Only > <br />Reversal Signals > <br />Narrow Range (NRx) Reversal (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_6_i_backtest_result_StockSorted.html' target='_blank'>B_14_6_6</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_6_6_i_Summary_StockSorted.html' target='_blank'>B_14_6_6</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>45</td>
+                <td>44</td>
                 <td>F&O Stocks Only > <br />Stocks making Chart Patterns > <br />Bullish Inside Bar (Flag) Pattern (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_1_i_backtest_result_StockSorted.html' target='_blank'>B_14_7_1</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_1_i_Summary_StockSorted.html' target='_blank'>B_14_7_1</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>46</td>
+                <td>45</td>
                 <td>F&O Stocks Only > <br />Stocks making Chart Patterns > <br />Bearish Inside Bar (Flag) Pattern (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_2_i_backtest_result_StockSorted.html' target='_blank'>B_14_7_2</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_2_i_Summary_StockSorted.html' target='_blank'>B_14_7_2</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>47</td>
+                <td>46</td>
                 <td>F&O Stocks Only > <br />Stocks making Chart Patterns > <br />The Confluence (50 & 200 MA/EMA) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_3_i_backtest_result_StockSorted.html' target='_blank'>B_14_7_3</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_3_i_Summary_StockSorted.html' target='_blank'>B_14_7_3</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>48</td>
+                <td>47</td>
                 <td>F&O Stocks Only > <br />Stocks making Chart Patterns > <br />VCP (Experimental) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_4_i_backtest_result_StockSorted.html' target='_blank'>B_14_7_4</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_4_i_Summary_StockSorted.html' target='_blank'>B_14_7_4</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>49</td>
+                <td>48</td>
                 <td>F&O Stocks Only > <br />Stocks making Chart Patterns > <br />Buying at Trendline (Ideal for Swing/Mid/Long term) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_5_i_backtest_result_StockSorted.html' target='_blank'>B_14_7_5</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_7_5_i_Summary_StockSorted.html' target='_blank'>B_14_7_5</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>50</td>
+                <td>49</td>
                 <td>F&O Stocks Only > <br />CCI outside of the given range (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_8_i_backtest_result_StockSorted.html' target='_blank'>B_14_8</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_8_i_Summary_StockSorted.html' target='_blank'>B_14_8</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>51</td>
+                <td>50</td>
                 <td>F&O Stocks Only > <br />Volume gainers (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_9_i_backtest_result_StockSorted.html' target='_blank'>B_14_9</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_9_i_Summary_StockSorted.html' target='_blank'>B_14_9</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>52</td>
+                <td>51</td>
                 <td>F&O Stocks Only > <br />Closing at least 2% up since last 3 days (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_10_i_backtest_result_StockSorted.html' target='_blank'>B_14_10</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_10_i_Summary_StockSorted.html' target='_blank'>B_14_10</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>53</td>
+                <td>52</td>
                 <td>F&O Stocks Only > <br />Short term bullish stocks(Intraday) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_11_i_backtest_result_StockSorted.html' target='_blank'>B_14_11</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_11_i_Summary_StockSorted.html' target='_blank'>B_14_11</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>54</td>
+                <td>53</td>
                 <td>F&O Stocks Only > <br />15 Minute Price & Volume breakout(Intraday) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_12_i_backtest_result_StockSorted.html' target='_blank'>B_14_12</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_12_i_Summary_StockSorted.html' target='_blank'>B_14_12</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>55</td>
+                <td>54</td>
                 <td>F&O Stocks Only > <br />Bullish RSI & MACD(Intraday) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_13_i_backtest_result_StockSorted.html' target='_blank'>B_14_13</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_13_i_Summary_StockSorted.html' target='_blank'>B_14_13</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>56</td>
+                <td>55</td>
                 <td>F&O Stocks Only > <br />NR4 Daily Today (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_14_i_backtest_result_StockSorted.html' target='_blank'>B_14_14</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_14_i_Summary_StockSorted.html' target='_blank'>B_14_14</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>57</td>
+                <td>56</td>
                 <td>F&O Stocks Only > <br />52 week low breakout(today/1 wk) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_15_i_backtest_result_StockSorted.html' target='_blank'>B_14_15</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_15_i_Summary_StockSorted.html' target='_blank'>B_14_15</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>58</td>
+                <td>57</td>
                 <td>F&O Stocks Only > <br />10 days low breakout (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_16_i_backtest_result_StockSorted.html' target='_blank'>B_14_16</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_16_i_Summary_StockSorted.html' target='_blank'>B_14_16</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>59</td>
+                <td>58</td>
                 <td>F&O Stocks Only > <br />52 week high breakout(today/1 wk) (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_17_i_backtest_result_StockSorted.html' target='_blank'>B_14_17</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_17_i_Summary_StockSorted.html' target='_blank'>B_14_17</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>60</td>
+                <td>59</td>
                 <td>F&O Stocks Only > <br />Bullish Aroon(14) Crossover (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_18_i_backtest_result_StockSorted.html' target='_blank'>B_14_18</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_18_i_Summary_StockSorted.html' target='_blank'>B_14_18</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>61</td>
+                <td>60</td>
                 <td>F&O Stocks Only > <br />MACD Histogram x below 0 (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_19_i_backtest_result_StockSorted.html' target='_blank'>B_14_19</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_19_i_Summary_StockSorted.html' target='_blank'>B_14_19</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>62</td>
+                <td>61</td>
                 <td>F&O Stocks Only > <br />Bullish for next day (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_20_i_backtest_result_StockSorted.html' target='_blank'>B_14_20</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_20_i_Summary_StockSorted.html' target='_blank'>B_14_20</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>63</td>
+                <td>62</td>
                 <td>F&O Stocks Only > <br />Breaking out now (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_23_i_backtest_result_StockSorted.html' target='_blank'>B_14_23</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_23_i_Summary_StockSorted.html' target='_blank'>B_14_23</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>64</td>
+                <td>63</td>
                 <td>F&O Stocks Only > <br />Higher Highs,Lows & Close (Intraday)</td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_24_i_backtest_result_StockSorted.html' target='_blank'>B_14_24</a></td>
                 <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_24_i_Summary_StockSorted.html' target='_blank'>B_14_24</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             <tr>
-                <td>65</td>
-                <td>F&O Stocks Only > <br />Rising RSI (Intraday)</td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_29_i_backtest_result_StockSorted.html' target='_blank'>B_14_29</a></td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_29_i_Summary_StockSorted.html' target='_blank'>B_14_29</a></td>
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
-
-            <tr>
-                <td>66</td>
-                <td>F&O Stocks Only > <br />RSI entering bullish territory (Intraday)</td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_30_i_backtest_result_StockSorted.html' target='_blank'>B_14_30</a></td>
-                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_30_i_Summary_StockSorted.html' target='_blank'>B_14_30</a></td>
+                <td>64</td>
+                <td>F&O Stocks Only > <br />Lower Highs,Lows (Watch for Reversal) (Intraday)</td>
+                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_25_i_backtest_result_StockSorted.html' target='_blank'>B_14_25</a></td>
+                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_B_14_25_i_Summary_StockSorted.html' target='_blank'>B_14_25</a></td>
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>            </tr>
 
             </table>
