@@ -329,7 +329,7 @@ class tools:
             self.cacheEnabled = True
         if self.isIntradayConfig():
             self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "10m"
-            self.daysToLookback = 120 # At least the past 2 hours
+            self.daysToLookback = 30 # At least the past 30 minutes
         else:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
             self.daysToLookback = 30 # At least the past 1.5 month
