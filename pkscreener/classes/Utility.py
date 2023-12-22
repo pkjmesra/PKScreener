@@ -248,7 +248,7 @@ class tools:
         gridColor = "black"
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
-        legendText= "\n*** 1. Stock ***: This is the NSE symbol/ticker for a given company. Stocks that are not stage two, are shown in red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout (30Prds) *** : The BO is Breakout level based on the last 30 sessions. R is the resistance level (if available).\n"
+        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout (30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available).\n"
         legendText= f"{legendText}An investor should consider both BO & R level to analyse entry / exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out.  *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the\n"
         legendText= f"{legendText}stock price has increased / decreased since last trading session. (1.5%, 1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous\n"
         legendText= f"{legendText}trading session. Red means it fell.  *** 6. Volume ***: This shows the relative volume in the most recent trading day /today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at\n"
@@ -287,14 +287,15 @@ class tools:
         titleLabels = [f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}",
                        "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
                        "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
-        counter = 0
+        counter = -1
         for df in dfs_to_print:
+            counter += 1
             colPixelRunValue = startColValue
+            if df is None or len(df) == 0:
+                continue
             # selected menu options and As of DateTime
             draw.text((colPixelRunValue, rowPixelRunValue), titleLabels[counter], font=font, fill=menuColor)
             rowPixelRunValue = rowPixelRunValue + label_height
-            if df is None or len(df) == 0:
-                continue
             unstyledLines = unstyled_dfs[counter].splitlines()
             lineNumber = 0
             screenLines = df.splitlines()
@@ -364,7 +365,6 @@ class tools:
                     colPixelRunValue = startColValue
                     rowPixelRunValue = rowPixelRunValue + line_height + 1
                 lineNumber = lineNumber + 1
-            counter += 1
             rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)

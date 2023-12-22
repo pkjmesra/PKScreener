@@ -1183,6 +1183,8 @@ def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
     global userPassedArgs, elapsed_time
+    tabulated_backtest_summary = ""
+    tabulated_backtest_detail = ""
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
     Utility.tools.clearScreen()
@@ -1193,24 +1195,28 @@ def printNotifySaveScreenedResults(
         + colorText.END
     )
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
-    tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
-    tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+    if len(summarydf) > 0:
+        tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
+    if len(detaildf) > 0:
+        tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
-    print(
-        colorText.BOLD
-        + colorText.FAIL
-        + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
-        + colorText.END
-    )
-    print(tabulated_backtest_summary)
-    print(
-        colorText.BOLD
-        + colorText.FAIL
-        + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
-        + colorText.END
-    )
-    print(tabulated_backtest_detail)
+    if tabulated_backtest_summary != "":
+        print(
+            colorText.BOLD
+            + colorText.FAIL
+            + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
+            + colorText.END
+        )
+        print(tabulated_backtest_summary)
+    if tabulated_backtest_detail != "":
+        print(
+            colorText.BOLD
+            + colorText.FAIL
+            + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
+            + colorText.END
+        )
+        print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if len(screenResults) >= 1:
         if not testing and len(screenResults) <= 100:

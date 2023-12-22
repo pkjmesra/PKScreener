@@ -917,8 +917,11 @@ def _shouldAvoidResponse(update):
     if update.channel_post is not None:
         if update.channel_post.chat is not None:
             sentFrom.append(abs(update.channel_post.chat.id))
+            if update.channel_post.chat.username is not None:
+                sentFrom.append(update.channel_post.chat.username)
         if update.channel_post.sender_chat is not None:
             sentFrom.append(abs(update.channel_post.sender_chat.id))
+            sentFrom.append(update.channel_post.sender_chat.username)
 
     if abs(int(Channel_Id)) in sentFrom or \
         abs(int(GROUP_CHAT_ID)) in sentFrom or \
