@@ -565,7 +565,7 @@ class tools:
         if (
             not stockDataLoaded
             and ("1d" if isIntraday else ConfigManager.default_period) == configManager.period
-            and ("10m" if isIntraday else ConfigManager.default_duration) == configManager.duration
+            and ("1m" if isIntraday else ConfigManager.default_duration) == configManager.duration
         ):
             cache_url = (
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
