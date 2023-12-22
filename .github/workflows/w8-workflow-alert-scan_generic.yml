@@ -149,7 +149,7 @@ jobs:
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
-        curl -o pkscreenercli.bin -JL $exe_path
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
 
     - name: Configure env.dev file
       run: |
@@ -173,5 +173,5 @@ jobs:
       if: startsWith(runner.os, 'Linux')
       run: |
         ${{ inputs.prerequisites }}
-        pkscreenercli.bin ${{ inputs.params }}
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin ${{ inputs.params }}
         ${{ inputs.postrun }}
