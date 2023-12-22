@@ -1140,7 +1140,7 @@ def main(userArgs=None):
         newlyListedOnly = False
     if configManager.isIntradayConfig():
         isIntraday = (userPassedArgs.intraday is not None)
-        configManager.toggleConfig(candleDuration="10m" if isIntraday else "1d", clearCache=False)
+        configManager.toggleConfig(candleDuration="1m" if isIntraday else "1d", clearCache=False)
 
 def updateMenuChoiceHierarchy():
     global selectedChoice, menuChoiceHierarchy
@@ -1558,7 +1558,7 @@ def getBacktestReportFilename(sortKey="Stock",optionalName='backtest_result'):
             choices = f"{choices}{selectedChoice[choice]}"
     if choices.endswith('_'):
         choices = choices[:-1]
-        choices = f"{choices}{'_i' if isIntraday else ''}"
+    choices = f"{choices}{'_i' if isIntraday else ''}"
     filename = (
         f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
     )
@@ -1668,7 +1668,7 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
             break
 
 def toggleUserConfig():
-    configManager.toggleConfig(candleDuration="1d" if configManager.isIntradayConfig() else "10m")
+    configManager.toggleConfig(candleDuration="1d" if configManager.isIntradayConfig() else "1m")
     print(
         colorText.BOLD
         + colorText.GREEN
