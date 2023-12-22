@@ -1195,9 +1195,9 @@ def printNotifySaveScreenedResults(
         + colorText.END
     )
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
-    if len(summarydf) > 0:
+    if summarydf is not None and len(summarydf) > 0:
         tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
-    if len(detaildf) > 0:
+    if detaildf is not None and len(detaildf) > 0:
         tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)

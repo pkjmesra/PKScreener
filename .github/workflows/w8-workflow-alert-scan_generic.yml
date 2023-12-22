@@ -50,6 +50,10 @@ on:
           description: 'Run parameters for post-run'
           required: false
           default: 'echo Finished running'
+      runson:
+          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          required: false
+          default: 'windows-latest'
 
 run-name: ${{ inputs.name }} Generic runner for scan - ${{ inputs.params }}
 
@@ -57,7 +61,7 @@ jobs:
 
   Generic_Workflow_Runner:
 
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -77,7 +81,19 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+
+    - name: Install TA-Lib for Windows
+      if: startsWith(runner.os, 'Windows')
       run: |
         python -m pip install --upgrade pip
         pip install requests
@@ -85,18 +101,40 @@ jobs:
         echo %cd%
         pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
 
+    - name: Install TA-Lib for Linux
+      if: startsWith(runner.os, 'Linux')
+      run: |
+        cd .github/dependencies/
+        pwd
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib/
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib==0.4.24
+
     - name: Environment setup to get latest EXE
-      shell: cmd
+      shell: bash
       id: releaseurlsetter
       run: |
-        python .github/workflows/githubutilities.py -d
+        python3 .github/workflows/githubutilities.py -d
 
     - name: Download latest executable
       shell: cmd
+      if: startsWith(runner.os, 'Windows')
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o pkscreenercli.exe -JL %exe_path%
+
+    - name: Download latest executable
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o pkscreenercli.bin -JL %exe_path%
 
     - name: Configure env.dev file
       run: |
@@ -107,9 +145,18 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
   
-    - name: Run Scan
+    - name: Run Scan on Windows
       shell: cmd
+      if: startsWith(runner.os, 'Windows')
       run: |
         ${{ inputs.prerequisites }}
         pkscreenercli.exe ${{ inputs.params }}
+        ${{ inputs.postrun }}
+
+    - name: Run Scan on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      run: |
+        ${{ inputs.prerequisites }}
+        pkscreenercli.bin ${{ inputs.params }}
         ${{ inputs.postrun }}
