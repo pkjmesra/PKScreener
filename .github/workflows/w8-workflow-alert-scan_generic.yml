@@ -150,6 +150,7 @@ jobs:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin
 
     - name: Configure env.dev file
       run: |
