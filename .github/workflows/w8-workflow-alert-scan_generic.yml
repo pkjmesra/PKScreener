@@ -73,7 +73,8 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Restore Dependencies from Cache
+    - name: Restore Dependencies from Windows Cache
+      if: startsWith(runner.os, 'Windows')
       uses: actions/cache@v2
       with:
         path: ~\AppData\Local\pip\Cache
@@ -88,9 +89,22 @@ jobs:
         path: |
           /usr/include/ta-lib
           /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
         key: ${{ runner.os }}-talib
         restore-keys: |
           ${{ runner.os }}-talib
+        
+    - name: Restore Dependencies from Ubuntu Cache
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v2
+      id: cache-venv  # name for referring later
+      with:
+        path: ./.venv/  # what we cache: the virtualenv
+        # The cache key depends on requirements.txt
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
 
     - name: Install TA-Lib for Windows
       if: startsWith(runner.os, 'Windows')
@@ -113,6 +127,7 @@ jobs:
         sudo make install
         cd /home/runner/work/PKScreener/PKScreener/
         pip3 install ta-lib==0.4.24
+        pip3 install requests
 
     - name: Environment setup to get latest EXE
       shell: bash
@@ -120,7 +135,7 @@ jobs:
       run: |
         python3 .github/workflows/githubutilities.py -d
 
-    - name: Download latest executable
+    - name: Download latest executable on Windows
       shell: cmd
       if: startsWith(runner.os, 'Windows')
       env:
@@ -128,7 +143,7 @@ jobs:
       run: |
         curl -o pkscreenercli.exe -JL %exe_path%
 
-    - name: Download latest executable
+    - name: Download latest executable on Ubuntu
       shell: bash
       if: startsWith(runner.os, 'Linux')
       env:
