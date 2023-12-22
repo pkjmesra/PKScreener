@@ -214,7 +214,7 @@ class StockConsumer:
                 )
                 if configManager.stageTwo and not verifyStageTwo and executeOption > 0:
                     raise Screener.NotAStageTwoStock
-                minVolume = configManager.minVolume / (1000 if configManager.isIntradayConfig() else 1)
+                minVolume = configManager.minVolume / (100 if configManager.isIntradayConfig() else 1)
                 hasMinVolumeRatio, hasMinVolQty = screener.validateVolume(
                     processedData,
                     screeningDictionary,

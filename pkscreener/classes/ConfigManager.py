@@ -51,14 +51,15 @@ class tools:
         self.daysToLookback = 30
         self.shuffleEnabled = True
         self.cacheEnabled = True
-        self.stageTwo = True
+        self.stageTwo = False
         self.useEMA = False
+        self.showunknowntrends = True
         self.logsEnabled = False
         self.generalTimeout = 2
         self.longTimeout = 4
         self.maxNetworkRetryCount = 10
         self.backtestPeriod = 30
-        self.minVolume = 100000
+        self.minVolume = 10000
         self.logger = None
 
     @property
@@ -106,6 +107,7 @@ class tools:
             parser.set("config", "cacheStockData", "y" if self.cacheEnabled else "n")
             parser.set("config", "onlyStageTwoStocks", "y" if self.stageTwo else "n")
             parser.set("config", "useEMA", "y" if self.useEMA else "n")
+            parser.set("config", "showunknowntrends", "y" if self.showunknowntrends else "n")
             parser.set("config", "logsEnabled", "y" if self.logsEnabled else "n")
             parser.set("config", "generalTimeout", str(self.generalTimeout))
             parser.set("config", "longTimeout", str(self.longTimeout))
@@ -186,6 +188,11 @@ class tools:
                     "[+] Use EMA instead of SMA? (EMA is good for Short-term & SMA for Mid/Long-term trades)[Y/N]: "
                 )
             ).lower()
+            self.showunknowntrendsPrompt = str(
+                input(
+                    "[+] Show even those results where trends are not known[Y/N] (Recommended Y): "
+                )
+            ).lower()
             self.logsEnabledPrompt = str(
                 input(
                     "[+] Enable Viewing logs? You can ebale if you are having problems.[Y/N]: "
@@ -219,6 +226,7 @@ class tools:
             parser.set("config", "cacheStockData", self.cacheStockData)
             parser.set("config", "onlyStageTwoStocks", self.stageTwoPrompt)
             parser.set("config", "useEMA", self.useEmaPrompt)
+            parser.set("config", "showunknowntrends", self.showunknowntrendsPrompt)
             parser.set("config", "logsEnabled", self.logsEnabledPrompt)
             parser.set("config", "generalTimeout", self.generalTimeout)
             parser.set("config", "longTimeout", self.longTimeout)
@@ -289,6 +297,11 @@ class tools:
                 self.useEMA = (
                     False
                     if "y" not in str(parser.get("config", "useEMA")).lower()
+                    else True
+                )
+                self.showunknowntrends = (
+                    False
+                    if "y" not in str(parser.get("config", "showunknowntrends")).lower()
                     else True
                 )
                 self.logsEnabled = (
