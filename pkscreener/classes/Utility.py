@@ -328,6 +328,8 @@ class tools:
                     del valueScreenCols[0]
                     del valueScreenCols[-1]
                     for val in valueScreenCols:
+                        if lineNumber >= len(unstyledLines):
+                            continue
                         unstyledLine = unstyledLines[lineNumber]
                         style, cleanValue = tools.getCellColor(val)
                         if columnNumber == 0:

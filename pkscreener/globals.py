@@ -1187,6 +1187,7 @@ def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
     global userPassedArgs, elapsed_time
+    MAX_ALLOWED = 40
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     if user is None and userPassedArgs.user is not None:
@@ -1225,32 +1226,38 @@ def printNotifySaveScreenedResults(
     screenResultsTrimmed = screenResults.copy()
     saveResultsTrimmed = saveResults.copy()
     if len(screenResultsTrimmed) >= 1:
-        if len(screenResultsTrimmed) > 100:
-            screenResultsTrimmed = screenResultsTrimmed.head(100)
-            saveResultsTrimmed = saveResultsTrimmed.head(100)
-        if not testing and len(screenResultsTrimmed) <= 100:
-            # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){' but only including top 100 results here.' if (len(saveResults) > 100) else ''}.{caption}"
-            markdown_results = tabulate(
-                saveResultsTrimmed, headers="keys", tablefmt="grid"
-            )
+        if len(screenResultsTrimmed) > MAX_ALLOWED:
+            screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
+            saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
+            detaildf = detaildf.head(2*MAX_ALLOWED)
+            tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
+            markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
+            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+
+        if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
+            # No point sending a photo with more than MAX_ALLOWED stocks.
+            warn_text = f' but only including top {MAX_ALLOWED} results here. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html' if (len(saveResults) > MAX_ALLOWED) else ''
+            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}.{caption}"
             pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
             if is_token_telegram_configured():
-                Utility.tools.tableToImage(
-                    markdown_results,
-                    tabulated_results,
-                    pngName,
-                    menuChoiceHierarchy,
-                    backtestSummary=tabulated_backtest_summary,
-                    backtestDetail=tabulated_backtest_detail,
-                )
-                sendMessageToTelegramChannel(
-                    message=None, photo_filePath=pngName, caption=caption, user=user
-                )
+                # import traceback
                 try:
+                    Utility.tools.tableToImage(
+                        markdown_results,
+                        tabulated_results,
+                        pngName,
+                        menuChoiceHierarchy,
+                        backtestSummary=tabulated_backtest_summary,
+                        backtestDetail=tabulated_backtest_detail,
+                    )
+                    sendMessageToTelegramChannel(
+                        message=None, photo_filePath=pngName, caption=caption, user=user
+                    )
                     os.remove(pngName)
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
+                    # print(e)
+                    # traceback.print_exc()
         if 'RUNNER' in os.environ.keys():
             # There's no need to save data locally.
             # This scan must have been triggered by github workflow by a user or scheduled job
