@@ -1236,8 +1236,8 @@ def printNotifySaveScreenedResults(
 
         if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
             # No point sending a photo with more than MAX_ALLOWED stocks.
-            warn_text = f' but only including top {MAX_ALLOWED} results here. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html' if (len(saveResults) > MAX_ALLOWED) else ''
-            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}.{caption}"
+            warn_text = f' but only including top {MAX_ALLOWED} results here. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html ' if (len(saveResults) > MAX_ALLOWED) else ''
+            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {caption}"
             pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
             if is_token_telegram_configured():
                 # import traceback

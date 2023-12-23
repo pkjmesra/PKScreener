@@ -190,7 +190,7 @@ def setupLogger(shouldLog=False, trace=False):
         log_file_path=log_file_path,
         filter=None,
     )
-    os.environ['PKDevTools_Default_Log_Level'] = log.logging.DEBUG
+    os.environ['PKDevTools_Default_Log_Level'] = str(log.logging.DEBUG)
 
 def runApplication():
     from pkscreener.globals import main
