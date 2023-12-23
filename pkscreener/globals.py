@@ -110,7 +110,7 @@ def finishScreening(
     saveResults,
     user=None,
 ):
-    if len(os.environ['RUNNER']) > 0:
+    if 'RUNNER' in os.environ.keys():
         # There's no need to prompt the user to save xls report or to save data locally.
         # This scan must have been triggered by github workflow by a user or scheduled job
         return
@@ -1251,7 +1251,7 @@ def printNotifySaveScreenedResults(
                     os.remove(pngName)
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
-        if len(os.environ['RUNNER']) > 0:
+        if 'RUNNER' in os.environ.keys():
             # There's no need to save data locally.
             # This scan must have been triggered by github workflow by a user or scheduled job
             return
