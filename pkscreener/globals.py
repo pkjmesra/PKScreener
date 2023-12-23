@@ -202,6 +202,8 @@ def getSummaryCorrectnessOfStrategy(resultdf):
     summarydf = None
     detaildf = None
     try:
+        if resultdf is None or len(resultdf) == 0:
+            return None, None
         results = resultdf.copy()
         _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
         _ , reportNameDetail = getBacktestReportFilename()
@@ -1223,16 +1225,17 @@ def printNotifySaveScreenedResults(
         )
         print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
-    screenResultsTrimmed = screenResults.copy()
-    saveResultsTrimmed = saveResults.copy()
-    if len(screenResultsTrimmed) >= 1:
+    if screenResults is not None and len(screenResults) >= 1:
+        screenResultsTrimmed = screenResults.copy()
+        saveResultsTrimmed = saveResults.copy()
         if len(screenResultsTrimmed) > MAX_ALLOWED:
             screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
             saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
-            detaildf = detaildf.head(2*MAX_ALLOWED)
+            if detaildf is not None and len(detaildf) > 0:
+                detaildf = detaildf.head(2*MAX_ALLOWED)
+                tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
             tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
             markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
-            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
 
         if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
             # No point sending a photo with more than MAX_ALLOWED stocks.
