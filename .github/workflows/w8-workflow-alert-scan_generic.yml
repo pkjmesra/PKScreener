@@ -131,12 +131,12 @@ jobs:
         sudo make install
         cd /home/runner/work/PKScreener/PKScreener/
         pip3 install ta-lib==0.4.24
-        pip3 install requests
 
     - name: Environment setup to get latest EXE
       shell: bash
       id: releaseurlsetter
       run: |
+        pip3 install requests
         python3 .github/workflows/githubutilities.py -d
 
     - name: Download latest executable on Windows
