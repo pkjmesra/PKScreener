@@ -53,11 +53,11 @@ on:
       runson:
           description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
           required: false
-          default: 'windows-latest'
+          default: 'ubuntu-20.04'
       installtalib:
         description: 'Is TA-Lib install required? (Y/N)'
         required: false
-        default: 'Y'
+        default: 'N'
 
 run-name: ${{ inputs.name }} Generic runner for scan - ${{ inputs.params }}
 
@@ -168,6 +168,8 @@ jobs:
     - name: Run Scan on Windows
       shell: cmd
       if: startsWith(runner.os, 'Windows')
+      env:
+        RUNNER : "GitHub_Actions"
       run: |
         ${{ inputs.prerequisites }}
         pkscreenercli.exe ${{ inputs.params }}
@@ -176,6 +178,8 @@ jobs:
     - name: Run Scan on Ubuntu
       shell: bash
       if: startsWith(runner.os, 'Linux')
+      env:
+        RUNNER : "GitHub_Actions"
       run: |
         ${{ inputs.prerequisites }}
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin ${{ inputs.params }}

@@ -110,6 +110,10 @@ def finishScreening(
     saveResults,
     user=None,
 ):
+    if len(os.environ['RUNNER']) > 0:
+        # There's no need to prompt the user to save xls report or to save data locally.
+        # This scan must have been triggered by github workflow by a user or scheduled job
+        return
     global defaultAnswer, menuChoiceHierarchy, userPassedArgs, selectedChoice
     saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount)
     if not testBuild and not downloadOnly and not testing:
@@ -1218,12 +1222,17 @@ def printNotifySaveScreenedResults(
         )
         print(tabulated_backtest_detail)
     caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
-    if len(screenResults) >= 1:
-        if not testing and len(screenResults) <= 100:
+    screenResultsTrimmed = screenResults.copy()
+    saveResultsTrimmed = saveResults.copy()
+    if len(screenResultsTrimmed) >= 1:
+        if len(screenResultsTrimmed) > 100:
+            screenResultsTrimmed = screenResultsTrimmed.head(100)
+            saveResultsTrimmed = saveResultsTrimmed.head(100)
+        if not testing and len(screenResultsTrimmed) <= 100:
             # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec).{caption}"
+            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){' but only including top 100 results here.' if (len(saveResults) > 100) else ''}.{caption}"
             markdown_results = tabulate(
-                saveResults, headers="keys", tablefmt="grid"
+                saveResultsTrimmed, headers="keys", tablefmt="grid"
             )
             pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
             if is_token_telegram_configured():
@@ -1242,6 +1251,10 @@ def printNotifySaveScreenedResults(
                     os.remove(pngName)
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
+        if len(os.environ['RUNNER']) > 0:
+            # There's no need to save data locally.
+            # This scan must have been triggered by github workflow by a user or scheduled job
+            return
         print(
             colorText.BOLD
             + colorText.GREEN
