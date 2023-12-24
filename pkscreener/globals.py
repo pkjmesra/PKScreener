@@ -1298,7 +1298,7 @@ def printNotifySaveScreenedResults(
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
-        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;}</style></head><body><span style='color:white;' >"
+        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;} .r {color:red;font-weight:bold;} .g {color:lightgreen;font-weight:bold;} .y {color:yellow;}</style></head><body><span style='color:white;' >"
         colored_text = colored_text.replace("<table", f"{tableText}{summaryText}<br /><table")
         colored_text = colored_text.replace("<table ", "<table id='resultsTable' ")
         for key in headerDict.keys():
@@ -1313,11 +1313,11 @@ def reformatTable(summaryText, headerDict, colored_text, sorting=True):
         colored_text = colored_text.replace('</tr>', "")
         colored_text = colored_text.replace('</tbody>', "")
         colored_text = colored_text.replace('</table>', "")
-    colored_text = colored_text.replace(colorText.GREEN,"<span style='background-color:black;color:lightgreen;font-weight:bold;'>")
+    colored_text = colored_text.replace(f"<td>{colorText.GREEN}","<td class='g'>")
     colored_text = colored_text.replace(colorText.BOLD,"")
-    colored_text = colored_text.replace(colorText.FAIL,"<span style='background-color:black;color:red;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.WARN,"<span style='background-color:black;color:yellow;'>")
-    colored_text = colored_text.replace(colorText.END,"</span>")
+    colored_text = colored_text.replace(f"<td>{colorText.FAIL}","<td class='r'>")
+    colored_text = colored_text.replace(f"<td>{colorText.WARN}","<td class='y'>")
+    colored_text = colored_text.replace(colorText.END,"")
     colored_text = colored_text.replace("\n","")
     if sorting:
         colored_text = colored_text.replace("</table>","</table></span></body></html>")
