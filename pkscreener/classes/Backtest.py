@@ -61,6 +61,7 @@ def backtest(
     previous_recent.reset_index(inplace=True)
     if len(previous_recent) <= 0:
         return backTestedData
+    data = data.head(periods+1)
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
     if backTestedData is None:
         backTestedData = pd.DataFrame(

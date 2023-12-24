@@ -937,13 +937,12 @@ def main(userArgs=None):
             input("Exiting now...")
             sys.exit(0)
 
-        if (
-            (menuOption == "X" or menuOption == "B")
-            and not downloadOnly
+        if ((menuOption == "B" and not loadedStockData) or (
+            not downloadOnly
             and not Utility.tools.isTradingTime()
             and configManager.cacheEnabled
             and not loadedStockData
-            and not testing
+            and not testing)
         ):
             Utility.tools.loadStockData(
                 stockDict,
