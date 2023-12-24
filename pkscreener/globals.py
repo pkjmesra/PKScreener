@@ -1263,22 +1263,22 @@ def printNotifySaveScreenedResults(
                         sendMessageToTelegramChannel(
                             message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
                         )
-
-                        # Let's send the backtest results now
-                        Utility.tools.tableToImage(
-                            "",
-                            "",
-                            pngName+backtestExtension,
-                            menuChoiceHierarchy,
-                            backtestSummary=tabulated_backtest_summary,
-                            backtestDetail=tabulated_backtest_detail,
-                        )
-                        caption = f"Backtest data for stocks listed in <b>{title}</b> scan results. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html"
-                        sendMessageToTelegramChannel(
-                            message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
-                        )
                         os.remove(pngName+pngExtension)
-                        os.remove(pngName+backtestExtension)
+                        # Let's send the backtest results now only if the user requested 1-on-1 for scan.
+                        if user is not None:
+                            Utility.tools.tableToImage(
+                                "",
+                                "",
+                                pngName+backtestExtension,
+                                menuChoiceHierarchy,
+                                backtestSummary=tabulated_backtest_summary,
+                                backtestDetail=tabulated_backtest_detail,
+                            )
+                            caption = f"Backtest data for stocks listed in <b>{title}</b> scan results. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html"
+                            sendMessageToTelegramChannel(
+                                message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
+                            )
+                            os.remove(pngName+backtestExtension)                        
                     except Exception as e:
                         default_logger().debug(e, exc_info=True)
                         print(e)
