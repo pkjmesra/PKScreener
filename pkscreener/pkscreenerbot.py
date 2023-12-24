@@ -558,7 +558,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         optionChoices = (
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
-        menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 2 to 5 minutes! \n\nConsider donating to help keep this project going:\n\nUPI (India): 8007162973@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
+        menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1 to 5 minutes! \n\nConsider donating to help keep this project going:\n\nUPI (India): 8007162973@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:

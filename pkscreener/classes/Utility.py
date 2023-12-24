@@ -209,7 +209,7 @@ class tools:
             cleanedUpStyledValue = cleanedUpStyledValue.replace(style, "")
         return cleanedUpStyledValue
 
-    def getCellColor(cellStyledValue=""):
+    def getCellColor(cellStyledValue="", defaultCellFillColor="black"):
         otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
         mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]
         colorsDict = {
@@ -220,7 +220,7 @@ class tools:
             colorText.WHITE: "blue"
         }
         cleanedUpStyledValue = cellStyledValue
-        cellFillColor = "black"
+        cellFillColor = defaultCellFillColor
         for style in otherStyles:
             cleanedUpStyledValue = cleanedUpStyledValue.replace(style, "")
         for style in mainStyles:
@@ -242,10 +242,10 @@ class tools:
                 for chunk in resp.iter_content(chunk_size=1024): 
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
-        bgColor = "white"
+        bgColor = "black"
+        gridColor = "white"
         artColor = "green"
         menuColor = "red"
-        gridColor = "black"
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
         legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout (30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available).\n"
@@ -272,7 +272,7 @@ class tools:
         legendtext_width, legendtext_height = font.getsize_multiline(legendText)
         im = Image.new(
             "RGB",
-            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height),
+            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + int(legendtext_height/4)),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -284,9 +284,12 @@ class tools:
         sep_width, sep_height = font.getsize_multiline(separator)
         dfs_to_print = [styledTable, backtestSummary, backtestDetail]
         unstyled_dfs = [table, backtestSummary, backtestDetail]
-        titleLabels = [f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}",
+        reportTitle = f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}"
+        titleLabels = [f"[+] Scan results for {label} :",
                        "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
                        "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
+        draw.text((startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor)
+        rowPixelRunValue += label_height +1
         counter = -1
         for df in dfs_to_print:
             counter += 1
@@ -331,7 +334,7 @@ class tools:
                         if lineNumber >= len(unstyledLines):
                             continue
                         unstyledLine = unstyledLines[lineNumber]
-                        style, cleanValue = tools.getCellColor(val)
+                        style, cleanValue = tools.getCellColor(val, defaultCellFillColor=gridColor)
                         if columnNumber == 0:
                             cleanValue = unstyledLine.split(separator)[1]
                             style = gridColor
@@ -370,8 +373,8 @@ class tools:
             rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
-        # im = im.resize((100,40), Image.ANTIALIAS)
-        im.save(filename, format="png", bitmap_format="png")#,optimize=True, quality=50)
+        im = im.resize((int(im.size[0]/5),int(im.size[1]/5)), Image.ANTIALIAS, reducing_gap=2)
+        im.save(filename, format="png", bitmap_format="png",optimize=True, quality=20)
         # im.show()
 
     def tradingDate(simulate=False, day=None):

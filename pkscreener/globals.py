@@ -1189,7 +1189,7 @@ def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
     global userPassedArgs, elapsed_time
-    MAX_ALLOWED = 40
+    MAX_ALLOWED = 100
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     if user is None and userPassedArgs.user is not None:
@@ -1224,54 +1224,73 @@ def printNotifySaveScreenedResults(
             + colorText.END
         )
         print(tabulated_backtest_detail)
-    caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
+    title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if screenResults is not None and len(screenResults) >= 1:
-        screenResultsTrimmed = screenResults.copy()
-        saveResultsTrimmed = saveResults.copy()
-        if len(screenResultsTrimmed) > MAX_ALLOWED:
-            screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
-            saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
-            if detaildf is not None and len(detaildf) > 0:
-                detaildf = detaildf.head(2*MAX_ALLOWED)
-                tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
-            tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
-            markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
-
-        if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
-            # No point sending a photo with more than MAX_ALLOWED stocks.
-            warn_text = f' but only including top {MAX_ALLOWED} results here. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html ' if (len(saveResults) > MAX_ALLOWED) else ''
-            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {caption}"
-            pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
-            if is_token_telegram_configured():
-                # import traceback
-                try:
-                    Utility.tools.tableToImage(
-                        markdown_results,
-                        tabulated_results,
-                        pngName,
-                        menuChoiceHierarchy,
-                        backtestSummary=tabulated_backtest_summary,
-                        backtestDetail=tabulated_backtest_detail,
-                    )
-                    sendMessageToTelegramChannel(
-                        message=None, photo_filePath=pngName, caption=caption, user=user
-                    )
-                    os.remove(pngName)
-                except Exception as e:
-                    default_logger().debug(e, exc_info=True)
-                    # print(e)
-                    # traceback.print_exc()
-        if 'RUNNER' in os.environ.keys():
+        if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
             # There's no need to save data locally.
             # This scan must have been triggered by github workflow by a user or scheduled job
-            return
-        print(
-            colorText.BOLD
-            + colorText.GREEN
-            + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
-            + colorText.END
-        )
-        Utility.tools.setLastScreenedResults(screenResults)
+            # Let's just send the image result to telegram
+            screenResultsTrimmed = screenResults.copy()
+            saveResultsTrimmed = saveResults.copy()
+            if len(screenResultsTrimmed) > MAX_ALLOWED:
+                screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
+                saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
+                summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResultsTrimmed)
+                if detaildf is not None and len(detaildf) > 0:
+                    detaildf = detaildf.head(2*MAX_ALLOWED)
+                    tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+                tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
+            markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
+
+            if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
+                # No point sending a photo with more than MAX_ALLOWED stocks.
+                warn_text = f' but only including top {MAX_ALLOWED} results here. ' if (len(saveResults) > MAX_ALLOWED) else ''
+                caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {title}"
+                pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
+                pngExtension = ".png"
+                backtestExtension = "_backtest.png"
+                if is_token_telegram_configured():
+                    import traceback
+                    try:
+                        Utility.tools.tableToImage(
+                            markdown_results,
+                            tabulated_results,
+                            pngName+pngExtension,
+                            menuChoiceHierarchy,
+                            backtestSummary=tabulated_backtest_summary,
+                            backtestDetail="",
+                        )
+                        sendMessageToTelegramChannel(
+                            message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
+                        )
+
+                        # Let's send the backtest results now
+                        Utility.tools.tableToImage(
+                            "",
+                            "",
+                            pngName+backtestExtension,
+                            menuChoiceHierarchy,
+                            backtestSummary=tabulated_backtest_summary,
+                            backtestDetail=tabulated_backtest_detail,
+                        )
+                        caption = f"Backtest data for stocks listed in <b>{title}</b> scan results. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html"
+                        sendMessageToTelegramChannel(
+                            message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
+                        )
+                        os.remove(pngName+pngExtension)
+                        os.remove(pngName+backtestExtension)
+                    except Exception as e:
+                        default_logger().debug(e, exc_info=True)
+                        print(e)
+                        traceback.print_exc()
+        else:
+            print(
+                colorText.BOLD
+                + colorText.GREEN
+                + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
+                + colorText.END
+            )
+            Utility.tools.setLastScreenedResults(screenResults)
     elif user is not None:
         sendMessageToTelegramChannel(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
