@@ -116,7 +116,7 @@ jobs:
           ${{ runner.os }}-venv-
 
     - name: Install TA-Lib for Windows
-      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Windows') }}
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python -m pip install --upgrade pip
@@ -131,7 +131,7 @@ jobs:
         fi
 
     - name: Install TA-Lib for Linux
-      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Linux') }}
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
         cd .github/dependencies/
         pwd

@@ -79,7 +79,7 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install TA-Lib on windows
-      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Windows') }}
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python -m pip install --upgrade pip
