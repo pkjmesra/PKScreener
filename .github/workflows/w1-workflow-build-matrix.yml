@@ -126,7 +126,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin --testbuild
@@ -144,7 +144,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run --testbuild

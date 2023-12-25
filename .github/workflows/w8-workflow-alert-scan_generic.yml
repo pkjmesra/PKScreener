@@ -141,7 +141,7 @@ jobs:
         make
         sudo make install
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib==0.4.24
+        pip3 install ta-lib==0.4.28
 
     - name: Environment setup to get latest EXE
       shell: bash
