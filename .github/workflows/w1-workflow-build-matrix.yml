@@ -40,6 +40,11 @@ on:
         required: false
         type: string
         default: 'no'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.9'
   # schedule:
   #   - cron: '35 11 * * 5'
 
@@ -188,10 +193,10 @@ jobs:
         shell: bash
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ inputs.targetPythonVersion }}
 
       - name: Load Cache for Linux Dependencies
         uses: actions/cache@v2

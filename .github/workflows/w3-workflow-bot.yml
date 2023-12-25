@@ -30,6 +30,11 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.9'
   push:
     branches: [ main ]
     # workflow_run:
@@ -56,10 +61,10 @@ jobs:
       with:
         ref: ${{ inputs.branch-name }}
 
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
