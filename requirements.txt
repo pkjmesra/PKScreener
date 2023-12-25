@@ -1,4 +1,4 @@
-advanced_ta
+advanced-ta
 alive-progress==1.6.2
 # argparse
 bs4
