@@ -957,13 +957,13 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!\n"
+                + f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!"
             )
         else:
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + "[+] Starting download.. Press Ctrl+C to stop!\n"
+                + "[+] Starting download.. Press Ctrl+C to stop!"
             )
 
         suggestedHistoricalDuration = \
@@ -982,7 +982,7 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config.\n"
+                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config."
             )
         items = []
         actualHistoricalDuration = samplingDuration - fillerPlaceHolder
@@ -1434,8 +1434,8 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
     #     showBacktestResults(summary_df,optionalName="Summary")
     #     dumpFreq = dumpFreq + 1
     # Commit intermittently if its been running for over x hours
-    if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
-        Committer.commitTempOutcomes(choices)
+    # if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
+    #     Committer.commitTempOutcomes(choices)
     return backtest_df
 
 
@@ -1712,7 +1712,6 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
         try:
             _ = tasks_queue.get(False)
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
             break
 
 def toggleUserConfig():
