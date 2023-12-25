@@ -30,8 +30,14 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Scan Alerts'
-  # schedule:
-  # - cron: '59 9 * * 1-5'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
+
+  schedule:
+  - cron: '59 9 * * 1-5'
 
 jobs:
 
@@ -44,10 +50,10 @@ jobs:
       with:
         ref: main
 
-    - name: Set up Python 3.9
+    - name: Set up Python 
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
@@ -58,16 +64,21 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install TA-Lib
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+        fi
 
     - name: Install Python Dependencies
       run: |
         pip3 install -r requirements.txt
-        pip3 install ta-lib
         pip3 install .
 
     - name: Configure env.dev file

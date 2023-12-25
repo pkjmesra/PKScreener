@@ -40,6 +40,11 @@ on:
         required: false
         type: string
         default: 'no'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
   # schedule:
   #   - cron: '35 11 * * 5'
 
@@ -84,14 +89,18 @@ jobs:
               python -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
-              echo %cd%
-              pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+              if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+                pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+              elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+              elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+                pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+              fi
               cd ..
               cd ..
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib
               pip3 install .
             TEST_BUILD: |
               ./dist/pkscreenercli.exe --testbuild
@@ -117,7 +126,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin --testbuild
@@ -135,7 +144,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run --testbuild
@@ -188,10 +197,10 @@ jobs:
         shell: bash
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ inputs.targetPythonVersion }}
 
       - name: Load Cache for Linux Dependencies
         uses: actions/cache@v2
@@ -218,6 +227,7 @@ jobs:
           echo "::set-output name=RELEASE_BODY::$r"
 
       - name: Install dependencies for ${{ matrix.TARGET }}
+        shell: bash
         run: ${{ matrix.DEP_BUILD }}
 
       - name: Build for ${{ matrix.TARGET }}

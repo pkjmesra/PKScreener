@@ -30,6 +30,15 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N)'
+        required: false
+        default: 'Y'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
   push:
     branches: [ main ]
     # workflow_run:
@@ -56,10 +65,10 @@ jobs:
       with:
         ref: ${{ inputs.branch-name }}
 
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
@@ -69,17 +78,24 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
+    - name: Install TA-Lib on windows
+      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Windows') }}
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+        fi
 
     - name: Install Python Dependencies
+      shell: bash
       run: |
         pip3 install -r requirements.txt
-        pip3 install ta-lib
         pip3 install .
         
     - name: Configure env.dev file

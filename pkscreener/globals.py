@@ -110,6 +110,10 @@ def finishScreening(
     saveResults,
     user=None,
 ):
+    if 'RUNNER' in os.environ.keys():
+        # There's no need to prompt the user to save xls report or to save data locally.
+        # This scan must have been triggered by github workflow by a user or scheduled job
+        return
     global defaultAnswer, menuChoiceHierarchy, userPassedArgs, selectedChoice
     saveDownloadedData(downloadOnly, testing, stockDict, configManager, loadCount)
     if not testBuild and not downloadOnly and not testing:
@@ -198,6 +202,8 @@ def getSummaryCorrectnessOfStrategy(resultdf):
     summarydf = None
     detaildf = None
     try:
+        if resultdf is None or len(resultdf) == 0:
+            return None, None
         results = resultdf.copy()
         _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
         _ , reportNameDetail = getBacktestReportFilename()
@@ -931,13 +937,12 @@ def main(userArgs=None):
             input("Exiting now...")
             sys.exit(0)
 
-        if (
-            (menuOption == "X" or menuOption == "B")
-            and not downloadOnly
+        if ((menuOption == "B" and not loadedStockData) or (
+            not downloadOnly
             and not Utility.tools.isTradingTime()
             and configManager.cacheEnabled
             and not loadedStockData
-            and not testing
+            and not testing)
         ):
             Utility.tools.loadStockData(
                 stockDict,
@@ -952,13 +957,13 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!\n"
+                + f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!"
             )
         else:
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + "[+] Starting download.. Press Ctrl+C to stop!\n"
+                + "[+] Starting download.. Press Ctrl+C to stop!"
             )
 
         suggestedHistoricalDuration = \
@@ -977,7 +982,7 @@ def main(userArgs=None):
             print(
                 colorText.BOLD
                 + colorText.WARN
-                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config.\n"
+                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config."
             )
         items = []
         actualHistoricalDuration = samplingDuration - fillerPlaceHolder
@@ -1183,6 +1188,7 @@ def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
     global userPassedArgs, elapsed_time
+    MAX_ALLOWED = 100
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     if user is None and userPassedArgs.user is not None:
@@ -1195,9 +1201,9 @@ def printNotifySaveScreenedResults(
         + colorText.END
     )
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
-    if len(summarydf) > 0:
+    if summarydf is not None and len(summarydf) > 0:
         tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
-    if len(detaildf) > 0:
+    if detaildf is not None and len(detaildf) > 0:
         tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
@@ -1217,38 +1223,73 @@ def printNotifySaveScreenedResults(
             + colorText.END
         )
         print(tabulated_backtest_detail)
-    caption = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
-    if len(screenResults) >= 1:
-        if not testing and len(screenResults) <= 100:
-            # No point sending a photo with more than 100 stocks.
-            caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec).{caption}"
-            markdown_results = tabulate(
-                saveResults, headers="keys", tablefmt="grid"
+    title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
+    if screenResults is not None and len(screenResults) >= 1:
+        if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
+            # There's no need to save data locally.
+            # This scan must have been triggered by github workflow by a user or scheduled job
+            # Let's just send the image result to telegram
+            screenResultsTrimmed = screenResults.copy()
+            saveResultsTrimmed = saveResults.copy()
+            if len(screenResultsTrimmed) > MAX_ALLOWED:
+                screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
+                saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
+                summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResultsTrimmed)
+                if detaildf is not None and len(detaildf) > 0:
+                    detaildf = detaildf.head(2*MAX_ALLOWED)
+                    tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+                tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
+            markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
+
+            if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
+                # No point sending a photo with more than MAX_ALLOWED stocks.
+                warn_text = f' but only including top {MAX_ALLOWED} results here. ' if (len(saveResults) > MAX_ALLOWED) else ''
+                caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {title}"
+                pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
+                pngExtension = ".png"
+                backtestExtension = "_backtest.png"
+                if is_token_telegram_configured():
+                    import traceback
+                    try:
+                        Utility.tools.tableToImage(
+                            markdown_results,
+                            tabulated_results,
+                            pngName+pngExtension,
+                            menuChoiceHierarchy,
+                            backtestSummary=tabulated_backtest_summary,
+                            backtestDetail="",
+                        )
+                        sendMessageToTelegramChannel(
+                            message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
+                        )
+                        os.remove(pngName+pngExtension)
+                        # Let's send the backtest results now only if the user requested 1-on-1 for scan.
+                        if user is not None:
+                            Utility.tools.tableToImage(
+                                "",
+                                "",
+                                pngName+backtestExtension,
+                                menuChoiceHierarchy,
+                                backtestSummary=tabulated_backtest_summary,
+                                backtestDetail=tabulated_backtest_detail,
+                            )
+                            caption = f"Backtest data for stocks listed in <b>{title}</b> scan results. See more past backtest data at https://pkjmesra.github.io/PKScreener/BacktestReports.html"
+                            sendMessageToTelegramChannel(
+                                message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
+                            )
+                            os.remove(pngName+backtestExtension)                        
+                    except Exception as e:
+                        default_logger().debug(e, exc_info=True)
+                        print(e)
+                        traceback.print_exc()
+        else:
+            print(
+                colorText.BOLD
+                + colorText.GREEN
+                + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
+                + colorText.END
             )
-            pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")+".png"}'
-            if is_token_telegram_configured():
-                Utility.tools.tableToImage(
-                    markdown_results,
-                    tabulated_results,
-                    pngName,
-                    menuChoiceHierarchy,
-                    backtestSummary=tabulated_backtest_summary,
-                    backtestDetail=tabulated_backtest_detail,
-                )
-                sendMessageToTelegramChannel(
-                    message=None, photo_filePath=pngName, caption=caption, user=user
-                )
-                try:
-                    os.remove(pngName)
-                except Exception as e:
-                    default_logger().debug(e, exc_info=True)
-        print(
-            colorText.BOLD
-            + colorText.GREEN
-            + f"[+] Found {len(screenResults)} Stocks in {str('{:.2f}'.format(elapsed_time))} sec."
-            + colorText.END
-        )
-        Utility.tools.setLastScreenedResults(screenResults)
+            Utility.tools.setLastScreenedResults(screenResults)
     elif user is not None:
         sendMessageToTelegramChannel(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
@@ -1256,7 +1297,7 @@ def printNotifySaveScreenedResults(
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
-        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;}</style></head><body><span style='color:white;' >"
+        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;} .r {color:red;font-weight:bold;} .g {color:lightgreen;font-weight:bold;} .y {color:yellow;}</style></head><body><span style='color:white;' >"
         colored_text = colored_text.replace("<table", f"{tableText}{summaryText}<br /><table")
         colored_text = colored_text.replace("<table ", "<table id='resultsTable' ")
         for key in headerDict.keys():
@@ -1271,11 +1312,11 @@ def reformatTable(summaryText, headerDict, colored_text, sorting=True):
         colored_text = colored_text.replace('</tr>', "")
         colored_text = colored_text.replace('</tbody>', "")
         colored_text = colored_text.replace('</table>', "")
-    colored_text = colored_text.replace(colorText.GREEN,"<span style='background-color:black;color:lightgreen;font-weight:bold;'>")
+    colored_text = colored_text.replace(f"<td>{colorText.GREEN}","<td class='g'>")
     colored_text = colored_text.replace(colorText.BOLD,"")
-    colored_text = colored_text.replace(colorText.FAIL,"<span style='background-color:black;color:red;font-weight:bold;'>")
-    colored_text = colored_text.replace(colorText.WARN,"<span style='background-color:black;color:yellow;'>")
-    colored_text = colored_text.replace(colorText.END,"</span>")
+    colored_text = colored_text.replace(f"<td>{colorText.FAIL}","<td class='r'>")
+    colored_text = colored_text.replace(f"<td>{colorText.WARN}","<td class='y'>")
+    colored_text = colored_text.replace(colorText.END,"")
     colored_text = colored_text.replace("\n","")
     if sorting:
         colored_text = colored_text.replace("</table>","</table></span></body></html>")
@@ -1393,8 +1434,8 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
     #     showBacktestResults(summary_df,optionalName="Summary")
     #     dumpFreq = dumpFreq + 1
     # Commit intermittently if its been running for over x hours
-    if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
-        Committer.commitTempOutcomes(choices)
+    # if userPassedArgs.prodbuild and elapsed_time >= dumpFreq * 3600:
+    #     Committer.commitTempOutcomes(choices)
     return backtest_df
 
 
@@ -1671,7 +1712,6 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
         try:
             _ = tasks_queue.get(False)
         except Exception as e:
-            default_logger().debug(e, exc_info=True)
             break
 
 def toggleUserConfig():
