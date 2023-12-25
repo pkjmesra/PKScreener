@@ -32,17 +32,22 @@ on:
         required: false
         default: 'B_12_1'
       params:
-          description: 'Backtest for Generic'
-          required: false
-          default: '12:1'
+        description: 'Backtest for Generic'
+        required: false
+        default: '12:1'
       user:
-          description: 'Telegram user'
-          required: false
-          default: '-1001785195297'
+        description: 'Telegram user'
+        required: false
+        default: '-1001785195297'
       intraday:
-            description: 'Intraday?'
-            required: false
-            default: ''
+        description: 'Intraday?'
+        required: false
+        default: ''
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
 
 run-name: ${{ inputs.name }} Backtest for Generic params- ${{ inputs.params }}
 
@@ -57,10 +62,10 @@ jobs:
       with:
         ref: gh-pages
 
-    - name: Set up Python 3.9
+    - name: Set up Python 
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
@@ -71,17 +76,22 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install TA-Lib
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         cd .github/dependencies/
-        echo %cd%
-        pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+        fi
 
     - name: Install Python Dependencies
       run: |
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        pip3 install ta-lib
         pip install .
       
     - name: Configure .env.dev file

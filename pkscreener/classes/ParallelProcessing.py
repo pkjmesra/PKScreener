@@ -102,7 +102,7 @@ class StockConsumer:
                 (not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostData is None)
+                or hostData is None) # and backtestDuration == 0 # Fetch only if we are NOT backtesting
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -115,10 +115,10 @@ class StockConsumer:
                 )
                 # hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
                 if (
-                    (shouldCache
+                    ((shouldCache
                     and not self.isTradingTime
                     and (hostData is None))
-                    or downloadOnly
+                    or downloadOnly) # and backtestDuration == 0 # save only if we're NOT backtesting
                 ):
                     hostRef.objectDictionary[stock] = data.to_dict("split")
                     hostData = hostRef.objectDictionary.get(stock)
@@ -394,9 +394,11 @@ class StockConsumer:
                             isBuyingTrendline = screener.findTrendlines(
                                 fullData, screeningDictionary, saveDictionary
                             )
-                # with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
-                #     isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
-                
+                if sys.version_info >= (3, 11):
+                    with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
+                        isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
+                else:
+                    isLorentzian = False
                 with hostRef.processingResultsCounter.get_lock():
                     # hostRef.default_logger.info(
                     #     f"Processing results for {stock} in {hostRef.processingResultsCounter.value}th results counter"
@@ -528,15 +530,15 @@ class StockConsumer:
                                 stock,
                                 backtestDuration,
                             )
-                        # elif reversalOption == 7 and isLorentzian:
-                        #     hostRef.processingResultsCounter.value += 1
-                        #     return (
-                        #         screeningDictionary,
-                        #         saveDictionary,
-                        #         data,
-                        #         stock,
-                        #         backtestDuration,
-                        #     )
+                        elif reversalOption == 7 and isLorentzian:
+                            hostRef.processingResultsCounter.value += 1
+                            return (
+                                screeningDictionary,
+                                saveDictionary,
+                                data,
+                                stock,
+                                backtestDuration,
+                            )
                     if executeOption == 7 and isLtpValid:
                         if respChartPattern < 3 and isInsideBar:
                             hostRef.processingResultsCounter.value += 1

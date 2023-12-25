@@ -25,6 +25,7 @@
 
 import math
 import warnings
+import sys
 
 import numpy as np
 
@@ -35,8 +36,8 @@ import pandas as pd
 import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
-
-# from advanced_ta import LorentzianClassification
+if sys.version_info >= (3, 11):
+    from advanced_ta import LorentzianClassification
 
 
 # from sklearn.preprocessing import StandardScaler
@@ -988,22 +989,22 @@ class tools:
         return False
 
     # Validate Lorentzian Classification signal  
-    # def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
-    #     # lookFor: 1-Any, 2-Buy, 3-Sell
-    #     data = data[::-1]               # Reverse the dataframe
-    #     data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
-    #     lc = LorentzianClassification(data=data)
-    #     if lc.df.iloc[-1]['isNewBuySignal']:
-    #         screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
-    #         saveDict['Pattern'] = f'Lorentzian-Buy'
-    #         if lookFor != 3:
-    #             return True
-    #     elif lc.df.iloc[-1]['isNewSellSignal']:
-    #         screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
-    #         saveDict['Pattern'] = f'Lorentzian-Sell'
-    #         if lookFor != 2:
-    #             return True
-    #     return False
+    def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
+        # lookFor: 1-Any, 2-Buy, 3-Sell
+        data = data[::-1]               # Reverse the dataframe
+        data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
+        lc = LorentzianClassification(data=data)
+        if lc.df.iloc[-1]['isNewBuySignal']:
+            screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
+            saveDict['Pattern'] = f'Lorentzian-Buy'
+            if lookFor != 3:
+                return True
+        elif lc.df.iloc[-1]['isNewSellSignal']:
+            screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
+            saveDict['Pattern'] = f'Lorentzian-Sell'
+            if lookFor != 2:
+                return True
+        return False
     
     # validate if the stock has been having lower lows, lower highs
     def validateLowerHighsLowerLows(self, data):
@@ -1247,7 +1248,7 @@ class tools:
             now_candle = data.head(1)
             rangeData["Range"] = abs(rangeData["Close"] - rangeData["Open"])
             recent = rangeData.head(1)
-            if recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
+            if len(recent) ==1 and recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
                 if (
                     self.getCandleType(recent)
                     and now_candle["Close"].iloc[0] >= recent["Close"].iloc[0]

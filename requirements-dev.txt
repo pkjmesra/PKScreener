@@ -1,5 +1,4 @@
 -r requirements.txt
-ta-lib
 
 black
 coveralls

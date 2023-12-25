@@ -41,6 +41,11 @@ on:
           description: 'Branch name'
           required: false
           default: 'new-features'
+        targetPythonVersion:
+          description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+          required: false
+          type: string
+          default: '3.11'
 
 jobs:
 
@@ -54,10 +59,10 @@ jobs:
       with:
         ref: ${{ inputs.branch-name }}
         
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2

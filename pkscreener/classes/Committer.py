@@ -38,7 +38,7 @@ def commitTempOutcomes(reportName):
     if "Windows" not in platform.system():
         return
     try:
-        if len(os.environ['BACKTEST_NAME']) == 0 or len(os.environ['RUNNER']) == 0:
+        if ('BACKTEST_NAME' not in os.environ.keys()) or ('RUNNER' not in os.environ.keys()):
             print("This commit does not seem to have been triggered from GitHub Action! Ignoring...")
             return
     except Exception:

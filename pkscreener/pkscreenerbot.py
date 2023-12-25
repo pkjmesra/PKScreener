@@ -114,9 +114,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             )
     keyboard = [inlineMenus]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    cmds = m0.renderForMenu(
+        selectedMenu=None,
+        skip=["S", "T", "E", "U", "Z", "S"],
+        asList=True,
+        renderStyle=MenuRenderStyle.STANDALONE,
+    )
+    cmdText = ""
+    for cmd in cmds:
+        cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
     # Send message with text and appended InlineKeyboard
     await update.message.reply_text(
-        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n   /X or \nbacktest with /B",
+        f"Welcome {user.first_name}, {(user.username)}! Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n{cmdText}\n\n OR just use the buttons below to choose.",
         reply_markup=reply_markup,
     )
     await context.bot.send_message(
@@ -220,7 +229,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                     "27",
                     "28",
                     "29",
-                    "30,"
+                    "30",
                     "42",
                     "M",
                     "Z",
@@ -549,7 +558,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         optionChoices = (
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
-        menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 5 minutes! \n\nConsider donating to help keep this project going:\nUPI: 8007162973@APL \nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
+        menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1 to 5 minutes! \n\nConsider donating to help keep this project going:\n\nUPI (India): 8007162973@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=one-time&sponsor=pkjmesra"
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
@@ -841,6 +850,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "27",
                     "28",
                     "29",
+                    "30",
                     "42",
                     "M",
                     "Z",
@@ -876,7 +886,8 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "26",
                     "27",
                     "28",
-                    "29"
+                    "29",
+                    "30",
                     "42",
                     "M",
                     "Z",
@@ -1054,6 +1065,7 @@ def addCommandsForMenuItems(application):
                     "27",
                     "28",
                     "29",
+                    "30",
                     "42",
                     "M",
                     "Z",

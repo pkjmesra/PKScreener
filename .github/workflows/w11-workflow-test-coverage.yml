@@ -31,12 +31,22 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
   workflow_call:
     inputs:
       branch-name:
         required: true
         type: string
         default: 'new-features'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
 jobs:
   # Job for testing coverage
   Build:
@@ -68,7 +78,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
               # note: the following also installs "coverage"
               python -m pip install coveralls
@@ -92,14 +102,18 @@ jobs:
               python -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
-              echo %cd%
-              pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+              if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+                pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+              elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+              elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+                pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+              fi
               cd ..
               cd ..
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib
               pip3 install .
             TEST_BUILD: |
               pytest -vv --durations-min=0.005
@@ -118,7 +132,7 @@ jobs:
               python -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.24
+              pip3 install ta-lib==0.4.28
               pip3 install .
             TEST_BUILD: |
               pytest -vv --durations-min=0.005
@@ -140,10 +154,10 @@ jobs:
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 
-      - name: Set up Python 3.9
+      - name: Set up Python 
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ inputs.targetPythonVersion }}
 
       - name: Load Cache for Linux Dependencies
         uses: actions/cache@v2
@@ -157,6 +171,7 @@ jobs:
             ${{ runner.os }}-talib
 
       - name: Install dependencies for ${{ matrix.TARGET }}
+        shell: bash
         run: ${{ matrix.DEP_BUILD }}
 
       - name: Build for ${{ matrix.TARGET }}
