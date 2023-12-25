@@ -229,6 +229,7 @@ jobs:
           echo "::set-output name=RELEASE_BODY::$r"
 
       - name: Install dependencies for ${{ matrix.TARGET }}
+        shell: bash
         run: ${{ matrix.DEP_BUILD }}
 
       - name: Build for ${{ matrix.TARGET }}
