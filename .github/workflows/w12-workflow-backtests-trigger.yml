@@ -30,6 +30,12 @@ on:
         description: 'Run Details'
         required: false
         default: 'PKScreener - Backtests Workflow Trigger'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.11'
+        
   schedule:
   - cron: '20 15 * * 1-5'
 
@@ -47,7 +53,7 @@ jobs:
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ inputs.targetPythonVersion }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2

@@ -30,11 +30,15 @@ on:
         description: 'Branch name'
         required: false
         default: 'main'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N)'
+        required: false
+        default: 'Y'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.9'
+        default: '3.11'
   push:
     branches: [ main ]
     # workflow_run:
@@ -75,6 +79,7 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install TA-Lib on windows
+      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python -m pip install --upgrade pip
