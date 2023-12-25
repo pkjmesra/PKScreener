@@ -68,7 +68,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ inputs.targetPythonVersion || 3.11}}
+        python-version: ${{ inputs.targetPythonVersion || 3.11 }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v2
