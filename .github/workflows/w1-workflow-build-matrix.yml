@@ -89,7 +89,9 @@ jobs:
               python -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
-              if [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+              if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
+                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+              elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
                 pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
                 pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
