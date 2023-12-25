@@ -131,7 +131,7 @@ jobs:
         fi
 
     - name: Install TA-Lib for Linux
-      if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Linux') }}
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
         cd .github/dependencies/
         pwd
