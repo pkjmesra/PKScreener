@@ -76,6 +76,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     outputs:
         version: ${{ steps.vars.outputs.THIS_VERSION }}
+        oldVersion: ${{ steps.vars.outputs.CURRENT_VERSION }}
         tag: refs/tags/${{ steps.vars.outputs.THIS_VERSION }}
         sendNotification: ${{ inputs.sendNotification }}
     strategy:
@@ -184,9 +185,9 @@ jobs:
             pip3 install mistletoe
             echo ${{ steps.vars.outputs.CURRENT_VERSION }}
             echo ${{ steps.vars.outputs.THIS_VERSION }}
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+            python .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
             python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ steps.vars.outputs.CURRENT_VERSION }}] -r [v${{ steps.vars.outputs.THIS_VERSION }}] -t text
-            python .github/workflows/updateVersion.py -p README.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+            python .github/workflows/updateVersion.py -p README.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
             git add README.md --force
@@ -269,3 +270,30 @@ jobs:
         version: ${{ needs.Build.outputs.version }}
         sendNotification: ${{ needs.Build.outputs.sendNotification }}
       secrets: inherit
+
+  README_Update:
+    runs-on: ubuntu-20.04
+    needs: [Build]
+    name: Updates latest README file
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Find and update version
+        if: startsWith(runner.os, 'Linux')
+        run: |
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            pip3 install mistletoe
+            echo ${{ needs.Build.outputs.version }}
+            echo ${{ needs.Build.outputs.oldVersion }}
+            python .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
+            python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
+            python .github/workflows/updateVersion.py -p README.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
+            python .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
+            git add pkscreener/classes/__init__.py --force
+            git add pkscreener/release.md --force
+            git add README.md --force
+            git commit -m "GitHub Action Workflow - Updating version to latest"
+            git push -v

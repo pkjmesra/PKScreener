@@ -272,7 +272,7 @@ class tools:
         legendtext_width, legendtext_height = font.getsize_multiline(legendText)
         im = Image.new(
             "RGB",
-            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + int(legendtext_height/4)),
+            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + int(legendtext_height/2)),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -373,9 +373,10 @@ class tools:
             rowPixelRunValue = rowPixelRunValue + label_height
         draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
         draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
-        im = im.resize((int(im.size[0]/5),int(im.size[1]/5)), Image.ANTIALIAS, reducing_gap=2)
+        im = im.resize(im.size, Image.ANTIALIAS, reducing_gap=2)
         im.save(filename, format="png", bitmap_format="png",optimize=True, quality=20)
-        # im.show()
+        if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
+            im.show()
 
     def tradingDate(simulate=False, day=None):
         curr = tools.currentDateTime(simulate=simulate,day=day)
