@@ -104,7 +104,8 @@ class tools:
         full52WeekHigh = full52Week["High"].max()
         full52WeekLow = full52Week["Low"].min()
         
-        saveDict["52Wk H/L"] = f"{'{:.2f}'.format(full52WeekHigh)} / {'{:.2f}'.format(full52WeekLow)}"
+        saveDict["52Wk H"] = '{:.2f}'.format(full52WeekHigh)
+        saveDict["52Wk L"] = '{:.2f}'.format(full52WeekLow)
         if recentHigh >= full52WeekHigh:
             highColor = colorText.GREEN
         elif recentHigh >= 0.9*full52WeekHigh:
@@ -117,7 +118,8 @@ class tools:
             lowColor = colorText.WARN
         else:
             lowColor = colorText.GREEN
-        screenDict["52Wk H/L"] = f"{highColor}{str('{:.2f}'.format(full52WeekHigh))}{colorText.END} / {lowColor}{str('{:.2f}'.format(full52WeekLow))}{colorText.END}"
+        screenDict["52Wk H"] = f"{highColor}{str('{:.2f}'.format(full52WeekHigh))}{colorText.END}"
+        screenDict["52Wk L"] = f"{lowColor}{str('{:.2f}'.format(full52WeekLow))}{colorText.END}"
 
     # Find stocks that have broken through 52 week low.
     def find52WeekLowBreakout(self, data):
@@ -1019,17 +1021,21 @@ class tools:
         # lookFor: 1-Any, 2-Buy, 3-Sell
         data = data[::-1]               # Reverse the dataframe
         data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
-        lc = LorentzianClassification(data=data)
-        if lc.df.iloc[-1]['isNewBuySignal']:
-            screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
-            saveDict['Pattern'] = f'Lorentzian-Buy'
-            if lookFor != 3:
-                return True
-        elif lc.df.iloc[-1]['isNewSellSignal']:
-            screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
-            saveDict['Pattern'] = f'Lorentzian-Sell'
-            if lookFor != 2:
-                return True
+        try:
+            lc = LorentzianClassification(data=data)
+            if lc.df.iloc[-1]['isNewBuySignal']:
+                screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
+                saveDict['Pattern'] = f'Lorentzian-Buy'
+                if lookFor != 3:
+                    return True
+            elif lc.df.iloc[-1]['isNewSellSignal']:
+                screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
+                saveDict['Pattern'] = f'Lorentzian-Sell'
+                if lookFor != 2:
+                    return True
+        except Exception as e:
+            self.default_logger.debug(e, exc_info=True)
+            pass
         return False
     
     # validate if the stock has been having lower lows, lower highs

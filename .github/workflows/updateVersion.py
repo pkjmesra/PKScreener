@@ -56,11 +56,19 @@ def update_text(token: SpanToken):
     """Update the text contents of a span token and its children.
     `InlineCode` tokens are left unchanged."""
     if isinstance(token, RawText) and args.type == "text":
-        print(f"Replacing <{args.find}> in <{token.content}> to <{args.replace}>")
-        token.content = token.content.replace(args.find, args.replace)
+        if args.find in token.content and args.replace not in token.content:
+            print(f"Replacing <{args.find}> in <{token.content}> to <{args.replace}>")
+            token.content = token.content.replace(args.find, args.replace)
     elif isinstance(token, Link) and args.type == "link":
-        print(f"Replacing <{args.find}> in <{token.target}> to <{args.replace}>")
-        token.target = token.target.replace(args.find, args.replace)
+        if args.find in token.target:
+            print(f"Replacing <{args.find}> in <{token.target}> to <{args.replace}>")
+            linkParts = token.target.split("/")
+            for part in linkParts:
+                if args.find in part and args.replace not in part:
+                    token.target = token.target.replace(part, args.replace)
+                    print(f"Replaced <{part}> in <{token.target}> to <{args.replace}>")
+            if args.replace not in token.target:
+                token.target = token.target.replace(args.find, args.replace)
 
     if not isinstance(token, InlineCode) and hasattr(token, "children"):
         for child in token.children:
@@ -124,5 +132,5 @@ with open(args.path, "r+") as f:
         md = renderer.render(document)
         f.seek(0)
         f.write(md)
-        print(md)
+        # print(md)
         f.truncate()
