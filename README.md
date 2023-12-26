@@ -8,34 +8,34 @@
 
 [![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
 [![Docker Pulls][Docker Pulls-badge]][Docker Status] [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] [![w9. After-Market Data Gen][After Market-badge]][After Market] 
- [![PKScreener Test - New Features][New Features-badge]][New Features] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
+[![PKScreener Test - New Features][New Features-badge]][New Features] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
 [![Docker Build][Docker-Build-badge]][Docker-Build]
 
 ## What is PKScreener?
-| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot| Backtesting |
-|:---:|:---:|:---:|:---:|:---|
+| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting |
+| :-------------: | :-----------------: | :------------------: | :--------------------: | ----------- |
 
 | Nifty screening | Volume scanners | Breakout detection | Consolidating stocks | Reversal Signals |
-|:---:|:---:|:---:|:---:|:---|
+| :-------------: | :-------------: | :----------------: | :------------------: | ---------------- |
 
 | Chart Patterns | CCI scanners | 2% scanners | Short-term bulls | NR4 / NR7 | Weekly Releases |
-|:---:|:---:|:---:|:---:|:---:|:---|
+| :------------: | :----------: | :---------: | :--------------: | :-------: | --------------- |
 
 | RSI screening | MACD scanners | IPO Stocks | Momentum Gainers | Watchlist screening |
-|:---:|:---:|:---:|:---:|:---|
+| :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
 
 | F&O Stocks screening | Live 5-EMA Index Scan | Logging | Telegram Channel | Early Breakouts |
-|:---:|:---:|:---:|:---:|:---|
+| :------------------: | :-------------------: | :-----: | :--------------: | --------------- |
 ### A Python-based stock screener for NSE, India.
 
 **pkscreener** is an advanced stock screener to find potential breakout stocks from NSE and tell it's possible breakout values. It also helps to find the stocks which are consolidating and may breakout, or the particular chart patterns that you're looking specifically to make your decisions.
 pkscreener is totally customizable and it can screen stocks with the settings that you have provided.
 
 You can get daily scan results/alerts at scheduled times by subscribing to the following Telegram channel:
-| Purpose | Description/link | QR Code |
-|:---:|:---:|:---|
-|Alerts Channel| https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions.|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/>|
-<!-- |Discussions []|https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group|<img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/>| -->
+|    Purpose     |                                                                                                                   Description/link                                                                                                                    | QR Code                                                                                                                                          |                                                                                                                                            |     |
+| :------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| Alerts Channel | https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions. | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/> |                                                                                                                                            |     |
+|      <!--      |                                                                                                                    Discussions []                                                                                                                     | https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group                            | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/> | --> |
 
 ![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
 
@@ -45,7 +45,7 @@ You may receive the following scan results:
 1. [![1. Next day Nifty/Market AI prediction](https://github.com/pkjmesra/PKScreener/actions/workflows/w4-workflow-prod-scans_1.yml/badge.svg)](https://github.com/pkjmesra/PKScreener/actions/workflows/w4-workflow-prod-scans_1.yml) by 4pm IST, Monday - Friday
 2. For all Nifty stocks at/by 9:45-10:15am and by 4pm IST, Monday - Friday
 
-    * Certain selected but configurable alerts for specific scan types
+   * Certain selected but configurable alerts for specific scan types
 
 ## Receiving On-Demand Scan results
 You can now run the `pkscreenerbot` on your local machine or if it's running on the GitHub server under a GitHub Actions workflow, you can use the `pkscreener Bot`(@nse_pkscreener_bot on Telegram) to get on-demand scan results.
@@ -92,7 +92,7 @@ Followin scanners are already implemented. Others are `In Progress`
 ## How to use on your own local Windows/Linux/Macbook laptop?
 # Installing the latest version from PyPi.
 * Go ahead and install using `pip install pkscreener`
-* This should install all of the major dependencies, except maybe, TA-Lib. 
+* This should install all of the major dependencies, except maybe, TA-Lib.
 * This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
 * Now launch your favorite command line CLI and issue `pkscreener`. This will launch the pkscreener executable.
 
@@ -122,9 +122,9 @@ Followin scanners are already implemented. Others are `In Progress`
 ![config](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/config.png)
 
 * **Scanner Menus** the scanner menus for each level/sub-level
-![menulevel1](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu.png)
-![menulevel2](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level2.png)
-![menulevel3](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level3.png)
+  ![menulevel1](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu.png)
+  ![menulevel2](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level2.png)
+  ![menulevel3](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/menu_level3.png)
 
 
 * Following are the screenshots of screening and output results.
@@ -142,26 +142,26 @@ You can now use the *Backtests* menu to backtest any of the selected strategies.
 
 ## Scanning as a scheduled job once or at regular intervals
 * Running it once with pre-defined inputs
-You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreenercli.py -a Y -o X:12:10 -e` (or `pkscreenercli.exe -a Y -o X:12:10 -e` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreenercli.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreenercli.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreenercli.py -h`.
+  You can also run it as a one time job in any scheduler with pre-defined options. For example `./pkscreenercli.py -a Y -o X:12:10 -e` (or `pkscreenercli.exe -a Y -o X:12:10 -e` if you're executing with the exe) will run the scanner for all Nifty stocks and find all stocks matching CCI filter, save the results in xlsx file and exit. `./pkscreenercli.py -a Y -o X:12:9:2.5 -e` will run the scanner (menu option `X`) for all Nifty stocks (menu option `12`) to find volume gainers (menu option `9`) with at least the volume multiplier of 2.5 (input variable `2.5`), save the results in xlsx file and exit (menu option `-e`). Passing in the `-p` option for example `pkscreenercli.py -a Y -p -o X:12:6:1 -e` will also silence all command line prints/outputs and just run silently for the given options, save results and exit. Try and see all options with `./pkscreenercli.py -h`.
 
 * Running it at regular intervals
-If you want to runn it at regular intervals, you can just pass the interval in `-c` command line option. For example, `./pkscreenercli.py -a Y -o X:12:6:1 -c 180` will run it every `180` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the `-p` parameter. For example, `./pkscreenercli.py -a Y -p -o X:12:6:1 -c 180`
+  If you want to runn it at regular intervals, you can just pass the interval in `-c` command line option. For example, `./pkscreenercli.py -a Y -o X:12:6:1 -c 180` will run it every `180` seconds with console outputs also being printed. If you'd just like it to run as a cron job without console outputs, you may also pass the `-p` parameter. For example, `./pkscreenercli.py -a Y -p -o X:12:6:1 -c 180`
 
 ## Understanding the Result Table:
 
 The Result table contains a lot of different parameters which can be pretty overwhelming to the new users, so here's the description and significance of each parameter.
 
-| Sr | Parameter | Description | Example |
-|:---:|:---:|:---|:---|
-|1|**Stock**|This is a NSE scrip symbol. If your OS/Terminal supports unicode, You can directly open **[TradingView](https://in.tradingview.com/)** charts by pressing `Ctrl+Click` on the stock name.|[TATAMOTORS](https://in.tradingview.com/chart?symbol=NSE%3ATATAMOTORS)|
-|2|**Consolidating**|It gives the price range in which stock is trading since last `N` days. `N` is configurable and can be modified by executing `Edit User Configuration` option.|If stock is trading between price 100-120 in last 30 days, Output will be `Range:20.0 %`|
-|3|**Breakout (N Days)**|This is pure magic! The `BO` is Breakout level in last N days while `R` is the next resistance level if available. Investor should consider both BO & R level to decide entry/exits in their trades.|`B:302, R:313`(Breakout level is 100 & Next resistance is 102)|
-|4|**LTP**|LTP is the Last Traded Price of an asset traded on NSE.|`298.7` (Stock is trading at this price)|
-|5|**Volume**|Volume shows the relative volume of the recent candle with respect to 20 period MA of Volume. It could be `Unknown` for newly listed stocks.|if 20MA(Volume) is 1M and todays Volume is 2.8M, then `Volume = 2.8x`|
-|6|**MA-Signal**|It describes the price trend of an asset by analysing various 50-200 MA/EMA crossover strategies.|`200MA-Support`,`BullCross-50MA` etc|
-|7|**RSI**|For the momentum traders, it describes 14-period RSI for quick decision making about their trading plans|`0 to 100`|
-|8|**Trend**|By using advance algorithms, the average trendlines are computed for `N` days and their strenght is displayed depending on steepness of trendlines. (This does NOT show any trendline on chart, it is calculated internally)|`Strong Up`, `Weak Down` etc.|
-|9|**Pattern**|If the chart or the candle itself forming any important pattern in the recent timeframe or as per the selected screening option, various important patterns will be indicated here.|`Momentum Gainer`, `Inside Bar (N)`,`Bullish Engulfing` etc.|
+| Sr  |       Parameter       | Description                                                                                                                                                                                                                  | Example                                                                                  |
+| :-: | :-------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+|  1  |       **Stock**       | This is a NSE scrip symbol. If your OS/Terminal supports unicode, You can directly open **[TradingView](https://in.tradingview.com/)** charts by pressing `Ctrl+Click` on the stock name.                                    | [TATAMOTORS](https://in.tradingview.com/chart?symbol=NSE%3ATATAMOTORS)                   |
+|  2  |   **Consolidating**   | It gives the price range in which stock is trading since last `N` days. `N` is configurable and can be modified by executing `Edit User Configuration` option.                                                               | If stock is trading between price 100-120 in last 30 days, Output will be `Range:20.0 %` |
+|  3  | **Breakout (N Days)** | This is pure magic! The `BO` is Breakout level in last N days while `R` is the next resistance level if available. Investor should consider both BO & R level to decide entry/exits in their trades.                         | `B:302, R:313`(Breakout level is 100 & Next resistance is 102)                           |
+|  4  |        **LTP**        | LTP is the Last Traded Price of an asset traded on NSE.                                                                                                                                                                      | `298.7` (Stock is trading at this price)                                                 |
+|  5  |      **Volume**       | Volume shows the relative volume of the recent candle with respect to 20 period MA of Volume. It could be `Unknown` for newly listed stocks.                                                                                 | if 20MA(Volume) is 1M and todays Volume is 2.8M, then `Volume = 2.8x`                    |
+|  6  |     **MA-Signal**     | It describes the price trend of an asset by analysing various 50-200 MA/EMA crossover strategies.                                                                                                                            | `200MA-Support`,`BullCross-50MA` etc                                                     |
+|  7  |        **RSI**        | For the momentum traders, it describes 14-period RSI for quick decision making about their trading plans                                                                                                                     | `0 to 100`                                                                               |
+|  8  |       **Trend**       | By using advance algorithms, the average trendlines are computed for `N` days and their strenght is displayed depending on steepness of trendlines. (This does NOT show any trendline on chart, it is calculated internally) | `Strong Up`, `Weak Down` etc.                                                            |
+|  9  |      **Pattern**      | If the chart or the candle itself forming any important pattern in the recent timeframe or as per the selected screening option, various important patterns will be indicated here.                                          | `Momentum Gainer`, `Inside Bar (N)`,`Bullish Engulfing` etc.                             |
 
 ## Hack it your way:
 Feel free to Edit the parameters in the `pkscreener.ini` file which will be generated by the application.
@@ -187,7 +187,7 @@ backtestPeriod = 30
 Try to tweak this parameters as per your trading styles. For example, If you're comfortable with weekly charts, make `duration=5d` and so on. For intraday, you can set `period=1d and duration=5m` if you would like to calculate with 5minute candles. Set the duration to `15m` or whatever value you desire, but keep the period to `1d`. This tool, however, works best for short/mid term instead of intraday, but some scans like momentum/volume/NR4 etc can be used for screening stocks for intraday as well. You can use the toggle menu option `T` to toggle between long term and intraday config before you begin the scanners.
 
 ## Creating your own Telegram channel to receive your own alerts:
-You can create your own telegram channel to receive alerts wherenevr you run it locally on your laptop either from a command line interface console or run it as a scheduler. Simply, go ahead and 
+You can create your own telegram channel to receive alerts wherenevr you run it locally on your laptop either from a command line interface console or run it as a scheduler. Simply, go ahead and
 1. Create a bot for yourself, then a channel and get their IDs. Follow the steps in https://medium.com/codex/using-python-to-send-telegram-messages-in-3-simple-steps-419a8b5e5e2 and https://www.siteguarding.com/en/how-to-get-telegram-bot-api-token
 2. After you have created the bot using `botFather` and have received/verified your bot id/token and channel ID using `get id bot`, simply go to `pkscreener` folder in the source code directory and create a `.env.dev` file with the following (If you are instead using the .exe or .bin or .run file from release, just create this file in the same folder where the executable (.exe or .bin or .run) is placed.)
 ```
@@ -196,8 +196,7 @@ TOKEN=Your_Bot_Token_Here
 chat_idADMIN=Your_Own_ID_Here
 ```
 3. From now on, you will begin to receive your own alerts on your telegram channel.
-![alerts](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/alerts.png)
-
+   ![alerts](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/alerts.png)
 
 ## Troubleshooting and Logs:
 If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of `-l`. For example, `python pkscreenercli.py -l`. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the `logsEnabled` value to `y`, save & close it and then run `python pkscreenercli.py`.
@@ -214,16 +213,16 @@ After you have finished the run, go to that copied path, zip the contents of the
 * The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
 * This screener began as a fork of https://github.com/pranjal-joshi/Screeni-py but has since added a lot of additional scanners, backtesting, Telegram bots, Alerts and a number of modifications and improvements.
 
-[MADE-IN-INDIA-badge]:https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge
-[MADE-IN-INDIA]:https://en.wikipedia.org/wiki/India
-[Windows-badge]:https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white
-[Windows]:https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.exe
-[Linux-badge]:https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black
-[Linux]:https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.bin
-[Mac OS-badge]:https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000
-[Mac OS]:https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.run
-[GitHub release (latest by date)-badge]:https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge
-[GitHub release (latest by date)]:https://github.com/pkjmesra/PKScreener/releases/latest
+[MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge
+[MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
+[Windows-badge]: https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.exe
+[Linux-badge]: https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black
+[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.bin
+[Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000
+[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231214.8/pkscreenercli.run
+[GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge
+[GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
 [pypi]: https://pypi.python.org/pypi/pkscreener
 [coveralls]: https://coveralls.io/github/pkjmesra/PKScreener?branch=main
