@@ -92,6 +92,32 @@ class tools:
         full52WeekHigh = full52Week["High"].max()
         return (recent >= full52WeekHigh) or (last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
     
+    # Find stocks' 52 week high/low.
+    def find52WeekHighLow(self, data, saveDict, screenDict):
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        one_week = 5
+        week_52 = one_week * 50 # Considering holidays etc as well of 10 days
+        full52Week = data.head(week_52 +1).tail(week_52)
+        recentHigh = data.head(1)["High"].iloc[0]
+        recentLow = data.head(1)["Low"].iloc[0]
+        full52WeekHigh = full52Week["High"].max()
+        full52WeekLow = full52Week["Low"].min()
+        
+        saveDict["52Wk H/L"] = f"{'{:.2f}'.format(full52WeekHigh)} / {'{:.2f}'.format(full52WeekLow)}"
+        if recentHigh >= full52WeekHigh:
+            highColor = colorText.GREEN
+        elif recentHigh >= 0.9*full52WeekHigh:
+            highColor = colorText.WARN
+        else:
+            highColor = colorText.FAIL
+        if recentLow <= full52WeekLow:
+            lowColor = colorText.FAIL
+        elif recentLow <= 1.1*full52WeekLow:
+            lowColor = colorText.WARN
+        else:
+            lowColor = colorText.GREEN
+        screenDict["52Wk H/L"] = f"{highColor}{str('{:.2f}'.format(full52WeekHigh))}{colorText.END} / {lowColor}{str('{:.2f}'.format(full52WeekLow))}{colorText.END}"
 
     # Find stocks that have broken through 52 week low.
     def find52WeekLowBreakout(self, data):
