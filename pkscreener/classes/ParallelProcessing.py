@@ -205,6 +205,7 @@ class StockConsumer:
                     + colorText.END
                 )
                 saveDictionary["Stock"] = stock
+                screener.find52WeekHighLow(fullData, saveDictionary, screeningDictionary)
                 isLtpValid, verifyStageTwo = screener.validateLTP(
                     fullData,
                     screeningDictionary,
@@ -729,6 +730,7 @@ class StockConsumer:
                 "MA-Signal",
                 "Volume",
                 "LTP",
+                "52Wk H/L",
                 "%Chng",
                 "RSI",
                 "Trend",
@@ -743,6 +745,7 @@ class StockConsumer:
             "MA-Signal": "",
             "Volume": "",
             "LTP": 0,
+            "52Wk H/L": "",
             "%Chng": 0,
             "RSI": 0,
             "Trend": "",
@@ -756,6 +759,7 @@ class StockConsumer:
             "MA-Signal": "",
             "Volume": "",
             "LTP": 0,
+            "52Wk H/L": "",
             "%Chng": 0,
             "RSI": 0,
             "Trend": "",

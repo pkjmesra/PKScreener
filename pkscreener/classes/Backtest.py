@@ -72,6 +72,7 @@ def backtest(
                 "Trend",
                 "MA-Signal",
                 "LTP",
+                "52Wk H/L",
                 "1-Pd",
                 "2-Pd",
                 "3-Pd",
@@ -90,6 +91,7 @@ def backtest(
         "Trend": "",
         "MA-Signal": "",
         "LTP": "",
+        "52Wk H/L": "",
         "1-Pd": "",
         "2-Pd": "",
         "3-Pd": "",
@@ -108,6 +110,7 @@ def backtest(
     backTestedStock["Trend"] = screenedDict["Trend"]
     backTestedStock["MA-Signal"] = screenedDict["MA-Signal"]
     backTestedStock["LTP"] = screenedDict["LTP"]
+    backTestedStock["52Wk H/L"] = screenedDict["52Wk H/L"]
     for prd in calcPeriods:
         if abs(prd) <= periods:
             try:
