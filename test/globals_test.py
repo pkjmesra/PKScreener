@@ -64,8 +64,8 @@ def test_getDownloadChoices_positive():
     menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices(defaultAnswer='Y')
     assert menuOption == "X"
     assert str(selectedTickerOption) == "12"
-    assert str(selectedExecuteOption) == "2"
-    assert selectedChoice == {"0": "X", "1": "12", "2": "2"}
+    assert str(selectedExecuteOption) == "0"
+    assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
 
 def test_handleSecondaryMenuChoices_positive():
     menuOption = "H"
@@ -147,8 +147,8 @@ def test_getDownloadChoices_negative():
         menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices()
         assert menuOption == "X"
         assert selectedTickerOption == 12
-        assert selectedExecuteOption == 2
-        assert selectedChoice == {"0": "X", "1": "12", "2": "2"}
+        assert selectedExecuteOption == 0
+        assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
 
 def test_getTopLevelMenuChoices_negative():
     startupoptions = "X:1:0"

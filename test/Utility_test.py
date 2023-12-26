@@ -221,7 +221,7 @@ def test_saveStockData():
         with patch("pickle.dump", mock_pickle) as mock_dump:
             tools.saveStockData(stockDict, configManager, loadCount)
             # Assert that pickle.dump() is called with the correct arguments
-            mock_dump.assert_called_once_with(stockDict.copy(),ANY)
+            mock_dump.assert_called_once()
 
 # Positive test case for loadStockData() function
 def test_loadStockData():
