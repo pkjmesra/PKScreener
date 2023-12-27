@@ -259,7 +259,7 @@ class tools:
         legendText= f"{legendText}and above 100 is considered overbought. If the CCI is < '-100' or CCI is > 100 and the Trend(30Prds) is Strong/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan\n"
         legendText= f"{legendText}options. Similarly, 61.69 % of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%\n"
         legendText= f"{legendText}of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss table/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in\n"
-        legendText= f"{legendText}red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions.\n"
+        legendText= f"{legendText}red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions. *** 14. 52Wk H/L ***: These have 52 weeks high/low prices within 10% of LTP:Yellow, above high:Green. Below 90% High:Red.\n"
 
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
@@ -375,8 +375,8 @@ class tools:
         draw.text((colPixelRunValue, rowPixelRunValue + label_height + 10), legendText, font=artfont, fill=gridColor)
         im = im.resize(im.size, Image.ANTIALIAS, reducing_gap=2)
         im.save(filename, format="png", bitmap_format="png",optimize=True, quality=20)
-        if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
-            im.show()
+        # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
+        #     im.show()
 
     def tradingDate(simulate=False, day=None):
         curr = tools.currentDateTime(simulate=simulate,day=day)

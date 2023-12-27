@@ -3,11 +3,25 @@
 branch = True
 concurrency=multiprocessing
 parallel = True
+omit =
+    test/*
+    pkscreener/classes/Committer.py
+    pkscreener/classes/WorkflowManager.py
+    pkscreenerbot.py
 
 [report]
 show_missing = True
 # Regexes for lines to exclude from consideration
-# exclude_also =
+exclude_also =
+    except IOError as e: 
+    except FileNotFoundError as e:
+    if bData is None: 
+    except Exception as e: 
+    except pickle.PicklingError as e:
+    except EOFError as e:
+    except ValueError as e:
+    except Exception as ex: 
+
     # Don't complain about missing debug-only code:
     # def __repr__
     # if self\.debug

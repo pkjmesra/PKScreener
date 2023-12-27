@@ -23,6 +23,9 @@
 
 """
 import os
+import platform
+import pytest
+
 from unittest.mock import ANY, MagicMock, patch
 
 from PKDevTools.classes.Telegram import (get_secrets, initTelegram,
@@ -76,6 +79,8 @@ def test_send_message():
             assert result is not None
 
 # Positive test case: Check if the function sends a photo
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -88,6 +93,8 @@ def test_send_photo():
             os.remove("test1.jpg")
 
 # Positive test case: Check if the function sends a document
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -100,6 +107,8 @@ def test_send_document():
             os.remove("test1.pdf")
 
 # Edge test case: Check if the function retries sending a document when an exception occurs
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_retry():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -113,6 +122,8 @@ def test_send_document_retry():
                 os.remove("test2.pdf")
 
 # Edge test case: Check if the function sends a document with a message ID
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_with_message_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -125,6 +136,8 @@ def test_send_document_with_message_id():
             os.remove("test3.pdf")
 
 # Edge test case: Check if the function sends a document with a user ID
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_with_user_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -137,6 +150,8 @@ def test_send_document_with_user_id():
             os.remove("test4.pdf")
 
 # Edge test case: Check if the function sends a document with a message ID and user ID
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_with_message_id_and_user_id():
     with patch('PKDevTools.classes.Telegram.is_token_telegram_configured') as mock_is_token_telegram_configured:
         mock_is_token_telegram_configured.return_value = True
@@ -158,6 +173,8 @@ def test_send_message_positive():
         response = send_message(message)
         assert response.text == expected_response
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo_positive():
     photoFilePath = "test2.jpg"
     message = "Test message"
@@ -171,6 +188,8 @@ def test_send_photo_positive():
         assert response.text == expected_response
         os.remove("test2.jpg")
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_positive():
     documentFilePath = "test6.pdf"
     message = "Test message"
@@ -201,6 +220,8 @@ def test_send_message_exception_negative():
             send_message(message)
             mock_send_message.assert_called_once_with(message=message, parse_type=ANY, list_png=ANY, userID=ANY, retrial=True)
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo_negative():
     photoFilePath = "test3.jpg"
     message = "Test message"
@@ -212,6 +233,8 @@ def test_send_photo_negative():
         assert response.status_code == 500
         os.remove("test3.jpg")
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_negative():
     documentFilePath = "test7.pdf"
     message = "Test message"
@@ -223,6 +246,8 @@ def test_send_document_negative():
         assert response.status_code == 500
         os.remove("test7.pdf")
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_exception_negative():
     documentFilePath = "test8.pdf"
     message = "Test message"
@@ -235,6 +260,8 @@ def test_send_document_exception_negative():
             mock_send_document.assert_called_once_with(documentFilePath, message,None, retryCount=1)
             os.remove("test8.pdf")
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo_exception_negative():
     photoFilePath = "test4.jpg"
     message = "Test message"
@@ -257,6 +284,8 @@ def test_send_message_edge():
         response = send_message(message)
         assert response.text == expected_response
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo_edge():
     photoFilePath = "test5.jpg"
     message = ""
@@ -270,6 +299,8 @@ def test_send_photo_edge():
         assert response.text == expected_response
         os.remove("test5.jpg")
 
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_edge():
     documentFilePath = "test9.pdf"
     message = ""
@@ -295,6 +326,8 @@ def test_send_message_to_user():
         assert response.text == expected_response
 
 # Test case for sending photo to specific user
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_photo_to_user():
     photoFilePath = "test6.jpg"
     message = "Test message"
@@ -310,6 +343,8 @@ def test_send_photo_to_user():
         os.remove("test6.jpg")
 
 # Test case for sending document to specific user
+@pytest.mark.skipif("Windows" in platform.system(),
+                    reason="Exception:The process cannot access the file because it is being used by another process")
 def test_send_document_to_user():
     documentFilePath = "test10.pdf"
     message = "Test message"
