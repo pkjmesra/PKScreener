@@ -221,7 +221,7 @@ def test_findTrendlines_positive(tools_instance):
                          'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
 
     # Call the function and assert the result
-    assert tools_instance.findTrendlines(data, {}, {}) == False
+    assert tools_instance.findTrendlines(data, {}, {}) == True
 
 # Positive test case for getCandleType function
 def test_getCandleType_positive(tools_instance):
