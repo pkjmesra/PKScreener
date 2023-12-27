@@ -312,6 +312,8 @@ def handleSecondaryMenuChoices(
             )
     elif menuOption == "U":
         OTAUpdater.checkForUpdate(VERSION, skipDownload=testing)
+        if defaultAnswer is None:
+            input("Press <Enter> to continue...")
     elif menuOption == "T":
         toggleUserConfig()
     elif menuOption == "E":
@@ -787,7 +789,8 @@ def main(userArgs=None):
         elif popOption > 0 and popOption <=2:
             screenResults = mstarFetcher.fetchMorningstarFundFavouriteStocks("NoOfFunds" if popOption == 2 else "ChangeInShares")
         printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
-        input("Press <Enter> to continue...")
+        if defaultAnswer is None:
+            input("Press <Enter> to continue...")
         return
     if executeOption == 22:
         selectedMenu = m2.find(str(executeOption))
@@ -804,12 +807,10 @@ def main(userArgs=None):
         else:
             selectedChoice["3"] = str(popOption)
         updateMenuChoiceHierarchy()
-        if popOption == 3:
-            screenResults = mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
-        elif popOption > 0 and popOption <=2:
-            screenResults = mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
+        screenResults = mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
         printNotifySaveScreenedResults(screenResults,screenResults,selectedChoice,menuChoiceHierarchy,False,None)
-        input("Press <Enter> to continue...")
+        if defaultAnswer is None:
+            input("Press <Enter> to continue...")
         return
     if executeOption == 42:
         Utility.tools.getLastScreenedResults()
@@ -1192,7 +1193,7 @@ def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
     global userPassedArgs, elapsed_time
-    MAX_ALLOWED = 100
+    MAX_ALLOWED = 100 if not testing else 1
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     if user is None and userPassedArgs.user is not None:

@@ -58,7 +58,20 @@ fetcher = Fetcher.screenerStockDataFetcher(configManager)
 configManager.default_logger = default_logger()
 disableSysOut(input=False)
 
+this_version_components = VERSION.split(".")
+this_major_minor = ".".join([this_version_components[0], this_version_components[1]])
+this_version = float(this_major_minor)
 
+r = fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest", stream=True)
+try:
+    tag = r.json()["tag_name"]
+    version_components = tag.split(".")
+    major_minor = ".".join([version_components[0], version_components[1]])
+    last_release = float(major_minor)
+except Exception:
+    if r.json()["message"] == "Not Found":
+        last_release = 0
+        
 def cleanup():
     # configManager.deleteFileWithPattern(pattern='*.pkl')
     configManager.deleteFileWithPattern(pattern="*.png")
@@ -70,23 +83,16 @@ def test_if_changelog_version_changed():
     global last_release
     v = Changelog.changelog().split("]")[1].split("[")[-1]
     v = str(v).replace("v", "")
-    assert float(v) >= float(last_release)
+    v_components = v.split(".")
+    v_major_minor = ".".join([v_components[0], v_components[1]])
+    v = float(v_major_minor)
+    assert v >= float(last_release)
     assert f"v{str(last_release)}" in Changelog.changelog()
     assert f"v{str(VERSION)}" in Changelog.changelog()
 
 
 def test_if_release_version_incremented():
-    global last_release
-    r = fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest", stream=True)
-    try:
-        tag = r.json()["tag_name"]
-        version_components = tag.split(".")
-        major_minor = ".".join([version_components[0], version_components[1]])
-        last_release = float(major_minor)
-    except Exception:
-        if r.json()["message"] == "Not Found":
-            last_release = 0
-    assert float(VERSION) >= last_release
+    assert this_version >= last_release
 
 
 def test_configManager():
@@ -568,7 +574,7 @@ def test_release_readme_urls():
         f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.bin",
         f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.exe",
     ]
-    if float(VERSION) > float(last_release):
+    if this_version > float(last_release):
         for url in failUrl:
             assert url not in contents
     for url in passUrl:

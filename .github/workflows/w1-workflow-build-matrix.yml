@@ -282,16 +282,19 @@ jobs:
 
       - name: Find and update version
         if: startsWith(runner.os, 'Linux')
+        shell: bash
         run: |
             git config user.name github-actions
             git config user.email github-actions@github.com
             pip3 install mistletoe
             echo ${{ needs.Build.outputs.version }}
             echo ${{ needs.Build.outputs.oldVersion }}
+            v1=${{ needs.Build.outputs.oldVersion }}
+            v2=${{ needs.Build.outputs.version }}
             python .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
             python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
-            python .github/workflows/updateVersion.py -p README.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
             python .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
+            sed -i "s/$v1/$v2/g" README.md
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
             git add README.md --force

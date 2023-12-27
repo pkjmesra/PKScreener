@@ -219,16 +219,27 @@ rm updater.sh
                         )
                         raise (e)
             elif not prod_update:
-                print(
-                    colorText.BOLD
-                    + colorText.FAIL
-                    + (
-                        "[+] This version (v%s) is in Development mode and unreleased!"
-                        % VERSION
+                if tag.lower() == VERSION.lower():
+                    print(
+                        colorText.BOLD
+                        + colorText.GREEN
+                        + (
+                            "[+] No new update available. You have the latest version (v%s) !"
+                            % VERSION
+                        )
+                        + colorText.END
                     )
-                    + colorText.END
-                )
-                return OTAUpdater.developmentVersion
+                else:
+                    print(
+                        colorText.BOLD
+                        + colorText.FAIL
+                        + (
+                            "[+] This version (v%s) is in Development mode and unreleased!"
+                            % VERSION
+                        )
+                        + colorText.END
+                    )
+                    return OTAUpdater.developmentVersion
         except Exception as e:
             default_logger().debug(e, exc_info=True)
             if OTAUpdater.checkForUpdate.url is not None:
