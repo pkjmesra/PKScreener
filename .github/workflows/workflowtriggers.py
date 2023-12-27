@@ -60,7 +60,7 @@ objectDictionary = {}
 # args.scans = True
 # args.report = True 
 # args.intraday = True
-# args.backtests = True
+args.backtests = True
 # args.local = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
@@ -261,7 +261,7 @@ def triggerBacktestWorkflowActions(launchLocal=False):
         sys.exit(0)
 
 def holidayList():
-    url = "https://www.nseindia.com/api/holiday-master?type=trading"
+    url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/.github/dependencies/nse-holidays.json"
     headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"}
     res = requests.get(url,headers=headers)
     if res is None or res.status_code != 200:
@@ -294,8 +294,8 @@ def isTodayHoliday():
 if args.report:
     generateBacktestReportMainPage()
 if args.backtests:
-    if not isTodayHoliday() or args.force:
+    if not isTodayHoliday()[0] or args.force:
         triggerBacktestWorkflowActions(args.local)
 if args.scans:
-    if not isTodayHoliday() or args.force:
+    if not isTodayHoliday()[0] or args.force:
         triggerScanWorkflowActions()
