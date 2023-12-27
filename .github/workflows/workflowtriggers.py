@@ -23,7 +23,10 @@
 
 """
 import argparse
+import datetime
 import os
+import pandas as pd
+import pytz
 from time import sleep
 
 import requests
@@ -41,6 +44,7 @@ argParser.add_argument("-b","--backtests", action="store_true", help="Trigger ba
 argParser.add_argument("-i","--intraday", action="store_true", help="Trigger backtests for intraday if true", required=required)
 argParser.add_argument("-u","--user", help="Telegram user id", required=required)
 argParser.add_argument("-l","--local", help="Launch locally", required=required, action=argparse.BooleanOptionalAction)
+argParser.add_argument("-f","--force", help="Force launch scan/backtests", required=required, action=argparse.BooleanOptionalAction)
 
 argsv = argParser.parse_known_args()
 args = argsv[0]
@@ -53,9 +57,10 @@ m2 = menus()
 m3 = menus()
 objectDictionary = {}
 
+# args.scans = True
 # args.report = True 
 # args.intraday = True
-# args.backtests = True
+args.backtests = True
 # args.local = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
@@ -255,9 +260,42 @@ def triggerBacktestWorkflowActions(launchLocal=False):
     if launchLocal:
         sys.exit(0)
 
+def holidayList():
+    url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/.github/dependencies/nse-holidays.json"
+    headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"}
+    res = requests.get(url,headers=headers)
+    if res is None or res.status_code != 200:
+        return None
+    try:
+        cm = res.json()['CM'] # CM = Capital Markets
+        df = pd.DataFrame(cm)
+        df = df[['tradingDate', 'weekDay', 'description']]
+        df.loc[:, 'description'] = df.loc[:, 'description'].apply(
+                lambda x: x.replace('\r','')
+            )
+        return df
+    except Exception as e:
+        return None
+    
+def isTodayHoliday():
+    holidays = holidayList()
+    if holidays is None:
+        return False, None
+    
+    curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
+    today = curr.strftime("%d-%b-%Y")
+    occasion = None
+    for holiday in holidays['tradingDate']:
+        if today in holiday:
+            occasion = holidays[holidays['tradingDate']==holiday]['description'].iloc[0]
+            break
+    return occasion is not None, occasion
+
 if args.report:
     generateBacktestReportMainPage()
 if args.backtests:
-    triggerBacktestWorkflowActions(args.local)
+    if not isTodayHoliday()[0] or args.force:
+        triggerBacktestWorkflowActions(args.local)
 if args.scans:
-    triggerScanWorkflowActions()
+    if not isTodayHoliday()[0] or args.force:
+        triggerScanWorkflowActions()

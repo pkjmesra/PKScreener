@@ -1,0 +1,1332 @@
+{
+    "CBM": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "19-Feb-2023",
+        "weekDay": "Sunday",
+        "description": "Chatrapati Shivaji Maharaj Jayanti\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Mar-2023",
+        "weekDay": "Wednesday",
+        "description": "Gudi Padwa\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "01-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Annual Bank Closing\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "05-May-2023",
+        "weekDay": "Friday",
+        "description": "Buddha Pournima\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Muharram\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "16-Aug-2023",
+        "weekDay": "Wednesday",
+        "description": "Parsi New Year\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 20
+      },
+      {
+        "tradingDate": "12-Nov-2023",
+        "weekDay": "Sunday",
+        "description": "Diwali-Laxmi Pujan\r",
+        "Sr_no": 21
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 22
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 23
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 24
+      }
+    ],
+    "CD": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "19-Feb-2023",
+        "weekDay": "Sunday",
+        "description": "Chatrapati Shivaji Maharaj Jayanti\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Mar-2023",
+        "weekDay": "Wednesday",
+        "description": "Gudhipadwa\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "01-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Annual Bank Closing\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr.Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan Id)\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "05-May-2023",
+        "weekDay": "Friday",
+        "description": "Buddha Pournima\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Muharram\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "16-Aug-2023",
+        "weekDay": "Wednesday",
+        "description": "Parsi New Year\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 20
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali Balipratipada\r",
+        "Sr_no": 21
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 22
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 23
+      }
+    ],
+    "CM": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 18
+      }
+    ],
+    "CMOT": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 18
+      }
+    ],
+    "COM": [
+      {
+        "tradingDate": "01-Jan-2023",
+        "weekDay": "Sunday",
+        "description": "New Year Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 9
+      }
+    ],
+    "FO": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 18
+      }
+    ],
+    "IRD": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "19-Feb-2023",
+        "weekDay": "Sunday",
+        "description": "Chatrapati Shivaji Maharaj Jayanti\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Mar-2023",
+        "weekDay": "Wednesday",
+        "description": "Gudhipadwa\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "01-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Annual Bank Closing\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr.Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan Id)\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "05-May-2023",
+        "weekDay": "Friday",
+        "description": "Buddha Pournima\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Muharram\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "16-Aug-2023",
+        "weekDay": "Wednesday",
+        "description": "Parsi New Year\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 20
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali Balipratipada\r",
+        "Sr_no": 21
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 22
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 23
+      }
+    ],
+    "MF": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "28-Jun-2023",
+        "weekDay": "Wednesday",
+        "description": "Bakri Id\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "01-Sep-2023",
+        "weekDay": "Friday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "12-Nov-2023",
+        "weekDay": "Sunday",
+        "description": "Diwali-Laxmi Pujan\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 19
+      }
+    ],
+    "NDM": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "19-Feb-2023",
+        "weekDay": "Sunday",
+        "description": "Chatrapati Shivaji Maharaj Jayanti\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Mar-2023",
+        "weekDay": "Wednesday",
+        "description": "Gudi Padwa\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "01-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Annual Bank Closing\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "05-May-2023",
+        "weekDay": "Friday",
+        "description": "Buddha Pournima\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Muharram\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "16-Aug-2023",
+        "weekDay": "Wednesday",
+        "description": "Parsi New Year\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 20
+      },
+      {
+        "tradingDate": "12-Nov-2023",
+        "weekDay": "Sunday",
+        "description": "Diwali-Laxmi Pujan\r",
+        "Sr_no": 21
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 22
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 23
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 24
+      }
+    ],
+    "NTRP": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "19-Feb-2023",
+        "weekDay": "Sunday",
+        "description": "Chatrapati Shivaji Maharaj Jayanti\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "22-Mar-2023",
+        "weekDay": "Wednesday",
+        "description": "Gudi Padwa\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "01-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Annual Bank Closing\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "05-May-2023",
+        "weekDay": "Friday",
+        "description": "Buddha Pournima\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Muharram\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "16-Aug-2023",
+        "weekDay": "Wednesday",
+        "description": "Parsi New Year\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 20
+      },
+      {
+        "tradingDate": "12-Nov-2023",
+        "weekDay": "Sunday",
+        "description": "Diwali-Laxmi Pujan\r",
+        "Sr_no": 21
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 22
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 23
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 24
+      }
+    ],
+    "SLBS": [
+      {
+        "tradingDate": "26-Jan-2023",
+        "weekDay": "Thursday",
+        "description": "Republic Day\r",
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "18-Feb-2023",
+        "weekDay": "Saturday",
+        "description": "Mahashivratri\r",
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "07-Mar-2023",
+        "weekDay": "Tuesday",
+        "description": "Holi\r",
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "30-Mar-2023",
+        "weekDay": "Thursday",
+        "description": "Ram Navami\r",
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "04-Apr-2023",
+        "weekDay": "Tuesday",
+        "description": "Mahavir Jayanti\r",
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "07-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Good Friday\r",
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "14-Apr-2023",
+        "weekDay": "Friday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti\r",
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "22-Apr-2023",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramzan ID)\r",
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "01-May-2023",
+        "weekDay": "Monday",
+        "description": "Maharashtra Day\r",
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "29-Jun-2023",
+        "weekDay": "Thursday",
+        "description": "Bakri Id\r",
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "29-Jul-2023",
+        "weekDay": "Saturday",
+        "description": "Moharram\r",
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "15-Aug-2023",
+        "weekDay": "Tuesday",
+        "description": "Independence Day\r",
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "19-Sep-2023",
+        "weekDay": "Tuesday",
+        "description": "Ganesh Chaturthi\r",
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "02-Oct-2023",
+        "weekDay": "Monday",
+        "description": "Mahatma Gandhi Jayanti\r",
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "24-Oct-2023",
+        "weekDay": "Tuesday",
+        "description": "Dussehra\r",
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "14-Nov-2023",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada\r",
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "27-Nov-2023",
+        "weekDay": "Monday",
+        "description": "Gurunanak Jayanti\r",
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "25-Dec-2023",
+        "weekDay": "Monday",
+        "description": "Christmas\r",
+        "Sr_no": 18
+      }
+    ]
+  }

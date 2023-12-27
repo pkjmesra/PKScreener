@@ -144,11 +144,14 @@ def test_getTestBuildChoices_negative():
 
 def test_getDownloadChoices_negative():
     with patch('builtins.input', return_value='N'):
-        menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices()
-        assert menuOption == "X"
-        assert selectedTickerOption == 12
-        assert selectedExecuteOption == 0
-        assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
+        with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            mock_data.return_value = True, "stock_data_1.pkl"
+            with pytest.raises(SystemExit):
+                menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices()
+                assert menuOption == "X"
+                assert selectedTickerOption == 12
+                assert selectedExecuteOption == 0
+                assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
 
 def test_getTopLevelMenuChoices_negative():
     startupoptions = "X:1:0"
