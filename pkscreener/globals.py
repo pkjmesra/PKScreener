@@ -198,19 +198,20 @@ def getScannerMenuChoices(
         default_logger().debug(e, exc_info=True)
     return menuOption, tickerOption, executeOption, selectedChoice
 
-def getSummaryCorrectnessOfStrategy(resultdf):
+def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
     summarydf = None
     detaildf = None
     try:
         if resultdf is None or len(resultdf) == 0:
             return None, None
         results = resultdf.copy()
-        _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
+        if summaryRequired:
+            _ , reportNameSummary = getBacktestReportFilename(optionalName="Summary")
+            dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary.replace("_X_","_B_")))
         _ , reportNameDetail = getBacktestReportFilename()
-        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameSummary.replace("_X_","_B_")))
         dfd = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportNameDetail.replace("_X_","_B_")))
         
-        if len(dfs) > 0:
+        if summaryRequired and len(dfs) > 0:
             df = dfs[0]
             summarydf = df[df['Stock'] == 'SUMMARY']
             for col in summarydf.columns:
@@ -1205,71 +1206,38 @@ def printNotifySaveScreenedResults(
         + f"[+] You chose: {menuChoiceHierarchy}"
         + colorText.END
     )
-    summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
-    if summarydf is not None and len(summarydf) > 0:
-        tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
-    if detaildf is not None and len(detaildf) > 0:
-        tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
-    if tabulated_backtest_summary != "":
-        print(
-            colorText.BOLD
-            + colorText.FAIL
-            + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
-            + colorText.END
-        )
-        print(tabulated_backtest_summary)
-    if tabulated_backtest_detail != "":
-        print(
-            colorText.BOLD
-            + colorText.FAIL
-            + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
-            + colorText.END
-        )
-        print(tabulated_backtest_detail)
+
     title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if screenResults is not None and len(screenResults) >= 1:
         if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
-            # There's no need to save data locally.
-            # This scan must have been triggered by github workflow by a user or scheduled job
-            # Let's just send the image result to telegram
-            screenResultsTrimmed = screenResults.copy()
-            saveResultsTrimmed = saveResults.copy()
-            if len(screenResultsTrimmed) > MAX_ALLOWED:
-                screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
-                saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
-                summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResultsTrimmed)
-                if detaildf is not None and len(detaildf) > 0:
-                    detaildf = detaildf.head(2*MAX_ALLOWED)
-                    tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
-                tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
-            markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
-
-            if not testing and len(screenResultsTrimmed) <= MAX_ALLOWED:
+            eligible = is_token_telegram_configured()
+            if eligible:
+                # There's no need to save data locally.
+                # This scan must have been triggered by github workflow by a user or scheduled job
+                # Let's just send the image result to telegram
+                screenResultsTrimmed = screenResults.copy()
+                saveResultsTrimmed = saveResults.copy()
                 # No point sending a photo with more than MAX_ALLOWED stocks.
                 warn_text = f' but only including top {MAX_ALLOWED} results here. ' if (len(saveResults) > MAX_ALLOWED) else ''
                 caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {title}"
                 pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
                 pngExtension = ".png"
                 backtestExtension = "_backtest.png"
-                if is_token_telegram_configured():
-                    import traceback
-                    try:
-                        Utility.tools.tableToImage(
-                            markdown_results,
-                            tabulated_results,
-                            pngName+pngExtension,
-                            menuChoiceHierarchy,
-                            backtestSummary=tabulated_backtest_summary,
-                            backtestDetail="",
-                        )
-                        sendMessageToTelegramChannel(
-                            message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
-                        )
-                        os.remove(pngName+pngExtension)
-                        # Let's send the backtest results now only if the user requested 1-on-1 for scan.
-                        if user is not None:
+                if len(screenResultsTrimmed) > MAX_ALLOWED:
+                    screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
+                    saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
+                    tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
+                markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
+                if not testing:
+                    sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension)
+                    # Let's send the backtest results now only if the user requested 1-on-1 for scan.
+                    if user is not None:
+                        # Now let's try and send backtest results
+                        tabulated_backtest_summary, tabulated_backtest_detail = tabulateBacktestResults(saveResultsTrimmed,maxAllowed=MAX_ALLOWED)
+                        try:
+                            # import traceback
                             Utility.tools.tableToImage(
                                 "",
                                 "",
@@ -1283,11 +1251,17 @@ def printNotifySaveScreenedResults(
                                 message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
                             )
                             os.remove(pngName+backtestExtension)                        
-                    except Exception as e:
-                        default_logger().debug(e, exc_info=True)
-                        print(e)
-                        traceback.print_exc()
+                        except Exception as e:
+                            default_logger().debug(e, exc_info=True)
+                            pass
+                            # print(e)
+                            # traceback.print_exc()
+                    else:
+                        tabulateBacktestResults(saveResults)
+            else:
+                tabulateBacktestResults(saveResults)
         else:
+            tabulateBacktestResults(saveResults)
             print(
                 colorText.BOLD
                 + colorText.GREEN
@@ -1299,6 +1273,54 @@ def printNotifySaveScreenedResults(
         sendMessageToTelegramChannel(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
         )
+
+def tabulateBacktestResults(saveResults, maxAllowed=0):
+    tabulated_backtest_summary = ""
+    tabulated_backtest_detail = ""
+    summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
+    if summarydf is not None and len(summarydf) > 0:
+        tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
+    if detaildf is not None and len(detaildf) > 0:
+        if maxAllowed !=0 and len(detaildf) > 2*maxAllowed:
+            detaildf = detaildf.head(2*maxAllowed)
+            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+        else:
+            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+    if tabulated_backtest_summary != "":
+        print(
+                            colorText.BOLD
+                            + colorText.FAIL
+                            + "\n[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)"
+                            + colorText.END
+                        )
+        print(tabulated_backtest_summary)
+    if tabulated_backtest_detail != "":
+        print(
+                            colorText.BOLD
+                            + colorText.FAIL
+                            + "\n[+] 1 to 30 period gain/loss % on respective date for matching stocks from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"
+                            + colorText.END
+                        )
+        print(tabulated_backtest_detail)        
+    return tabulated_backtest_summary, tabulated_backtest_detail
+
+def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension):
+    try:
+        Utility.tools.tableToImage(
+                                markdown_results,
+                                tabulated_results,
+                                pngName+pngExtension,
+                                menuChoiceHierarchy,
+                                backtestSummary="",
+                                backtestDetail="",
+                            )
+        sendMessageToTelegramChannel(
+                                message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
+                            )
+        os.remove(pngName+pngExtension)
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
+        pass
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
