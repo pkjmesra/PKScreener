@@ -1034,7 +1034,15 @@ class tools:
                 if lookFor != 2:
                     return True
         except Exception as e:
-            self.default_logger.debug(e, exc_info=True)
+            # ValueError: operands could not be broadcast together with shapes (20,) (26,) 
+            # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 186, in __init__
+            # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 395, in __classify
+            # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/ops/common.py", line 76, in new_method
+            # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/arraylike.py", line 70, in __and__
+            # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/series.py", line 5810, in _logical_method
+            # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/ops/array_ops.py", line 456, in logical_op
+            # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/ops/array_ops.py", line 364, in na_logical_op
+            # self.default_logger.debug(e, exc_info=True)
             pass
         return False
     
