@@ -30,9 +30,8 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
-from pkscreener.classes.Backtest import (backtest, backtestSummary,
-                                         formattedOutput)
-
+from pkscreener.classes.Backtest import (backtest, backtestSummary)
+from pkscreener.classes import Utility
 
 def sample_data():
     data = pd.DataFrame({
@@ -48,7 +47,9 @@ def sample_screened_dict():
         'Volume': 1000,
         'Trend': 'Up',
         'MA-Signal': 'Buy',
-        'LTP': 100
+        'LTP': 100,
+        '52Wk H': 100,
+        '52Wk L': 10,
     }
     return screened_dict
 
@@ -75,15 +76,15 @@ def test_backtest_summary_with_data():
     assert len(result) == 2
 
 def test_formatted_output_high_outcome():
-    result = formattedOutput(85)
+    result = Utility.tools.formattedBacktestOutput(85)
     assert result == '\x1b[92m85.00%\x1b[0m'
 
 def test_formatted_output_medium_outcome():
-    result = formattedOutput(65)
+    result = Utility.tools.formattedBacktestOutput(65)
     assert result == '\x1b[93m65.00%\x1b[0m'
 
 def test_formatted_output_low_outcome():
-    result = formattedOutput(45)
+    result = Utility.tools.formattedBacktestOutput(45)
     assert result == '\x1b[91m45.00%\x1b[0m'
 
 def sample_summary_data():
@@ -118,6 +119,6 @@ def test_backtestSummary_no_data():
     assert summary_df is None
 
 def test_formattedOutput():
-    assert formattedOutput(85) == "\x1b[92m85.00%\x1b[0m"
-    assert formattedOutput(70) == "\x1b[93m70.00%\x1b[0m"
-    assert formattedOutput(40) == "\x1b[91m40.00%\x1b[0m"
+    assert Utility.tools.formattedBacktestOutput(85) == "\x1b[92m85.00%\x1b[0m"
+    assert Utility.tools.formattedBacktestOutput(70) == "\x1b[93m70.00%\x1b[0m"
+    assert Utility.tools.formattedBacktestOutput(40) == "\x1b[91m40.00%\x1b[0m"

@@ -1,5 +1,5 @@
 """
-    The MIT License (MIT)
+The MIT License (MIT)
 
     Copyright (c) 2023 pkjmesra
 
@@ -22,4 +22,4 @@
     SOFTWARE.
 
 """
-VERSION='0.42'
+VERSION='0.42.20231226.44'
