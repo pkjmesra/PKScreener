@@ -1109,12 +1109,20 @@ class tools:
                 screenDict["Stock"] = colorText.FAIL + saveDict["Stock"] + colorText.END
         if ltp >= minLTP and ltp <= maxLTP:
             ltpValid = True
-            saveDict["LTP"] = str((" %.2f" % ltp))
+            saveDict["LTP"] = round(ltp,2)
             screenDict["LTP"] = colorText.GREEN + ("%.2f" % ltp) + colorText.END
             return ltpValid, verifyStageTwo
         screenDict["LTP"] = colorText.FAIL + ("%.2f" % ltp) + colorText.END
-        saveDict["LTP"] = str((" %.2f" % ltp))
+        saveDict["LTP"] = round(ltp,2)
         return ltpValid, verifyStageTwo
+
+    def validateLTPForPortfolioCalc(self, data, screenDict, saveDict):
+        prevLtp = data.head(1)['Close'].iloc[0]
+        ltpTdy = data.tail(1)['Close'].iloc[0]
+        screenDict['LTPTdy'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
+        screenDict['Growth'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
+        saveDict['LTPTdy'] = round(ltpTdy,2)
+        saveDict['Growth'] = round(ltpTdy-prevLtp,2)
 
     # Find stocks that are bearish intraday: Macd Histogram negative
     def validateMACDHistogramBelow0(self, data):
@@ -1353,7 +1361,7 @@ class tools:
             screenDict["LTP"] = (
                 colorText.GREEN + ("%.2f" % round(day0, 2)) + pct_change + colorText.END
             )
-            saveDict["LTP"] = ("%.2f" % round(day0, 2)) + pct_change_text
+            saveDict["LTP"] = round(day0, 2) # + pct_change_text
             return True and self.getCandleType(data.head(1))
         return False
 
