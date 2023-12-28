@@ -1,15 +1,12 @@
 
 # PKScreener
 
-[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![GitHub all releases][GitHub all releases]](#) [![GitHub][License-badge]][License] [![CodeFactor][Codefactor-badge]][Codefactor] [![BADGE][PR-Guidelines-badge]][PR-Guidelines]
+[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![Downloads][Downloads-badge]][Downloads]
+![latest download][Latest-Downloads-badge]
 
-![github license][github-license] [![Downloads][Downloads-badge]][Downloads]
-![latest download][Latest-Downloads-badge] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov]
+[![CodeFactor][Codefactor-badge]][Codefactor]
 
-[![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
-[![Docker Pulls][Docker Pulls-badge]][Docker Status] [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] [![w9. After-Market Data Gen][After Market-badge]][After Market] 
-[![PKScreener Test - New Features][New Features-badge]][New Features] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
-[![Docker Build][Docker-Build-badge]][Docker-Build]
+![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov]
 
 ## What is PKScreener?
 | Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting |
@@ -35,7 +32,7 @@ You can get daily scan results/alerts at scheduled times by subscribing to the f
 |    Purpose     |                                                                                                                   Description/link                                                                                                                    | QR Code                                                                                                                                          |                                                                                                                                            |     |
 | :------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --- |
 | Alerts Channel | https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions. | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/> |                                                                                                                                            |     |
-|      <!--      |                                                                                                                    Discussions []                                                                                                                     | https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group                            | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/> | --> |
+|      |
 
 ![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
 
@@ -259,3 +256,10 @@ After you have finished the run, go to that copied path, zip the contents of the
 [Docker-Build-badge]: https://github.com/pkjmesra/pkscreener/workflows/Docker%20Image%20CI/badge.svg
 [Docker-Build]: https://github.com/pkjmesra/pkscreener/actions/workflows/w15-docker-image.yml?query=workflow%3ADocker
 
+<!-- [![GitHub all releases][GitHub all releases]](#) [![GitHub][License-badge]][License] [![BADGE][PR-Guidelines-badge]][PR-Guidelines]
+[![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
+[![Docker Pulls][Docker Pulls-badge]][Docker Status] [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] [![w9. After-Market Data Gen][After Market-badge]][After Market] 
+[![PKScreener Test - New Features][New Features-badge]][New Features] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
+[![Docker Build][Docker-Build-badge]][Docker-Build] -->
+
+<!--      |                                                                                                                    Discussions []                                                                                                                     | https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group                            | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/> | --> 

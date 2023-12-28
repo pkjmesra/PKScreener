@@ -1343,6 +1343,8 @@ class tools:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data.head(4)
+        if len(data) < 4:
+            return False
         day0 = data.iloc[0]["Close"].item()
         dayMinus1 = data.iloc[1]["Close"].item()
         dayMinus2 = data.iloc[2]["Close"].item()
