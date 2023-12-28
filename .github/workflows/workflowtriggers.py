@@ -274,7 +274,7 @@ def holidayList():
                 lambda x: x.replace('\r','')
             )
         return df
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         return None
     
 def isTodayHoliday():

@@ -209,7 +209,7 @@ rm updater.sh
                             OTAUpdater.updateForMac(OTAUpdater.checkForUpdate.url)
                         else:
                             OTAUpdater.updateForLinux(OTAUpdater.checkForUpdate.url)
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -240,7 +240,7 @@ rm updater.sh
                         + colorText.END
                     )
                     return OTAUpdater.developmentVersion
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             if OTAUpdater.checkForUpdate.url is not None:
                 print(

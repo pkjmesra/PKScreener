@@ -83,7 +83,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             except ZeroDivisionError as e:
                 default_logger().debug(e, exc_info=True)
                 pass
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 pass
             if len(data) == 0:
@@ -158,7 +158,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
         data = pd.DataFrame()
         try:
             data = pd.read_excel("watchlist.xlsx")
-        except FileNotFoundError as e:
+        except FileNotFoundError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             print(
                 colorText.BOLD

@@ -27,6 +27,9 @@ name: 13. Backtest for Generic
 on:
   workflow_dispatch:
     inputs:
+      id:
+        description: 'run identifier'
+        required: false
       name:
         description: 'Backtest for Generic'
         required: false
@@ -54,9 +57,9 @@ run-name: ${{ inputs.name }} Backtest for Generic params- ${{ inputs.params }}
 jobs:
 
   Generic:
-
     runs-on: windows-latest
-
+    outputs:
+      runIdentifier: ${{ github.event.inputs.id }}
     steps:
     - uses: actions/checkout@v2
       with:
@@ -158,3 +161,18 @@ jobs:
           cd pkscreener
           python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello!\nThe workflow('+os.environ['BACKTEST_NAME']+') for backtesting has finished and will soon get deployed in the next 5-10 minutes. You can check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details after it gets deployed.', userID=os.environ['NOTIFY_USER']);"
           cd ..
+
+  Delete_Workflow_Run:
+    runs-on: ubuntu-20.04
+    needs: [Generic]
+    name: Delete workflow run
+    steps:
+      - name: Delete this workflow run
+        if: startsWith(runner.os, 'Linux')
+        shell: bash
+        run: |
+          echo ${{ needs.Generic.outputs.runIdentifier }} | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+          # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
+          # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
+        env:
+          GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
