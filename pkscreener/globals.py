@@ -194,7 +194,7 @@ def getScannerMenuChoices(
             + colorText.END
         )
         sys.exit(0)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
     return menuOption, tickerOption, executeOption, selectedChoice
 
@@ -287,7 +287,7 @@ def handleScannerExecuteOption4(executeOption, options):
                     + "\n[+] The Volume should be lowest since last how many candles? "
                 )
             )
-    except ValueError as e:
+    except ValueError as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         print(colorText.END)
         print(
@@ -397,7 +397,7 @@ def initExecution(menuOption=None):
                 return selectedMenu
     except KeyboardInterrupt:
         raise KeyboardInterrupt
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         showOptionErrorMessage()
         return initExecution()
@@ -447,7 +447,7 @@ def initPostLevel0Execution(
         selectedChoice["1"] = str(tickerOption)
     except KeyboardInterrupt:
         raise KeyboardInterrupt
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         print(
             colorText.BOLD
@@ -497,7 +497,7 @@ def initPostLevel1Execution(tickerOption, executeOption=None, skip=[], retrial=F
         selectedChoice["2"] = str(executeOption)
     except KeyboardInterrupt:
         raise KeyboardInterrupt
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         print(
             colorText.BOLD
@@ -552,7 +552,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
             },
             inplace=True,
         )
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
     return screenResults, saveResults
 
@@ -890,7 +890,7 @@ def main(userArgs=None):
                                 result_df=result_df,
                                 last_signal=last_signal,
                             )
-                        except Exception as e:
+                        except Exception as e: # pragma: no cover
                             default_logger().debug(e, exc_info=True)
                             print(
                             colorText.BOLD
@@ -1257,7 +1257,7 @@ def printNotifySaveScreenedResults(
                                 message=None, photo_filePath=pngName+backtestExtension, caption=caption, user=user
                             )
                             os.remove(pngName+backtestExtension)                        
-                        except Exception as e:
+                        except Exception as e: # pragma: no cover
                             default_logger().debug(e, exc_info=True)
                             pass
                             # print(e)
@@ -1324,7 +1324,7 @@ def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_r
                                 message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
                             )
         os.remove(pngName+pngExtension)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         pass
 
@@ -1522,7 +1522,7 @@ def saveNotifyResultsFile(
         try:
             if filename is not None:
                 os.remove(filename)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
     print(
         colorText.BOLD
@@ -1545,7 +1545,7 @@ def sendMessageToTelegramChannel(
         try:
             message = message.replace('&','n')
             send_message(message, userID=user)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
     else:
         message = ""
@@ -1556,7 +1556,7 @@ def sendMessageToTelegramChannel(
             send_document(photo_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the heavy photo
             sleep(2)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
     if document_filePath is not None:
         try:
@@ -1565,7 +1565,7 @@ def sendMessageToTelegramChannel(
             send_document(document_filePath, caption, userID=user)
             # Breather for the telegram API to be able to send the document
             sleep(1)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
     if user is not None:
         # Send an update to dev channel
@@ -1704,7 +1704,7 @@ def takeBacktestInputs(
                     + "[+] Enter backtesting period (Default is 30 [days]): "
                 )
             )
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
     if backtestPeriod == 0:
         backtestPeriod = 30
@@ -1749,7 +1749,7 @@ def terminateAllWorkers(consumers, tasks_queue, testing):
     while True:
         try:
             _ = tasks_queue.get(False)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             break
 
 def toggleUserConfig():

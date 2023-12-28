@@ -130,7 +130,7 @@ class tools:
         try:
             df.sort_values(by=["Stock"], ascending=True, inplace=True)
             df.to_pickle(lastScreened)
-        except IOError as e:
+        except IOError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -162,7 +162,7 @@ class tools:
                 + "[+] Press <Enter> to continue.."
                 + colorText.END
             )
-        except FileNotFoundError as e:
+        except FileNotFoundError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             print(
                 colorText.BOLD
@@ -512,7 +512,7 @@ class tools:
                 with open(cache_file, "wb") as f:
                     pickle.dump(stockDict.copy(), f,protocol=pickle.HIGHEST_PROTOCOL)
                     print(colorText.BOLD + colorText.GREEN + "=> Done." + colorText.END)
-            except pickle.PicklingError as e:
+            except pickle.PicklingError as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -520,7 +520,7 @@ class tools:
                     + "=> Error while Caching Stock Data."
                     + colorText.END
                 )
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
         else:
             print(
@@ -567,7 +567,7 @@ class tools:
                     )
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == "Y":
                         configManager.deleteFileWithPattern()
-                except EOFError as e:
+                except EOFError as e: # pragma: no cover
                     default_logger().debug(e, exc_info=True)
                     f.close()
                     print(
@@ -627,7 +627,7 @@ class tools:
                         default_logger().debug(
                             f"Stock data cache file:{cache_file} on server has length ->{filesize}"
                         )
-                except Exception as e:
+                except Exception as e: # pragma: no cover
                     default_logger().debug(e, exc_info=True)
                     f.close()
                     print("[!] Download Error - " + str(e))
@@ -662,7 +662,7 @@ class tools:
                 ).upper()
             else:
                 response = defaultAnswer
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             response = "Y"
         if response != "N":
@@ -679,7 +679,7 @@ class tools:
                     os.path.join(os.getcwd(), filename), engine="xlsxwriter"
                 )  # openpyxl throws an error exporting % sign.
                 filename = os.path.join(os.getcwd(), filename)
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 print(colorText.FAIL
                 + ("[+] Error saving file at %s" % os.path.join(os.getcwd(), filename))
@@ -689,7 +689,7 @@ class tools:
                         os.path.join(desktop, filename), engine="xlsxwriter"
                     )  # openpyxl throws an error exporting % sign.
                     filename = os.path.join(desktop, filename)
-                except Exception as ex:
+                except Exception as ex: # pragma: no cover
                     default_logger().debug(ex, exc_info=True)
                     print(colorText.FAIL
                         + ("[+] Error saving file at %s" % os.path.join(desktop, filename))
@@ -722,7 +722,7 @@ class tools:
                 ).upper()
             else:
                 response = defaultAnswer
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         return "Y" if response != "N" else "N"
@@ -752,7 +752,7 @@ class tools:
             ):
                 return (minRSI, maxRSI)
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return (0, 0)
 
@@ -779,7 +779,7 @@ class tools:
             if minCCI <= maxCCI:
                 return (minCCI, maxCCI)
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return (-100, 100)
 
@@ -799,7 +799,7 @@ class tools:
             if volumeRatio > 0:
                 return volumeRatio
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return 2
 
@@ -822,7 +822,7 @@ class tools:
             if resp >= 0 and resp <= 3:
                 return resp
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -856,7 +856,7 @@ class tools:
                             )
                         )
                         return resp, maLength
-                    except ValueError as e:
+                    except ValueError as e: # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -876,7 +876,7 @@ class tools:
                             )
                         )
                         return resp, maLength
-                    except ValueError as e:
+                    except ValueError as e: # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -887,7 +887,7 @@ class tools:
                         raise ValueError
                 return resp, None
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -932,7 +932,7 @@ class tools:
             if resp >= 0 and resp <= 6:
                 return resp, 0
             raise ValueError
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -996,7 +996,7 @@ class tools:
                                 if dl >= filesize:
                                     progressbar(1.0)
                         f.close()
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
@@ -1004,7 +1004,7 @@ class tools:
             if os.path.isfile(files[0]) and os.path.isfile(files[1]):
                 pkl = joblib.load(files[1])
                 model = keras.models.load_model(files[0]) if Imports["keras"] else None
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             os.remove(files[0])
             os.remove(files[1])

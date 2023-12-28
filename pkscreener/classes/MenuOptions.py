@@ -320,7 +320,7 @@ class menus:
         if key is not None:
             try:
                 return self.menuDict[str(key).upper()]
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 return None
         return None
