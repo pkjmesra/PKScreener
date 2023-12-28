@@ -28,7 +28,7 @@ env:
   package_name: pkscreener
 on:
   push:
-    branches: [ new-features ]
+    branches: [ new-features, main ]
 #   pull_request:
 #     branches: [ new-features ]
   workflow_dispatch:
@@ -40,7 +40,7 @@ on:
         branch-name:
           description: 'Branch name'
           required: false
-          default: 'new-features'
+          default: ''
         targetPythonVersion:
           description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
           required: false
@@ -56,8 +56,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      # run: echo "'${{ github.ref_name }}' was pushed by '${{ github.event.pusher.name }}'"
       with:
-        ref: ${{ inputs.branch-name }}
+        ref: ${{ inputs.branch-name || github.ref_name }}
         
     - name: Set up Python
       uses: actions/setup-python@v2

@@ -48,7 +48,7 @@ else:
             + colorText.END
         )
         sleep(3)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         # default_logger().debug(e, exc_info=True)
         import talib
 
@@ -58,7 +58,7 @@ class pktalib:
     def EMA(self, close, timeperiod):
         try:
             return talib.ema(close, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.EMA(close, timeperiod)
 
@@ -66,7 +66,7 @@ class pktalib:
     def SMA(self, close, timeperiod):
         try:
             return talib.sma(close, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.SMA(close, timeperiod)
 
@@ -74,7 +74,7 @@ class pktalib:
     def MA(self, close, timeperiod):
         try:
             return talib.ma(close, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.MA(close, timeperiod)
 
@@ -82,7 +82,7 @@ class pktalib:
     def MACD(self, close, fast, slow, signal):
         try:
             return talib.macd(close, fast, slow, signal,talib=Imports["talib"])
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.MACD(close, fast, slow, signal)
 
@@ -90,7 +90,7 @@ class pktalib:
     def RSI(self, close, timeperiod):
         try:
             return talib.rsi(close, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.RSI(close, timeperiod)
 
@@ -98,7 +98,7 @@ class pktalib:
     def CCI(self, high, low, close, timeperiod):
         try:
             return talib.cci(high, low, close, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CCI(high, low, close, timeperiod)
 
@@ -106,7 +106,7 @@ class pktalib:
     def Aroon(self, high, low, timeperiod):
         try:
             return talib.aroon(high, low, timeperiod)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             aroon_down, aroon_up = talib.AROON(high, low, timeperiod)
             aroon_up.name = f"AROONU_{timeperiod}"
@@ -133,7 +133,7 @@ class pktalib:
                 mamode=fastd_matype,
             )
             return df[stochrsi_kname], df[stochrsi_dname]
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.STOCHRSI(
                 close.values, timeperiod, fastk_period, fastd_period, fastd_matype
@@ -167,7 +167,7 @@ class pktalib:
     def CDLMORNINGSTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "morningstar")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLMORNINGSTAR(open, high, low, close)
 
@@ -175,7 +175,7 @@ class pktalib:
     def CDLMORNINGDOJISTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "morningdojistar")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLMORNINGDOJISTAR(open, high, low, close)
 
@@ -183,7 +183,7 @@ class pktalib:
     def CDLEVENINGSTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "eveningstar")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLEVENINGSTAR(open, high, low, close)
 
@@ -191,7 +191,7 @@ class pktalib:
     def CDLEVENINGDOJISTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "eveningdojistar")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLEVENINGDOJISTAR(open, high, low, close)
 
@@ -199,7 +199,7 @@ class pktalib:
     def CDLLADDERBOTTOM(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "ladderbottom")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLLADDERBOTTOM(open, high, low, close)
 
@@ -207,7 +207,7 @@ class pktalib:
     def CDL3LINESTRIKE(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "3linestrike")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDL3LINESTRIKE(open, high, low, close)
 
@@ -215,7 +215,7 @@ class pktalib:
     def CDL3BLACKCROWS(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "3blackcrows")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDL3BLACKCROWS(open, high, low, close)
 
@@ -223,7 +223,7 @@ class pktalib:
     def CDL3INSIDE(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "3inside")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDL3INSIDE(open, high, low, close)
 
@@ -231,7 +231,7 @@ class pktalib:
     def CDL3OUTSIDE(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "3outside")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDL3OUTSIDE(open, high, low, close)
 
@@ -239,7 +239,7 @@ class pktalib:
     def CDL3WHITESOLDIERS(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "3whitesoldiers")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDL3WHITESOLDIERS(open, high, low, close)
 
@@ -247,7 +247,7 @@ class pktalib:
     def CDLHARAMI(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "harami")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLHARAMI(open, high, low, close)
 
@@ -255,7 +255,7 @@ class pktalib:
     def CDLHARAMICROSS(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "haramicross")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLHARAMICROSS(open, high, low, close)
 
@@ -263,7 +263,7 @@ class pktalib:
     def CDLMARUBOZU(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "marubozu")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLMARUBOZU(open, high, low, close)
 
@@ -271,7 +271,7 @@ class pktalib:
     def CDLHANGINGMAN(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "hangingman")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLHANGINGMAN(open, high, low, close)
 
@@ -279,7 +279,7 @@ class pktalib:
     def CDLHAMMER(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "hammer")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLHAMMER(open, high, low, close)
 
@@ -287,7 +287,7 @@ class pktalib:
     def CDLINVERTEDHAMMER(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "invertedhammer")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLINVERTEDHAMMER(open, high, low, close)
 
@@ -295,7 +295,7 @@ class pktalib:
     def CDLSHOOTINGSTAR(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "shootingstar")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLSHOOTINGSTAR(open, high, low, close)
 
@@ -303,7 +303,7 @@ class pktalib:
     def CDLDRAGONFLYDOJI(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "dragonflydoji")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLDRAGONFLYDOJI(open, high, low, close)
 
@@ -311,7 +311,7 @@ class pktalib:
     def CDLGRAVESTONEDOJI(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "gravestonedoji")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLGRAVESTONEDOJI(open, high, low, close)
 
@@ -319,7 +319,7 @@ class pktalib:
     def CDLDOJI(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "doji")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLDOJI(open, high, low, close)
 
@@ -327,7 +327,7 @@ class pktalib:
     def CDLENGULFING(self, open, high, low, close):
         try:
             return talib.cdl_pattern(open, high, low, close, "engulfing")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return talib.CDLENGULFING(open, high, low, close)
 

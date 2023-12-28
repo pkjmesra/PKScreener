@@ -319,7 +319,7 @@ class StockConsumer:
                     isCandlePattern = candlePatterns.findPattern(
                         processedData, screeningDictionary, saveDictionary
                     )
-                except Exception as e:
+                except Exception as e: # pragma: no cover
                     hostRef.default_logger.debug(e, exc_info=True)
                     screeningDictionary["Pattern"] = ""
                     saveDictionary["Pattern"] = ""
@@ -694,7 +694,7 @@ class StockConsumer:
             pass
         except OSError as e:
             pass
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             hostRef.default_logger.debug(e, exc_info=True)
             if testbuild or printCounter:
                 print(e)

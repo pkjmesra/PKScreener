@@ -80,7 +80,7 @@ class tools:
                         os.remove(f)
                 else:
                     os.remove(f)
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
 
@@ -90,7 +90,7 @@ class tools:
         if default:
             try:
                 parser.remove_section("config")
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
             parser.add_section("config")
@@ -127,7 +127,7 @@ class tools:
                     )
                     input("Press <Enter> to continue...")
                     return
-            except IOError as e:
+            except IOError as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -254,7 +254,7 @@ class tools:
                 )
                 input("Press <Enter> to continue...")
                 return
-            except IOError as e:
+            except IOError as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -320,7 +320,7 @@ class tools:
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
                 parser.remove_section("config")
                 self.setConfig(parser, default=True, showFileCreatedText=False)
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
@@ -360,7 +360,7 @@ class tools:
                 requests_cache.uninstall_cache()
             self.deleteFileWithPattern("*_cache.sqlite")
             requests_cache.install_cache('PKDevTools_cache')
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             
     def isIntradayConfig(self):
@@ -380,7 +380,7 @@ class tools:
             if defaultAnswer != "Y":
                 input("Press <Enter> to continue...")
             return f"{prompt}\n{configData}"
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             print(
                 colorText.BOLD
@@ -403,6 +403,6 @@ class tools:
             f.close()
             self.getConfig(parser)
             return True
-        except FileNotFoundError as e:
+        except FileNotFoundError as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             self.setConfig(parser, default=True, showFileCreatedText=False)

@@ -447,7 +447,7 @@ class tools:
                 )
                 saveDict["Trend"] = "Unknown"
                 return saveDict["Trend"]
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 slope, _ = 0, 0
             angle = np.rad2deg(np.arctan(slope))
@@ -513,7 +513,7 @@ class tools:
                 slope, intercept, r_value, p_value, std_err = linregress(
                     x=data_low["Number"], y=data_low["Low"]
                 )
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 continue
             data_low = data_low.loc[
@@ -743,7 +743,7 @@ class tools:
                             axis=0,
                         )
                         result_df.reset_index(drop=True, inplace=True)
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         self.default_logger.debug(e, exc_info=True)
                         pass
                     # Then update
@@ -1033,7 +1033,7 @@ class tools:
                 saveDict['Pattern'] = f'Lorentzian-Sell'
                 if lookFor != 2:
                     return True
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # ValueError: operands could not be broadcast together with shapes (20,) (26,) 
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 186, in __init__
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 395, in __classify
@@ -1183,7 +1183,7 @@ class tools:
                 # self.default_logger.debug(data)
                 pass
             return False
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False
 
@@ -1408,7 +1408,7 @@ class tools:
             df_new = df_new.head(1)
             df_new["cloud_green"] = df_new["ISA_9"].iloc[0] > df_new["ISB_26"].iloc[0]
             df_new["cloud_red"] = df_new["ISB_26"].iloc[0] > df_new["ISA_9"].iloc[0]
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             pass
         aboveCloudTop = False
@@ -1516,7 +1516,7 @@ class tools:
                     )
                     saveDict["Pattern"] = f"VCP (BO: {highestTop})"
                     return True
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
         return False
 
@@ -1595,7 +1595,7 @@ class tools:
                 self.default_logger.debug(e, exc_info=True)
                 pass
             return False
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False
 
