@@ -109,11 +109,17 @@ jobs:
     needs: [Backtests_Trigger]
     name: Delete workflow run
     steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+
       - name: Delete this workflow run
         if: startsWith(runner.os, 'Linux')
         shell: bash
         run: |
-          for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          for id in $(gh run list -w "12. Backtests Workflow Trigger" --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          for id in $(gh run list -w "12. Backtests Workflow Trigger" --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          for id in $(gh run list -w "12. Backtests Workflow Trigger" --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           # echo ${{ needs.Backtests_Trigger.outputs.runIdentifier }} | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
           # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
           # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
