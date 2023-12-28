@@ -524,7 +524,7 @@ def test_validateLTP_positive(tools_instance):
     assert result == True
     assert verifyStageTwo == True
     assert screenDict['LTP'] == '\x1b[92m100.00\x1b[0m'
-    assert saveDict['LTP'] == ' 100.00'
+    assert saveDict['LTP'] == 100
 
 # Negative test case for validateLTP function
 def test_validateLTP_negative(tools_instance):
@@ -535,7 +535,7 @@ def test_validateLTP_negative(tools_instance):
     assert result == False
     assert verifyStageTwo == True
     assert screenDict['LTP'] == '\x1b[91m90.00\x1b[0m'
-    assert saveDict['LTP'] == ' 90.00'
+    assert saveDict['LTP'] == 90
 
 # Positive test case for validateMACDHistogramBelow0 function
 def test_validateMACDHistogramBelow0_positive(tools_instance):
