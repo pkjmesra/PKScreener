@@ -56,7 +56,8 @@ def test_fetchCodes_positive(configManager, tools_instance):
             "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
             proxies=None,
             stream = False,
-            timeout=ANY
+            timeout=ANY,
+            headers=None
         )
 
 def test_fetchCodes_positive_proxy(configManager, tools_instance):
@@ -71,7 +72,8 @@ def test_fetchCodes_positive_proxy(configManager, tools_instance):
                 "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
                 proxies={"https":"127.0.0.1:8080"},
                 stream = False,
-                timeout=ANY
+                timeout=ANY,
+                headers=None
             )
 
 def test_fetchCodes_negative(configManager, tools_instance):
@@ -127,7 +129,7 @@ def test_fetchStockCodes_positive_proxy(configManager, tools_instance):
             mock_get.return_value.text = "\n".join([',,,',',,AAPL', ',,GOOG',',,AAPL', ',,GOOG',',,AAPL', ',,GOOG',',,AAPL', ',,GOOG',',,AAPL', ',,GOOG',',,AAPL', ',,GOOG'])
             result = tools_instance.fetchStockCodes(1)
             assert len(result) == len(['AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG','AAPL', 'GOOG'])
-            mock_get.assert_called_with(ANY, proxies=mock_proxy.return_value, stream=False, timeout=ANY)
+            mock_get.assert_called_with(ANY, proxies=mock_proxy.return_value, stream=False, timeout=ANY,headers=None)
 
 def test_fetchStockCodes_negative(configManager, tools_instance):
     with patch('pkscreener.classes.Fetcher.screenerStockDataFetcher.fetchNiftyCodes') as mock_fetchCodes:
