@@ -344,6 +344,8 @@ def initDataframes():
             "Trend",
             "Pattern",
             "CCI",
+            "LTPTdy",
+            "Growth",
         ]
     )
     saveResults = pd.DataFrame(
@@ -361,6 +363,8 @@ def initDataframes():
             "Trend",
             "Pattern",
             "CCI",
+            "LTPTdy",
+            "Growth",
         ]
     )
     return screenResults, saveResults
@@ -1016,7 +1020,7 @@ def main(userArgs=None):
                     (actualHistoricalDuration if menuOption == "B" else (0 if userPassedArgs.backtestdaysago is None else int(userPassedArgs.backtestdaysago))),
                     (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
-                    False,
+                    userPassedArgs.backtestdaysago is not None,
                 )
                 for stock in listStockCodes
             ]
@@ -1208,6 +1212,20 @@ def printNotifySaveScreenedResults(
     )
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
+    if userPassedArgs.backtestdaysago is not None:
+        saveResults['LTP'] = saveResults['LTP'].astype(float).fillna(0.0)
+        saveResults['LTPTdy'] = saveResults['LTPTdy'].astype(float).fillna(0.0)
+        saveResults['Growth'] = saveResults['Growth'].astype(float).fillna(0.0)
+        ltpSum1ShareEach = round(saveResults['LTP'].sum(),2)
+        tdySum1ShareEach= '{:.2f}'.format(saveResults['LTPTdy'].sum())
+        growthSum1ShareEach= round(saveResults['Growth'].sum(),2)
+        percentGrowth = round(100*growthSum1ShareEach/ltpSum1ShareEach,2)
+        growth10k = '{:.2f}'.format(10000*(1+0.01*percentGrowth))
+        clr = colorText.GREEN if growthSum1ShareEach >=0 else colorText.FAIL
+        print(f"[+] Total (1 share each bought on the date above)        : ₹ {ltpSum1ShareEach}")
+        print(f"[+] Total (portfolio value today for 1 share each)       : ₹ {clr}{tdySum1ShareEach}{colorText.END}")
+        print(f"[+] Total (portfolio value growth in {userPassedArgs.backtestdaysago} days              : ₹ {clr}{growthSum1ShareEach}{colorText.END}")
+        print(f"[+] Growth (@ {clr}{percentGrowth} %{colorText.END}) of ₹ 10k, if you'd have invested)  : ₹ {clr}{growth10k}{colorText.END}")
 
     title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if screenResults is not None and len(screenResults) >= 1:
@@ -1421,6 +1439,11 @@ def runScanners(
             df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
             screenResults = pd.concat([screenResults, df_extendedscreen])
             saveResults = pd.concat([saveResults, df_extendedsave])
+            if userPassedArgs.backtestdaysago is None:
+                screenResults.drop('LTPTdy', axis=1, inplace=True, errors='ignore')
+                screenResults.drop('Growth', axis=1, inplace=True, errors='ignore')
+                saveResults.drop('LTPTdy', axis=1, inplace=True, errors='ignore')
+                saveResults.drop('Growth', axis=1, inplace=True, errors='ignore')
     except KeyboardInterrupt:
         try:
             keyboardInterruptEvent.set()
