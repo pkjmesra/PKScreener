@@ -348,18 +348,18 @@ def test_postURL_retry_enable_cache_restart(tools_instance, configManager):
                 tools_instance.postURL(url, data=data, headers=headers, trial=2)
                 mock_restart_cache.assert_called_once()
 
-# def test_postURL_retry_enable_cache_uninstall(tools_instance, configManager):
-#     url = "https://example.com"
-#     data = {"key": "value"}
-#     headers = {"Content-Type": "application/json"}
-#     response = MagicMock()
-#     response.status_code = 200
-#     configManager.maxNetworkRetryCount = 3
-#     with patch("requests.post", side_effect=[Exception, response]):
-#         with patch("requests_cache.is_installed", return_value=False):
-#             with patch("requests_cache.uninstall_cache") as mock_uninstall_cache:
-#                 tools_instance.postURL(url, data=data, headers=headers, trial=2)
-#                 mock_uninstall_cache.assert_called_once()
+def test_postURL_retry_enable_cache_uninstall(tools_instance, configManager):
+    url = "https://example.com"
+    data = {"key": "value"}
+    headers = {"Content-Type": "application/json"}
+    response = MagicMock()
+    response.status_code = 200
+    configManager.maxNetworkRetryCount = 3
+    with patch("requests.post", side_effect=[Exception, response]):
+        with patch("requests_cache.is_installed", return_value=True):
+            with patch("requests_cache.uninstall_cache") as mock_uninstall_cache:
+                tools_instance.postURL(url, data=data, headers=headers, trial=2)
+                mock_uninstall_cache.assert_called_once()
 
 # def test_postURL_retry_enable_cache_clear(tools_instance, configManager):
 #     url = "https://example.com"
@@ -369,7 +369,7 @@ def test_postURL_retry_enable_cache_restart(tools_instance, configManager):
 #     response.status_code = 200
 #     configManager.maxNetworkRetryCount = 3
 #     with patch("requests_cache.CachedSession.post", side_effect=[ConnectTimeout, response]) as mock_post:
-#         with patch("requests_cache.is_installed", return_value=False) as mock_is_installed:
+#         with patch("requests_cache.is_installed", return_value=True) as mock_is_installed:
 #             with patch("requests_cache.clear") as mock_clear_cache:
 #                 result = tools_instance.postURL(url, data=data, headers=headers)
 #                 mock_post.assert_called_with(url, proxies=None, data=data, headers=headers, timeout=6)
