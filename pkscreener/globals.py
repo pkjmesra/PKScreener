@@ -53,7 +53,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
-from pkscreener.classes import VERSION, Committer
+from pkscreener.classes import VERSION, Committer, PortfolioXRay
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
@@ -1213,19 +1213,7 @@ def printNotifySaveScreenedResults(
     tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
     print(tabulated_results)
     if userPassedArgs.backtestdaysago is not None:
-        saveResults['LTP'] = saveResults['LTP'].astype(float).fillna(0.0)
-        saveResults['LTPTdy'] = saveResults['LTPTdy'].astype(float).fillna(0.0)
-        saveResults['Growth'] = saveResults['Growth'].astype(float).fillna(0.0)
-        ltpSum1ShareEach = round(saveResults['LTP'].sum(),2)
-        tdySum1ShareEach= '{:.2f}'.format(saveResults['LTPTdy'].sum())
-        growthSum1ShareEach= round(saveResults['Growth'].sum(),2)
-        percentGrowth = round(100*growthSum1ShareEach/ltpSum1ShareEach,2)
-        growth10k = '{:.2f}'.format(10000*(1+0.01*percentGrowth))
-        clr = colorText.GREEN if growthSum1ShareEach >=0 else colorText.FAIL
-        print(f"[+] Total (1 share each bought on the date above)        : ₹ {ltpSum1ShareEach}")
-        print(f"[+] Total (portfolio value today for 1 share each)       : ₹ {clr}{tdySum1ShareEach}{colorText.END}")
-        print(f"[+] Total (portfolio value growth in {userPassedArgs.backtestdaysago} days              : ₹ {clr}{growthSum1ShareEach}{colorText.END}")
-        print(f"[+] Growth (@ {clr}{percentGrowth} %{colorText.END}) of ₹ 10k, if you'd have invested)  : ₹ {clr}{growth10k}{colorText.END}")
+        PortfolioXRay.performXRay(saveResults,userPassedArgs)
 
     title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
     if screenResults is not None and len(screenResults) >= 1:

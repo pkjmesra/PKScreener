@@ -282,7 +282,7 @@ class tools:
         legendtext_width, legendtext_height = font.getsize_multiline(legendText)
         im = Image.new(
             "RGB",
-            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + int(legendtext_height/2)),
+            ((int(0.72*bt_text_width) if (bt_text_width > text_width) else (legendtext_width)), arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + int(legendtext_height/2)),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
