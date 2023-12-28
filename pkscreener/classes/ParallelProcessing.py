@@ -68,7 +68,7 @@ class StockConsumer:
         backtestDuration=0,
         backtestPeriodToLookback=30,
         logLevel=logging.NOTSET,
-        monitoring=False,
+        portfolio=False,
         hostRef=None,
     ):
         assert (
@@ -182,6 +182,9 @@ class StockConsumer:
                     # imputData will have the last row as the date for which the entire calculation
                     # and prediction is being done
                     data = data.tail(backtestDuration + 1) #.head(backtestPeriodToLookback+1)
+                    # Let's get today's data
+                    if portfolio:
+                        screener.validateLTPForPortfolioCalc(data, screeningDictionary, saveDictionary)
                     # data has the last row from inputData at the top.
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
@@ -201,7 +204,7 @@ class StockConsumer:
             if not processedData.empty:
                 screeningDictionary["Stock"] = (
                     colorText.WHITE
-                    + (stock if monitoring else f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
+                    + (f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
                     + colorText.END
                 )
                 saveDictionary["Stock"] = stock
@@ -737,6 +740,8 @@ class StockConsumer:
                 "Trend",
                 "Pattern",
                 "CCI",
+                "LTPTdy",
+                "Growth",
             ]
         )
         screeningDictionary = {
@@ -753,6 +758,8 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
+            "LTPTdy": 0,
+            "Growth":0,
         }
         saveDictionary = {
             "Stock": "",
@@ -768,6 +775,8 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
+            "LTPTdy": 0,
+            "Growth":0,
         }
         
         return screeningDictionary,saveDictionary
