@@ -52,3 +52,11 @@ jobs:
         days-before-close: 5
         days-before-pr-close: -1
         exempt-issue-labels: 'question,Feedback'
+        # On Windows https://cli.github.com/manual/gh_run_list
+        # gh run list --json databaseId -q '.[].databaseId' |
+        # ForEach-Object {
+        #   gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/$_" -X DELETE
+        #   }
+
+        # On Mac/Linux:
+        # gh run list -w "13. Backtest for Generic" --limit 500 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
