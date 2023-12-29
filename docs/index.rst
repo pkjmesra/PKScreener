@@ -55,19 +55,18 @@ Requirements: Python 3.9+.
 
 How to use on your own local Windows/Linux/Macbook laptop?
 ----------------------------------------------------------
+Using docker, running within docker container
+----------------------------------------------
+* Download and install docker desktop: https://docs.docker.com/get-docker/
+* After installation, launch/run docker desktop and if it asks, login using your docker credentials.
+* Launch any command line and type ``docker pull pkjmesra/pkscreener:latest``. Then type ``docker run -it pkjmesra/pkscreener:latest`` .
+
 Installing the latest version from PyPi.
 ----------------------------------------
 * Go ahead and install using ``pip install pkscreener``
 * This should install all of the major dependencies, except maybe, TA-Lib. 
 * This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from ``pandas_ta`` in the absence of TA-Lib), you can do this: Head to ``.github/dependencies/`` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
 * Now launch your favorite command line CLI and issue ``pkscreener``. This will launch the pkscreener executable.
-
-Using docker, running within docker container
-----------------------------------------------
-* Download and install docker desktop: https://docs.docker.com/get-docker/
-* After installation, launch/run docker desktop and if it asks, login using your docker credentials.
-* Launch any command line and type ``docker pull pkjmesra/pkscreener-debian:latest``. Then type ``docker run pkjmesra/pkscreener-debian:latest python3 pkscreener -a Y -o X:12:10 -e`` ow whatever -o options you'd like executed.
-* Pass whatever option you'd like to pass in ``-o``. Look at the menu options above. For, example, ``12`` is ``Scanners.``. ``10`` ``Closing at least 2% up since last 3 days`` etc. Wait while it runs and produces the output for you.
 
 Building from source repo
 -------------------------
@@ -76,8 +75,13 @@ Building from source repo
 * ``cd PKScreener``
 * ``pip install -r requirements.txt`` .
 * (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. ``pip3 install ta-lib``
+* Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
+* For example:
+  For `Windows`: See https://github.com/pkjmesra/PKScreener/blob/c1e94ba3137915cb781161fa2d5fb69129940fd3/.github/workflows/w1-workflow-build-matrix.yml#L91-L101 
+  For `Mac``: `brew install ta-lib`
+  For `Ubuntu/Linux`: https://github.com/pkjmesra/PKScreener/blob/main/.github/workflows/w1-workflow-build-matrix.yml#L121-L132 should help.
 * ``cd pkscreener``
-* Finally, from within the ``pkscreener`` directory, run ``python pkscreenercli.py``. You are all set.
+* Finally, from within the ``pkscreener`` directory, run ``python pkscreenercli.py`` or just ``pkscreener``. You are all set.
 
 
 Usage
@@ -85,7 +89,7 @@ Usage
 Running the executables
 -----------------------
 * Download the suitable file according to your OS.
-* Linux & Mac users should make sure that the ``pkscreenercli.bin or pkscreenercli.run`` is having ``execute`` permission.
+* Linux & Mac users should make sure that the ``pkscreenercli.bin or pkscreenercli.run`` is having ``execute`` permission (``chmod +x pkscreenercli.bin``).
 * :guilabel:`Run` the file.
 
 Configuration
