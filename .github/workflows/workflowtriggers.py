@@ -60,7 +60,7 @@ objectDictionary = {}
 # args.scans = True
 # args.report = True 
 # args.intraday = True
-args.backtests = True
+# args.backtests = True
 # args.local = True
 # args.user="-1001785195297" 
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
@@ -143,6 +143,9 @@ def generateBacktestReportMainPage():
                 body, table {background-color: black; color: white;} 
                 table, th, td {border: 1px solid white;}
                 th {cursor: pointer; color:white; text-decoration:underline;}
+                .r {color:red;font-weight:bold;} 
+                .g {color:lightgreen;font-weight:bold;} 
+                .y {color:yellow;}
             </style>
         </head>
         <body>
