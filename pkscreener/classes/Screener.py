@@ -1355,15 +1355,12 @@ class tools:
 
         if percent1 >= 2 and percent2 >= 2 and percent3 >= 2:
             pct_change_text = (
-                (" (%.1f%%," % percent1)
-                + (" %.1f%%," % percent2)
+                  ("%.1f%%" % percent1) 
+                + (" (%.1f%%," % percent2)
                 + (" %.1f%%)" % percent3)
             )
-            pct_change = colorText.GREEN + pct_change_text + colorText.END
-            screenDict["LTP"] = (
-                colorText.GREEN + ("%.2f" % round(day0, 2)) + pct_change + colorText.END
-            )
-            saveDict["LTP"] = round(day0, 2) # + pct_change_text
+            saveDict["%Chng"] = pct_change_text
+            screenDict["%Chng"] = colorText.GREEN + pct_change_text + colorText.END
             return True and self.getCandleType(data.head(1))
         return False
 

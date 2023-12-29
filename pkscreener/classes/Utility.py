@@ -285,7 +285,7 @@ class tools:
         bt_text_width_artfont, _ = font.getsize_multiline(backtestSummary)
 
         startColValue = 100
-        im_width = int(0.72*bt_text_width) if (bt_text_width > text_width) else (int(1.1*text_width) + int(startColValue*4))
+        im_width = int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width + int(startColValue*2))
         
         wrapper = textwrap.TextWrapper(width=2*int(len(table.split('\n')[0]) if len(table) >0 else len(backtestSummary.split('\n')[0]))) 
         word_list = wrapper.wrap(text=legendText) 
