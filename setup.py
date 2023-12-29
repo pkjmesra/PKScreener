@@ -45,6 +45,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 with open("requirements.txt", "r") as fh:
     install_requires = fh.read().splitlines()
+    install_requires.append('advanced_ta')
 
 if "Windows" in platform.system():
     install_requires = ['.github/dependencies/TA_Lib-0.4.28-cp311-cp311-win_amd64.whl'].extend(install_requires)
