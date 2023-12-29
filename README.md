@@ -2,12 +2,8 @@
 
 # PKScreener
 
-[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![Downloads][Downloads-badge]][Downloads]
-![latest download][Latest-Downloads-badge]
-
-[![CodeFactor][Codefactor-badge]][Codefactor]
-
-![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov]
+[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![CodeFactor][Codefactor-badge]][Codefactor] [![Downloads][Downloads-badge]][Downloads] ![latest download][Latest-Downloads-badge] ![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov] [![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
+[![Docker Pulls][Docker Pulls-badge]][Docker Status] [![Docker Build][Docker-Build-badge]][Docker-Build] [![PKScreener Test - New Features][New Features-badge]][New Features] [![w9. After-Market Data Gen][After Market-badge]][After Market] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
 
 ## What is PKScreener?
 | Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting |
@@ -220,15 +216,15 @@ After you have finished the run, go to that copied path, zip the contents of the
 * The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
 * This screener began as a fork of https://github.com/pranjal-joshi/Screeni-py but has since added a lot of additional scanners, backtesting, Telegram bots, Alerts and a number of modifications and improvements.
 
-[MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge
+[MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
-[Windows-badge]: https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white
+[Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
 [Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.exe
-[Linux-badge]: https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black
+[Linux-badge]: https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black
 [Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.bin
-[Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000
+[Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?logo=apple&logoColor=000000
 [Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.run
-[GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge
+[GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
 [pypi]: https://pypi.python.org/pypi/pkscreener
@@ -238,7 +234,7 @@ After you have finished the run, go to that copied path, zip the contents of the
 [GitHub all releases]: https://img.shields.io/github/downloads/pkjmesra/PKScreener/total?color=Green&label=Downloads&style=for-the-badge
 [License-badge]: https://img.shields.io/github/license/pkjmesra/PKScreener?style=for-the-badge
 [License]: https://github.com/pkjmesra/PKScreener/blob/main/LICENSE
-[Codefactor-badge]: https://www.codefactor.io/repository/github/pkjmesra/PKScreener/badge?style=for-the-badge
+[Codefactor-badge]: https://www.codefactor.io/repository/github/pkjmesra/PKScreener/badge
 [Codefactor]: https://www.codefactor.io/repository/github/pkjmesra/PKScreener
 [PR-Guidelines-badge]: https://img.shields.io/badge/PULL%20REQUEST-GUIDELINES-red?style=for-the-badge
 [PR-Guidelines]: https://github.com/pkjmesra/PKScreener/blob/new-features/CONTRIBUTING.md
@@ -252,24 +248,22 @@ After you have finished the run, go to that copied path, zip the contents of the
 [codecov]: https://codecov.io/gh/pkjmesra/PKScreener
 [Documentation-badge]: https://readthedocs.org/projects/pkscreener/badge/?version=latest
 [Documentation]: https://pkscreener.readthedocs.io/en/latest/?badge=latest
-[Docker Status-badge]: https://img.shields.io/docker/automated/pkjmesra/pkscreener-debian.svg
-[Docker Status]: https://hub.docker.com/repository/docker/pkjmesra/pkscreener-debian
-[Docker Pulls-badge]: https://img.shields.io/docker/pulls/pkjmesra/pkscreener-debian.svg
+[Docker Status-badge]: https://img.shields.io/docker/automated/pkjmesra/pkscreener.svg
+[Docker Status]: https://hub.docker.com/repository/docker/pkjmesra/pkscreener
+[Docker Pulls-badge]: https://img.shields.io/docker/pulls/pkjmesra/pkscreener.svg
 [Prod Scan Tests-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w5-workflow-prod-scans_Tests.yml/badge.svg
 [Prod Scan Tests]: https://github.com/pkjmesra/PKScreener/actions/workflows/w5-workflow-prod-scans_Tests.yml
 [After Market-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w9-workflow-download-data.yml/badge.svg
 [After Market]: https://github.com/pkjmesra/PKScreener/actions/workflows/w9-workflow-download-data.yml
-[New Features-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w10-workflow-features-test.yml/badge.svg?branch=new-features
+[New Features-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w10-workflow-features-test.yml/badge.svg
 [New Features]: https://github.com/pkjmesra/PKScreener/actions/workflows/w10-workflow-features-test.yml
 [New Release-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w1-workflow-build-matrix.yml/badge.svg
 [New Release]: https://github.com/pkjmesra/PKScreener/actions/workflows/w1-workflow-build-matrix.yml
-[Docker-Build-badge]: https://github.com/pkjmesra/pkscreener/workflows/Docker%20Image%20CI/badge.svg
-[Docker-Build]: https://github.com/pkjmesra/pkscreener/actions/workflows/w15-docker-image.yml?query=workflow%3ADocker
+[Docker-Build-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml/badge.svg
+[Docker-Build]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml
 
 <!-- [![GitHub all releases][GitHub all releases]](#) [![GitHub][License-badge]][License] [![BADGE][PR-Guidelines-badge]][PR-Guidelines]
-[![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
-[![Docker Pulls][Docker Pulls-badge]][Docker Status] [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] [![w9. After-Market Data Gen][After Market-badge]][After Market] 
-[![PKScreener Test - New Features][New Features-badge]][New Features] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
-[![Docker Build][Docker-Build-badge]][Docker-Build] -->
+ [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] 
+-->
 
 <!--      |                                                                                                                    Discussions []                                                                                                                     | https://t.me/PKScreeners > For any discussion related to PKScreener, you may like to join this related Telegram group                            | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/PKScreeners_Group.jpg" alt="Telegram Group" width="100"/> | --> 
