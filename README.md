@@ -73,7 +73,7 @@ Screening options to choose from:
 
 Followin scanners are already implemented. Others are `In Progress`
 ```
-     0 > Full Screening (Shows Technical Parameters without any criterion)
+0 > Full Screening (Shows Technical Parameters without any criterion)
      1 > Probable Breakouts              	2 > Today's Breakouts
      3 > Consolidating stocks            	4 > Lowest Volume in last 'N'-days (Early Breakout Detection)
      5 > RSI screening                   	6 > Reversal Signals
@@ -85,34 +85,43 @@ Followin scanners are already implemented. Others are `In Progress`
     17 > 52 week high breakout(today/1 wk)	18 > Bullish Aroon(14) Crossover
     19 > MACD Histogram x below 0       	20 > Bullish for next day
     21 > Most Popular Stocks            	22 > View Stock Performance         
-    23 > Breaking out now               	
+    23 > Breaking out now               	24 > Higher Highs,Lows & Close      
+    25 > Lower Highs,Lows (Watch for Reversal)            	
 ```
 ## How to use on your own local Windows/Linux/Macbook laptop?
-# Installing the latest version from PyPi.
-* Go ahead and install using `pip install pkscreener`
-* This should install all of the major dependencies, except maybe, TA-Lib.
-* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
-* Now launch your favorite command line CLI and issue `pkscreener`. This will launch the pkscreener executable.
 
 # Using docker, running within docker container
 * Download and install docker desktop: https://docs.docker.com/get-docker/
 * After installation, launch/run docker desktop and if it asks, login using your docker credentials.
-* Launch any command line and type `docker pull pkjmesra/pkscreener-debian:latest`. Then type `docker run pkjmesra/pkscreener-debian:latest python3 pkscreenercli -a Y -o X:12:10 -e` ow whatever -o options you'd like executed.
-* Pass whatever option you'd like to pass in `-o`. Look at the menu options above. For, example, `10` is `Closing at least 2% up since last 3 days` etc. Wait while it runs and produces the output for you.
+* Launch any command line (for example, cmd on windows or terminal on Mac) and type `docker pull pkjmesra/pkscreener:latest`. Then type `docker run -it pkjmesra/pkscreener:latest`.  
+The option `-i` will open the `pkscreener` in interactive mode within docker. `-t` will allocate a pseudo terminal for you so you can begin to use `pkscreener`
+
+# Installing the latest version from PyPi.
+* Go ahead and install using `pip install pkscreener`
+* This should install all of the major dependencies, except maybe, TA-Lib.
+* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
+For example:
+For `Windows`: See https://github.com/pkjmesra/PKScreener/blob/c1e94ba3137915cb781161fa2d5fb69129940fd3/.github/workflows/w1-workflow-build-matrix.yml#L91-L101 
+
+For `Mac``: `brew install ta-lib`
+For `Ubuntu/Linux`: https://github.com/pkjmesra/PKScreener/blob/main/.github/workflows/w1-workflow-build-matrix.yml#L121-L132 should help.
+
+* Now launch your favorite command line CLI and issue `pkscreener`. This will launch the pkscreener executable.
 
 # Building from source repo
 * Install python 3.9 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
 * Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .
-* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. `pip3 install ta-lib`. Please review additional steps to buil TA-Lib in tthe workflow files meant for your OS under .github > workflows.
+* (Optional) If you would like to have technical indicators evaluated using TA-Lib, go ahead and install TA-Lib as well. `pip3 install ta-lib`. Please review additional steps to buil TA-Lib in the workflow files meant for your OS under .github > workflows and follow the line numbers from the previous section.
 * `cd pkscreener`
-* Finally, from within the `pkscreener` directory, run `python pkscreenercli.py`. You are all set.
+* Finally, from within the `pkscreener` directory, run `python pkscreenercli.py`. Or just type/run `pkscreener`. You are all set.
 
 # Running the executables
 * Download the suitable file according to your OS.
-* Linux & Mac users should make sure that the `pkscreenercli.bin or pkscreenercli.run` is having `execute` permission.
-* **Run** the file. Following window will appear after a brief delay.
+* Linux & Mac users should make sure that the `pkscreenercli.bin or pkscreenercli.run` is having `execute` permission. (`chmod +x pkscreenercli.run`)
+
+* **Run** the file. Following window will appear.
 
 
 * **Configure** the parameters as per your requirement using `Option > E`.
@@ -214,11 +223,11 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange?style=for-the-badge
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.48/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.exe
 [Linux-badge]: https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black
-[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.48/pkscreenercli.bin
+[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.bin
 [Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?style=for-the-badge&logo=apple&logoColor=000000
-[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.48/pkscreenercli.run
+[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.42.20231229.49/pkscreenercli.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener?style=for-the-badge
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
