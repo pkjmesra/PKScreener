@@ -22,7 +22,7 @@
 #     SOFTWARE.
 
 # """
-FROM pkjmesra/ta-lib-debian_gnu_linux:latest as base-image
+FROM --platform=linux/amd64 pkjmesra/ta-lib-debian_gnu_linux:latest as base-image
 ENV PYTHONUNBUFFERED 1
 
 FROM scratch
