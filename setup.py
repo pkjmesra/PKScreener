@@ -31,11 +31,12 @@ This is a temporary script file.
 python setup.py clean build sdist bdist_wheel
 
 """
+import platform
 import sys
 from distutils.core import setup
 
 import setuptools  # noqa
-
+import subprocess
 from pkscreener.classes import VERSION
 
 __USERNAME__ = "pkjmesra"
@@ -44,7 +45,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 with open("requirements.txt", "r") as fh:
     install_requires = fh.read().splitlines()
+    install_requires.append('advanced_ta')
 
+if "Windows" in platform.system():
+    install_requires = ['.github/dependencies/TA_Lib-0.4.28-cp311-cp311-win_amd64.whl'].extend(install_requires)
+elif "Linux" in platform.system():
+    subprocess.Popen(["chmod", "+x",".github/dependencies/talib.sh"])
+    subprocess.Popen("start .github/dependencies/talib.sh", shell=True)
+# For Darwin, brew install ta-lib will work
+    
 SYS_MAJOR_VERSION = str(sys.version_info.major)
 SYS_VERSION = SYS_MAJOR_VERSION + "." + str(sys.version_info.minor)
 
