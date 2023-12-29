@@ -31,10 +31,10 @@ on:
           description: 'Docker build'
           required: false
           default: 'pkscreener - docker'
-  # push:
-  #   branches: [ main ]
-  #   tags:
-  #     - '*'
+  push:
+    branches: [ main ]
+    tags:
+      - '*'
 
 jobs:
 
