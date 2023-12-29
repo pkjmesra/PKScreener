@@ -24,6 +24,7 @@ keras
 # logging
 # math
 # multiprocessing
+lxml==4.9.4
 numpy #==1.21.0 # Installed as dependency for yfinance, scipy, matplotlib, pandas
 # os
 openpyxl
