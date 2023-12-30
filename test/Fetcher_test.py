@@ -22,6 +22,7 @@
     SOFTWARE.
 
 """
+import os
 import warnings
 from unittest import mock
 from unittest.mock import ANY, MagicMock, patch
@@ -45,6 +46,13 @@ def configManager():
 @pytest.fixture
 def tools_instance(configManager):
     return screenerStockDataFetcher(configManager)
+
+def cleanup():
+    try:
+        os.remove("watchlist.xlsx")
+        os.remove("watchlist_template.xlsx")
+    except:
+        pass
 
 def test_fetchCodes_positive(configManager, tools_instance):
     with patch('requests_cache.CachedSession.get') as mock_get:
@@ -239,6 +247,7 @@ def test_fetchWatchlist_positive(tools_instance):
         result = tools_instance.fetchWatchlist()
         assert result == ['AAPL', 'GOOG']
         mock_read_excel.assert_called_once_with("watchlist.xlsx")
+    cleanup()
 
 def test_fetchWatchlist_negative(tools_instance):
     with patch('pandas.read_excel') as mock_read_excel:
@@ -246,6 +255,7 @@ def test_fetchWatchlist_negative(tools_instance):
         result = tools_instance.fetchWatchlist()
         assert result is None
         mock_read_excel.assert_called_once_with("watchlist.xlsx")
+    cleanup()
 
 def test_fetchWatchlist_Actual_file(tools_instance):
     sample = {"Stock Code": ["SBIN", "INFY", "TATAMOTORS", "ITC"]}
@@ -253,6 +263,7 @@ def test_fetchWatchlist_Actual_file(tools_instance):
     sample_data.to_excel("watchlist.xlsx", index=False, header=True)
     result = tools_instance.fetchWatchlist()
     assert result == ["SBIN", "INFY", "TATAMOTORS", "ITC"]
+    cleanup()
 
 def test_postURL_positive(tools_instance):
     url = "https://example.com"

@@ -645,8 +645,8 @@ def mock_save_dict():
 def test_validatePriceRisingByAtLeast2Percent_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
     mock_data["Close"] = [100, 105, 110, 112]
     assert tools_instance.validatePriceRisingByAtLeast2Percent(mock_data, mock_screen_dict, mock_save_dict) == False
-    assert mock_screen_dict.get("LTP") == None
-    assert mock_save_dict.get("LTP") == None
+    assert mock_screen_dict.get("LTP") is None
+    assert mock_save_dict.get("LTP") is None
 
 # def test_validateRSI_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateRSI(mock_data, mock_screen_dict, mock_save_dict, 60, 80) == True
@@ -666,8 +666,8 @@ def test_validatePriceRisingByAtLeast2Percent_negative(mock_data, mock_screen_di
 def test_validateShortTermBullish_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
     mock_data["FASTK"] = [70, 60, 50, 40]
     assert tools_instance.validateShortTermBullish(mock_data, mock_screen_dict, mock_save_dict) == False
-    assert mock_screen_dict.get("MA-Signal") == None
-    assert mock_save_dict.get("MA-Signal") == None
+    assert mock_screen_dict.get("MA-Signal") is None
+    assert mock_save_dict.get("MA-Signal") is None
 
 # def test_validateVCP_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateVCP(mock_data, mock_screen_dict, mock_save_dict, "Stock A", 3, 3) == True
@@ -677,8 +677,8 @@ def test_validateShortTermBullish_negative(mock_data, mock_screen_dict, mock_sav
 def test_validateVCP_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
     mock_data["High"] = [105, 110, 115, 120]
     assert tools_instance.validateVCP(mock_data, mock_screen_dict, mock_save_dict, "Stock A", 3, 3) == False
-    assert mock_screen_dict.get("Pattern") == None
-    assert mock_save_dict.get("Pattern") == None
+    assert mock_screen_dict.get("Pattern") is None
+    assert mock_save_dict.get("Pattern") is None
 
 # def test_validateVolume_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateVolume(mock_data, mock_screen_dict, mock_save_dict, 2.5) == True

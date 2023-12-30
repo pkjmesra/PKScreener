@@ -45,6 +45,8 @@ from alive_progress import alive_bar
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger, tracelog
 from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
+from PKDevTools.classes.Telegram import (is_token_telegram_configured,
+                                         send_document, send_message)
 from PKNSETools.morningstartools.PKMorningstarDataFetcher import \
     morningstarDataFetcher
 from tabulate import tabulate
@@ -53,7 +55,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.Screener as Screener
 import pkscreener.classes.Utility as Utility
-from pkscreener.classes import VERSION, Committer, PortfolioXRay
+from pkscreener.classes import VERSION, PortfolioXRay
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
@@ -63,8 +65,6 @@ from pkscreener.classes.MenuOptions import (level0MenuDict, level1_X_MenuDict,
                                             level3_X_Reversal_MenuDict, menus)
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.classes.ParallelProcessing import StockConsumer
-from PKDevTools.classes.Telegram import (is_token_telegram_configured, send_document,
-                                 send_message)
 
 multiprocessing.freeze_support()
 # import dataframe_image as dfi

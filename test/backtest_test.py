@@ -30,8 +30,9 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
-from pkscreener.classes.Backtest import (backtest, backtestSummary)
 from pkscreener.classes import Utility
+from pkscreener.classes.Backtest import backtest, backtestSummary
+
 
 def sample_data():
     data = pd.DataFrame({

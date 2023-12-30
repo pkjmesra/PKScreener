@@ -22,9 +22,10 @@
     SOFTWARE.
 
 """
+from PKDevTools.classes.Telegram import get_secrets
+
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.Fetcher import screenerStockDataFetcher
-from PKDevTools.classes.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 

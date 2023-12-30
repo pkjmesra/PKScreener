@@ -1,59 +1,24 @@
 advanced_ta
 alive-progress==1.6.2
-# argparse
 bs4
-# builtins
-# collections
-# configparser
-# csv
-# datetime
-# decimal
-# enum
-# functools
-# genericpath
-# glob
-# gspread
-# html
-# importlib
-# inspect
-# io
-# itertools
 joblib
-# json
 keras
-# logging
-# math
-# multiprocessing
-lxml==4.9.4
-numpy #==1.21.0 # Installed as dependency for yfinance, scipy, matplotlib, pandas
-# os
+lxml==4.9.4 # 5.0.0 or above causes problems.
+numpy
 openpyxl
-pandas #==1.3.5 # Installed as dependency for yfinance
+pandas
 pandas_ta
-# pickle
 Pillow==9.5.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
 PKDevTools
 PKNSETools
-# platform
 pytz
-# queue
-# random
-# re
 requests_cache
 rich
-scikit-learn #==1.1.1
+scikit-learn
 scipy>=1.7.3
-# signal
-# subprocess
-# sys
-# ta-lib # Install this separately
-# TA-Lib-Precompiled
+# ta-lib # Install this separately. See README.
 tabulate
-tensorflow #==2.9.2
-# tempfile
-# time
-# traceback
+tensorflow
 urllib3
-# warnings
 xlsxwriter
 yfinance==0.1.87

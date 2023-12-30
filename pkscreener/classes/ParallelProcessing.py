@@ -33,7 +33,6 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.Fetcher import StockDataEmptyException
-from PKDevTools.classes.log import tracelog
 from PKDevTools.classes.SuppressOutput import SuppressOutput
 
 import pkscreener.classes.Screener as Screener
