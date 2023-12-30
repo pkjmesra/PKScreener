@@ -152,6 +152,10 @@ def test_getDownloadChoices_negative():
                 assert selectedTickerOption == 12
                 assert selectedExecuteOption == 0
                 assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
+    try:
+        os.remove('stock_data_1.pkl')
+    except:
+        pass
 
 def test_getTopLevelMenuChoices_negative():
     startupoptions = "X:1:0"

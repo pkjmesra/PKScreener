@@ -36,7 +36,7 @@ import pytest
 import pytz
 from PKDevTools.classes.Archiver import (cacheFile, findFile,
                                          get_last_modified_datetime, readData,
-                                         resolveFilePath, safe_open_w,
+                                         resolveFilePath,
                                          saveData, utc_to_ist)
 
 

@@ -24,8 +24,8 @@
 """
 
 import math
-import warnings
 import sys
+import warnings
 
 import numpy as np
 
@@ -36,6 +36,7 @@ import pandas as pd
 import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
+
 if sys.version_info >= (3, 11):
     from advanced_ta import LorentzianClassification
 
@@ -491,7 +492,7 @@ class tools:
 
     # Find stocks approching to long term trendlines
     def findTrendlines(self, data, screenDict, saveDict, percentage=0.05):
-        period = int("".join(c for c in self.configManager.period if c.isdigit()))
+        # period = int("".join(c for c in self.configManager.period if c.isdigit()))
         # if len(data) < period:
         #     return False
 
@@ -916,10 +917,10 @@ class tools:
         higherClose = (day0["Close"].iloc[0] > day1["Close"].iloc[0]) and \
                         (day1["Close"].iloc[0] > day2["Close"].iloc[0]) and \
                         (day2["Close"].iloc[0] > day3["Close"].iloc[0])
-        higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
-                        (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
-                        (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
-                        day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
+        # higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
+        #                 (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
+        #                 (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
+        #                 day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
         reversedData = data[::-1].copy()
         reversedData['SUPERT'] = pktalib.supertrend(reversedData,7,3)['SUPERT_7_3.0']
         reversedData['EMA8'] = pktalib.EMA(reversedData["Close"], timeperiod=9)
@@ -1024,16 +1025,16 @@ class tools:
         try:
             lc = LorentzianClassification(data=data)
             if lc.df.iloc[-1]['isNewBuySignal']:
-                screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + f'Lorentzian-Buy' + colorText.END
-                saveDict['Pattern'] = f'Lorentzian-Buy'
+                screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Lorentzian-Buy' + colorText.END
+                saveDict['Pattern'] = 'Lorentzian-Buy'
                 if lookFor != 3:
                     return True
             elif lc.df.iloc[-1]['isNewSellSignal']:
-                screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + f'Lorentzian-Sell' + colorText.END
-                saveDict['Pattern'] = f'Lorentzian-Sell'
+                screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + 'Lorentzian-Sell' + colorText.END
+                saveDict['Pattern'] = 'Lorentzian-Sell'
                 if lookFor != 2:
                     return True
-        except Exception as e: # pragma: no cover
+        except Exception: # pragma: no cover
             # ValueError: operands could not be broadcast together with shapes (20,) (26,) 
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 186, in __init__
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 395, in __classify

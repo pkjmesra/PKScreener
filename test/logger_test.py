@@ -82,7 +82,7 @@ def test_setupLogger_negative_doNotRemoveLogFile():
 
 # Positive test case - should print log file path
 def test_setupLogger_positive_printLogFilePath(capsys):
-    log_file_path = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
+    # log_file_path = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
     with patch('PKDevTools.classes.log.setup_custom_logger'):
         setupLogger(shouldLog=True)
         captured = capsys.readouterr()

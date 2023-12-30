@@ -32,11 +32,12 @@ python setup.py clean build sdist bdist_wheel
 
 """
 import platform
+import subprocess
 import sys
 from distutils.core import setup
 
 import setuptools  # noqa
-import subprocess
+
 from pkscreener.classes import VERSION
 
 __USERNAME__ = "pkjmesra"

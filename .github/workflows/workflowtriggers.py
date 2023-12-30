@@ -25,12 +25,12 @@
 import argparse
 import datetime
 import os
-import pandas as pd
-import pytz
+import sys
 from time import sleep
 
+import pandas as pd
+import pytz
 import requests
-import sys
 
 argParser = argparse.ArgumentParser()
 required = False
@@ -246,8 +246,8 @@ def triggerBacktestWorkflowActions(launchLocal=False):
         scanOptions = objectDictionary[key]["td3"]
         options = f'{scanOptions.replace("_",":").replace("B:","")}:D:D:D'
         if launchLocal:
-            from pkscreener.pkscreenercli import argParser as agp
             from pkscreener import pkscreenercli
+            from pkscreener.pkscreenercli import argParser as agp
             options = "B:30:{0}".format(options)
             ag = agp.parse_known_args(args=["-e","-a","Y","-o",options,"-v"])[0]
             pkscreenercli.args = ag
@@ -277,7 +277,7 @@ def holidayList():
                 lambda x: x.replace('\r','')
             )
         return df
-    except Exception as e: # pragma: no cover
+    except Exception: # pragma: no cover
         return None
     
 def isTodayHoliday():

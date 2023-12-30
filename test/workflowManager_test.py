@@ -25,11 +25,11 @@
 from unittest.mock import patch
 
 import pytest
+from PKDevTools.classes.Telegram import get_secrets
 
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.Fetcher import screenerStockDataFetcher
 from pkscreener.classes.WorkflowManager import run_workflow
-from PKDevTools.classes.Telegram import get_secrets
 
 configManager = ConfigManager.tools()
 
