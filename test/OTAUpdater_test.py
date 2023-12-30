@@ -22,6 +22,7 @@
     SOFTWARE.
 
 """
+import os
 import platform
 from unittest.mock import patch
 
@@ -53,6 +54,7 @@ def test_updateForWindows():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForWindows(url)
             mock_popen.assert_called_with("start updater.bat", shell=True)
+    os.remove('updater.bat')
 
 # Positive test case: Test updateForLinux function
 def test_updateForLinux():
@@ -61,6 +63,7 @@ def test_updateForLinux():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForLinux(url)
             mock_popen.assert_called_with("bash updater.sh", shell=True)
+    os.remove('updater.sh')
 
 # Positive test case: Test updateForMac function
 def test_updateForMac():
@@ -69,6 +72,7 @@ def test_updateForMac():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForMac(url)
             mock_popen.assert_called_with("bash updater.sh", shell=True)
+    os.remove('updater.sh')
 
 # Positive test case: Test showWhatsNew function
 def test_showWhatsNew():

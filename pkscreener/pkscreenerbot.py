@@ -45,7 +45,6 @@ import re
 import sys
 import traceback
 from datetime import datetime
-from subprocess import Popen
 
 from telegram import __version__ as TG_VER
 from telegram.constants import ParseMode
@@ -53,9 +52,10 @@ from telegram.constants import ParseMode
 start_time = datetime.now()
 MINUTES_5_IN_SECONDS = 300
 
+from PKDevTools.classes.Telegram import get_secrets
+
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus
 from pkscreener.classes.WorkflowManager import run_workflow
-from PKDevTools.classes.Telegram import get_secrets
 
 try:
     from telegram import __version_info__

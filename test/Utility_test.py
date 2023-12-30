@@ -222,6 +222,7 @@ def test_saveStockData():
             tools.saveStockData(stockDict, configManager, loadCount)
             # Assert that pickle.dump() is called with the correct arguments
             mock_dump.assert_called_once()
+    os.remove('stock_data_1.pkl')
 
 # Positive test case for loadStockData() function
 def test_loadStockData():
@@ -239,6 +240,7 @@ def test_loadStockData():
             tools.loadStockData(stockDict, configManager, downloadOnly, defaultAnswer)
             # Assert that pickle.load() is called
             mock_load.assert_called_once()
+    os.remove('stock_data_2.pkl')
 
 # Positive test case for promptSaveResults() function
 def test_promptSaveResults():

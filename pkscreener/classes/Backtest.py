@@ -29,8 +29,8 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from PKDevTools.classes.ColorText import colorText
 
-from pkscreener.classes.ConfigManager import parser, tools
 from pkscreener.classes import Utility
+from pkscreener.classes.ConfigManager import parser, tools
 
 configManager = tools()
 configManager.getConfig(parser)
