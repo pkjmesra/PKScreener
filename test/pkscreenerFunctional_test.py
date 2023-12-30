@@ -39,6 +39,7 @@ try:
     sys.path.append(os.path.abspath("pkscreener"))
 except Exception:
     print("This test must be run from the root of the project!")
+from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
 from requests_cache import CachedSession
 
@@ -51,7 +52,8 @@ from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
 
-session = CachedSession("PKDevTools_cache", cache_control=True)
+session = CachedSession(cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
+                                         db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'), cache_control=True)
 last_release = 0
 configManager = ConfigManager.tools()
 fetcher = Fetcher.screenerStockDataFetcher(configManager)

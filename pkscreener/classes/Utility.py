@@ -66,7 +66,9 @@ import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.MenuOptions import menus
 
-session = CachedSession("PKDevTools_cache", cache_control=True)
+session = CachedSession(cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
+                                         db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'), 
+                                         cache_control=True)
 fetcher = Fetcher.screenerStockDataFetcher(ConfigManager.tools())
 artText = """
 PPPPPPPPPPPPPPPPP   KKKKKKKKK    KKKKKKK   SSSSSSSSSSSSSSS
@@ -88,7 +90,7 @@ PPPPPPPPPP          KKKKKKKKK    KKKKKKK SSSSSSSSSSSSSSS       cccccccccccccccc 
 """
 art = colorText.GREEN + artText + colorText.END
 
-lastScreened = "last_screened_results.pkl"
+lastScreened = os.path.join(Archiver.get_user_outputs_dir(),"last_screened_results.pkl")
 
 # Class for managing misc and utility methods
 
@@ -513,6 +515,7 @@ class tools:
         for f in glob.glob(f"{pattern}*.pkl"):
             if f.endswith(cache_file):
                 exists = True
+                cache_file = f
                 break
         return exists, cache_file
 
@@ -520,7 +523,7 @@ class tools:
         exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig() or intraday)
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
-        cache_file = os.path.join(os.getcwd(),cache_file)
+        cache_file = os.path.join(Archiver.get_user_outputs_dir(),cache_file)
         if not os.path.exists(cache_file) or len(stockDict) > (loadCount + 1):
             try:
                 with open(cache_file, "wb") as f:
@@ -599,7 +602,7 @@ class tools:
         ):
             cache_url = (
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
-                + cache_file
+                + cache_file.split(os.sep)[-1]
             )
             resp = fetcher.fetchURL(cache_url, stream=True)
             if resp is not None:
@@ -624,7 +627,7 @@ class tools:
                     filesize = int(int(resp.headers.get("content-length")) / chunksize)
                     if filesize > 0:
                         bar, spinner = tools.getProgressbarStyle()
-                        f = open(cache_file, "wb")
+                        f = open(os.path.join(Archiver.get_user_outputs_dir(),cache_file.split(os.sep)[-1]), "wb")
                         dl = 0
                         with alive_bar(
                             filesize, bar=bar, spinner=spinner, manual=True
@@ -965,7 +968,8 @@ class tools:
         return bar, spinner
 
     def getNiftyModel(retrial=False):
-        files = ["nifty_model_v2.h5", "nifty_model_v2.pkl"]
+        files = [os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.h5"), 
+                 os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.pkl")]
         model = None
         urls = [
             "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v2.h5",
@@ -998,7 +1002,7 @@ class tools:
                         )
                         filesize = 1 if not filesize else filesize
                         bar, spinner = tools.getProgressbarStyle()
-                        f = open(file_url.split("/")[-1], "wb")
+                        f = open(os.path.join(Archiver.get_user_outputs_dir(),file_url.split("/")[-1]), "wb")
                         dl = 0
                         with alive_bar(
                             filesize, bar=bar, spinner=spinner, manual=True
