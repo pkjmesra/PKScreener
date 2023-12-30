@@ -111,7 +111,7 @@ jobs:
         if: startsWith(runner.os, 'Linux')
         shell: bash
         run: |
-          for id in $(gh run list -w "4. Next day Nifty/Market AI prediction" --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
           # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
         env:
