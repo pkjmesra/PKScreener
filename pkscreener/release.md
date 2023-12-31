@@ -2,11 +2,15 @@
 
 ## What's New?
 1. [v0.42.20231229.51] release
+* Added option to scan using Lorenzian classifier. Try out X > 12 > 6 > 7. It was already there but was not available for Python 3.9. Upgraded the project to use Python 3.11.
+* Included 52 week high/low in all scan results for better comparison and understanding.
+* A lot of changes to keep the backtest reports running faster. The reports are now concise and more friendly and easier to follow. The backtest report for relevant stocks in the scan result are also now part of user report when requested using bot @@nse_pkscreener_bot.
 * Added the option to scan all such stocks showing higher highs, higher lows and higher close trend. Try X > 12 > 24.
 * Added the option to view the currently breaking out stocks. Try option X > 12 > 23.
 * Added the stocks based on fund house popularity. Try the X > 12 > 21> options.
 * Added the option to scan all such stocks showing lower highs, lower lows but still in bullish RSI zone. Try X > 12 > 25.
 * You can now see which stocks the mutual funds are investing into and where they are selling out. Try the X > 12 > 21> options.
+* Many other minor changes for speed and agility. Most scans now finish within 10 seconds when run locally. On GitHub servers, most scans now finish within 2 minutes.
 
 ## Older Releases
 * https://github.com/pkjmesra/PKScreener/releases
