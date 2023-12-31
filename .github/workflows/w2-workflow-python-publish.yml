@@ -207,7 +207,7 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
       run: |
-        python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
       
     - name: Send notification about new release
       if: ${{ inputs.sendNotification != 'no' }}
@@ -216,7 +216,6 @@ jobs:
         RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
       run: |
         pip install .
-        cd pkscreener
         python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases \n\n or \n\nhttps://pypi.org/project/pkscreener/')"
 
   Delete_Workflow_Run:
