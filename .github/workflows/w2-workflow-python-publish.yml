@@ -216,7 +216,6 @@ jobs:
         RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
       run: |
         pip install .
-        cd pkscreener
         python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases \n\n or \n\nhttps://pypi.org/project/pkscreener/')"
 
   Delete_Workflow_Run:
