@@ -84,6 +84,7 @@ jobs:
         fi
 
     - name: Install Python Dependencies
+      shell: bash
       run: |
         pip3 install pkscreener
 

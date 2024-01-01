@@ -88,6 +88,7 @@ jobs:
           pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
     - name: Install Python Dependencies
+      shell: bash
       run: |
         pip3 install pkscreener
 
