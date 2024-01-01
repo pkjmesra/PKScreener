@@ -119,7 +119,7 @@ jobs:
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
-        python3 -m pip3 install --upgrade pip
+        python3 -m pip install --upgrade pip
         pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then

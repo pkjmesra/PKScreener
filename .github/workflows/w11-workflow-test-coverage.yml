@@ -75,13 +75,13 @@ jobs:
               make
               sudo make install
               cd /home/runner/work/PKScreener/PKScreener/
-              python3 -m pip3 install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
               pip3 install .
               # note: the following also installs "coverage"
-              python3 -m pip3 install coveralls
+              python3 -m pip install coveralls
             TEST_BUILD: |
               coverage erase
               coverage run --source=${package_name} --branch -m pytest -vv --durations-min=0.005
@@ -99,7 +99,7 @@ jobs:
             CMD_BUILD: |
               echo Building
             DEP_BUILD: |
-              python3 -m pip3 install --upgrade pip
+              python3 -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
               if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
@@ -113,7 +113,7 @@ jobs:
               fi
               cd ..
               cd ..
-              python3 -m pip3 install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install .
@@ -131,7 +131,7 @@ jobs:
               find . -name ".coverage.*" -exec rm -rf {} \;
             DEP_BUILD: |
               brew install ta-lib
-              python3 -m pip3 install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
