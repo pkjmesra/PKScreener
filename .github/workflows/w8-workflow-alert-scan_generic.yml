@@ -119,17 +119,17 @@ jobs:
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
-        python -m pip install --upgrade pip
-        pip install requests
+        python3 -m pip3 install --upgrade pip
+        pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
 
     - name: Install TA-Lib for Linux
@@ -171,7 +171,7 @@ jobs:
 
     - name: Configure env.dev file
       run: |
-        python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}

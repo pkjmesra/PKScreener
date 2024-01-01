@@ -81,23 +81,23 @@ jobs:
     - name: Install TA-Lib
       shell: bash
       run: |
-        python -m pip install --upgrade pip
+        python3 -m pip3 install --upgrade pip
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
 
     - name: Install Python Dependencies
       run: |
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip install .
+        pip3 install -r requirements.txt
+        pip3 install -r requirements-dev.txt
+        pip3 install .
       
     - name: Configure .env.dev file
       shell: bash
@@ -106,7 +106,7 @@ jobs:
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
       run: |
-          python -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+          python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
   
     - name: Send notification about this workflow trigger
       shell: bash
@@ -114,7 +114,7 @@ jobs:
         NOTIFY_USER : ${{ inputs.user }}
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
-          python -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello! The workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
+          python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello! The workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
           
     - name: Run backtest
       shell: cmd
@@ -125,7 +125,7 @@ jobs:
       run: |
         #rmdir /s /q Backtest-Reports
         #mkdir Backtest-Reports
-        python pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
 
     - name: Push backtest and summary reports
       continue-on-error: true
@@ -143,7 +143,7 @@ jobs:
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_OneLine_Summary.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
         git pull
-        python .github/workflows/workflowtriggers.py -r ${{ inputs.intraday }}
+        python3 .github/workflows/workflowtriggers.py -r ${{ inputs.intraday }}
         git add BacktestReports.html --force
         git add BacktestReportsIntraday.html --force
         git commit -m "GitHub-Action-Workflow-Backtest-Reports-(${{ inputs.name }})"
