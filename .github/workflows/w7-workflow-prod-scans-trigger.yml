@@ -86,6 +86,7 @@ jobs:
     - name: Install Python Dependencies
       shell: bash
       run: |
+        pip3 install -r requirements.txt
         pip3 install .
 
     - name: Trigger Scan alerts
