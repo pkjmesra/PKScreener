@@ -99,6 +99,7 @@ jobs:
           continue-on-error: true
           name: check latest commit is less than a week
           if: ${{ github.event_name == 'workflow_call' }} || ${{ github.event_name == 'workflow_dispatch' }}
+          shell: bash
           run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
   deploy:
