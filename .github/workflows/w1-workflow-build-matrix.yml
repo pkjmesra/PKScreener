@@ -302,6 +302,13 @@ jobs:
             git commit -m "GitHub Action Workflow - Updating version to latest"
             git push -v
 
+  Call-Docker-workflow:
+    uses: pkjmesra/PKScreener/.github/workflows/w15-docker-image.yml@main
+    needs: [Build, README_Update]
+    with:
+      branch-name: ${{ needs.Build.outputs.tag }}
+    secrets: inherit
+
   Delete_Workflow_Run:
     runs-on: ubuntu-20.04
     needs: [Build,README_Update]
