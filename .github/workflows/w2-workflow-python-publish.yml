@@ -167,6 +167,7 @@ jobs:
         echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
        
     - name: Install setuptools and build
+      shell: cmd
       run: |
         pip3 install setuptools wheel twine
         rmdir /s /q build
@@ -193,8 +194,6 @@ jobs:
         repository_url: https://upload.pypi.org/legacy/
       shell: cmd
       run: |
-        rmdir /s /q build
-        rmdir /s /q dist
         # del /s /q pkscreener/classes/__init__.py
         # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
         twine upload --verbose dist/*
