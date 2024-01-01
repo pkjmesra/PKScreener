@@ -33,7 +33,7 @@ on:
       installtalib:
         description: 'Is TA-Lib install required? (Y/N)'
         required: false
-        default: 'N'
+        default: 'Y'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
