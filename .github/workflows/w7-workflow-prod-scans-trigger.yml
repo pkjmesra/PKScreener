@@ -33,7 +33,7 @@ on:
       installtalib:
         description: 'Is TA-Lib install required? (Y/N)'
         required: false
-        default: 'N'
+        default: 'Y'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
@@ -84,8 +84,10 @@ jobs:
         fi
 
     - name: Install Python Dependencies
+      shell: bash
       run: |
-        pip3 install pkscreener
+        pip3 install -r requirements.txt
+        pip3 install .
 
     - name: Trigger Scan alerts
       run: |
