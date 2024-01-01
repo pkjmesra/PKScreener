@@ -86,7 +86,7 @@ jobs:
     - name: Install Python Dependencies
       shell: bash
       run: |
-        pip3 install pkscreener
+        pip3 install .
 
     - name: Trigger Scan alerts
       run: |
