@@ -66,7 +66,7 @@ jobs:
     - name: Install TA-Lib
       shell: bash
       run: |
-        python3 -m pip3 install --upgrade pip
+        python3 -m pip install --upgrade pip
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
           pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
