@@ -99,7 +99,8 @@ jobs:
           continue-on-error: true
           name: check latest commit is less than a week
           if: ${{ github.event_name == 'workflow_call' }} || ${{ github.event_name == 'workflow_dispatch' }}
-          run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+          shell: bash
+          run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
   deploy:
 
@@ -167,6 +168,7 @@ jobs:
         echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
        
     - name: Install setuptools and build
+      shell: cmd
       run: |
         pip3 install setuptools wheel twine
         rmdir /s /q build
@@ -193,8 +195,6 @@ jobs:
         repository_url: https://upload.pypi.org/legacy/
       shell: cmd
       run: |
-        rmdir /s /q build
-        rmdir /s /q dist
         # del /s /q pkscreener/classes/__init__.py
         # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
         twine upload --verbose dist/*

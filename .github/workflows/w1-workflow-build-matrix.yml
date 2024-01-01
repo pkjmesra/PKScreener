@@ -66,7 +66,8 @@ jobs:
         continue-on-error: true
         name: check latest commit is less than a week
         if: ${{ github.event_name == 'schedule' }} || ${{ github.event_name == 'workflow_dispatch' }}
-        run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+        shell: bash
+        run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
   # Job for builing packages
   Build:
@@ -300,6 +301,13 @@ jobs:
             git add README.md --force
             git commit -m "GitHub Action Workflow - Updating version to latest"
             git push -v
+
+  Call-Docker-workflow:
+    uses: pkjmesra/PKScreener/.github/workflows/w15-docker-image.yml@main
+    needs: [Build, README_Update]
+    with:
+      branch-name: ${{ needs.Build.outputs.tag }}
+    secrets: inherit
 
   Delete_Workflow_Run:
     runs-on: ubuntu-20.04

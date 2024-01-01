@@ -31,6 +31,17 @@ on:
           description: 'Docker build'
           required: false
           default: 'pkscreener - docker'
+        branch-name:
+          required: true
+          type: string
+          default: 'main'
+
+  workflow_call:
+    inputs:
+      branch-name:
+        required: true
+        type: string
+        default: 'main'
   push:
     # branches: [ main ]
     tags:
@@ -45,7 +56,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        ref: main
+        ref: ${{ inputs.branch-name }}
 
     - name: Setup docker (missing on MacOS)
       if: runner.os == 'macos'
