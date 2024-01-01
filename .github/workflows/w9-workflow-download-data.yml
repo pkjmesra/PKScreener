@@ -66,17 +66,17 @@ jobs:
     - name: Install TA-Lib
       shell: bash
       run: |
-        python3 -m pip install --upgrade pip
+        python3 -m pip3 install --upgrade pip
         pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
 
     - name: Environment setup to get latest EXE
