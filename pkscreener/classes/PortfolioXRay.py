@@ -46,10 +46,14 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
             lambda x: x.replace('x','')
             )
         if 'Consol.(30Prds)' not in saveResults.columns:
-            saveResults.rename(columns={"Consol.": "Consol.(30Prds)","Trend": "Trend(30Prds)"},inplace=True,)
+            saveResults.rename(columns={"Consol.": "Consol.(30Prds)","Trend": "Trend(30Prds)","Breakout": "Breakout(30Prds)"},inplace=True,)
         saveResults.loc[:, 'Consol.(30Prds)'] = saveResults.loc[:, 'Consol.(30Prds)'].apply(
                 lambda x: x.replace('Range:','').replace('%','')
             )
+        # saveResults[['Breakout', 'Resistance']] = df['Breakout(30Prds)'].str.split(' R: ', n=1, expand=True)
+        # saveResults.loc[:, 'Breakout'] = saveResults.loc[:, 'Breakout'].apply(
+        #         lambda x: x.replace('BO: ','').replace(' ','')
+        #     )
         saveResults['Volume'] = saveResults['Volume'].astype(float).fillna(0.0)
         saveResults['Consol.(30Prds)'] = saveResults['Consol.(30Prds)'].astype(float).fillna(0.0)
         
@@ -86,6 +90,10 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
             scanResults.append(getCalculatedValues(filterVolumeMoreThan25(saveResults),period,'Vol>=2.5',args))
             scanResults.append(getCalculatedValues(filterConsolidating10Percent(saveResults),period,'Cons.<=10',args))
             scanResults.append(getCalculatedValues(filterConsolidatingMore10Percent(saveResults),period,'Cons.>10',args))
+            # scanResults.append(getCalculatedValues(filterLTPLessThanBreakout(saveResults),period,'LTP<BO',args))
+            # scanResults.append(getCalculatedValues(filterLTPMoreOREqualBreakout(saveResults),period,'LTP>=BO',args))
+            # scanResults.append(getCalculatedValues(filterLTPLessThanResistance(saveResults),period,'LTP<R',args))
+            # scanResults.append(getCalculatedValues(filterLTPMoreOREqualResistance(saveResults),period,'LTP>=R',args))
             scanResults.append(getCalculatedValues(saveResults,period,'NoFilter',args))
 
             if df is None:
@@ -114,7 +122,7 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
         for col in df.columns:
             if 'D-%' in col:
                 df.loc[:, col] = df.loc[:, col].apply(
-                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(int(x)) + " %" + colorText.END))
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(float(x)) + " %" + colorText.END))
                     )
             if 'D-10k' in col:
                 df.loc[:, col] = df.loc[:, col].apply(
@@ -232,3 +240,24 @@ def filterConsolidatingMore10Percent(df):
     if df is None:
         return None
     return df[df['Consol.(30Prds)'] > 10].fillna(0.0)
+
+def filterLTPLessThanBreakout(df):
+    if df is None:
+        return None
+    return df[df['LTP'] < df['Breakout']].fillna(0.0)
+
+def filterLTPMoreOREqualBreakout(df):
+    if df is None:
+        return None
+    return df[df['LTP'] >= df['Breakout']].fillna(0.0)
+
+def filterLTPLessThanResistance(df):
+    if df is None:
+        return None
+    return df[df['LTP'] < df['Resistance']].fillna(0.0)
+
+def filterLTPMoreOREqualResistance(df):
+    if df is None:
+        return None
+    return df[df['LTP'] >= df['Resistance']].fillna(0.0)
+

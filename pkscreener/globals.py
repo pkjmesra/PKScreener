@@ -535,7 +535,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
         screenResults.rename(
             columns={
                 "Trend": f"Trend({configManager.daysToLookback}Prds)",
-                "Breakout": f"Breakout ({configManager.daysToLookback}Prds)",
+                "Breakout": f"Breakout({configManager.daysToLookback}Prds)",
                 "Consol.": f"Consol.({configManager.daysToLookback}Prds)",
             },
             inplace=True,
@@ -543,7 +543,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
         saveResults.rename(
             columns={
                 "Trend": f"Trend({configManager.daysToLookback}Prds)",
-                "Breakout": f"Breakout ({configManager.daysToLookback}Prds)",
+                "Breakout": f"Breakout({configManager.daysToLookback}Prds)",
                 "Consol.": f"Consol.({configManager.daysToLookback}Prds)",
             },
             inplace=True,
@@ -955,6 +955,7 @@ def main(userArgs=None):
                 configManager,
                 downloadOnly=downloadOnly,
                 defaultAnswer=defaultAnswer,
+                forceLoad=(menuOption in ["B", "G"])
             )
             loadedStockData = True
         loadCount = len(stockDict)
