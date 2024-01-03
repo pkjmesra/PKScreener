@@ -105,7 +105,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = m0.renderForMenu(asList=True)
     inlineMenus = []
     for mnu in mns:
-        if mnu.menuKey in ["X", "B", "Z"]:
+        if mnu.menuKey in ["X", "B", "G", "Z"]:
             inlineMenus.append(
                 InlineKeyboardButton(
                     mnu.keyTextLabel().split("(")[0],
@@ -140,8 +140,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
-    data = query.data.upper().replace("CX", "X").replace("CB", "B")
-    if data not in ["X", "B"]:
+    data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+    if data not in ["X", "B", "G"]:
         return start(update, context)
     midSkip = "1" if data == "X" else "N"
     menuText = (
@@ -195,10 +195,10 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = []
     query = update.callback_query
     await query.answer()
-    preSelection = query.data.upper().replace("CX", "X").replace("CB", "B")
+    preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0].upper() not in ["X","B"]:
+    if selection[0].upper() not in ["X","B", "G"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -542,7 +542,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
-        preSelection = query.data.upper().replace("CX", "X").replace("CB", "B")
+        preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     optionChoices = ""
     if len(selection) <= 3:
         for mnu in mns:
@@ -562,7 +562,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
-            if mnu.menuKey in ["X", "B", "Z"]:
+            if mnu.menuKey in ["X", "B", "G", "Z"]:
                 inlineMenus.append(
                     InlineKeyboardButton(
                         mnu.keyTextLabel().split("(")[0],
@@ -611,11 +611,13 @@ async def launchScreener(options, user, context, optionChoices, update):
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()))
-        else:
+        elif str(optionChoices.upper()).startswith("X"):
             optionChoices = optionChoices.replace(" ","").replace(">","_")
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
+        elif str(optionChoices.upper()).startswith("G"):
+            await update.message.reply_text(f"{optionChoices.upper()} : Not implemented yet!")
             # Popen(
             #     [
             #         "pkscreener",
@@ -755,7 +757,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if cmd == "help":
         await help_command(update=update, context=context)
         return START_ROUTES
-    if cmd in ["x","b"]:
+    if cmd in ["x","b","g"]:
         await shareUpdateWithChannel(update=update, context=context)
         m0.renderForMenu(
             selectedMenu=None,
