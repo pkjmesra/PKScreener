@@ -1118,12 +1118,25 @@ class tools:
         return ltpValid, verifyStageTwo
 
     def validateLTPForPortfolioCalc(self, data, screenDict, saveDict):
-        prevLtp = data.head(1)['Close'].iloc[0]
-        ltpTdy = data.tail(1)['Close'].iloc[0]
-        screenDict['LTPTdy'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
-        screenDict['Growth'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
-        saveDict['LTPTdy'] = round(ltpTdy,2)
-        saveDict['Growth'] = round(ltpTdy-prevLtp,2)
+        periods = [1,2,3,4,5,10,15,22,30]
+        previous_recent = data.head(1)
+        previous_recent.reset_index(inplace=True)
+        calc_date = str(previous_recent.iloc[:, 0][0]).split(" ")[0]
+        for prd in periods:
+            if len(data) >= prd+1:
+                prevLtp = data['Close'].iloc[0]
+                ltpTdy = data['Close'].iloc[prd]
+                screenDict[f'LTP{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
+                screenDict[f'Growth{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
+                saveDict[f'LTP{prd}'] = round(ltpTdy,2)
+                saveDict[f'Growth{prd}'] = round(ltpTdy-prevLtp,2)
+                screenDict['Date'] = calc_date
+                saveDict['Date'] = calc_date
+            else:
+                saveDict[f'LTP{prd}'] = np.nan
+                saveDict[f'Growth{prd}'] = np.nan
+                screenDict['Date'] = calc_date
+                saveDict['Date'] = calc_date
 
     # Find stocks that are bearish intraday: Macd Histogram negative
     def validateMACDHistogramBelow0(self, data):

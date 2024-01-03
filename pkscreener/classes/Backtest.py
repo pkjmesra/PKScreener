@@ -36,7 +36,7 @@ configManager = tools()
 configManager.getConfig(parser)
 
 def backtest(
-    stock, data, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None, sellSignal=False
+    stock, data, saveDict=None, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None, sellSignal=False
 ):
     if stock == "" or data is None:
         print(f"No data/stock{(stock)} received for backtesting!")
@@ -105,17 +105,24 @@ def backtest(
         "30-Pd": "",
     }
     backTestedStock["Stock"] = stock
-    backTestedStock["Date"] = str(previous_recent.iloc[:, 0][0]).split(" ")[
-        0
-    ]  # Date or index column
-    backTestedStock["Volume"] = screenedDict["Volume"]
-    backTestedStock["Trend"] = screenedDict["Trend"]
+    targetDate = str(previous_recent.iloc[:, 0][0]).split(" ")[0]  # Date or index column
+    backTestedStock["Date"] = targetDate
+    backTestedStock["Consol."] = screenedDict["Consol."]
+    backTestedStock["Breakout"] = screenedDict["Breakout"]
     backTestedStock["MA-Signal"] = screenedDict["MA-Signal"]
+    backTestedStock["Volume"] = screenedDict["Volume"]
     backTestedStock["LTP"] = screenedDict["LTP"]
     backTestedStock["52Wk H"] = screenedDict["52Wk H"]
     backTestedStock["52Wk L"] = screenedDict["52Wk L"]
+    backTestedStock["RSI"] = screenedDict["RSI"]
+    backTestedStock["Trend"] = screenedDict["Trend"]
+    backTestedStock["Pattern"] = screenedDict["Pattern"]
+    backTestedStock["CCI"] = screenedDict["CCI"]
+    today = Utility.tools.currentDateTime()
+    gap = Utility.tools.trading_days_between(Utility.tools.dateFromYmdString(targetDate).replace(tzinfo=today.tzinfo).date(),today.date())
+    periods = gap if gap > periods else periods
     for prd in calcPeriods:
-        if abs(prd) <= periods:
+        if prd <= periods:
             try:
                 rolling_pct = data["Close"].pct_change(periods=prd) * 100
                 pct_change = rolling_pct.iloc[prd]
@@ -129,7 +136,13 @@ def backtest(
                     + colorText.END
                 )
             except Exception:
-                continue
+                pass
+        # Let's capture the portfolio data, if available
+        try:
+            backTestedStock[f'LTP{prd}'] = saveDict[f'LTP{prd}']
+            backTestedStock[f'Growth{prd}'] = saveDict[f'Growth{prd}']
+        except Exception:
+            pass
         # else:
         #     del backTestedStock[f"{abs(prd)}-Pd"]
         #     try:
@@ -137,7 +150,7 @@ def backtest(
         #     except Exception:
         #         continue
     allStockBacktestData.append(backTestedStock)
-    df = pd.DataFrame(allStockBacktestData, columns=backTestedData.columns)
+    df = pd.DataFrame(allStockBacktestData) #, columns=backTestedData.columns)
     try:
         backTestedData = pd.concat([backTestedData, df])
     except Exception:

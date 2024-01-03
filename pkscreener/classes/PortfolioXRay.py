@@ -22,22 +22,31 @@
     SOFTWARE.
 
 """
+import numpy as np
 import pandas as pd
 
 from tabulate import tabulate
 from PKDevTools.classes.ColorText import colorText
+from pkscreener.classes import Utility
 
-
-def performXRay(savedResults=None, args=0):
-    if savedResults is not None:
+def performXRay(savedResults=None, args=None, calcForDate=None):
+    if savedResults is not None and len(savedResults) > 0:
+        backtestPeriods = 30 # Max backtest days
+        if args is not None and args.backtestdaysago is not None:
+            backtestPeriods = int(args.backtestdaysago)
         saveResults = savedResults.copy()
+        for col in saveResults.columns:
+            saveResults.loc[:, col] = saveResults.loc[:, col].apply(
+            lambda x: Utility.tools.removeAllColorStyles(x)
+            )
+            
         saveResults['LTP'] = saveResults['LTP'].astype(float).fillna(0.0)
-        saveResults['LTPTdy'] = saveResults['LTPTdy'].astype(float).fillna(0.0)
-        saveResults['Growth'] = saveResults['Growth'].astype(float).fillna(0.0)
         saveResults['RSI'] = saveResults['RSI'].astype(float).fillna(0.0)
         saveResults.loc[:, 'Volume'] = saveResults.loc[:, 'Volume'].apply(
             lambda x: x.replace('x','')
             )
+        if 'Consol.(30Prds)' not in saveResults.columns:
+            saveResults.rename(columns={"Consol.": "Consol.(30Prds)","Trend": "Trend(30Prds)"},inplace=True,)
         saveResults.loc[:, 'Consol.(30Prds)'] = saveResults.loc[:, 'Consol.(30Prds)'].apply(
                 lambda x: x.replace('Range:','').replace('%','')
             )
@@ -45,50 +54,95 @@ def performXRay(savedResults=None, args=0):
         saveResults['Consol.(30Prds)'] = saveResults['Consol.(30Prds)'].astype(float).fillna(0.0)
         
         ltpSum1ShareEach = round(saveResults['LTP'].sum(),2)
-        tdySum1ShareEach= saveResults['LTPTdy'].sum()
-        growthSum1ShareEach= round(saveResults['Growth'].sum(),2)
-        percentGrowth = round(100*growthSum1ShareEach/ltpSum1ShareEach,2)
-        growth10k = 10000*(1+0.01*percentGrowth)
-        clr = colorText.GREEN if growthSum1ShareEach >=0 else colorText.FAIL
-        print(f"[+] Total (1 share each bought on the date above)           : ₹ {ltpSum1ShareEach:7.2f}")
-        print(f"[+] Total (portfolio value today for 1 share each)          : ₹ {clr}{tdySum1ShareEach:7.2f}{colorText.END}")
-        print(f"[+] Total (portfolio value growth in {args.backtestdaysago} days                : ₹ {clr}{growthSum1ShareEach:7.2f}{colorText.END}")
-        print(f"[+] Growth (@ {clr}{percentGrowth:5.2f} %{colorText.END}) of ₹ 10k, if you'd have invested)    : ₹ {clr}{growth10k:7.2f}{colorText.END}")
-        scanResults = []
+        days = 0
+        df = None
+        periods = [1,2,3,4,5,10,15,22,30]
+        period = periods[days]
+        targetDate = calcForDate if calcForDate is not None else saveResults['Date'].iloc[0]
+        today = Utility.tools.currentDateTime()
+        gap = Utility.tools.trading_days_between(Utility.tools.dateFromYmdString(targetDate).replace(tzinfo=today.tzinfo).date(),today.date())
+        backtestPeriods = gap if gap > backtestPeriods else backtestPeriods
+        while periods[days] <= backtestPeriods:
+            period = periods[days]
+            saveResults[f'LTP{period}'] = saveResults[f'LTP{period}'].astype(float).fillna(0.0)
+            saveResults[f'Growth{period}'] = saveResults[f'Growth{period}'].astype(float).fillna(0.0)
+            
+            scanResults = []
+            scanResults.append(getCalculatedValues(filterRSIAbove50(saveResults),period,'RSI>=50',args))
+            scanResults.append(getCalculatedValues(filterRSI50To67(saveResults),period,'RSI<=67',args))
+            scanResults.append(getCalculatedValues(filterRSI68OrAbove(saveResults),period,'RSI>=68',args))
+            scanResults.append(getCalculatedValues(filterTrendStrongUp(saveResults),period,'StrongUp',args))
+            scanResults.append(getCalculatedValues(filterTrendWeakUp(saveResults),period,'WeakUp',args))
+            scanResults.append(getCalculatedValues(filterTrendUp(saveResults),period,'TrendUp',args))
+            scanResults.append(getCalculatedValues(filterTrendSideways(saveResults),period,'Sideways',args))
+            scanResults.append(getCalculatedValues(filterTrendDown(saveResults),period,'TrendDown',args))
+            scanResults.append(getCalculatedValues(filterMASignalBullish(saveResults),period,'MABull',args))
+            scanResults.append(getCalculatedValues(filterMASignalBearish(saveResults),period,'MABear',args))
+            scanResults.append(getCalculatedValues(filterMASignalBullCross(saveResults),period,'BullCross',args))
+            scanResults.append(getCalculatedValues(filterMASignalBearCross(saveResults),period,'BearCross',args))
+            scanResults.append(getCalculatedValues(filterMASignalSupport(saveResults),period,'MASupport',args))
+            scanResults.append(getCalculatedValues(filterMASignalResist(saveResults),period,'MAResist',args))
+            scanResults.append(getCalculatedValues(filterVolumeLessThan25(saveResults),period,'Vol<2.5',args))
+            scanResults.append(getCalculatedValues(filterVolumeMoreThan25(saveResults),period,'Vol>=2.5',args))
+            scanResults.append(getCalculatedValues(filterConsolidating10Percent(saveResults),period,'Cons.<=10',args))
+            scanResults.append(getCalculatedValues(filterConsolidatingMore10Percent(saveResults),period,'Cons.>10',args))
+            scanResults.append(getCalculatedValues(saveResults,period,'NoFilter',args))
 
-        scanResults.append(getCalculatedValues(filterRSIAbove50(saveResults),1,'RSI>=50'))
-        scanResults.append(getCalculatedValues(filterRSI50To67(saveResults),1,'RSI<=67'))
-        scanResults.append(getCalculatedValues(filterRSI68OrAbove(saveResults),1,'RSI>=68'))
-        scanResults.append(getCalculatedValues(filterTrendStrongUp(saveResults),1,'StrngUp'))
-        scanResults.append(getCalculatedValues(filterTrendWeakUp(saveResults),1,'WkUp'))
-        scanResults.append(getCalculatedValues(filterTrendUp(saveResults),1,'TrndUp'))
-        scanResults.append(getCalculatedValues(filterTrendSideways(saveResults),1,'Sideways'))
-        scanResults.append(getCalculatedValues(filterTrendDown(saveResults),1,'TrndDown'))
-        scanResults.append(getCalculatedValues(filterMASignalBullish(saveResults),1,'MABull'))
-        scanResults.append(getCalculatedValues(filterMASignalBearish(saveResults),1,'MABear'))
-        scanResults.append(getCalculatedValues(filterMASignalBullCross(saveResults),1,'BullCross'))
-        scanResults.append(getCalculatedValues(filterMASignalBearCross(saveResults),1,'BearCross'))
-        scanResults.append(getCalculatedValues(filterMASignalSupport(saveResults),1,'MASupprt'))
-        scanResults.append(getCalculatedValues(filterMASignalResist(saveResults),1,'MARst'))
-        scanResults.append(getCalculatedValues(filterVolumeLessThan25(saveResults),1,'Vol<2.5'))
-        scanResults.append(getCalculatedValues(filterVolumeMoreThan25(saveResults),1,'Vol>=2.5'))
-        scanResults.append(getCalculatedValues(filterConsolidating10Percent(saveResults),1,'Cons.<=10'))
-        scanResults.append(getCalculatedValues(filterConsolidatingMore10Percent(saveResults),1,'Cons.>10'))
-        df = pd.DataFrame(scanResults)
-        print(tabulate(df, headers="keys", tablefmt="grid"))
+            if df is None:
+                df = pd.DataFrame(scanResults)
+            else:
+                df1 = pd.DataFrame(scanResults)
+                df_target = df1[[col for col in df1.columns if ('D-%' in col or 'D-10k' in col)]]
+                df = pd.concat([df, df_target], axis=1)
+            days += 1
+            if days >= len(periods):
+                break
 
-def getCalculatedValues(df, period,key):
+        df = df[[col for col in df.columns if ('ScanType' in col or 'D-%' in col or 'D-10k' in col)]]
+        # maxValue = df.idxmax(axis=1)
+        maxGrowth = -100
+        df1 = df.copy()
+        df1 = df1[[col for col in df1.columns if ('D-%' in col)]]
+        for col in df1.columns:
+            if 'D-%' in col:
+                mx = df1[col].max()
+                if maxGrowth < mx:
+                    maxGrowth = mx
+
+        # df = df.replace(np.nan, '-', regex=True)
+        df = df.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna()
+        for col in df.columns:
+            if 'D-%' in col:
+                df.loc[:, col] = df.loc[:, col].apply(
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(int(x)) + " %" + colorText.END))
+                    )
+            if 'D-10k' in col:
+                df.loc[:, col] = df.loc[:, col].apply(
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),((colorText.GREEN) if (float(x) >10000) else (colorText.FAIL if float(x) <10000 else colorText.WARN)) + str(x) + colorText.END))
+                    )
+        df.insert(1, 'Date', calcForDate if calcForDate is not None else saveResults['Date'].iloc[0])
+        return df
+    
+def getCalculatedValues(df, period,key,args=None):
     ltpSum1ShareEach = round(df['LTP'].sum(),2)
-    tdySum1ShareEach= round(df['LTPTdy'].sum(),2)
-    growthSum1ShareEach= round(df['Growth'].sum(),2)
+    tdySum1ShareEach= round(df[f'LTP{period}'].sum(),2)
+    growthSum1ShareEach= round(df[f'Growth{period}'].sum(),2)
     percentGrowth = round(100*growthSum1ShareEach/ltpSum1ShareEach,2)
     growth10k = round(10000*(1+0.01*percentGrowth),2)
-    return {'ScanType':key,
+    df = {'ScanType':key,
             f'{period}D-PFV':tdySum1ShareEach,
-            f'{period}D-PFG':percentGrowth if tdySum1ShareEach != 0 else '-',
-            f'{period}D-Go10k':growth10k if tdySum1ShareEach != 0 else '-',
+            f'{period}D-%':percentGrowth, #if tdySum1ShareEach != 0 else '-',
+            f'{period}D-10k':growth10k, # if tdySum1ShareEach != 0 else '-',
             }
-    
+    # percentGrowth = colorText.GREEN if percentGrowth >=0 else colorText.FAIL + percentGrowth + colorText.END
+    # growth10k = colorText.GREEN if percentGrowth >=0 else colorText.FAIL + growth10k + colorText.END
+    # df_col = {'ScanType':key,
+    #     f'{period}D-PFV':tdySum1ShareEach,
+    #     f'{period}D-PFG':percentGrowth if tdySum1ShareEach != 0 else '-',
+    #     f'{period}D-Go10k':growth10k if tdySum1ShareEach != 0 else '-',
+    #     }
+    return df #, df_col
+
 def filterRSIAbove50(df):
     if df is None:
         return None
