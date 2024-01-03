@@ -724,8 +724,8 @@ class StockConsumer:
         )
 
     def initResultDictionaries(self):
-        screenResults = pd.DataFrame(
-            columns=[
+        periods = [1,2,3,4,5,10,15,22,30]
+        columns=[
                 "Stock",
                 "Consol.",
                 "Breakout",
@@ -739,10 +739,7 @@ class StockConsumer:
                 "Trend",
                 "Pattern",
                 "CCI",
-                "LTPTdy",
-                "Growth",
             ]
-        )
         screeningDictionary = {
             "Stock": "",
             "Consol.": "",
@@ -757,8 +754,6 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
-            "LTPTdy": 0,
-            "Growth":0,
         }
         saveDictionary = {
             "Stock": "",
@@ -774,8 +769,17 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
-            "LTPTdy": 0,
-            "Growth":0,
         }
-        
+        for prd in periods:
+            columns.append(f"LTP{prd}")
+            columns.append(f"Growth{prd}")
+            screeningDictionary[f"LTP{prd}"] = np.nan
+            saveDictionary[f"LTP{prd}"] = np.nan
+            screeningDictionary[f"Growth{prd}"] = np.nan
+            saveDictionary[f"Growth{prd}"] = np.nan
+
+        screenResults = pd.DataFrame(
+            columns=columns
+        )
+
         return screeningDictionary,saveDictionary

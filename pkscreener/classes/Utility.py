@@ -150,7 +150,7 @@ class tools:
                 + "\n[+] Showing recently screened results..\n"
                 + colorText.END
             )
-            print(tabulate(df, headers="keys", tablefmt="psql"))
+            print(colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat))
             print(
                 colorText.BOLD
                 + colorText.WARN
@@ -215,7 +215,7 @@ class tools:
             colorText.FAIL,
             colorText.WHITE,
         ]
-        cleanedUpStyledValue = styledText
+        cleanedUpStyledValue = str(styledText)
         for style in styles:
             cleanedUpStyledValue = cleanedUpStyledValue.replace(style, "")
         return cleanedUpStyledValue
@@ -417,6 +417,15 @@ class tools:
                 # Weekends .So the date should be last Friday
                 return (curr - datetime.timedelta(days=(curr.weekday() - 4))).date()
 
+    def dateFromYmdString(Ymd=None):
+       return datetime.datetime.strptime(Ymd, "%Y-%m-%d")
+
+    def days_between(d1, d2):
+        return abs((d2 - d1).days)
+
+    def trading_days_between(d1, d2):
+        return np.busday_count(d1,d2) # ,weekmask=[1,1,1,1,1,0,0],holidays=['2020-01-01'])
+    
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         if simulate:

@@ -145,6 +145,7 @@ def generateBacktestReportMainPage():
                 th {cursor: pointer; color:white; text-decoration:underline;}
                 .r {color:red;font-weight:bold;} 
                 .g {color:lightgreen;font-weight:bold;} 
+                .w {color:white;font-weight:bold;}
                 .y {color:yellow;}
             </style>
         </head>

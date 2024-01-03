@@ -44,6 +44,7 @@ def sample_data():
 
 @pytest.fixture
 def sample_screened_dict():
+    periods = [1,2,3,4,5,10,15,22,30]
     screened_dict = {
         'Volume': 1000,
         'Trend': 'Up',
@@ -52,6 +53,8 @@ def sample_screened_dict():
         '52Wk H': 100,
         '52Wk L': 10,
     }
+    for period in periods:
+        screened_dict[f'LTP{period}'] = screened_dict['LTP'] * period/10
     return screened_dict
 
 def test_backtest_no_data():
@@ -59,11 +62,11 @@ def test_backtest_no_data():
     assert result is None
 
 def test_backtest_no_strategy():
-    result = backtest("AAPL", sample_data(), screenedDict=None)
+    result = backtest("AAPL", sample_data(), saveDict=None,screenedDict=None)
     assert result is None
 
 def test_backtest_with_data_and_strategy(sample_screened_dict):
-    result = backtest("AAPL", sample_data(), screenedDict=sample_screened_dict)
+    result = backtest("AAPL", sample_data(), saveDict=sample_screened_dict, screenedDict=sample_screened_dict)
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 1
 
