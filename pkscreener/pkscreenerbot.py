@@ -95,6 +95,8 @@ m3 = menus()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Send message on `/start`."""
+    if update is None or update.message is None:
+        return
     # Get user that sent /start and log his name
     user = update.message.from_user
     logger.info("User %s started the conversation.", user.first_name)
@@ -105,7 +107,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = m0.renderForMenu(asList=True)
     inlineMenus = []
     for mnu in mns:
-        if mnu.menuKey in ["X", "B", "G", "Z"]:
+        if mnu.menuKey in ["X", "B", "Z"]:
             inlineMenus.append(
                 InlineKeyboardButton(
                     mnu.keyTextLabel().split("(")[0],
@@ -116,7 +118,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "S"],
+        skip=["S", "T", "E", "U", "Z", "G"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -141,7 +143,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
     data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
-    if data not in ["X", "B", "G"]:
+    if data not in ["X", "B"]:
         return start(update, context)
     midSkip = "1" if data == "X" else "N"
     menuText = (
@@ -198,7 +200,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0].upper() not in ["X","B", "G"]:
+    if selection[0].upper() not in ["X","B"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -562,7 +564,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
-            if mnu.menuKey in ["X", "B", "G", "Z"]:
+            if mnu.menuKey in ["X", "B", "Z"]:
                 inlineMenus.append(
                     InlineKeyboardButton(
                         mnu.keyTextLabel().split("(")[0],
@@ -768,7 +770,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
+            skip=(["W", "E", "M", "Z","G"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0","G"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
@@ -817,13 +819,13 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if len(selection) == 2:
             m0.renderForMenu(
                 selectedMenu=None,
-                skip=["S", "T", "E", "U", "Z"],
+                skip=["S", "T", "E", "U", "Z","G"],
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
+                skip=(["W", "E", "M", "Z","G"] if "x_" in cmd else ["W", "E", "M", "Z","N","0","G"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -870,13 +872,13 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         elif len(selection) == 3:
             m0.renderForMenu(
                 selectedMenu=None,
-                skip=["S", "T", "E", "U", "Z"],
+                skip=["S", "T", "E", "U", "Z","G"],
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
+                skip=(["W", "E", "M", "Z","G"] if "x_" in cmd else ["W", "E", "M", "Z","N","0","G"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -989,7 +991,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "S"],
+        skip=["S", "T", "E", "U", "Z", "G"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -1037,7 +1039,7 @@ def _shouldAvoidResponse(update):
 def addCommandsForMenuItems(application):
     cmds0 = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z"],
+        skip=["S", "T", "E", "U", "Z","G"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -1047,7 +1049,7 @@ def addCommandsForMenuItems(application):
         selectedMenu = m0.find(p0)
         cmds1 = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z","N","0"]),
+            skip=(["W", "E", "M", "Z","G"] if p0 == "X" else ["W", "E", "M", "Z","N","0","G"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
@@ -1117,6 +1119,7 @@ def main() -> None:
                 CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
                 CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
+                CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
                 CallbackQueryHandler(start, pattern="^"),
             ],
