@@ -190,9 +190,9 @@ class tools:
         maxClose = round(data.describe()["Close"]["max"], 2)
         recentClose = round(recent["Close"].iloc[0], 2)
         if np.isnan(maxClose) or np.isnan(maxHigh):
-            saveDict["Breakout"] = "BO:  R: "
+            saveDict["Breakout"] = "BO: 0 R: 0"
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.WARN + "BO:  R: " + colorText.END
+                colorText.BOLD + colorText.WARN + "BO: 0 R: 0" + colorText.END
             )
             self.default_logger.info(
                 f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({maxHigh}) or max-close ({maxClose}) are not defined.'
@@ -230,14 +230,14 @@ class tools:
                 return not alreadyBrokenout
             noOfHigherShadows = len(data[data.High > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
-                saveDict["Breakout"] = "BO: " + str(maxHigh) + " R: "
+                saveDict["Breakout"] = "BO: " + str(maxHigh) + " R: 0"
                 if recentClose >= maxHigh:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
                         + str(maxHigh)
-                         + " R: "
+                         + " R: 0"
                         + colorText.END
                     )
                     self.default_logger.info(
@@ -248,7 +248,7 @@ class tools:
                     f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh)  + " R: " + colorText.END
+                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh)  + " R: 0" + colorText.END
                 )
                 return not alreadyBrokenout
             saveDict["Breakout"] = "BO: " + str(maxClose) + " R: " + str(maxHigh)
@@ -280,20 +280,20 @@ class tools:
             )
             return not alreadyBrokenout
         else:
-            saveDict["Breakout"] = "BO: " + str(maxClose) + " R: "
+            saveDict["Breakout"] = "BO: " + str(maxClose) + " R: 0"
             if recentClose >= maxClose:
                 self.default_logger.info(
                     f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose)  + " R: " + colorText.END
+                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose)  + " R: 0" + colorText.END
                 )
                 return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
                 f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) < max-close ({maxClose})'
             )
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose)  + " R: " + colorText.END
+                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose)  + " R: 0" + colorText.END
             )
             return not alreadyBrokenout
 

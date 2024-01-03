@@ -50,14 +50,18 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
         saveResults.loc[:, 'Consol.(30Prds)'] = saveResults.loc[:, 'Consol.(30Prds)'].apply(
                 lambda x: x.replace('Range:','').replace('%','')
             )
-        # saveResults[['Breakout', 'Resistance']] = df['Breakout(30Prds)'].str.split(' R: ', n=1, expand=True)
-        # saveResults.loc[:, 'Breakout'] = saveResults.loc[:, 'Breakout'].apply(
-        #         lambda x: x.replace('BO: ','').replace(' ','')
-        #     )
+        saveResults[['Breakout', 'Resistance']] = saveResults['Breakout(30Prds)'].str.split(' R: ', n=1, expand=True)
+        saveResults.loc[:, 'Breakout'] = saveResults.loc[:, 'Breakout'].apply(
+                lambda x: x.replace('BO: ','').replace(' ','')
+            )
         saveResults['Volume'] = saveResults['Volume'].astype(float).fillna(0.0)
         saveResults['Consol.(30Prds)'] = saveResults['Consol.(30Prds)'].astype(float).fillna(0.0)
-        
-        ltpSum1ShareEach = round(saveResults['LTP'].sum(),2)
+        saveResults['Breakout'] = saveResults['Breakout'].astype(float).fillna(0.0)
+        saveResults['Resistance'] = saveResults['Resistance'].astype(float).fillna(0.0)
+        saveResults['52Wk H'] = saveResults['52Wk H'].astype(float).fillna(0.0)
+        saveResults['52Wk L'] = saveResults['52Wk L'].astype(float).fillna(0.0)
+        saveResults['CCI'] = saveResults['CCI'].astype(float).fillna(0.0)
+
         days = 0
         df = None
         periods = [1,2,3,4,5,10,15,22,30]
@@ -75,25 +79,43 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
             scanResults.append(getCalculatedValues(filterRSIAbove50(saveResults),period,'RSI>=50',args))
             scanResults.append(getCalculatedValues(filterRSI50To67(saveResults),period,'RSI<=67',args))
             scanResults.append(getCalculatedValues(filterRSI68OrAbove(saveResults),period,'RSI>=68',args))
-            scanResults.append(getCalculatedValues(filterTrendStrongUp(saveResults),period,'StrongUp',args))
-            scanResults.append(getCalculatedValues(filterTrendWeakUp(saveResults),period,'WeakUp',args))
-            scanResults.append(getCalculatedValues(filterTrendUp(saveResults),period,'TrendUp',args))
-            scanResults.append(getCalculatedValues(filterTrendSideways(saveResults),period,'Sideways',args))
-            scanResults.append(getCalculatedValues(filterTrendDown(saveResults),period,'TrendDown',args))
-            scanResults.append(getCalculatedValues(filterMASignalBullish(saveResults),period,'MABull',args))
-            scanResults.append(getCalculatedValues(filterMASignalBearish(saveResults),period,'MABear',args))
-            scanResults.append(getCalculatedValues(filterMASignalBullCross(saveResults),period,'BullCross',args))
-            scanResults.append(getCalculatedValues(filterMASignalBearCross(saveResults),period,'BearCross',args))
-            scanResults.append(getCalculatedValues(filterMASignalSupport(saveResults),period,'MASupport',args))
-            scanResults.append(getCalculatedValues(filterMASignalResist(saveResults),period,'MAResist',args))
+            scanResults.append(getCalculatedValues(filterTrendStrongUp(saveResults),period,'[T]StrongUp',args))
+            scanResults.append(getCalculatedValues(filterTrendWeakUp(saveResults),period,'[T]WeakUp',args))
+            scanResults.append(getCalculatedValues(filterTrendUp(saveResults),period,'[T]TrendUp',args))
+            scanResults.append(getCalculatedValues(filterTrendSideways(saveResults),period,'[T]Sideways',args))
+            scanResults.append(getCalculatedValues(filterTrendDown(saveResults),period,'[T]TrendDown',args))
+            scanResults.append(getCalculatedValues(filterMASignalBullish(saveResults),period,'[MA]Bull',args))
+            scanResults.append(getCalculatedValues(filterMASignalBearish(saveResults),period,'[MA]Bear',args))
+            scanResults.append(getCalculatedValues(filterMASignalBullCross(saveResults),period,'[MA]BullCross',args))
+            scanResults.append(getCalculatedValues(filterMASignalBearCross(saveResults),period,'[MA]BearCross',args))
+            scanResults.append(getCalculatedValues(filterMASignalSupport(saveResults),period,'[MA]Support',args))
+            scanResults.append(getCalculatedValues(filterMASignalResist(saveResults),period,'[MA]Resist',args))
             scanResults.append(getCalculatedValues(filterVolumeLessThan25(saveResults),period,'Vol<2.5',args))
             scanResults.append(getCalculatedValues(filterVolumeMoreThan25(saveResults),period,'Vol>=2.5',args))
             scanResults.append(getCalculatedValues(filterConsolidating10Percent(saveResults),period,'Cons.<=10',args))
             scanResults.append(getCalculatedValues(filterConsolidatingMore10Percent(saveResults),period,'Cons.>10',args))
-            # scanResults.append(getCalculatedValues(filterLTPLessThanBreakout(saveResults),period,'LTP<BO',args))
-            # scanResults.append(getCalculatedValues(filterLTPMoreOREqualBreakout(saveResults),period,'LTP>=BO',args))
-            # scanResults.append(getCalculatedValues(filterLTPLessThanResistance(saveResults),period,'LTP<R',args))
-            # scanResults.append(getCalculatedValues(filterLTPMoreOREqualResistance(saveResults),period,'LTP>=R',args))
+            scanResults.append(getCalculatedValues(filterLTPLessThanBreakout(saveResults),period,'[BO]LTP<BO',args))
+            scanResults.append(getCalculatedValues(filterLTPMoreOREqualBreakout(saveResults),period,'[BO]LTP>=BO',args))
+            scanResults.append(getCalculatedValues(filterLTPLessThanResistance(saveResults),period,'[BO]LTP<R',args))
+            scanResults.append(getCalculatedValues(filterLTPMoreOREqualResistance(saveResults),period,'[BO]LTP>=R',args))
+            scanResults.append(getCalculatedValues(filterLTPMoreOREqual52WkH(saveResults),period,'[52Wk]LTP>=H',args))
+            scanResults.append(getCalculatedValues(filterLTPWithin90Percent52WkH(saveResults),period,'[52Wk]LTP>=.9*H',args))
+            scanResults.append(getCalculatedValues(filterLTPLess90Percent52WkH(saveResults),period,'[52Wk]LTP<.9*H',args))
+            scanResults.append(getCalculatedValues(filterLTPMore52WkL(saveResults),period,'[52Wk]LTP>L',args))
+            scanResults.append(getCalculatedValues(filterLTPWithin90Percent52WkL(saveResults),period,'[52Wk]LTP>=1.1*L',args))
+            scanResults.append(getCalculatedValues(filterLTPLess52WkL(saveResults),period,'[52Wk]LTP<=L',args))
+            scanResults.append(getCalculatedValues(filterCCIBelowMinus100(saveResults),period,'[CCI]<=-100',args))
+            scanResults.append(getCalculatedValues(filterCCIBelow0(saveResults),period,'[CCI]-100<C<0',args))
+            scanResults.append(getCalculatedValues(filterCCI0To100(saveResults),period,'[CCI]0<=C<=100',args))
+            scanResults.append(getCalculatedValues(filterCCI100To200(saveResults),period,'[CCI]100<C<=200',args))
+            scanResults.append(getCalculatedValues(filterCCIAbove200(saveResults),period,'[CCI]>200',args))
+            
+            df_grouped = saveResults.groupby('Pattern')
+            for pattern, df_group in df_grouped:
+                if pattern is None or len(pattern) == 0:
+                    pattern = '[P]No Pattern'
+                scanResults.append(getCalculatedValues(df_group,period,f'[P]{pattern}',args))
+
             scanResults.append(getCalculatedValues(saveResults,period,'NoFilter',args))
 
             if df is None:
@@ -249,7 +271,7 @@ def filterLTPLessThanBreakout(df):
 def filterLTPMoreOREqualBreakout(df):
     if df is None:
         return None
-    return df[df['LTP'] >= df['Breakout']].fillna(0.0)
+    return df[((df['Breakout'] > 0) & (df['LTP'] >= df['Breakout']))].fillna(0.0)
 
 def filterLTPLessThanResistance(df):
     if df is None:
@@ -259,5 +281,59 @@ def filterLTPLessThanResistance(df):
 def filterLTPMoreOREqualResistance(df):
     if df is None:
         return None
-    return df[df['LTP'] >= df['Resistance']].fillna(0.0)
+    return df[((df['Resistance'] > 0) & (df['LTP'] >= df['Resistance']))].fillna(0.0)
 
+def filterLTPMoreOREqual52WkH(df):
+    if df is None:
+        return None
+    return df[df['LTP'] >= df['52Wk H']].fillna(0.0)
+
+def filterLTPWithin90Percent52WkH(df):
+    if df is None:
+        return None
+    return df[(df['LTP'] >= 0.9*df['52Wk H']) & (df['LTP'] < df['52Wk H'])].fillna(0.0)
+
+def filterLTPLess90Percent52WkH(df):
+    if df is None:
+        return None
+    return df[df['LTP'] < 0.9*df['52Wk H']].fillna(0.0)
+
+def filterLTPMore52WkL(df):
+    if df is None:
+        return None
+    return df[((df['LTP'] > df['52Wk L']) & (df['LTP'] < 1.1*df['52Wk L']))].fillna(0.0)
+
+def filterLTPWithin90Percent52WkL(df):
+    if df is None:
+        return None
+    return df[(df['LTP'] >= 1.1*df['52Wk L']) & (df['LTP'] > df['52Wk L'])].fillna(0.0)
+
+def filterLTPLess52WkL(df):
+    if df is None:
+        return None
+    return df[df['LTP'] <= df['52Wk L']].fillna(0.0)
+
+def filterCCIBelowMinus100(df):
+    if df is None:
+        return None
+    return df[df['CCI'] <= -100].fillna(0.0)
+
+def filterCCIBelow0(df):
+    if df is None:
+        return None
+    return df[(df['CCI'] > -100) & (df['CCI'] < 0)].fillna(0.0)
+
+def filterCCI0To100(df):
+    if df is None:
+        return None
+    return df[(df['CCI'] >=0) & (df['CCI'] <=100)].fillna(0.0)
+
+def filterCCI100To200(df):
+    if df is None:
+        return None
+    return df[(df['CCI'] >100) & (df['CCI'] <=200)].fillna(0.0)
+
+def filterCCIAbove200(df):
+    if df is None:
+        return None
+    return df[(df['CCI'] >200)].fillna(0.0)
