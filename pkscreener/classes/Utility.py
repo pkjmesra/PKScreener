@@ -259,7 +259,7 @@ class tools:
         menuColor = "red"
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
-        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout (30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
+        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout(30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
         legendText= f"{legendText} An investor should consider both BO & R level to analyse entry / exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out.  *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the"
         legendText= f"{legendText} stock price has increased / decreased since last trading session. (1.5%, 1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous"
         legendText= f"{legendText} trading session. Red means it fell.  *** 6. Volume ***: This shows the relative volume in the most recent trading day /today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at"
@@ -504,12 +504,13 @@ class tools:
                 )
         return nextRun
 
-    def afterMarketStockDataExists(intraday=False):
+    def afterMarketStockDataExists(intraday=False, forceLoad=False):
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         cache_date = curr  # for monday to friday
         weekday = curr.weekday()
-        if curr < openTime:  # for monday to friday before 9:15
+        # for monday to friday before 9:15 or between 9:15am to 3:30pm, we're backtesting
+        if curr < openTime or (forceLoad and tools.isTradingTime()):
             cache_date = curr - datetime.timedelta(1)
         if weekday == 0 and curr < openTime:  # for monday before 9:15
             cache_date = curr - datetime.timedelta(3)
@@ -556,11 +557,12 @@ class tools:
         downloadOnly=False,
         defaultAnswer=None,
         retrial=False,
+        forceLoad=False
     ):
         if downloadOnly:
             return
         isIntraday = configManager.isIntradayConfig()
-        exists, cache_file = tools.afterMarketStockDataExists(isIntraday)
+        exists, cache_file = tools.afterMarketStockDataExists(isIntraday, forceLoad=forceLoad)
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
@@ -573,7 +575,7 @@ class tools:
                         print(
                             colorText.BOLD
                             + colorText.GREEN
-                            + "[+] Automatically Using Cached Stock Data due to After-Market hours!"
+                            + f"[+] Automatically Using Cached Stock Data {'due to After-Market hours' if not tools.isTradingTime() else ''}!"
                             + colorText.END
                         )
                     for stock in stockData:
@@ -663,6 +665,7 @@ class tools:
                         downloadOnly,
                         defaultAnswer,
                         retrial=True,
+                        forceLoad=forceLoad
                     )
         if not stockDataLoaded:
             print(

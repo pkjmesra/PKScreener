@@ -101,7 +101,8 @@ class StockConsumer:
                 (not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostData is None) # and backtestDuration == 0 # Fetch only if we are NOT backtesting
+                or hostData is None) 
+                and (hostData is None and backtestDuration >= 0) # Fetch only if we are NOT backtesting
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -117,7 +118,8 @@ class StockConsumer:
                     ((shouldCache
                     and not self.isTradingTime
                     and (hostData is None))
-                    or downloadOnly) # and backtestDuration == 0 # save only if we're NOT backtesting
+                    or downloadOnly) 
+                    or (shouldCache and hostData is None) # and backtestDuration == 0 # save only if we're NOT backtesting
                 ):
                     hostRef.objectDictionary[stock] = data.to_dict("split")
                     hostData = hostRef.objectDictionary.get(stock)
