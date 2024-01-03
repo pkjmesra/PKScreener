@@ -1112,7 +1112,7 @@ def main(userArgs=None):
             df_xray.loc[:, "Date"] = df_xray.loc[:, "Date"].apply(
                 lambda x: x.replace("-","/")
             )
-            showBacktestResults(df_xray,sortKey="Date", optionalName="Strategies")
+            showBacktestResults(df_xray,sortKey="Date", optionalName="Insights")
             summary_df = backtestSummary(backtest_df)
             backtest_df.loc[:, "Date"] = backtest_df.loc[:, "Date"].apply(
                 lambda x: x.replace("-","/")
@@ -1620,7 +1620,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     if backtest_df is None:
         return
     backtest_df.drop_duplicates()
-    summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy}"
+    summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy.replace('Backtests','Growth of 10K' if optionalName=='Insights' else 'Backtests')}"
     lastSummaryRow = None
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)

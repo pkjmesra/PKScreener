@@ -33,7 +33,7 @@ configManager = ConfigManager.tools()
 
 level0MenuDict = {
     "X": "Scanners",
-    "S": "Strategies",
+    # "S": "Strategies",
     "B": "Backtests",
     "G": "Growth of 10k",
     "T": "~",
