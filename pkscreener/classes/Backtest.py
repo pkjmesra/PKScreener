@@ -105,7 +105,8 @@ def backtest(
         "30-Pd": "",
     }
     backTestedStock["Stock"] = stock
-    targetDate = str(previous_recent.iloc[:, 0][0]).split(" ")[0]  # Date or index column
+    targetDate = previous_recent['Date'].iloc[0] if 'Date' in previous_recent.columns else str(previous_recent.iloc[:, 0][0])
+    targetDate = targetDate.split(" ")[0]  # Date or index column
     backTestedStock["Date"] = targetDate
     backTestedStock["Consol."] = screenedDict["Consol."]
     backTestedStock["Breakout"] = screenedDict["Breakout"]
