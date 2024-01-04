@@ -622,7 +622,7 @@ async def launchScreener(options, user, context, optionChoices, update):
             optionChoices = optionChoices.replace(" ","").replace(">","_").replace("G_","G_3_")
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
-            run_workflow(optionChoices,str(user.id),str(options.upper()))
+            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="G")
             # Popen(
             #     [
             #         "pkscreener",
@@ -1117,6 +1117,7 @@ def main() -> None:
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
+                CallbackQueryHandler(XScanners, pattern="^" + str("CG") + "$"),
                 CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CG_")),

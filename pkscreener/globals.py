@@ -1231,23 +1231,27 @@ def printNotifySaveScreenedResults(
     )
     pngName = f'PKS_{getFormattedChoices()}_{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
     pngExtension = ".png"
-    if selectedChoice["0"] == "G" or userPassedArgs.backtestdaysago is not None:
-        df = PortfolioXRay.performXRay(saveResults,userPassedArgs)
-        targetDateG10k = saveResults['Date'].iloc[0]
-        titleLabelG10k=f"For {userPassedArgs.backtestdaysago}-Period(s) from {targetDateG10k}, portfolio calculations in terms of Growth of 10k:"
-        print(f'\n\n{titleLabelG10k}\n')
-        g10kStyledTable =colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
-        print(g10kStyledTable)
-        g10kUnStyledTable = Utility.tools.removeAllColorStyles(g10kStyledTable)
-        if not testing:
-            sendQuickScanResult(menuChoiceHierarchy, user, g10kStyledTable, g10kUnStyledTable, titleLabelG10k, pngName, pngExtension)
-                
+    if (selectedChoice["0"] == "G" or userPassedArgs.backtestdaysago is not None):
+        if saveResults is not None and len(saveResults) > 0:
+            df = PortfolioXRay.performXRay(saveResults,userPassedArgs)
+            targetDateG10k = saveResults['Date'].iloc[0]
+            titleLabelG10k=f"For {userPassedArgs.backtestdaysago}-Period(s) from {targetDateG10k}, portfolio calculations in terms of Growth of 10k:"
+            print(f'\n\n{titleLabelG10k}\n')
+            g10kStyledTable =colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
+            print(g10kStyledTable)
+            g10kUnStyledTable = Utility.tools.removeAllColorStyles(g10kStyledTable)
+            if not testing:
+                sendQuickScanResult(menuChoiceHierarchy, user, g10kStyledTable, g10kUnStyledTable, titleLabelG10k, pngName, pngExtension)
+        elif user is not None:
+            sendMessageToTelegramChannel(
+                message=f"No scan results found for {menuChoiceHierarchy}", user=user
+            )        
     removedUnusedColumns(screenResults, saveResults,["Date"])
 
     tabulated_results = colorText.miniTabulator().tabulate(screenResults, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
     print(tabulated_results)
-    title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b> {"" if selectedChoice["0"] != "G" else "for Date:"+ targetDateG10k}'
     if screenResults is not None and len(screenResults) >= 1:
+        title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b> {"" if selectedChoice["0"] != "G" else "for Date:"+ targetDateG10k}'
         if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
             eligible = is_token_telegram_configured()
             if eligible:
