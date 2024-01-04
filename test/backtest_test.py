@@ -46,12 +46,18 @@ def sample_data():
 def sample_screened_dict():
     periods = [1,2,3,4,5,10,15,22,30]
     screened_dict = {
+        'Date' : '2023-12-30',
         'Volume': 1000,
         'Trend': 'Up',
         'MA-Signal': 'Buy',
         'LTP': 100,
         '52Wk H': 100,
         '52Wk L': 10,
+        'Consol.': 'Range: 5%',
+        'Breakout': 'BO: 101 R: 115',
+        'RSI': 68,
+        'Pattern': 'NR4',
+        'CCI': 201,
     }
     for period in periods:
         screened_dict[f'LTP{period}'] = screened_dict['LTP'] * period/10
