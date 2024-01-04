@@ -1096,6 +1096,7 @@ def main(userArgs=None):
             )
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
+            Utility.tools.clearScreen()
             # Let's do the portfolio calculation first
             df_grouped = backtest_df.groupby('Date')
             userPassedArgs.backtestdaysago = backtestPeriod
@@ -1109,6 +1110,7 @@ def main(userArgs=None):
             # Let's drop the columns no longer required for backtest report
             removedUnusedColumns(None, backtest_df,["Consol.","Breakout","RSI","Pattern","CCI"])
             df_xray = df_xray.replace(np.nan, '', regex=True)
+            df_xray = PortfolioXRay.xRaySummary(df_xray)
             df_xray.loc[:, "Date"] = df_xray.loc[:, "Date"].apply(
                 lambda x: x.replace("-","/")
             )
@@ -1155,6 +1157,7 @@ def main(userArgs=None):
                     )
                     print(colorText.END, end="")
                     if choice.upper() in sortKeys.keys():
+                        Utility.tools.clearScreen()
                         showBacktestResults(backtest_df, sortKeys[choice.upper()])
                         showBacktestResults(summary_df,optionalName="Summary")
                     else:
@@ -1613,9 +1616,7 @@ def sendTestStatus(screenResults, label, user=None):
 
 def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
     global menuChoiceHierarchy, selectedChoice, userPassedArgs
-    if optionalName != "Summary":
-        Utility.tools.clearScreen()
-    pd.set_option("display.max_rows", 300)
+    pd.set_option("display.max_rows", 800)
     # pd.set_option("display.max_columns", 20)
     if backtest_df is None:
         return

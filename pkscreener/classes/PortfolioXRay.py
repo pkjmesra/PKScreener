@@ -29,6 +29,41 @@ from tabulate import tabulate
 from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes import Utility
 
+def xRaySummary(savedResults=None):
+    saveResults = savedResults.copy()
+    df_grouped = saveResults.groupby('ScanType')
+    periods = [1,2,3,4,5,10,15,22,30]
+    sum_list = []
+    sum_dict = {}
+    maxGrowth = -100
+    for scanType, df_group in df_grouped:
+        groupItems = len(df_group)
+        sum_dict = {}
+        sum_dict['ScanType'] = f'[SUM]{scanType}({groupItems})'
+        sum_dict['Date'] = Utility.tools.currentDateTime().strftime("%Y-%m-%d")
+        for prd in periods:
+            if not f'{prd}D-%' in df_group.columns:
+                continue
+            prd_df = df_group[[f'{prd}D-%', f'{prd}D-10k']]
+            prd_df.loc[:, f'{prd}D-10k'] = prd_df.loc[:, f'{prd}D-10k'].apply(
+                lambda x: Utility.tools.removeAllColorStyles(x)
+                )
+            prd_df = prd_df.replace('-', np.nan, regex=True)
+            prd_df = prd_df.replace('', np.nan, regex=True)
+            prd_df.dropna(axis=0,how='all', inplace=True)
+            prd_df[f'{prd}D-10k'] = prd_df[f'{prd}D-10k'].astype(float).fillna(0.0)
+            gain = round((prd_df[f'{prd}D-10k'].sum() - 10000 * len(prd_df))/10000 * len(prd_df),2)
+            if maxGrowth < gain:
+                maxGrowth = gain
+            sum_dict[f'{prd}D-%'] = gain
+            sum_dict[f'{prd}D-10k'] = round(prd_df[f'{prd}D-10k'].sum()/len(prd_df),2)
+        sum_list.append(sum_dict)
+    df = pd.DataFrame(sum_list)
+    df = formatGridOutput(df, maxGrowth)
+    saveResults = pd.concat([saveResults, df], axis=0)
+    saveResults = saveResults.replace(np.nan, '-', regex=True)
+    return saveResults
+
 def performXRay(savedResults=None, args=None, calcForDate=None):
     if savedResults is not None and len(savedResults) > 0:
         backtestPeriods = 30 # Max backtest days
@@ -113,7 +148,7 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
             df_grouped = saveResults.groupby('Pattern')
             for pattern, df_group in df_grouped:
                 if pattern is None or len(pattern) == 0:
-                    pattern = '[P]No Pattern'
+                    pattern = 'No Pattern'
                 scanResults.append(getCalculatedValues(df_group,period,f'[P]{pattern}',args))
 
             scanResults.append(getCalculatedValues(saveResults,period,'NoFilter',args))
@@ -131,27 +166,36 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
         df = df[[col for col in df.columns if ('ScanType' in col or 'D-%' in col or 'D-10k' in col)]]
         # maxValue = df.idxmax(axis=1)
         maxGrowth = -100
+        mx =-100
         df1 = df.copy()
         df1 = df1[[col for col in df1.columns if ('D-%' in col)]]
         for col in df1.columns:
             if 'D-%' in col:
-                mx = df1[col].max()
+                largests = pd.Series(df1[col].unique()).nlargest(2)
+                for index, largest in enumerate(largests):
+                    if int(largest) != 999999999 and mx < largest:
+                        mx = largest
+                        continue
                 if maxGrowth < mx:
                     maxGrowth = mx
-
-        # df = df.replace(np.nan, '-', regex=True)
-        df = df.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna()
-        for col in df.columns:
-            if 'D-%' in col:
-                df.loc[:, col] = df.loc[:, col].apply(
-                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(float(x)) + " %" + colorText.END))
-                    )
-            if 'D-10k' in col:
-                df.loc[:, col] = df.loc[:, col].apply(
-                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),((colorText.GREEN) if (float(x) >10000) else (colorText.FAIL if float(x) <10000 else colorText.WARN)) + str(x) + colorText.END))
-                    )
+        df = df.replace(999999999, np.nan, regex=True)
+        df.dropna(axis=0,how='all', inplace=True)
+        df = formatGridOutput(df, maxGrowth)
         df.insert(1, 'Date', calcForDate if calcForDate is not None else saveResults['Date'].iloc[0])
         return df
+
+def formatGridOutput(df, maxGrowth):
+    df = df.replace(np.nan, '-', regex=True)
+    for col in df.columns:
+        if 'D-%' in col:
+            df.loc[:, col] = df.loc[:, col].apply(
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(float(x)) + " %" + colorText.END))
+                    )
+        if 'D-10k' in col:
+            df.loc[:, col] = df.loc[:, col].apply(
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),((colorText.GREEN) if (float(x) >10000) else (colorText.FAIL if float(x) <10000 else colorText.WARN)) + str(x) + colorText.END))
+                    )
+    return df
     
 def getCalculatedValues(df, period,key,args=None):
     ltpSum1ShareEach = round(df['LTP'].sum(),2)
@@ -159,10 +203,10 @@ def getCalculatedValues(df, period,key,args=None):
     growthSum1ShareEach= round(df[f'Growth{period}'].sum(),2)
     percentGrowth = round(100*growthSum1ShareEach/ltpSum1ShareEach,2)
     growth10k = round(10000*(1+0.01*percentGrowth),2)
-    df = {'ScanType':key,
+    df = {'ScanType':key if tdySum1ShareEach != 0 else 999999999,
             f'{period}D-PFV':tdySum1ShareEach,
-            f'{period}D-%':percentGrowth, #if tdySum1ShareEach != 0 else '-',
-            f'{period}D-10k':growth10k, # if tdySum1ShareEach != 0 else '-',
+            f'{period}D-%':percentGrowth if tdySum1ShareEach != 0 else 999999999,
+            f'{period}D-10k':growth10k if tdySum1ShareEach != 0 else 999999999,
             }
     # percentGrowth = colorText.GREEN if percentGrowth >=0 else colorText.FAIL + percentGrowth + colorText.END
     # growth10k = colorText.GREEN if percentGrowth >=0 else colorText.FAIL + growth10k + colorText.END
