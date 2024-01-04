@@ -305,6 +305,7 @@ jobs:
   Call-Docker-workflow:
     uses: pkjmesra/PKScreener/.github/workflows/w15-docker-image.yml@main
     needs: [Build, README_Update]
+    if: ${{ needs.Build.outputs.sendNotification == 'Y' }}
     with:
       branch-name: ${{ needs.Build.outputs.tag }}
     secrets: inherit
