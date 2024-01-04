@@ -107,10 +107,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = m0.renderForMenu(asList=True)
     inlineMenus = []
     for mnu in mns:
-        if mnu.menuKey in ["X", "B", "Z"]:
+        if mnu.menuKey in ["X", "B", "G"]:
             inlineMenus.append(
                 InlineKeyboardButton(
-                    mnu.keyTextLabel().split("(")[0],
+                    mnu.menuText.split("(")[0],
                     callback_data="C" + str(mnu.menuKey),
                 )
             )
@@ -118,7 +118,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "G"],
+        skip=["S", "T", "E", "U", "Z"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -143,7 +143,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
     data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
-    if data not in ["X", "B"]:
+    if data not in ["X", "B","G"]:
         return start(update, context)
     midSkip = "1" if data == "X" else "N"
     menuText = (
@@ -200,7 +200,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0].upper() not in ["X","B"]:
+    if selection[0].upper() not in ["X","B","G"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -564,10 +564,10 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
-            if mnu.menuKey in ["X", "B", "Z"]:
+            if mnu.menuKey in ["X", "B", "G"]:
                 inlineMenus.append(
                     InlineKeyboardButton(
-                        mnu.keyTextLabel().split("(")[0],
+                        mnu.menuText.split("(")[0],
                         callback_data="C" + str(mnu.menuKey),
                     )
                 )
@@ -619,7 +619,10 @@ async def launchScreener(options, user, context, optionChoices, update):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
         elif str(optionChoices.upper()).startswith("G"):
-            await update.message.reply_text(f"{optionChoices.upper()} : Not implemented yet!")
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
+            run_workflow(optionChoices,str(user.id),str(options.upper()))
             # Popen(
             #     [
             #         "pkscreener",
@@ -644,7 +647,7 @@ async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard = [
         [
             InlineKeyboardButton("Try Scanners", callback_data=str("CX")),
-            InlineKeyboardButton("Exit", callback_data=str("CZ")),
+            InlineKeyboardButton("Growth of 10k", callback_data=str("CG")),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -740,13 +743,10 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     m = re.match("\s*/([0-9a-zA-Z_-]+)\s*(.*)", msg.text)
     cmd = m.group(1).lower()
     args = [arg for arg in re.split("\s+", m.group(2)) if len(arg)]
-    if cmd.startswith("cx_") or cmd.startswith("cb_"):
+    if cmd.startswith("cx_") or cmd.startswith("cb_") or cmd.startswith("cg_"):
         await Level2(update=update, context=context)
         return START_ROUTES
-    if cmd.startswith("cx"):
-        await XScanners(update=update, context=context)
-        return START_ROUTES
-    if cmd.startswith("cb"):
+    if cmd.startswith("cx") or cmd.startswith("cb") or cmd.startswith("cg"):
         await XScanners(update=update, context=context)
         return START_ROUTES
     if cmd.startswith("cz"):
@@ -763,14 +763,14 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await shareUpdateWithChannel(update=update, context=context)
         m0.renderForMenu(
             selectedMenu=None,
-            skip=["S", "T", "E", "U", "Z"],
+            skip=["S", "T", "E", "U"],
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         selectedMenu = m0.find(cmd.upper())
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z","G"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0","G"]),
+            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
@@ -789,7 +789,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if update.message is None:
         await help_command(update=update, context=context)
         return START_ROUTES
-    if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd:
+    if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd or "g_0" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         shouldScan = False
         if len(args) > 0:
@@ -813,19 +813,19 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
 
-    if "x_" in cmd or "b_" in cmd:
+    if "x_" in cmd or "b_" in cmd or "g_" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         selection = cmd.split("_")
         if len(selection) == 2:
             m0.renderForMenu(
                 selectedMenu=None,
-                skip=["S", "T", "E", "U", "Z","G"],
+                skip=["S", "T", "E", "U", "Z"],
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z","G"] if "x_" in cmd else ["W", "E", "M", "Z","N","0","G"]),
+                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -872,13 +872,13 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         elif len(selection) == 3:
             m0.renderForMenu(
                 selectedMenu=None,
-                skip=["S", "T", "E", "U", "Z","G"],
+                skip=["S", "T", "E", "U", "Z"],
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z","G"] if "x_" in cmd else ["W", "E", "M", "Z","N","0","G"]),
+                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -991,7 +991,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "G"],
+        skip=["S", "T", "E", "U", "Z"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -1039,7 +1039,7 @@ def _shouldAvoidResponse(update):
 def addCommandsForMenuItems(application):
     cmds0 = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z","G"],
+        skip=["S", "T", "E", "U", "Z"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -1049,7 +1049,7 @@ def addCommandsForMenuItems(application):
         selectedMenu = m0.find(p0)
         cmds1 = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z","G"] if p0 == "X" else ["W", "E", "M", "Z","N","0","G"]),
+            skip=(["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z","N","0"]),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
