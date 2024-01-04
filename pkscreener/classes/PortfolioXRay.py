@@ -52,7 +52,7 @@ def xRaySummary(savedResults=None):
             prd_df = prd_df.replace('', np.nan, regex=True)
             prd_df.dropna(axis=0,how='all', inplace=True)
             prd_df[f'{prd}D-10k'] = prd_df[f'{prd}D-10k'].astype(float).fillna(0.0)
-            gain = round((prd_df[f'{prd}D-10k'].sum() - 10000 * len(prd_df))/(10000 * len(prd_df)),2)
+            gain = round((prd_df[f'{prd}D-10k'].sum() - 10000 * len(prd_df))*100/(10000 * len(prd_df)),2)
             if maxGrowth < gain:
                 maxGrowth = gain
             sum_dict[f'{prd}D-%'] = gain
