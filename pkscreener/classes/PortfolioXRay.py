@@ -29,6 +29,33 @@ from tabulate import tabulate
 from PKDevTools.classes.ColorText import colorText
 from pkscreener.classes import Utility
 
+def bestStrategiesFromSummaryForReport(reportName:None):
+    dfs = []
+    try:
+        dfs = pd.read_html('https://pkjmesra.github.io/PKScreener/Backtest-Reports/{0}'.format(reportName.replace("_X_","_B_").replace("_G_","_B_")))
+    except:
+        pass
+    insights = None
+    strategy_percent = {}
+    strategy = {}
+    if len(dfs) > 0:
+        df = dfs[0]
+        if len(dfs) > 0:
+            insights = df[df['ScanType'].astype(str).str.startswith("[SUM]")]
+            insights = insights.replace(' %', '', regex=True)
+            # insights = insights.replace('', np.nan, regex=True)
+            # insights = insights.replace('-', np.nan, regex=True)
+            periods = [1,2,3,4,5,10,15,22,30]
+            for prd in periods:
+                insights[f'{prd}D-%'] = insights[f'{prd}D-%'].astype(float).fillna(0.0)
+                max_p = insights[f'{prd}D-%'].max()
+                strategy_percent[f'{prd}D'] = f"{colorText.GREEN if max_p > 0 else (colorText.FAIL if max_p < 0 else colorText.WARN)}{max_p} %{colorText.END}"
+                scanType = str(insights['ScanType'].iloc[insights[f'{prd}D-%'].idxmax()]).replace('[SUM]','').split('(')[0]
+                strategy[f'{prd}D'] = scanType
+            insights_list = [strategy,strategy_percent]
+            insights= pd.DataFrame(insights_list)
+    return insights
+
 def xRaySummary(savedResults=None):
     saveResults = savedResults.copy()
     df_grouped = saveResults.groupby('ScanType')
@@ -53,13 +80,11 @@ def xRaySummary(savedResults=None):
             prd_df.dropna(axis=0,how='all', inplace=True)
             prd_df[f'{prd}D-10k'] = prd_df[f'{prd}D-10k'].astype(float).fillna(0.0)
             gain = round((prd_df[f'{prd}D-10k'].sum() - 10000 * len(prd_df))*100/(10000 * len(prd_df)),2)
-            if maxGrowth < gain:
-                maxGrowth = gain
             sum_dict[f'{prd}D-%'] = gain
             sum_dict[f'{prd}D-10k'] = round(prd_df[f'{prd}D-10k'].sum()/len(prd_df),2)
         sum_list.append(sum_dict)
     df = pd.DataFrame(sum_list)
-    df = formatGridOutput(df, maxGrowth)
+    df = formatGridOutput(df)
     saveResults = pd.concat([saveResults, df], axis=0)
     saveResults = saveResults.replace(np.nan, '-', regex=True)
     return saveResults
@@ -164,36 +189,23 @@ def performXRay(savedResults=None, args=None, calcForDate=None):
                 break
 
         df = df[[col for col in df.columns if ('ScanType' in col or 'D-%' in col or 'D-10k' in col)]]
-        # maxValue = df.idxmax(axis=1)
-        maxGrowth = -100
-        mx =-100
-        df1 = df.copy()
-        df1 = df1[[col for col in df1.columns if ('D-%' in col)]]
-        for col in df1.columns:
-            if 'D-%' in col:
-                largests = pd.Series(df1[col].unique()).nlargest(2)
-                for index, largest in enumerate(largests):
-                    if int(largest) != 999999999 and mx < largest:
-                        mx = largest
-                        continue
-                if maxGrowth < mx:
-                    maxGrowth = mx
         df = df.replace(999999999, np.nan, regex=True)
         df.dropna(axis=0,how='all', inplace=True)
-        df = formatGridOutput(df, maxGrowth)
+        df = formatGridOutput(df)
         df.insert(1, 'Date', calcForDate if calcForDate is not None else saveResults['Date'].iloc[0])
         return df
 
-def formatGridOutput(df, maxGrowth):
+def formatGridOutput(df):
     df = df.replace(np.nan, '-', regex=True)
     for col in df.columns:
+        maxGrowth = df[col].max()
         if 'D-%' in col:
             df.loc[:, col] = df.loc[:, col].apply(
                         lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if float(x) >0 else (colorText.FAIL if float(x) <0 else colorText.WARN)) + str(float(x)) + " %" + colorText.END))
                     )
         if 'D-10k' in col:
             df.loc[:, col] = df.loc[:, col].apply(
-                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),((colorText.GREEN) if (float(x) >10000) else (colorText.FAIL if float(x) <10000 else colorText.WARN)) + str(x) + colorText.END))
+                        lambda x: x if (str(x) == '-') else (str(x).replace(str(x),(((colorText.BOLD + colorText.WHITE) if x==maxGrowth else colorText.GREEN) if (float(x) >10000) else (colorText.FAIL if float(x) <10000 else colorText.WARN)) + str(x) + colorText.END))
                     )
     return df
     
