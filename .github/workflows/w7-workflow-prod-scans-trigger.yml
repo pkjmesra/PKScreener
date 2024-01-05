@@ -109,7 +109,7 @@ jobs:
         if: startsWith(runner.os, 'Linux')
         shell: bash
         run: |
-          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
