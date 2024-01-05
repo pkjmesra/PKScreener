@@ -63,6 +63,7 @@ def cfetchURL(key, url):
 
 def dget_latest_release_url():
     resp = cfetchURL("ReleaseResponse", "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+    url=""
     if "Windows" in platform.system():
         url = resp.json()["assets"][1]["browser_download_url"]
         aset_output("DOWNLOAD_URL",url)
@@ -72,6 +73,8 @@ def dget_latest_release_url():
     else:
         url = resp.json()["assets"][0]["browser_download_url"]
         aset_output("DOWNLOAD_URL",url)
+    rel_version=url.split("/")[-2]
+    aset_output("LAST_RELEASE_VERSION",rel_version)
     return url
 
 if args.getreleaseurl:
