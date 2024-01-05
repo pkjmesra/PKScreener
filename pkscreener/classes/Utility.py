@@ -298,7 +298,7 @@ class tools:
         legendtext_width, legendtext_height = artfont.getsize_multiline(legendText)
         addendumtext_height = 0
         if addendum is not None and len(addendum) >0:
-            addendumtext_width, addendumtext_height = artfont.getsize_multiline(addendum)
+            addendumtext_width, addendumtext_height = font.getsize_multiline(addendum)
         im = Image.new(
             "RGB",
             (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height + addendumtext_height + label_height),
