@@ -26,6 +26,7 @@
 import os
 import platform
 
+from PKDevTools.classes import Archiver
 # argParser = argparse.ArgumentParser()
 # required = False
 # argParser.add_argument("-m", "--message", help="Commit message", required=required)
@@ -44,7 +45,7 @@ def commitTempOutcomes(reportName):
     except Exception:
         return
 
-    execOSCommand(f"copy {os.path.join(os.getcwd(),'PKScreener_*.html')} {os.path.join(os.getcwd(),'Backtest-Reports')}")
+    execOSCommand(f"copy {os.path.join(Archiver.get_user_outputs_dir(),'PKScreener_*.html')} {os.path.join(os.getcwd(),'Backtest-Reports')}")
     execOSCommand("git config user.name github-actions")
     execOSCommand("git config user.email github-actions@github.com")
     execOSCommand("git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'")
@@ -54,6 +55,7 @@ def commitTempOutcomes(reportName):
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Summary_StockSorted.html --force")
     execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_OneLine_Summary.html --force")
+    execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Insights_DateSorted.html --force")
     execOSCommand(f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
     execOSCommand("git pull")
     execOSCommand("git push -v -u origin +gh-pages")

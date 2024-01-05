@@ -130,7 +130,7 @@ jobs:
     - name: Push backtest and summary reports
       continue-on-error: true
       run: |
-        copy "PKScreener_*.html" "Backtest-Reports"
+        copy "results/PKScreener_*.html" "Backtest-Reports"
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
