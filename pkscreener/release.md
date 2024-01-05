@@ -2,6 +2,8 @@
 
 ## What's New?
 1. [v0.42.20240105.67] release
+* Growth of 10k scan option added. Try it out with G >. Enabled also in bot @nse_pkscreener_bot .
+* Summary of scan filters/strategies included along-side the main scan results.
 * Added option to scan using Lorenzian classifier. Try out X > 12 > 6 > 7. It was already there but was not available for Python 3.9. Upgraded the project to use Python 3.11.
 * Included 52 week high/low in all scan results for better comparison and understanding.
 * A lot of changes to keep the backtest reports running faster. The reports are now concise and more friendly and easier to follow. The backtest report for relevant stocks in the scan result are also now part of user report when requested using bot @@nse_pkscreener_bot.
