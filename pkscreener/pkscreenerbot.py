@@ -95,6 +95,8 @@ m3 = menus()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Send message on `/start`."""
+    if update is None or update.message is None:
+        return
     # Get user that sent /start and log his name
     user = update.message.from_user
     logger.info("User %s started the conversation.", user.first_name)
@@ -105,10 +107,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = m0.renderForMenu(asList=True)
     inlineMenus = []
     for mnu in mns:
-        if mnu.menuKey in ["X", "B", "Z"]:
+        if mnu.menuKey in ["X", "B", "G"]:
             inlineMenus.append(
                 InlineKeyboardButton(
-                    mnu.keyTextLabel().split("(")[0],
+                    mnu.menuText.split("(")[0],
                     callback_data="C" + str(mnu.menuKey),
                 )
             )
@@ -116,7 +118,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_markup = InlineKeyboardMarkup(keyboard)
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "S"],
+        skip=["S", "T", "E", "U", "Z"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -140,8 +142,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
-    data = query.data.upper().replace("CX", "X").replace("CB", "B")
-    if data not in ["X", "B"]:
+    data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+    if data not in ["X", "B","G"]:
         return start(update, context)
     midSkip = "1" if data == "X" else "N"
     menuText = (
@@ -195,10 +197,10 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = []
     query = update.callback_query
     await query.answer()
-    preSelection = query.data.upper().replace("CX", "X").replace("CB", "B")
+    preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0].upper() not in ["X","B"]:
+    if selection[0].upper() not in ["X","B","G"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -542,7 +544,7 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
-        preSelection = query.data.upper().replace("CX", "X").replace("CB", "B")
+        preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
     optionChoices = ""
     if len(selection) <= 3:
         for mnu in mns:
@@ -562,10 +564,10 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
         mns = m0.renderForMenu(asList=True)
         for mnu in mns:
-            if mnu.menuKey in ["X", "B", "Z"]:
+            if mnu.menuKey in ["X", "B", "G"]:
                 inlineMenus.append(
                     InlineKeyboardButton(
-                        mnu.keyTextLabel().split("(")[0],
+                        mnu.menuText.split("(")[0],
                         callback_data="C" + str(mnu.menuKey),
                     )
                 )
@@ -611,11 +613,17 @@ async def launchScreener(options, user, context, optionChoices, update):
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()))
-        else:
+        elif str(optionChoices.upper()).startswith("X"):
             optionChoices = optionChoices.replace(" ","").replace(">","_")
             while(optionChoices.endswith('_')):
                 optionChoices = optionChoices[:-1]
             run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
+        elif str(optionChoices.upper()).startswith("G"):
+            optionChoices = optionChoices.replace(" ","").replace(">","_")
+            while(optionChoices.endswith('_')):
+                optionChoices = optionChoices[:-1]
+            options = options.upper().replace("G","G:3").replace("::",":D:D:D")
+            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="G")
             # Popen(
             #     [
             #         "pkscreener",
@@ -640,7 +648,7 @@ async def BBacktests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard = [
         [
             InlineKeyboardButton("Try Scanners", callback_data=str("CX")),
-            InlineKeyboardButton("Exit", callback_data=str("CZ")),
+            InlineKeyboardButton("Growth of 10k", callback_data=str("CG")),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -736,13 +744,10 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     m = re.match("\s*/([0-9a-zA-Z_-]+)\s*(.*)", msg.text)
     cmd = m.group(1).lower()
     args = [arg for arg in re.split("\s+", m.group(2)) if len(arg)]
-    if cmd.startswith("cx_") or cmd.startswith("cb_"):
+    if cmd.startswith("cx_") or cmd.startswith("cb_") or cmd.startswith("cg_"):
         await Level2(update=update, context=context)
         return START_ROUTES
-    if cmd.startswith("cx"):
-        await XScanners(update=update, context=context)
-        return START_ROUTES
-    if cmd.startswith("cb"):
+    if cmd.startswith("cx") or cmd.startswith("cb") or cmd.startswith("cg"):
         await XScanners(update=update, context=context)
         return START_ROUTES
     if cmd.startswith("cz"):
@@ -755,11 +760,11 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if cmd == "help":
         await help_command(update=update, context=context)
         return START_ROUTES
-    if cmd in ["x","b"]:
+    if cmd in ["x","b","g"]:
         await shareUpdateWithChannel(update=update, context=context)
         m0.renderForMenu(
             selectedMenu=None,
-            skip=["S", "T", "E", "U", "Z"],
+            skip=["S", "T", "E", "U"],
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         selectedMenu = m0.find(cmd.upper())
@@ -785,7 +790,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if update.message is None:
         await help_command(update=update, context=context)
         return START_ROUTES
-    if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd:
+    if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd or "g_0" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         shouldScan = False
         if len(args) > 0:
@@ -809,7 +814,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.message.reply_text(f"Choose an option:\n{cmdText}")
             return START_ROUTES
 
-    if "x_" in cmd or "b_" in cmd:
+    if "x_" in cmd or "b_" in cmd or "g_" in cmd:
         await shareUpdateWithChannel(update=update, context=context)
         selection = cmd.split("_")
         if len(selection) == 2:
@@ -987,7 +992,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     cmds = m0.renderForMenu(
         selectedMenu=None,
-        skip=["S", "T", "E", "U", "Z", "S"],
+        skip=["S", "T", "E", "U", "Z"],
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
@@ -1113,8 +1118,10 @@ def main() -> None:
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
+                CallbackQueryHandler(XScanners, pattern="^" + str("CG") + "$"),
                 CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
+                CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
                 CallbackQueryHandler(start, pattern="^"),
             ],

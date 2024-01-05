@@ -75,13 +75,13 @@ jobs:
               make
               sudo make install
               cd /home/runner/work/PKScreener/PKScreener/
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
               pip3 install .
               # note: the following also installs "coverage"
-              python -m pip install coveralls
+              python3 -m pip install coveralls
             TEST_BUILD: |
               coverage erase
               coverage run --source=${package_name} --branch -m pytest -vv --durations-min=0.005
@@ -99,21 +99,21 @@ jobs:
             CMD_BUILD: |
               echo Building
             DEP_BUILD: |
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
               if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-                pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+                pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-                pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
               fi
               cd ..
               cd ..
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install .
@@ -131,7 +131,7 @@ jobs:
               find . -name ".coverage.*" -exec rm -rf {} \;
             DEP_BUILD: |
               brew install ta-lib
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
@@ -152,7 +152,7 @@ jobs:
           CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
         shell: bash
         run: |
-          python -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+          python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
 

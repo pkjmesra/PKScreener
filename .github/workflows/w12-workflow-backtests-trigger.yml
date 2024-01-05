@@ -36,7 +36,7 @@ on:
       installtalib:
         description: 'Is TA-Lib install required? (Y/N)'
         required: false
-        default: 'N'
+        default: 'Y'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
@@ -76,24 +76,26 @@ jobs:
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+          pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
     - name: Install Python Dependencies
+      shell: bash
       run: |
-        pip3 install pkscreener
+        pip3 install -r requirements.txt
+        pip3 install .
 
     - name: Trigger Backtests
       run: |
-        python3 .github/workflows/workflowtriggers.py -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,26,27,28,29,30,42,M,Z"
+        python3 .github/workflows/workflowtriggers.py -b -u "-1001785195297" -s0 "S,T,E,U,Z,H,Y,X,G" -s1 "W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13" -s2 "0,21,22,26,27,28,29,30,42,M,Z"
       shell: bash
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}

@@ -101,7 +101,8 @@ class StockConsumer:
                 (not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostData is None) # and backtestDuration == 0 # Fetch only if we are NOT backtesting
+                or hostData is None) 
+                and (hostData is None and backtestDuration >= 0) # Fetch only if we are NOT backtesting
             ):
                 data = fetcher.fetchStockData(
                     stock,
@@ -117,7 +118,8 @@ class StockConsumer:
                     ((shouldCache
                     and not self.isTradingTime
                     and (hostData is None))
-                    or downloadOnly) # and backtestDuration == 0 # save only if we're NOT backtesting
+                    or downloadOnly) 
+                    or (shouldCache and hostData is None) # and backtestDuration == 0 # save only if we're NOT backtesting
                 ):
                     hostRef.objectDictionary[stock] = data.to_dict("split")
                     hostData = hostRef.objectDictionary.get(stock)
@@ -724,8 +726,8 @@ class StockConsumer:
         )
 
     def initResultDictionaries(self):
-        screenResults = pd.DataFrame(
-            columns=[
+        periods = [1,2,3,4,5,10,15,22,30]
+        columns=[
                 "Stock",
                 "Consol.",
                 "Breakout",
@@ -739,10 +741,7 @@ class StockConsumer:
                 "Trend",
                 "Pattern",
                 "CCI",
-                "LTPTdy",
-                "Growth",
             ]
-        )
         screeningDictionary = {
             "Stock": "",
             "Consol.": "",
@@ -757,8 +756,6 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
-            "LTPTdy": 0,
-            "Growth":0,
         }
         saveDictionary = {
             "Stock": "",
@@ -774,8 +771,17 @@ class StockConsumer:
             "Trend": "",
             "Pattern": "",
             "CCI": 0,
-            "LTPTdy": 0,
-            "Growth":0,
         }
-        
+        for prd in periods:
+            columns.append(f"LTP{prd}")
+            columns.append(f"Growth{prd}")
+            screeningDictionary[f"LTP{prd}"] = np.nan
+            saveDictionary[f"LTP{prd}"] = np.nan
+            screeningDictionary[f"Growth{prd}"] = np.nan
+            saveDictionary[f"Growth{prd}"] = np.nan
+
+        screenResults = pd.DataFrame(
+            columns=columns
+        )
+
         return screeningDictionary,saveDictionary

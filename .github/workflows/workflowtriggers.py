@@ -145,6 +145,7 @@ def generateBacktestReportMainPage():
                 th {cursor: pointer; color:white; text-decoration:underline;}
                 .r {color:red;font-weight:bold;} 
                 .g {color:lightgreen;font-weight:bold;} 
+                .w {color:white;font-weight:bold;}
                 .y {color:yellow;}
             </style>
         </head>
@@ -160,6 +161,7 @@ def generateBacktestReportMainPage():
                     <th>Report Name</th>
                     <th>Stock-wise Report</th>
                     <th>Summary Report</th>
+                    <th>Insights</th>
                     <th>1-Pd</th>
                     <th>2-Pd</th>
                     <th>3-Pd</th>
@@ -180,7 +182,7 @@ def generateBacktestReportMainPage():
     TR_CLOSER = "            </tr>\n"
     TD_GENERAL="\n                <td>{}</td>"
     TD_GENERAL_OPEN="\n                {}"
-    TD_LINK="\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_StockSorted.html' target='_blank'>{}</a></td>"
+    TD_LINK="\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_{}Sorted.html' target='_blank'>{}</a></td>"
 
     f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
     f.write(HTMLHEAD_TEXT)
@@ -198,8 +200,9 @@ def generateBacktestReportMainPage():
         f.writelines([TR_OPENER,
                     f"{TD_GENERAL}".format(str(key)),
                     f"{TD_GENERAL}".format(f"{td2}{' (Intraday)' if args.intraday else ''}"),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_backtest_result",td3),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Summary",td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_backtest_result",'Stock',td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Summary",'Stock', td3),
+                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Insights",'Date', td3),
                     f"{TD_GENERAL_OPEN}".format(oneline_summary),
                     TR_CLOSER
                     ])

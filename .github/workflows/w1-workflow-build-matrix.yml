@@ -66,7 +66,8 @@ jobs:
         continue-on-error: true
         name: check latest commit is less than a week
         if: ${{ github.event_name == 'schedule' }} || ${{ github.event_name == 'workflow_dispatch' }}
-        run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+        shell: bash
+        run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
   # Job for builing packages
   Build:
@@ -87,21 +88,21 @@ jobs:
             CMD_BUILD: |
               pyinstaller --onefile --icon=screenshots\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive-progress --hidden-import alive_progress --hidden-import yfinance
             DEP_BUILD: |
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
               if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-                pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+                pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-                pip install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-                pip install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
+                pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
               fi
               cd ..
               cd ..
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install .
@@ -126,7 +127,7 @@ jobs:
               make
               sudo make install
               cd /home/runner/work/PKScreener/PKScreener/
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
@@ -144,7 +145,7 @@ jobs:
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
             DEP_BUILD: |
               brew install ta-lib
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.4.28
@@ -185,9 +186,9 @@ jobs:
             pip3 install mistletoe
             echo ${{ steps.vars.outputs.CURRENT_VERSION }}
             echo ${{ steps.vars.outputs.THIS_VERSION }}
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ steps.vars.outputs.CURRENT_VERSION }}] -r [v${{ steps.vars.outputs.THIS_VERSION }}] -t text
-            python .github/workflows/updateVersion.py -p README.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
+            python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
+            python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ steps.vars.outputs.CURRENT_VERSION }}] -r [v${{ steps.vars.outputs.THIS_VERSION }}] -t text
+            python3 .github/workflows/updateVersion.py -p README.md -f ${{ steps.vars.outputs.CURRENT_VERSION }} -r ${{ steps.vars.outputs.THIS_VERSION }} -t link
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
             git add README.md --force
@@ -221,8 +222,8 @@ jobs:
         id: read_release
         shell: bash
         run: |
-          pip install mistletoe
-          python .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
+          pip3 install mistletoe
+          python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f /${{ steps.vars.outputs.CURRENT_VERSION }}/ -r /${{ steps.vars.outputs.THIS_VERSION }}/ -t link
           r=$(cat pkscreener/release.md)
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"
@@ -291,15 +292,23 @@ jobs:
             echo ${{ needs.Build.outputs.oldVersion }}
             v1=${{ needs.Build.outputs.oldVersion }}
             v2=${{ needs.Build.outputs.version }}
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
-            python .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
-            python .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
+            python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
+            python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
+            python3 .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
             sed -i "s/$v1/$v2/g" README.md
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
             git add README.md --force
             git commit -m "GitHub Action Workflow - Updating version to latest"
             git push -v
+
+  Call-Docker-workflow:
+    uses: pkjmesra/PKScreener/.github/workflows/w15-docker-image.yml@main
+    needs: [Build, README_Update]
+    if: ${{ needs.Build.outputs.sendNotification == 'Y' }}
+    with:
+      branch-name: ${{ needs.Build.outputs.tag }}
+    secrets: inherit
 
   Delete_Workflow_Run:
     runs-on: ubuntu-20.04

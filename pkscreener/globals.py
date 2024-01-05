@@ -344,8 +344,6 @@ def initDataframes():
             "Trend",
             "Pattern",
             "CCI",
-            "LTPTdy",
-            "Growth",
         ]
     )
     saveResults = pd.DataFrame(
@@ -363,8 +361,6 @@ def initDataframes():
             "Trend",
             "Pattern",
             "CCI",
-            "LTPTdy",
-            "Growth",
         ]
     )
     return screenResults, saveResults
@@ -391,7 +387,7 @@ def initExecution(menuOption=None):
                     + colorText.END
                 )
                 sys.exit(0)
-            elif selectedMenu.menuKey in ["B", "H", "U", "T", "S", "E", "X", "Y"]:
+            elif selectedMenu.menuKey in ["B", "G", "H", "U", "T", "S", "E", "X", "Y"]:
                 Utility.tools.clearScreen()
                 selectedChoice["0"] = selectedMenu.menuKey
                 return selectedMenu
@@ -539,7 +535,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
         screenResults.rename(
             columns={
                 "Trend": f"Trend({configManager.daysToLookback}Prds)",
-                "Breakout": f"Breakout ({configManager.daysToLookback}Prds)",
+                "Breakout": f"Breakout({configManager.daysToLookback}Prds)",
                 "Consol.": f"Consol.({configManager.daysToLookback}Prds)",
             },
             inplace=True,
@@ -547,7 +543,7 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio)
         saveResults.rename(
             columns={
                 "Trend": f"Trend({configManager.daysToLookback}Prds)",
-                "Breakout": f"Breakout ({configManager.daysToLookback}Prds)",
+                "Breakout": f"Breakout({configManager.daysToLookback}Prds)",
                 "Consol.": f"Consol.({configManager.daysToLookback}Prds)",
             },
             inplace=True,
@@ -607,7 +603,7 @@ def main(userArgs=None):
 
         if menuOption in ["H", "U", "T", "E", "Y"]:
             return
-    elif menuOption == "B":
+    elif menuOption in ["B", "G"]:
         # Backtests
         backtestPeriod = 0
         if len(options) >=2:
@@ -625,7 +621,7 @@ def main(userArgs=None):
         sleep(3)
         return
 
-    if menuOption in ["X", "B"]:
+    if menuOption in ["X", "B", "G"]:
         selMenu = m0.find(menuOption)
         m1.renderForMenu(selMenu,asList=True)
         if tickerOption is not None:
@@ -913,7 +909,7 @@ def main(userArgs=None):
                             + f'Last Scanned: {datetime.now().strftime("%H:%M:%S")}\n'
                             + colorText.END
                         )
-                        print(tabulate(result_df, headers="keys", tablefmt="psql"))
+                        print(colorText.miniTabulator().tabulate(result_df, headers="keys", tablefmt=colorText.No_Pad_GridFormat))
                         print("\nPress Ctrl+C to exit.")
                         if len(result_df) != last_result_len and not first_scan:
                             Utility.tools.alertSound(beeps=5)
@@ -947,7 +943,7 @@ def main(userArgs=None):
             input("Exiting now...")
             sys.exit(0)
 
-        if ((menuOption == "B" and not loadedStockData) or (
+        if ((menuOption in ["B", "G"] and not loadedStockData) or (
             not downloadOnly
             and not Utility.tools.isTradingTime()
             and configManager.cacheEnabled
@@ -959,6 +955,7 @@ def main(userArgs=None):
                 configManager,
                 downloadOnly=downloadOnly,
                 defaultAnswer=defaultAnswer,
+                forceLoad=(menuOption in ["B", "G"])
             )
             loadedStockData = True
         loadCount = len(stockDict)
@@ -978,17 +975,17 @@ def main(userArgs=None):
 
         suggestedHistoricalDuration = \
         (
-            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() == "B" else 1
+            getHistoricalDays(len(listStockCodes), testing) if menuOption.upper() in ["B"] else 1
         )
         # Number of days from past, including the backtest duration chosen by the user
         # that we will need to consider to evaluate the data. If the user choses 10-period
         # backtesting, we will need to have the past 6-months or whatever is returned by
         # x = getHistoricalDays and 10 days of recent data. So total rows to consider
         # will be x + 10 days.
-        samplingDuration = (suggestedHistoricalDuration + 1) if menuOption == "B" else 2
-        fillerPlaceHolder = 1 if menuOption == "B" else 2
+        samplingDuration = (suggestedHistoricalDuration + 1) if menuOption in ["B"] else 2
+        fillerPlaceHolder = 1 if menuOption in ["B"] else 2
         backtest_df = None
-        if menuOption.upper() == "B":
+        if menuOption.upper() in ["B", "G"]:
             print(
                 colorText.BOLD
                 + colorText.WARN
@@ -1017,16 +1014,17 @@ def main(userArgs=None):
                     volumeRatio,
                     testBuild,
                     userArgs.log,
-                    (actualHistoricalDuration if menuOption == "B" else (0 if userPassedArgs.backtestdaysago is None else int(userPassedArgs.backtestdaysago))),
+                    (actualHistoricalDuration if (menuOption == "B") else ((backtestPeriod) if (menuOption == "G") else (0 if (userPassedArgs.backtestdaysago is None) else (int(userPassedArgs.backtestdaysago))))),
                     (backtestPeriod if menuOption == "B" else configManager.daysToLookback),
                     default_logger().level,
-                    userPassedArgs.backtestdaysago is not None,
+                    (menuOption in ["B","G"]) or (userPassedArgs.backtestdaysago is not None),
                 )
                 for stock in listStockCodes
             ]
             items.extend(moreItems)
             fillerPlaceHolder = fillerPlaceHolder + 1
             actualHistoricalDuration = samplingDuration - fillerPlaceHolder
+
         tasks_queue, results_queue, totalConsumers = initQueues(len(items))
         cp = CandlePatterns()
         cm = configManager
@@ -1068,7 +1066,9 @@ def main(userArgs=None):
 
         print(colorText.END)
         terminateAllWorkers(consumers, tasks_queue, testing)
-        if not downloadOnly and menuOption == "X":
+        if not downloadOnly and menuOption in ["X","G"]:
+            if menuOption == "G":
+                userPassedArgs.backtestdaysago = backtestPeriod
             screenResults, saveResults = labelDataForPrinting(
                 screenResults, saveResults, configManager, volumeRatio
             )
@@ -1096,16 +1096,31 @@ def main(userArgs=None):
             )
 
         if menuOption == "B" and backtest_df is not None and len(backtest_df) > 0:
+            Utility.tools.clearScreen()
+            # Let's do the portfolio calculation first
+            df_grouped = backtest_df.groupby('Date')
+            userPassedArgs.backtestdaysago = backtestPeriod
+            df_xray = None
+            for calcForDate, df_group in df_grouped:
+                p_df = PortfolioXRay.performXRay(df_group,userPassedArgs,calcForDate=calcForDate)
+                if df_xray is not None:
+                    df_xray = pd.concat([df_xray, p_df], axis=0)
+                else:
+                    df_xray = p_df
+            # Let's drop the columns no longer required for backtest report
+            removedUnusedColumns(None, backtest_df,["Consol.","Breakout","RSI","Pattern","CCI"])
+            df_xray = df_xray.replace(np.nan, '', regex=True)
+            df_xray = PortfolioXRay.xRaySummary(df_xray)
+            df_xray.loc[:, "Date"] = df_xray.loc[:, "Date"].apply(
+                lambda x: x.replace("-","/")
+            )
+            showBacktestResults(df_xray,sortKey="Date", optionalName="Insights")
             summary_df = backtestSummary(backtest_df)
             backtest_df.loc[:, "Date"] = backtest_df.loc[:, "Date"].apply(
                 lambda x: x.replace("-","/")
             )
             showBacktestResults(backtest_df)
             showBacktestResults(summary_df,optionalName="Summary")
-            # summary_df.set_index("Stock", inplace=True)
-            # backtest_df.set_index("Stock", inplace=True)
-            # showBacktestResults(backtest_df)
-            # showBacktestResults(summary_df,optionalName="Summary")
             sorting = False if defaultAnswer == "Y" else True
             sortKeys = {
                 "S": "Stock",
@@ -1142,6 +1157,7 @@ def main(userArgs=None):
                     )
                     print(colorText.END, end="")
                     if choice.upper() in sortKeys.keys():
+                        Utility.tools.clearScreen()
                         showBacktestResults(backtest_df, sortKeys[choice.upper()])
                         showBacktestResults(summary_df,optionalName="Summary")
                     else:
@@ -1153,6 +1169,9 @@ def main(userArgs=None):
                 input("Press <Enter> to continue...")
         elif menuOption == "B":
             print("Finished backtesting with no results to show!")
+        elif menuOption == "G":
+            if defaultAnswer != "Y":
+                input("Press <Enter> to continue...")
         newlyListedOnly = False
     if configManager.isIntradayConfig():
         isIntraday = (userPassedArgs.intraday is not None)
@@ -1210,13 +1229,37 @@ def printNotifySaveScreenedResults(
         + f"[+] You chose: {menuChoiceHierarchy}"
         + colorText.END
     )
-    tabulated_results = tabulate(screenResults, headers="keys", tablefmt="grid")
-    print(tabulated_results)
-    if userPassedArgs.backtestdaysago is not None:
-        PortfolioXRay.performXRay(saveResults,userPassedArgs)
+    pngName = f'PKS_{getFormattedChoices()}_{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
+    pngExtension = ".png"
+    if (selectedChoice["0"] == "G" or userPassedArgs.backtestdaysago is not None):
+        if saveResults is not None and len(saveResults) > 0:
+            df = PortfolioXRay.performXRay(saveResults,userPassedArgs)
+            targetDateG10k = saveResults['Date'].iloc[0]
+            titleLabelG10k=f"For {userPassedArgs.backtestdaysago}-Period(s) from {targetDateG10k}, portfolio calculations in terms of Growth of 10k:"
+            print(f'\n\n{titleLabelG10k}\n')
+            g10kStyledTable =colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
+            print(g10kStyledTable)
+            g10kUnStyledTable = Utility.tools.removeAllColorStyles(g10kStyledTable)
+            if not testing:
+                sendQuickScanResult(menuChoiceHierarchy, user, g10kStyledTable, g10kUnStyledTable, titleLabelG10k, pngName, pngExtension)
+        elif user is not None:
+            sendMessageToTelegramChannel(
+                message=f"No scan results found for {menuChoiceHierarchy}", user=user
+            )        
+    removedUnusedColumns(screenResults, saveResults,["Date"])
 
-    title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b>'
+    tabulated_results = colorText.miniTabulator().tabulate(screenResults, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
+    print(tabulated_results)
+    _ , reportNameInsights = getBacktestReportFilename(sortKey='Date',optionalName="Insights")
+    strategy_df = PortfolioXRay.bestStrategiesFromSummaryForReport(reportNameInsights)
+    addendumLabel = "[+] Strategy that has best results in the past for this scan option:"
+    tabulated_strategy = ""
+    if strategy_df is not None:
+        tabulated_strategy = colorText.miniTabulator().tabulate(strategy_df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
+        print(addendumLabel)
+        print(tabulated_strategy)
     if screenResults is not None and len(screenResults) >= 1:
+        title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b> {"" if selectedChoice["0"] != "G" else "for Date:"+ targetDateG10k}'
         if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
             eligible = is_token_telegram_configured()
             if eligible:
@@ -1228,16 +1271,14 @@ def printNotifySaveScreenedResults(
                 # No point sending a photo with more than MAX_ALLOWED stocks.
                 warn_text = f' but only including top {MAX_ALLOWED} results here. ' if (len(saveResults) > MAX_ALLOWED) else ''
                 caption = f"<b>({len(saveResults)}</b> stocks found in {str('{:.2f}'.format(elapsed_time))} sec){warn_text}. {title}"
-                pngName = f'PKS_{"_".join(selectedChoice.values())}{Utility.tools.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
-                pngExtension = ".png"
                 backtestExtension = "_backtest.png"
                 if len(screenResultsTrimmed) > MAX_ALLOWED:
                     screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
                     saveResultsTrimmed = saveResultsTrimmed.head(MAX_ALLOWED)
-                    tabulated_results = tabulate(screenResultsTrimmed, headers="keys", tablefmt="grid")
-                markdown_results = tabulate(saveResultsTrimmed, headers="keys", tablefmt="grid")
+                    tabulated_results = colorText.miniTabulator().tabulate(screenResultsTrimmed, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
+                markdown_results = colorText.miniTabulator().tabulate(saveResultsTrimmed, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
                 if not testing:
-                    sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension)
+                    sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension,addendum=tabulated_strategy, addendumLabel=addendumLabel)
                     # Let's send the backtest results now only if the user requested 1-on-1 for scan.
                     if user is not None:
                         # Now let's try and send backtest results
@@ -1280,18 +1321,36 @@ def printNotifySaveScreenedResults(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
         )
 
+def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[]):
+    periods = [1,2,3,4,5,10,15,22,30]
+    for period in periods:
+        if saveResults is not None:
+            saveResults.drop(f'LTP{period}', axis=1, inplace=True, errors='ignore')
+            saveResults.drop(f'Growth{period}', axis=1, inplace=True, errors='ignore')
+            if len(dropAdditionalColumns) > 0:
+                for col in dropAdditionalColumns:
+                    if col in saveResults.columns:
+                        saveResults.drop(col, axis=1, inplace=True, errors='ignore')
+        if screenResults is not None:
+            screenResults.drop(f'LTP{period}', axis=1, inplace=True, errors='ignore')
+            screenResults.drop(f'Growth{period}', axis=1, inplace=True, errors='ignore')
+            if len(dropAdditionalColumns) > 0:
+                for col in dropAdditionalColumns:
+                    if col in screenResults.columns:
+                        screenResults.drop(col, axis=1, inplace=True, errors='ignore')
+
 def tabulateBacktestResults(saveResults, maxAllowed=0):
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     summarydf,detaildf = getSummaryCorrectnessOfStrategy(saveResults)
     if summarydf is not None and len(summarydf) > 0:
-        tabulated_backtest_summary=tabulate(summarydf,headers="keys", tablefmt="grid", showindex=False)
+        tabulated_backtest_summary=colorText.miniTabulator().tabulate(summarydf,headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
     if detaildf is not None and len(detaildf) > 0:
         if maxAllowed !=0 and len(detaildf) > 2*maxAllowed:
             detaildf = detaildf.head(2*maxAllowed)
-            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+            tabulated_backtest_detail=colorText.miniTabulator().tabulate(detaildf,headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
         else:
-            tabulated_backtest_detail=tabulate(detaildf,headers="keys", tablefmt="grid", showindex=False)
+            tabulated_backtest_detail=colorText.miniTabulator().tabulate(detaildf,headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
     if tabulated_backtest_summary != "":
         print(
                             colorText.BOLD
@@ -1310,7 +1369,7 @@ def tabulateBacktestResults(saveResults, maxAllowed=0):
         print(tabulated_backtest_detail)        
     return tabulated_backtest_summary, tabulated_backtest_detail
 
-def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension):
+def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension,addendum=None, addendumLabel=None):
     try:
         Utility.tools.tableToImage(
                                 markdown_results,
@@ -1319,6 +1378,8 @@ def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_r
                                 menuChoiceHierarchy,
                                 backtestSummary="",
                                 backtestDetail="",
+                                addendum=addendum,
+                                addendumLabel=addendumLabel
                             )
         sendMessageToTelegramChannel(
                                 message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
@@ -1330,7 +1391,7 @@ def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_r
 
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     if sorting:
-        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;} .r {color:red;font-weight:bold;} .g {color:lightgreen;font-weight:bold;} .y {color:yellow;}</style></head><body><span style='color:white;' >"
+        tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/PKScreener/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;} .r {color:red;font-weight:bold;} .w {color:white;font-weight:bold;} .g {color:lightgreen;font-weight:bold;} .y {color:yellow;}</style></head><body><span style='color:white;' >"
         colored_text = colored_text.replace("<table", f"{tableText}{summaryText}<br /><table")
         colored_text = colored_text.replace("<table ", "<table id='resultsTable' ")
         for key in headerDict.keys():
@@ -1349,6 +1410,7 @@ def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     colored_text = colored_text.replace(f"<td>{colorText.GREEN}","<td class='g'>")
     colored_text = colored_text.replace(f"<td>{colorText.FAIL}","<td class='r'>")
     colored_text = colored_text.replace(f"<td>{colorText.WARN}","<td class='y'>")
+    colored_text = colored_text.replace(f"<td>{colorText.WHITE}","<td class='w'>")
     colored_text = colored_text.replace(colorText.END,"")
     colored_text = colored_text.replace("\n","")
     if sorting:
@@ -1421,17 +1483,11 @@ def runScanners(
                     queueCounter += 1
                     counter = 0
         elapsed_time = time.time() - start_time
-        if menuOption == "X":
+        if menuOption in ["X","G"]:
             # create extension
-            df_extendedscreen = pd.DataFrame(lstscreen, columns=screenResults.columns)
-            df_extendedsave = pd.DataFrame(lstsave, columns=saveResults.columns)
-            screenResults = pd.concat([screenResults, df_extendedscreen])
-            saveResults = pd.concat([saveResults, df_extendedsave])
-            if userPassedArgs.backtestdaysago is None:
-                screenResults.drop('LTPTdy', axis=1, inplace=True, errors='ignore')
-                screenResults.drop('Growth', axis=1, inplace=True, errors='ignore')
-                saveResults.drop('LTPTdy', axis=1, inplace=True, errors='ignore')
-                saveResults.drop('Growth', axis=1, inplace=True, errors='ignore')
+            screenResults = pd.DataFrame(lstscreen)
+            saveResults = pd.DataFrame(lstsave)
+
     except KeyboardInterrupt:
         try:
             keyboardInterruptEvent.set()
@@ -1457,6 +1513,7 @@ def updateBacktestResults(backtestPeriod, choices, dumpFreq, start_time, result,
     backtest_df = backtest(
                                 result[3],
                                 result[2],
+                                result[1],
                                 result[0],
                                 backtestPeriod,
                                 sampleDays,
@@ -1580,14 +1637,12 @@ def sendTestStatus(screenResults, label, user=None):
 
 def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_result'):
     global menuChoiceHierarchy, selectedChoice, userPassedArgs
-    if optionalName != "Summary":
-        Utility.tools.clearScreen()
-    pd.set_option("display.max_rows", 300)
+    pd.set_option("display.max_rows", 800)
     # pd.set_option("display.max_columns", 20)
     if backtest_df is None:
         return
     backtest_df.drop_duplicates()
-    summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy}"
+    summaryText = f"As of {Utility.tools.currentDateTime().strftime('%d-%m-%y %H:%M:%S IST')}\n{menuChoiceHierarchy.replace('Backtests','Growth of 10K' if optionalName=='Insights' else 'Backtests')}"
     lastSummaryRow = None
     if optionalName != "Summary":
         backtest_df.sort_values(by=[sortKey], ascending=False, inplace=True)
@@ -1598,7 +1653,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
             lastSummaryRow.set_index("Stock", inplace=True)
             lastSummaryRow = lastSummaryRow.iloc[:, lastSummaryRow.columns != 'Stock']
         summaryText = f"{summaryText}\nOverall Summary of (correctness of) Strategy Prediction Positive outcomes:"
-    tabulated_text = tabulate(backtest_df, headers="keys", tablefmt="grid", showindex=False)
+    tabulated_text = colorText.miniTabulator().tabulate(backtest_df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
     print(colorText.FAIL+summaryText+colorText.END+"\n")
     print(tabulated_text+"\n")
     choices, filename = getBacktestReportFilename(sortKey, optionalName)
@@ -1634,6 +1689,13 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
                 f.write(oneline_text)
 
 def getBacktestReportFilename(sortKey="Stock",optionalName='backtest_result'):
+    choices = getFormattedChoices()
+    filename = (
+        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
+    )
+    return choices,filename
+
+def getFormattedChoices():
     global selectedChoice, userPassedArgs
     isIntraday = configManager.isIntradayConfig() or (userPassedArgs.intraday is not None)
     choices = ""
@@ -1645,11 +1707,7 @@ def getBacktestReportFilename(sortKey="Stock",optionalName='backtest_result'):
     if choices.endswith('_'):
         choices = choices[:-1]
     choices = f"{choices}{'_i' if isIntraday else ''}"
-    filename = (
-        f"PKScreener_{choices}_{optionalName}_{sortKey}Sorted.html"
-    )
-    
-    return choices,filename
+    return choices
 
 def showOptionErrorMessage():
     print(
@@ -1690,10 +1748,11 @@ def startWorkers(consumers):
 def takeBacktestInputs(
     menuOption=None, tickerOption=None, executeOption=None, backtestPeriod=0
 ):
+    g10k = '"Growth of 10k"'
     print(
         colorText.BOLD
         + colorText.GREEN
-        + "[+] For backtesting, you can choose from (1,2,3,4,5,10,15,22,30) periods."
+        + f"[+] For {g10k if menuOption == 'G' else 'backtesting'}, you can choose from (1,2,3,4,5,10,15,22,30) periods."
     )
     try:
         if backtestPeriod == 0:
@@ -1701,13 +1760,13 @@ def takeBacktestInputs(
                 input(
                     colorText.BOLD
                     + colorText.FAIL
-                    + "[+] Enter backtesting period (Default is 30 [days]): "
+                    + f"[+] Enter {g10k if menuOption == 'G' else 'backtesting'} period (Default is {3 if menuOption == 'G' else 30} [days]): "
                 )
             )
     except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
     if backtestPeriod == 0:
-        backtestPeriod = 30
+        backtestPeriod = 3 if menuOption == 'G' else 30
     tickerOption, executeOption = initPostLevel0Execution(
         menuOption=menuOption,
         tickerOption=tickerOption,

@@ -152,7 +152,7 @@ class tools:
                 + "\n[+] Showing recently screened results..\n"
                 + colorText.END
             )
-            print(tabulate(df, headers="keys", tablefmt="psql"))
+            print(colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat))
             print(
                 colorText.BOLD
                 + colorText.WARN
@@ -217,20 +217,20 @@ class tools:
             colorText.FAIL,
             colorText.WHITE,
         ]
-        cleanedUpStyledValue = styledText
+        cleanedUpStyledValue = str(styledText)
         for style in styles:
             cleanedUpStyledValue = cleanedUpStyledValue.replace(style, "")
         return cleanedUpStyledValue
 
     def getCellColor(cellStyledValue="", defaultCellFillColor="black"):
         otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
-        mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL]
+        mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL, colorText.WHITE]
         colorsDict = {
             colorText.BLUE: "blue",
             colorText.GREEN: "green",
             colorText.WARN: "yellow",
             colorText.FAIL: "red",
-            colorText.WHITE: "blue"
+            colorText.WHITE: "white"
         }
         cleanedUpStyledValue = cellStyledValue
         cellFillColor = defaultCellFillColor
@@ -243,7 +243,7 @@ class tools:
                 break
         return cellFillColor, cleanedUpStyledValue
 
-    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None):
+    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None, addendum=None, addendumLabel=None):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
         fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf'
@@ -261,7 +261,7 @@ class tools:
         menuColor = "red"
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
-        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout (30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
+        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout(30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
         legendText= f"{legendText} An investor should consider both BO & R level to analyse entry / exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out.  *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the"
         legendText= f"{legendText} stock price has increased / decreased since last trading session. (1.5%, 1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous"
         legendText= f"{legendText} trading session. Red means it fell.  *** 6. Volume ***: This shows the relative volume in the most recent trading day /today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at"
@@ -272,7 +272,8 @@ class tools:
         legendText= f"{legendText} and above 100 is considered overbought. If the CCI is < '-100' or CCI is > 100 and the Trend(30Prds) is Strong/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan"
         legendText= f"{legendText} options. Similarly, 61.69 % of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%"
         legendText= f"{legendText} of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss table/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in"
-        legendText= f"{legendText} red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions. *** 14. 52Wk H/L ***: These have 52 weeks high/low prices within 10% of LTP:Yellow, above high:Green. Below 90% High:Red.\n"
+        legendText= f"{legendText} red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions. *** 14. 52Wk H/L ***: These have 52 weeks high/low prices within 10% of LTP:Yellow, above high:Green. Below 90% High:Red."
+        legendText= f"{legendText} *** 1D-% ***: Shows the 1 period gain in percent from the given date. Similarly 2D-%, 3D-% etc shows 2 day, 3 days gain etc. *** 1D-10k ***: Shows 1 period/day portfolio value if you would have invested 10,000 on the given date. *** [T]... *** : [T] is for Trends followed by the trend name in the filter. *** [BO] ***: Shows the Breakout filter value. *** [P] ***: [P] shows pattern name\n"
 
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
@@ -297,9 +298,12 @@ class tools:
         legendText_new += word_list[-1]
         legendText = legendText_new
         legendtext_width, legendtext_height = artfont.getsize_multiline(legendText)
+        addendumtext_height = 0
+        if addendum is not None and len(addendum) >0:
+            addendumtext_width, addendumtext_height = font.getsize_multiline(addendum)
         im = Image.new(
             "RGB",
-            (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height),
+            (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height + addendumtext_height + label_height),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -314,6 +318,10 @@ class tools:
         titleLabels = [f"[+] Scan results for {label} :",
                        "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
                        "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
+        if addendum is not None and len(addendum) >0:
+            titleLabels.append(addendumLabel)
+            dfs_to_print.append(addendum)
+            unstyled_dfs.append(tools.removeAllColorStyles(addendum))
         draw.text((startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor)
         rowPixelRunValue += label_height +1
         counter = -1
@@ -363,7 +371,7 @@ class tools:
                         style, cleanValue = tools.getCellColor(val, defaultCellFillColor=gridColor)
                         if columnNumber == 0:
                             cleanValue = unstyledLine.split(separator)[1]
-                            style = gridColor
+                            style = style if "%" in cleanValue else gridColor
                         if bgColor == "white" and style == "yellow":
                             # Yellow on a white background is difficult to read
                             style = "blue"
@@ -419,6 +427,15 @@ class tools:
                 # Weekends .So the date should be last Friday
                 return (curr - datetime.timedelta(days=(curr.weekday() - 4))).date()
 
+    def dateFromYmdString(Ymd=None):
+       return datetime.datetime.strptime(Ymd, "%Y-%m-%d")
+
+    def days_between(d1, d2):
+        return abs((d2 - d1).days)
+
+    def trading_days_between(d1, d2):
+        return np.busday_count(d1,d2) # ,weekmask=[1,1,1,1,1,0,0],holidays=['2020-01-01'])
+    
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         if simulate:
@@ -497,12 +514,13 @@ class tools:
                 )
         return nextRun
 
-    def afterMarketStockDataExists(intraday=False):
+    def afterMarketStockDataExists(intraday=False, forceLoad=False):
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
         cache_date = curr  # for monday to friday
         weekday = curr.weekday()
-        if curr < openTime:  # for monday to friday before 9:15
+        # for monday to friday before 9:15 or between 9:15am to 3:30pm, we're backtesting
+        if curr < openTime or (forceLoad and tools.isTradingTime()):
             cache_date = curr - datetime.timedelta(1)
         if weekday == 0 and curr < openTime:  # for monday before 9:15
             cache_date = curr - datetime.timedelta(3)
@@ -550,11 +568,12 @@ class tools:
         downloadOnly=False,
         defaultAnswer=None,
         retrial=False,
+        forceLoad=False
     ):
         if downloadOnly:
             return
         isIntraday = configManager.isIntradayConfig()
-        exists, cache_file = tools.afterMarketStockDataExists(isIntraday)
+        exists, cache_file = tools.afterMarketStockDataExists(isIntraday, forceLoad=forceLoad)
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
@@ -567,7 +586,7 @@ class tools:
                         print(
                             colorText.BOLD
                             + colorText.GREEN
-                            + "[+] Automatically Using Cached Stock Data due to After-Market hours!"
+                            + f"[+] Automatically Using Cached Stock Data {'due to After-Market hours' if not tools.isTradingTime() else ''}!"
                             + colorText.END
                         )
                     for stock in stockData:
@@ -657,6 +676,7 @@ class tools:
                         downloadOnly,
                         defaultAnswer,
                         retrial=True,
+                        forceLoad=forceLoad
                     )
         if not stockDataLoaded:
             print(

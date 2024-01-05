@@ -35,7 +35,7 @@ def run_workflow(command,user,options,workflowType="B"):
         workflow_name = "w13-workflow-backtest_generic.yml"
         options = f'{options.replace("B:","")}:D:D:D'
         data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'{options}'+'","name":"'+f'{command}'+'"}}'
-    elif workflowType == "X":
+    elif workflowType == "X" or workflowType == "G":
         workflow_name = "w8-workflow-alert-scan_generic.yml"
         if user is None or len(user) == 0:
             user = ""

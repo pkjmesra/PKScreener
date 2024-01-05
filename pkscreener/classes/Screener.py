@@ -190,9 +190,9 @@ class tools:
         maxClose = round(data.describe()["Close"]["max"], 2)
         recentClose = round(recent["Close"].iloc[0], 2)
         if np.isnan(maxClose) or np.isnan(maxHigh):
-            saveDict["Breakout"] = "BO: Unknown"
+            saveDict["Breakout"] = "BO: 0 R: 0"
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.WARN + "BO: Unknown" + colorText.END
+                colorText.BOLD + colorText.WARN + "BO: 0 R: 0" + colorText.END
             )
             self.default_logger.info(
                 f'For Stock:{saveDict["Stock"]}, the breakout is unknown because max-high ({maxHigh}) or max-close ({maxClose}) are not defined.'
@@ -200,7 +200,7 @@ class tools:
             return False
         if maxHigh > maxClose:
             if (maxHigh - maxClose) <= (maxHigh * 2 / 100):
-                saveDict["Breakout"] = "BO: " + str(maxClose)
+                saveDict["Breakout"] = "BO: " + str(maxClose) + " R: " + str(maxHigh)
                 if recentClose >= maxClose:
                     screenDict["Breakout"] = (
                         colorText.BOLD
@@ -230,13 +230,14 @@ class tools:
                 return not alreadyBrokenout
             noOfHigherShadows = len(data[data.High > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
-                saveDict["Breakout"] = "BO: " + str(maxHigh)
+                saveDict["Breakout"] = "BO: " + str(maxHigh) + " R: 0"
                 if recentClose >= maxHigh:
                     screenDict["Breakout"] = (
                         colorText.BOLD
                         + colorText.GREEN
                         + "BO: "
                         + str(maxHigh)
+                         + " R: 0"
                         + colorText.END
                     )
                     self.default_logger.info(
@@ -247,10 +248,10 @@ class tools:
                     f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh) + colorText.END
+                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh)  + " R: 0" + colorText.END
                 )
                 return not alreadyBrokenout
-            saveDict["Breakout"] = "BO: " + str(maxClose) + ", R: " + str(maxHigh)
+            saveDict["Breakout"] = "BO: " + str(maxClose) + " R: " + str(maxHigh)
             if recentClose >= maxClose:
                 self.default_logger.info(
                     f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
@@ -279,20 +280,20 @@ class tools:
             )
             return not alreadyBrokenout
         else:
-            saveDict["Breakout"] = "BO: " + str(maxClose)
+            saveDict["Breakout"] = "BO: " + str(maxClose) + " R: 0"
             if recentClose >= maxClose:
                 self.default_logger.info(
                     f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose) + colorText.END
+                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose)  + " R: 0" + colorText.END
                 )
                 return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
                 f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) < max-close ({maxClose})'
             )
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose) + colorText.END
+                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose)  + " R: 0" + colorText.END
             )
             return not alreadyBrokenout
 
@@ -1118,12 +1119,25 @@ class tools:
         return ltpValid, verifyStageTwo
 
     def validateLTPForPortfolioCalc(self, data, screenDict, saveDict):
-        prevLtp = data.head(1)['Close'].iloc[0]
-        ltpTdy = data.tail(1)['Close'].iloc[0]
-        screenDict['LTPTdy'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
-        screenDict['Growth'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
-        saveDict['LTPTdy'] = round(ltpTdy,2)
-        saveDict['Growth'] = round(ltpTdy-prevLtp,2)
+        periods = [1,2,3,4,5,10,15,22,30]
+        previous_recent = data.head(1)
+        previous_recent.reset_index(inplace=True)
+        calc_date = str(previous_recent.iloc[:, 0][0]).split(" ")[0]
+        for prd in periods:
+            if len(data) >= prd+1:
+                prevLtp = data['Close'].iloc[0]
+                ltpTdy = data['Close'].iloc[prd]
+                screenDict[f'LTP{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
+                screenDict[f'Growth{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
+                saveDict[f'LTP{prd}'] = round(ltpTdy,2)
+                saveDict[f'Growth{prd}'] = round(ltpTdy-prevLtp,2)
+                screenDict['Date'] = calc_date
+                saveDict['Date'] = calc_date
+            else:
+                saveDict[f'LTP{prd}'] = np.nan
+                saveDict[f'Growth{prd}'] = np.nan
+                screenDict['Date'] = calc_date
+                saveDict['Date'] = calc_date
 
     # Find stocks that are bearish intraday: Macd Histogram negative
     def validateMACDHistogramBelow0(self, data):
