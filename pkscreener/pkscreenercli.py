@@ -161,7 +161,8 @@ configManager = ConfigManager.tools()
 
 def logFilePath():
     try:
-        filePath = os.path.join(os.getcwd(), "pkscreener-logs.txt")
+        from PKDevTools.classes import Archiver
+        filePath = os.path.join(Archiver.get_user_outputs_dir(), "pkscreener-logs.txt")
         f = open(filePath, "w")
         f.write("Logger file for pkscreener!")
         f.close()

@@ -78,6 +78,7 @@ jobs:
     outputs:
         version: ${{ steps.vars.outputs.THIS_VERSION }}
         oldVersion: ${{ steps.vars.outputs.CURRENT_VERSION }}
+        devVersion: ${{ steps.vars.outputs.DEV_VERSION }}
         tag: refs/tags/${{ steps.vars.outputs.THIS_VERSION }}
         sendNotification: ${{ inputs.sendNotification }}
     strategy:
@@ -161,15 +162,23 @@ jobs:
         with:
           ref: ${{ inputs.branch-name }}
 
+      - name: Environment setup to get latest released version
+        shell: bash
+        id: releaseversiongetter
+        run: |
+          pip3 install requests
+          python3 .github/workflows/githubutilities.py -d
+          
       - name: Declare env variables
         id: vars
         shell: bash
         run: |
+          CURRENT_VERSION=${{ steps.releaseversiongetter.outputs.LAST_RELEASE_VERSION }}
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          CURRENT_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
-          VERSION_ARR=(${CURRENT_VERSION//./ })
+          DEV_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          VERSION_ARR=(${DEV_VERSION//./ })
           MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
           TODAY=`date +%Y%m%d`
           THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
@@ -177,6 +186,7 @@ jobs:
           echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
           echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
           echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
+          echo "##[set-output name=DEV_VERSION;]$(echo ${DEV_VERSION})"
 
       - name: Create Tag
         if: startsWith(runner.os, 'Linux')
@@ -294,7 +304,7 @@ jobs:
             v2=${{ needs.Build.outputs.version }}
             python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
             python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
-            python3 .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
+            python3 .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.devVersion }} -r ${{ needs.Build.outputs.version }} -t text
             sed -i "s/$v1/$v2/g" README.md
             git add pkscreener/classes/__init__.py --force
             git add pkscreener/release.md --force
