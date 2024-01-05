@@ -241,7 +241,7 @@ class tools:
                 break
         return cellFillColor, cleanedUpStyledValue
 
-    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None):
+    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None, addendum=None, addendumLabel=None):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
         fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf'
@@ -296,9 +296,12 @@ class tools:
         legendText_new += word_list[-1]
         legendText = legendText_new
         legendtext_width, legendtext_height = artfont.getsize_multiline(legendText)
+        addendumtext_height = 0
+        if addendum is not None and len(addendum) >0:
+            addendumtext_width, addendumtext_height = artfont.getsize_multiline(addendum)
         im = Image.new(
             "RGB",
-            (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height),
+            (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height + addendumtext_height + label_height),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -313,6 +316,10 @@ class tools:
         titleLabels = [f"[+] Scan results for {label} :",
                        "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
                        "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
+        if addendum is not None and len(addendum) >0:
+            titleLabels.append(addendumLabel)
+            dfs_to_print.append(addendum)
+            unstyled_dfs.append(tools.removeAllColorStyles(addendum))
         draw.text((startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor)
         rowPixelRunValue += label_height +1
         counter = -1
@@ -362,7 +369,7 @@ class tools:
                         style, cleanValue = tools.getCellColor(val, defaultCellFillColor=gridColor)
                         if columnNumber == 0:
                             cleanValue = unstyledLine.split(separator)[1]
-                            style = gridColor
+                            style = style if "%" in cleanValue else gridColor
                         if bgColor == "white" and style == "yellow":
                             # Yellow on a white background is difficult to read
                             style = "blue"
