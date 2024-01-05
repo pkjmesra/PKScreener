@@ -1250,6 +1250,14 @@ def printNotifySaveScreenedResults(
 
     tabulated_results = colorText.miniTabulator().tabulate(screenResults, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
     print(tabulated_results)
+    _ , reportNameInsights = getBacktestReportFilename(sortKey='Date',optionalName="Insights")
+    strategy_df = PortfolioXRay.bestStrategiesFromSummaryForReport(reportNameInsights)
+    addendumLabel = "[+] Strategy that has best results in the past for this scan option:"
+    tabulated_strategy = ""
+    if strategy_df is not None:
+        tabulated_strategy = colorText.miniTabulator().tabulate(strategy_df, headers="keys", tablefmt=colorText.No_Pad_GridFormat, showindex=False)
+        print(addendumLabel)
+        print(tabulated_strategy)
     if screenResults is not None and len(screenResults) >= 1:
         title = f'<b>{menuChoiceHierarchy.split(">")[-1]}</b> {"" if selectedChoice["0"] != "G" else "for Date:"+ targetDateG10k}'
         if 'RUNNER' in os.environ.keys() or 'PKDevTools_Default_Log_Level' in os.environ.keys():
@@ -1270,7 +1278,7 @@ def printNotifySaveScreenedResults(
                     tabulated_results = colorText.miniTabulator().tabulate(screenResultsTrimmed, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
                 markdown_results = colorText.miniTabulator().tabulate(saveResultsTrimmed, headers="keys", tablefmt=colorText.No_Pad_GridFormat)
                 if not testing:
-                    sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension)
+                    sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension,addendum=tabulated_strategy, addendumLabel=addendumLabel)
                     # Let's send the backtest results now only if the user requested 1-on-1 for scan.
                     if user is not None:
                         # Now let's try and send backtest results
@@ -1361,7 +1369,7 @@ def tabulateBacktestResults(saveResults, maxAllowed=0):
         print(tabulated_backtest_detail)        
     return tabulated_backtest_summary, tabulated_backtest_detail
 
-def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension):
+def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension,addendum=None, addendumLabel=None):
     try:
         Utility.tools.tableToImage(
                                 markdown_results,
@@ -1370,6 +1378,8 @@ def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_r
                                 menuChoiceHierarchy,
                                 backtestSummary="",
                                 backtestDetail="",
+                                addendum=addendum,
+                                addendumLabel=addendumLabel
                             )
         sendMessageToTelegramChannel(
                                 message=None, photo_filePath=pngName+pngExtension, caption=caption, user=user
