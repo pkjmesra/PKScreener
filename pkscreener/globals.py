@@ -42,6 +42,7 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
+from PKDevTools.classes import Archiver
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger, tracelog
 from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
@@ -1668,6 +1669,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
     summaryText = summaryText.replace("\n","<br />")
     colored_text = reformatTable(summaryText, headerDict, colored_text, sorting=True)
     # Delete any pre-existing backtesting report for the same parameters
+    filename = os.path.join(Archiver.get_user_outputs_dir(),filename)
     try:
         os.remove(filename)
     except Exception:
@@ -1680,6 +1682,7 @@ def showBacktestResults(backtest_df, sortKey="Stock",optionalName='backtest_resu
         oneline_text = lastSummaryRow.to_html(header=False,index=False)
         oneline_text = reformatTable(summaryText, headerDict, oneline_text, sorting=False)
         onelineSummaryFile = f"PKScreener_{choices}_OneLine_{optionalName}.html"
+        onelineSummaryFile = os.path.join(Archiver.get_user_outputs_dir(),onelineSummaryFile)
         try:
             os.remove(onelineSummaryFile)
         except Exception:

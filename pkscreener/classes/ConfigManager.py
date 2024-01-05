@@ -30,6 +30,7 @@ import sys
 
 import requests_cache
 from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
@@ -73,7 +74,8 @@ class tools:
     def deleteFileWithPattern(self, pattern=None, excludeFile=None):
         if pattern is None:
             pattern = f"{'intraday_' if self.isIntradayConfig() else ''}stock_data_*.pkl"
-        for f in glob.glob(pattern):
+            
+        for f in glob.glob(pattern,root_dir=os.sep.join(os.getcwd().split(os.sep)[:-1])):
             try:
                 if excludeFile is not None:
                     if not f.endswith(excludeFile):
@@ -359,7 +361,8 @@ class tools:
                 requests_cache.clear()
                 requests_cache.uninstall_cache()
             self.deleteFileWithPattern("*_cache.sqlite")
-            requests_cache.install_cache('PKDevTools_cache')
+            requests_cache.install_cache(cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
+                                         db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'))
         except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             

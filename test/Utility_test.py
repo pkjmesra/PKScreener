@@ -32,6 +32,7 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytz
+from PKDevTools.classes import Archiver
 from PKDevTools.classes.ColorText import colorText
 
 from pkscreener.classes.Utility import tools
@@ -69,7 +70,7 @@ def test_setLastScreenedResults():
             tools.setLastScreenedResults(mock_df)
             mock_sort_values.assert_called_once()
             # Assert that pd.DataFrame.to_pickle() is called with the correct argument
-            mock_to_pickle.assert_called_once_with("last_screened_results.pkl")
+            mock_to_pickle.assert_called_once_with(os.path.join(Archiver.get_user_outputs_dir(),"last_screened_results.pkl"))
 
 # Positive test case for getLastScreenedResults() function
 def test_getLastScreenedResults():
@@ -78,7 +79,7 @@ def test_getLastScreenedResults():
         with patch("builtins.input"):
             tools.getLastScreenedResults()
             # Assert that pd.read_pickle() is called with the correct argument
-            mock_read_pickle.assert_called_once_with("last_screened_results.pkl")
+            mock_read_pickle.assert_called_once_with(os.path.join(Archiver.get_user_outputs_dir(),"last_screened_results.pkl"))
 
 # Positive test case for formatRatio() function
 def test_formatRatio():
@@ -212,7 +213,7 @@ def test_saveStockData():
     configManager = Mock()
     loadCount = 2
     try:
-        os.remove("stock_data_1.pkl")
+        os.remove(os.path.join(Archiver.get_user_outputs_dir(),"stock_data_1.pkl"))
     except Exception:
         pass
     with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
@@ -222,13 +223,13 @@ def test_saveStockData():
             tools.saveStockData(stockDict, configManager, loadCount)
             # Assert that pickle.dump() is called with the correct arguments
             mock_dump.assert_called_once()
-    os.remove('stock_data_1.pkl')
+    os.remove(os.path.join(Archiver.get_user_outputs_dir(),"stock_data_1.pkl"))
 
 # Positive test case for loadStockData() function
 def test_loadStockData():
     # Mocking the pickle.load() function
     mock_pickle = Mock()
-    pd.DataFrame().to_pickle("stock_data_2.pkl")
+    pd.DataFrame().to_pickle(os.path.join(Archiver.get_user_outputs_dir(),"stock_data_2.pkl"))
     with patch("pickle.load", mock_pickle) as mock_load:
         mock_load.return_value = []
         with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
@@ -240,7 +241,7 @@ def test_loadStockData():
             tools.loadStockData(stockDict, configManager, downloadOnly, defaultAnswer)
             # Assert that pickle.load() is called
             mock_load.assert_called_once()
-    os.remove('stock_data_2.pkl')
+    os.remove(os.path.join(Archiver.get_user_outputs_dir(),"stock_data_2.pkl"))
 
 # Positive test case for promptSaveResults() function
 def test_promptSaveResults():
@@ -418,9 +419,9 @@ def test_getNiftyModel():
         # Mocking the keras.models.load_model() function
         mock_load_model = Mock()
         m1 = str(mock_load_model)
-        f = open("nifty_model_v2.h5","wb")
+        f = open(os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.h5"),"wb")
         f.close()
-        pd.DataFrame().to_pickle("nifty_model_v2.pkl")
+        pd.DataFrame().to_pickle(os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.pkl"))
         with patch("keras.models.load_model", return_value=mock_load_model) as mock_keras_load_model:
             # Mocking the joblib.load() function
             mock_joblib_load = Mock()
@@ -428,11 +429,11 @@ def test_getNiftyModel():
             with patch("joblib.load", return_value=mock_joblib_load) as mock_joblib_load:
                 result = tools.getNiftyModel(retrial=True)
                 # Assert that os.path.isfile called twice with the correct argument
-                mock_isfile.assert_called_with("nifty_model_v2.pkl")
+                mock_isfile.assert_called_with(os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.pkl"))
                 # Assert that keras.models.load_model() is called with the correct argument
-                mock_keras_load_model.assert_called_with("nifty_model_v2.h5")
+                mock_keras_load_model.assert_called_with(os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.h5"))
                 # Assert that joblib.load() is called with the correct argument
-                mock_joblib_load.assert_called_with("nifty_model_v2.pkl")
+                mock_joblib_load.assert_called_with(os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.pkl"))
                 # Assert that the result is the correct tuple
                 assert (str(result[0]), str(result[1])) == (m1, m2)
 
