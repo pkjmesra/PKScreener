@@ -530,10 +530,9 @@ class tools:
         pattern = f"{'intraday_' if intraday else ''}stock_data_"
         cache_file = pattern + str(cache_date) + ".pkl"
         exists = False
-        for f in glob.glob(f"{pattern}*.pkl"):
+        for f in glob.glob(f"{pattern}*.pkl",root_dir=Archiver.get_user_outputs_dir()):
             if f.endswith(cache_file):
                 exists = True
-                cache_file = f
                 break
         return exists, cache_file
 
@@ -579,7 +578,7 @@ class tools:
         )
         stockDataLoaded = False
         if exists:
-            with open(cache_file, "rb") as f:
+            with open(os.path.join(Archiver.get_user_outputs_dir(),cache_file), "rb") as f:
                 try:
                     stockData = pickle.load(f)
                     if not downloadOnly:
@@ -621,7 +620,7 @@ class tools:
         ):
             cache_url = (
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
-                + cache_file.split(os.sep)[-1]
+                + cache_file #.split(os.sep)[-1]
             )
             resp = fetcher.fetchURL(cache_url, stream=True)
             if resp is not None:
@@ -646,7 +645,7 @@ class tools:
                     filesize = int(int(resp.headers.get("content-length")) / chunksize)
                     if filesize > 0:
                         bar, spinner = tools.getProgressbarStyle()
-                        f = open(os.path.join(Archiver.get_user_outputs_dir(),cache_file.split(os.sep)[-1]), "wb")
+                        f = open(os.path.join(Archiver.get_user_outputs_dir(),cache_file), "wb") # .split(os.sep)[-1]
                         dl = 0
                         with alive_bar(
                             filesize, bar=bar, spinner=spinner, manual=True
@@ -668,7 +667,7 @@ class tools:
                     f.close()
                     print("[!] Download Error - " + str(e))
                 print("")
-                if not retrial:
+                if not retrial and not stockDataLoaded:
                     # Don't try for more than once.
                     tools.loadStockData(
                         stockDict,
