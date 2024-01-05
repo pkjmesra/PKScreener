@@ -47,11 +47,14 @@ def bestStrategiesFromSummaryForReport(reportName:None):
             # insights = insights.replace('-', np.nan, regex=True)
             periods = [1,2,3,4,5,10,15,22,30]
             for prd in periods:
-                insights[f'{prd}D-%'] = insights[f'{prd}D-%'].astype(float).fillna(0.0)
-                max_p = insights[f'{prd}D-%'].max()
-                strategy_percent[f'{prd}D'] = f"{colorText.GREEN if max_p > 0 else (colorText.FAIL if max_p < 0 else colorText.WARN)}{max_p} %{colorText.END}"
-                scanType = str(insights['ScanType'].iloc[insights[f'{prd}D-%'].idxmax()]).replace('[SUM]','').split('(')[0]
-                strategy[f'{prd}D'] = scanType
+                try:
+                    insights[f'{prd}D-%'] = insights[f'{prd}D-%'].astype(float).fillna(0.0)
+                    max_p = insights[f'{prd}D-%'].max()
+                    strategy_percent[f'{prd}D'] = f"{colorText.GREEN if max_p > 0 else (colorText.FAIL if max_p < 0 else colorText.WARN)}{max_p} %{colorText.END}"
+                    scanType = str(insights['ScanType'].iloc[insights[f'{prd}D-%'].idxmax()]).replace('[SUM]','').split('(')[0]
+                    strategy[f'{prd}D'] = scanType
+                except:
+                    pass
             insights_list = [strategy,strategy_percent]
             insights= pd.DataFrame(insights_list)
     return insights
