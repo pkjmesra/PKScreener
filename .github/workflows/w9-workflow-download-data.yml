@@ -89,7 +89,6 @@ jobs:
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
           pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
@@ -104,7 +103,6 @@ jobs:
     - name: Install TA-Lib for Linux
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
-        pip3 install requests
         cd .github/dependencies/
         pwd
         tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -119,6 +117,7 @@ jobs:
       shell: bash
       id: releaseurlsetter
       run: |
+        pip3 install requests
         python3 .github/workflows/githubutilities.py -d
 
     - name: Download latest executable on Windows
