@@ -609,6 +609,11 @@ class tools:
                 )
         return nextRun
 
+    def set_github_output(name, value):
+        if "GITHUB_OUTPUT" in os.environ.keys():
+            with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+                print(f"{name}={value}", file=fh)
+
     def afterMarketStockDataExists(intraday=False, forceLoad=False):
         curr = tools.currentDateTime()
         openTime = curr.replace(hour=9, minute=15)
