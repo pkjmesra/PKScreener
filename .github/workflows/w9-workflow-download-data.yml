@@ -169,7 +169,7 @@ jobs:
       if: startsWith(runner.os, 'Windows')
       shell: cmd
       run: |
-        copy results/*stock_data_*.pkl actions-data-download
+        copy results\*.pkl actions-data-download
         # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }}
         # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }}
   

@@ -51,13 +51,21 @@ on:
         required: false
         type: string
         default: '3.11'
+      runson:
+          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          required: false
+          default: 'ubuntu-20.04'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N)'
+        required: false
+        default: 'N'
 
 run-name: ${{ inputs.name }} Backtest for Generic params- ${{ inputs.params }}
 
 jobs:
 
   Generic:
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
     outputs:
       runIdentifier: ${{ github.event.inputs.id }}
     steps:
@@ -70,15 +78,30 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion || 3.11 }}
 
-    - name: Restore Dependencies from Cache
+    - name: Restore Dependencies from Windows Cache
+      if: startsWith(runner.os, 'Windows')
       uses: actions/cache@v2
       with:
         path: ~\AppData\Local\pip\Cache
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-
-    - name: Install TA-Lib
+  
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+            
+    - name: Install TA-Lib for Windows
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
@@ -92,12 +115,43 @@ jobs:
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
           pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
-
-    - name: Install Python Dependencies
+  
+    - name: Install TA-Lib for Linux
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
-        pip3 install -r requirements.txt
-        pip3 install -r requirements-dev.txt
-        pip3 install .
+        cd .github/dependencies/
+        pwd
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib/
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib==0.4.28
+
+    - name: Environment setup to get latest EXE
+      shell: bash
+      id: releaseurlsetter
+      run: |
+        pip3 install requests
+        python3 .github/workflows/githubutilities.py -d
+  
+    - name: Download latest executable on Windows
+      shell: cmd
+      if: startsWith(runner.os, 'Windows')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o pkscreenercli.exe -JL %exe_path%
+
+    - name: Download latest executable on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin
       
     - name: Configure .env.dev file
       shell: bash
@@ -114,29 +168,47 @@ jobs:
         NOTIFY_USER : ${{ inputs.user }}
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
+          pip3 install PKDevTools
           python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello! The workflow('+os.environ['BACKTEST_NAME']+') has been triggered for backtesting (https://github.com/pkjmesra/PKScreener/actions).Results will be updated at https://pkjmesra.github.io/PKScreener/BacktestReports.html when workflow gets over. You can also check directly at https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_Summary_StockSorted.html for summary and https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_'+os.environ['BACKTEST_NAME']+'_backtest_result_StockSorted.html for details.', userID=os.environ['NOTIFY_USER']);"
           
-    - name: Run backtest
+    - name: Run backtest on Windows
       shell: cmd
       continue-on-error: true
+      if: startsWith(runner.os, 'Windows')
       env:
         RUNNER : "GitHub_Actions"
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
+        pkscreenercli.exe -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        copy /Y results\*.html Backtest-Reports
         #rmdir /s /q Backtest-Reports
         #mkdir Backtest-Reports
-        python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        # python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
 
+    - name: Run backtest on Linux
+      shell: bash
+      continue-on-error: true
+      if: startsWith(runner.os, 'Linux')
+      env:
+        RUNNER : "GitHub_Actions"
+        BACKTEST_NAME: ${{ inputs.name }}
+      run: |
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        cp results/*.html Backtest-Reports
+        #rmdir /s /q Backtest-Reports
+        #mkdir Backtest-Reports
+        # python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+  
     - name: Push backtest and summary reports
       continue-on-error: true
+      shell: bash
       run: |
-        copy "results/PKScreener_*.html" "Backtest-Reports"
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b gh-pages origin/gh-pages
+        # git checkout -b gh-pages origin/gh-pages
         git pull
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force
