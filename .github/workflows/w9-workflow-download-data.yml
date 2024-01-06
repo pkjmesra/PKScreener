@@ -35,7 +35,14 @@ on:
         required: false
         type: string
         default: '3.11'
-
+      runson:
+          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          required: false
+          default: 'ubuntu-20.04'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N)'
+        required: false
+        default: 'N'
   schedule:
   - cron: '58 9 * * 1-5'
 
@@ -43,7 +50,7 @@ jobs:
 
   Download_Stock_Data:
 
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -55,7 +62,8 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion  || 3.11 }}
 
-    - name: Restore Dependencies from Cache
+    - name: Restore Dependencies from Windows Cache
+      if: startsWith(runner.os, 'Windows')
       uses: actions/cache@v2
       with:
         path: ~\AppData\Local\pip\Cache
@@ -63,11 +71,24 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+          
+    - name: Install TA-Lib for Windows
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
           pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
@@ -79,49 +100,96 @@ jobs:
           pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
 
+    - name: Install TA-Lib for Linux
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
+      run: |
+        cd .github/dependencies/
+        pwd
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib/
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib==0.4.28
+
     - name: Environment setup to get latest EXE
-      shell: cmd
+      shell: bash
       id: releaseurlsetter
       run: |
+        pip3 install requests
         python3 .github/workflows/githubutilities.py -d
 
-    - name: Download latest executable
+    - name: Download latest executable on Windows
       shell: cmd
+      if: startsWith(runner.os, 'Windows')
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o pkscreenercli.exe -JL %exe_path%
 
-    - name: Download Stock Data
+    - name: Download latest executable on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin
+
+    - name: Run Scan on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      run: |
+        rm -rf actions-data-download
+        mkdir actions-data-download
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y -i 1m
+        cp results/*stock_data_*.pkl actions-data-download
+        ls -l results
+        ls -l actions-data-download
+
+    - name: Download 52 week Stock Data on Windows
+      if: startsWith(runner.os, 'Windows')
       shell: cmd
+      id: downloader
       run: |
         rmdir /s /q actions-data-download
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
-        copy results/stock_data_*.pkl "actions-data-download"
+            
+    - name: Download Intraday Stock Data on Windows
+      if: startsWith(runner.os, 'Windows')
+      shell: cmd
+      id: intradaydownloader
+      run: |
         pkscreenercli.exe -d -a Y -i 1m
-        copy results/intraday_stock_data_*.pkl "actions-data-download"
 
+    - name: Copy Stock Data Pickles on Windows
+      if: startsWith(runner.os, 'Windows')
+      shell: cmd
+      run: |
+        copy results\*.pkl actions-data-download
+        
     - name: Push Pickle Data
+      shell: bash
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
         git add actions-data-download/stock_data_*.pkl --force
         git add actions-data-download/intraday_stock_data_*.pkl --force
         git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
         git push -v -u origin +actions-data-download
 
     - name: Squash Commits (Python)
-      shell: cmd
+      shell: bash
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
         python3 .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
 
   Delete_Workflow_Run:
@@ -137,9 +205,11 @@ jobs:
         if: startsWith(runner.os, 'Linux')
         shell: bash
         run: |
-          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-          for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          gh run list --status success --limit 100 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+          gh run list --status cancelled --limit 100 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+          # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
+          # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
           # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
           # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
         env:
