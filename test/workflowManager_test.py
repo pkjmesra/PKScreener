@@ -33,68 +33,73 @@ from pkscreener.classes.WorkflowManager import run_workflow
 
 configManager = ConfigManager.tools()
 
+
 @pytest.fixture
 def mock_fetcher():
-    with patch.object(screenerStockDataFetcher, 'postURL') as mock_postURL:
+    with patch.object(screenerStockDataFetcher, "postURL") as mock_postURL:
         yield mock_postURL
+
 
 def test_run_workflow_positive(mock_fetcher):
     mock_fetcher.return_value.status_code = 204
-    _,_,_,ghp_token = get_secrets()
-    result = run_workflow("command", "user","options")
+    _, _, _, ghp_token = get_secrets()
+    result = run_workflow("command", "user", "options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options:D:D:D","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer "+ghp_token,
-            "Content-Type": "application/json"
-        }
+            "Authorization": "Bearer " + ghp_token,
+            "Content-Type": "application/json",
+        },
     )
+
 
 def test_run_workflow_negative(mock_fetcher):
     mock_fetcher.return_value.status_code = 400
-    _,_,_,ghp_token = get_secrets()
-    result = run_workflow("command", "user","options")
+    _, _, _, ghp_token = get_secrets()
+    result = run_workflow("command", "user", "options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options:D:D:D","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer "+ghp_token,
-            "Content-Type": "application/json"
-        }
+            "Authorization": "Bearer " + ghp_token,
+            "Content-Type": "application/json",
+        },
     )
+
 
 def test_run_workflow_edge(mock_fetcher):
     mock_fetcher.return_value.status_code = 200
-    _,_,_,ghp_token = get_secrets()
-    result = run_workflow("command", "user","options")
+    _, _, _, ghp_token = get_secrets()
+    result = run_workflow("command", "user", "options")
     assert result == mock_fetcher.return_value
     mock_fetcher.assert_called_once_with(
         "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
         data='{"ref":"main","inputs":{"user":"user","params":"options:D:D:D","name":"command"}}',
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer "+ghp_token,
-            "Content-Type": "application/json"
-        }
+            "Authorization": "Bearer " + ghp_token,
+            "Content-Type": "application/json",
+        },
     )
 
+
 def test_run_workflow_error(mock_fetcher):
-    _,_,_,ghp_token = get_secrets()
+    _, _, _, ghp_token = get_secrets()
     mock_fetcher.side_effect = Exception("Error")
     with pytest.raises(Exception):
-        result = run_workflow("command", "user","options")
+        result = run_workflow("command", "user", "options")
         assert result == mock_fetcher.side_effect
         mock_fetcher.assert_called_once_with(
             "https://api.github.com/repos/pkjmesra/PKScreener/actions/workflows/w13-workflow-backtest_generic.yml/dispatches",
             data='{"ref":"main","inputs":{"user":"user","params":"options","name":"command"}}',
             headers={
                 "Accept": "application/vnd.github+json",
-                "Authorization": "Bearer "+ghp_token,
-                "Content-Type": "application/json"
-            }
+                "Authorization": "Bearer " + ghp_token,
+                "Content-Type": "application/json",
+            },
         )

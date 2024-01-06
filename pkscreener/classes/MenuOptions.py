@@ -33,7 +33,7 @@ configManager = ConfigManager.tools()
 
 level0MenuDict = {
     "X": "Scanners",
-    # "S": "Strategies",
+    "S": "Strategies",
     "B": "Backtests",
     "G": "Growth of 10k",
     "T": "~",
@@ -132,6 +132,7 @@ level3_X_StockPerformance_MenuDict = {
     "3": "Long term",
     "0": "Cancel",
 }
+
 
 class MenuRenderStyle(Enum):
     STANDALONE = 1
@@ -290,11 +291,11 @@ class menus:
                 # next levelsub-menu of the selected sub-menu
                 if selectedMenu.menuKey == "6":
                     return self.renderLevel3_X_Reversal_Menus(
-                            skip=skip,
-                            asList=asList,
-                            renderStyle=renderStyle,
-                            parent=selectedMenu,
-                        )
+                        skip=skip,
+                        asList=asList,
+                        renderStyle=renderStyle,
+                        parent=selectedMenu,
+                    )
                 elif selectedMenu.menuKey == "7":
                     return self.renderLevel3_X_ChartPattern_Menus(
                         skip=skip,
@@ -321,7 +322,7 @@ class menus:
         if key is not None:
             try:
                 return self.menuDict[str(key).upper()]
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 return None
         return None
@@ -545,7 +546,9 @@ class menus:
         """
                 + colorText.END
             )
-            return menuText     
+            return menuText
+
+
 # Fundamentally good compnaies but nearing 52 week low
 # https://www.tickertape.in/screener/equity/prebuilt/SCR0005
 
