@@ -1021,7 +1021,6 @@ def main(userArgs=None):
                     selectedChoice["3"] = ".".join(listStockCodes)
                 if testing:
                     import random
-
                     listStockCodes = [random.choice(listStockCodes)]
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)

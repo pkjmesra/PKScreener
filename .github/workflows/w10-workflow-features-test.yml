@@ -28,7 +28,7 @@ env:
   package_name: pkscreener
 on:
   push:
-    branches: [ new-features, main ]
+    branches: [ new-features ]
 #   pull_request:
 #     branches: [ new-features ]
   workflow_dispatch:
