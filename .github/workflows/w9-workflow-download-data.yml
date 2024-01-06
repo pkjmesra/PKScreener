@@ -93,15 +93,18 @@ jobs:
         curl -o pkscreenercli.exe -JL %exe_path%
 
     - name: Download Stock Data
-      shell: bash
+      shell: cmd
       run: |
         rmdir /s /q actions-data-download
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
-        cp results/stock_data_*.pkl actions-data-download
+        dir
+        copy /Y D:/a/PKScreener/PKScreener/results/stock_data_*.pkl D:/a/PKScreener/PKScreener/actions-data-download/
         pkscreenercli.exe -d -a Y -i 1m
-        cp results/intraday_stock_data_*.pkl actions-data-download
-
+        copy /Y D:/a/PKScreener/PKScreener/results/intraday_stock_data_*.pkl D:/a/PKScreener/PKScreener/actions-data-download/
+        cd results
+        dir
+        
     - name: Push Pickle Data
       run: |
         git config user.name github-actions
