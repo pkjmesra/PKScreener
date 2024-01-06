@@ -93,14 +93,14 @@ jobs:
         curl -o pkscreenercli.exe -JL %exe_path%
 
     - name: Download Stock Data
-      shell: cmd
+      shell: bash
       run: |
         rmdir /s /q actions-data-download
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
-        copy results/stock_data_*.pkl "actions-data-download"
+        cp results/stock_data_*.pkl actions-data-download
         pkscreenercli.exe -d -a Y -i 1m
-        copy results/intraday_stock_data_*.pkl "actions-data-download"
+        cp results/intraday_stock_data_*.pkl actions-data-download
 
     - name: Push Pickle Data
       run: |
