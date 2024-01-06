@@ -116,7 +116,7 @@ jobs:
         pip3 install ta-lib==0.4.28
 
     - name: Environment setup to get latest EXE
-      shell: cmd
+      shell: bash
       id: releaseurlsetter
       run: |
         python3 .github/workflows/githubutilities.py -d
