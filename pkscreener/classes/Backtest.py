@@ -35,8 +35,16 @@ from pkscreener.classes.ConfigManager import parser, tools
 configManager = tools()
 configManager.getConfig(parser)
 
+
 def backtest(
-    stock, data, saveDict=None, screenedDict=None, periods=30, sampleDays=configManager.backtestPeriod, backTestedData=None, sellSignal=False
+    stock,
+    data,
+    saveDict=None,
+    screenedDict=None,
+    periods=30,
+    sampleDays=configManager.backtestPeriod,
+    backTestedData=None,
+    sellSignal=False,
 ):
     if stock == "" or data is None:
         print(f"No data/stock{(stock)} received for backtesting!")
@@ -61,7 +69,7 @@ def backtest(
     previous_recent.reset_index(inplace=True)
     if len(previous_recent) <= 0:
         return backTestedData
-    data = data.head(periods+1)
+    data = data.head(periods + 1)
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
     if backTestedData is None:
         backTestedData = pd.DataFrame(
@@ -105,7 +113,11 @@ def backtest(
         "30-Pd": "",
     }
     backTestedStock["Stock"] = stock
-    targetDate = previous_recent['Date'].iloc[0] if 'Date' in previous_recent.columns else str(previous_recent.iloc[:, 0][0])
+    targetDate = (
+        previous_recent["Date"].iloc[0]
+        if "Date" in previous_recent.columns
+        else str(previous_recent.iloc[:, 0][0])
+    )
     targetDate = targetDate.split(" ")[0]  # Date or index column
     backTestedStock["Date"] = targetDate
     backTestedStock["Consol."] = screenedDict["Consol."]
@@ -120,7 +132,10 @@ def backtest(
     backTestedStock["Pattern"] = screenedDict["Pattern"]
     backTestedStock["CCI"] = screenedDict["CCI"]
     today = Utility.tools.currentDateTime()
-    gap = Utility.tools.trading_days_between(Utility.tools.dateFromYmdString(targetDate).replace(tzinfo=today.tzinfo).date(),today.date())
+    gap = Utility.tools.trading_days_between(
+        Utility.tools.dateFromYmdString(targetDate).replace(tzinfo=today.tzinfo).date(),
+        today.date(),
+    )
     periods = gap if gap > periods else periods
     for prd in calcPeriods:
         if prd <= periods:
@@ -132,16 +147,14 @@ def backtest(
                 else:
                     colored_pct = colorText.FAIL if pct_change >= 0 else colorText.GREEN
                 backTestedStock[f"{abs(prd)}-Pd"] = (
-                    colored_pct
-                    + "%.2f%%" % pct_change
-                    + colorText.END
+                    colored_pct + "%.2f%%" % pct_change + colorText.END
                 )
             except Exception:
                 pass
         # Let's capture the portfolio data, if available
         try:
-            backTestedStock[f'LTP{prd}'] = saveDict[f'LTP{prd}']
-            backTestedStock[f'Growth{prd}'] = saveDict[f'Growth{prd}']
+            backTestedStock[f"LTP{prd}"] = saveDict[f"LTP{prd}"]
+            backTestedStock[f"Growth{prd}"] = saveDict[f"Growth{prd}"]
         except Exception:
             pass
         # else:
@@ -151,12 +164,13 @@ def backtest(
         #     except Exception:
         #         continue
     allStockBacktestData.append(backTestedStock)
-    df = pd.DataFrame(allStockBacktestData) #, columns=backTestedData.columns)
+    df = pd.DataFrame(allStockBacktestData)  # , columns=backTestedData.columns)
     try:
         backTestedData = pd.concat([backTestedData, df])
     except Exception:
         pass
     return backTestedData
+
 
 def backtestSummary(df):
     summary = {}
@@ -167,52 +181,76 @@ def backtestSummary(df):
     if df is None:
         return
     df.drop_duplicates()
-    df_grouped = df.groupby('Stock')
+    df_grouped = df.groupby("Stock")
     for col in df.keys():
-        if str(col).endswith('-Pd'):
-            overall[col] = [0,0]
+        if str(col).endswith("-Pd"):
+            overall[col] = [0, 0]
     # iterate over each group of stock rows
     for stock_name, df_group in df_grouped:
         # for row_index, row in df_group.iterrows():
         group_positives = 0
         group_negatives = 0
-        summary['Stock'] = stock_name
+        summary["Stock"] = stock_name
         for col in df_group.keys():
-            if str(col).endswith('-Pd'):
-                col_positives = df_group[col].astype(str).str.count(colorText.GREEN.replace('[','\[')).sum()
-                col_negatives = df_group[col].astype(str).str.count(colorText.FAIL.replace('[','\[')).sum()
+            if str(col).endswith("-Pd"):
+                col_positives = (
+                    df_group[col]
+                    .astype(str)
+                    .str.count(colorText.GREEN.replace("[", "\["))
+                    .sum()
+                )
+                col_negatives = (
+                    df_group[col]
+                    .astype(str)
+                    .str.count(colorText.FAIL.replace("[", "\["))
+                    .sum()
+                )
                 group_positives += col_positives
                 group_negatives += col_negatives
-                overall[col] = [overall[col][0] + col_positives, overall[col][1] + col_negatives]
-                overAllPeriodPrediction = (col_positives*100/(col_positives+col_negatives))
-                if col_positives+col_negatives == 0:
+                overall[col] = [
+                    overall[col][0] + col_positives,
+                    overall[col][1] + col_negatives,
+                ]
+                overAllPeriodPrediction = (
+                    col_positives * 100 / (col_positives + col_negatives)
+                )
+                if col_positives + col_negatives == 0:
                     summary[col] = "-"
                 else:
-                    summary[col] = f'{Utility.tools.formattedBacktestOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})'
-        overAllRowPrediction = (group_positives*100/(group_positives+group_negatives))
-        if group_positives+group_negatives == 0:
-            summary['Overall'] = "-"
+                    summary[
+                        col
+                    ] = f"{Utility.tools.formattedBacktestOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})"
+        overAllRowPrediction = (
+            group_positives * 100 / (group_positives + group_negatives)
+        )
+        if group_positives + group_negatives == 0:
+            summary["Overall"] = "-"
         else:
-            summary['Overall'] = f'{Utility.tools.formattedBacktestOutput(overAllRowPrediction)} of ({group_positives+group_negatives})'
+            summary[
+                "Overall"
+            ] = f"{Utility.tools.formattedBacktestOutput(overAllRowPrediction)} of ({group_positives+group_negatives})"
         summaryList.append(summary)
         summary = {}
         net_positives += group_positives
         net_negatives += group_negatives
-    
+
     # Now prepare overall summary
-    summary['Stock'] = 'SUMMARY'
+    summary["Stock"] = "SUMMARY"
     for col in overall.keys():
         col_positives = overall[col][0]
         col_negatives = overall[col][1]
-        if col_positives+col_negatives == 0:
+        if col_positives + col_negatives == 0:
             summary[col] = "-"
         else:
-            summary[col] = f'{Utility.tools.formattedBacktestOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})'
-    if net_positives+net_negatives == 0:
-        summary['Overall'] = "-"
+            summary[
+                col
+            ] = f"{Utility.tools.formattedBacktestOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})"
+    if net_positives + net_negatives == 0:
+        summary["Overall"] = "-"
     else:
-        summary['Overall'] = f'{Utility.tools.formattedBacktestOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})'
+        summary[
+            "Overall"
+        ] = f"{Utility.tools.formattedBacktestOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})"
     summaryList.append(summary)
     summary_df = pd.DataFrame(summaryList, columns=summary.keys())
     return summary_df
-

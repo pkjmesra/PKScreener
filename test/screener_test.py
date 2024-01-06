@@ -42,206 +42,1158 @@ from pkscreener.classes.Screener import tools
 def configManager():
     return ConfigManager.tools()
 
+
 @pytest.fixture
 def default_logger():
     return dl()
+
 
 @pytest.fixture
 def tools_instance(configManager, default_logger):
     return tools(configManager, default_logger)
 
+
 def test_find52WeekHighBreakout_positive(tools_instance):
-    data = pd.DataFrame({'High': [110, 60, 70, 80, 90, 100]})
+    data = pd.DataFrame({"High": [110, 60, 70, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == True
 
+
 def test_find52WeekHighBreakout_negative(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 80, 60, 60, 40,100,110,120,50,170]})
+    data = pd.DataFrame({"High": [50, 60, 80, 60, 60, 40, 100, 110, 120, 50, 170]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_edge(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]})
+    data = pd.DataFrame(
+        {
+            "High": [
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ]
+        }
+    )
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_nan_values(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, np.nan, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, np.nan, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_inf_values(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, np.inf, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, np.inf, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_negative_inf_values(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, -np.inf, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, -np.inf, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_last1WeekHigh_greater(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, 70, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 def test_find52WeekHighBreakout_previousWeekHigh_greater(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, 70, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
 
+
 def test_find52WeekHighBreakout_full52WeekHigh_greater(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90, 100]})
+    data = pd.DataFrame({"High": [50, 60, 70, 80, 90, 100]})
     assert tools_instance.find52WeekHighBreakout(data) == False
+
 
 # Positive test case for find52WeekLowBreakout function
 def test_find52WeekLowBreakout_positive(tools_instance):
-    data = pd.DataFrame({'Low': [10, 20, 30, 40, 50]})
+    data = pd.DataFrame({"Low": [10, 20, 30, 40, 50]})
     result = tools_instance.find52WeekLowBreakout(data)
     assert result == True
+
 
 # Negative test case for find52WeekLowBreakout function
 def test_find52WeekLowBreakout_negative(tools_instance):
-    data = pd.DataFrame({'Low': [50, 40, 30, 20, 10]})
+    data = pd.DataFrame({"Low": [50, 40, 30, 20, 10]})
     result = tools_instance.find52WeekLowBreakout(data)
     assert result == True
+
 
 # Edge test case for find52WeekLowBreakout function
 def test_find52WeekLowBreakout_edge(tools_instance):
-    data = pd.DataFrame({'Low': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]})
+    data = pd.DataFrame(
+        {
+            "Low": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ]
+        }
+    )
     result = tools_instance.find52WeekLowBreakout(data)
     assert result == True
 
+
 # Positive test case for find10DaysLowBreakout function
 def test_find10DaysLowBreakout_positive(tools_instance):
-    data = pd.DataFrame({'Low': [10, 20, 30, 40, 50]})
+    data = pd.DataFrame({"Low": [10, 20, 30, 40, 50]})
     result = tools_instance.find10DaysLowBreakout(data)
     assert result == True
+
 
 # Negative test case for find10DaysLowBreakout function
 def test_find10DaysLowBreakout_negative(tools_instance):
-    data = pd.DataFrame({'Low': [50, 40, 30, 20, 10]})
+    data = pd.DataFrame({"Low": [50, 40, 30, 20, 10]})
     result = tools_instance.find10DaysLowBreakout(data)
     assert result == False
+
 
 # Edge test case for find10DaysLowBreakout function
 def test_find10DaysLowBreakout_edge(tools_instance):
-    data = pd.DataFrame({'Low': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]})
+    data = pd.DataFrame(
+        {
+            "Low": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ]
+        }
+    )
     result = tools_instance.find10DaysLowBreakout(data)
     assert result == True
 
+
 # Positive test case for findAroonBullishCrossover function
 def test_findAroonBullishCrossover_positive(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90], 'Low': [10, 20, 30, 40, 50]})
+    data = pd.DataFrame({"High": [50, 60, 70, 80, 90], "Low": [10, 20, 30, 40, 50]})
     result = tools_instance.findAroonBullishCrossover(data)
     assert result == False
+
 
 # Negative test case for findAroonBullishCrossover function
 def test_findAroonBullishCrossover_negative(tools_instance):
-    data = pd.DataFrame({'High': [90, 80, 70, 60, 50], 'Low': [50, 40, 30, 20, 10]})
+    data = pd.DataFrame({"High": [90, 80, 70, 60, 50], "Low": [50, 40, 30, 20, 10]})
     result = tools_instance.findAroonBullishCrossover(data)
     assert result == False
+
 
 # Edge test case for findAroonBullishCrossover function
 def test_findAroonBullishCrossover_edge(tools_instance):
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 'Low': [50, 40, 30, 20, 10, 200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60]})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Low": [
+                50,
+                40,
+                30,
+                20,
+                10,
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+            ],
+        }
+    )
     result = tools_instance.findAroonBullishCrossover(data)
     assert result == False
 
+
 # Positive test case for findBreakoutValue function
 def test_findBreakoutValue_positive(tools_instance):
-    data = pd.DataFrame({'High': [50, 60, 70, 80, 90], 'Close': [40, 50, 60, 70, 80]})
+    data = pd.DataFrame({"High": [50, 60, 70, 80, 90], "Close": [40, 50, 60, 70, 80]})
     screenDict = {}
-    saveDict = {"Stock":"SBIN"}
+    saveDict = {"Stock": "SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    result = tools_instance.findBreakoutValue(
+        data, screenDict, saveDict, daysToLookback
+    )
     assert result == True
+
 
 # Negative test case for findBreakoutValue function
 def test_findBreakoutValue_negative(tools_instance):
-    data = pd.DataFrame({'High': [90, 80, 70, 60, 50], 'Close': [80, 70, 60, 50, 40], 'Open': [80, 70, 60, 50, 40]})
+    data = pd.DataFrame(
+        {
+            "High": [90, 80, 70, 60, 50],
+            "Close": [80, 70, 60, 50, 40],
+            "Open": [80, 70, 60, 50, 40],
+        }
+    )
     screenDict = {}
-    saveDict = {"Stock":"SBIN"}
+    saveDict = {"Stock": "SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    result = tools_instance.findBreakoutValue(
+        data, screenDict, saveDict, daysToLookback
+    )
     assert result == False
+
 
 # Edge test case for findBreakoutValue function
 def test_findBreakoutValue_edge(tools_instance):
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10]})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     screenDict = {}
-    saveDict = {"Stock":"SBIN"}
+    saveDict = {"Stock": "SBIN"}
     daysToLookback = 5
-    result = tools_instance.findBreakoutValue(data, screenDict, saveDict, daysToLookback)
+    result = tools_instance.findBreakoutValue(
+        data, screenDict, saveDict, daysToLookback
+    )
     assert result == False
+
 
 # Positive test case for findBullishIntradayRSIMACD function
 def test_findBullishIntradayRSIMACD_positive():
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10]})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Create an instance of the tools class
     tool = tools(None, None)
     # Call the function and assert the result
     assert tool.findBullishIntradayRSIMACD(data) == False
 
+
 # # Positive test case for findNR4Day function
 def test_findNR4Day_positive():
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Create an instance of the tools class
     tool = tools(None, None)
     # Call the function and assert the result
     assert tool.findNR4Day(data) == False
 
+
 # Positive test case for findReversalMA function
 def test_findReversalMA_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Call the function and assert the result
     assert tools_instance.findReversalMA(data, {}, {}, 3) == False
+
 
 # Positive test case for findTrend function
 def test_findTrend_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Call the function and assert the result
     assert tools_instance.findTrend(data, {}, {}, 10) == "Unknown"
+
 
 # Positive test case for findTrendlines function
 def test_findTrendlines_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
 
     # Call the function and assert the result
     assert tools_instance.findTrendlines(data, {}, {}) == True
 
+
 # Positive test case for getCandleType function
 def test_getCandleType_positive(tools_instance):
     # Mocking the dailyData
-    dailyData = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    dailyData = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Call the function and assert the result
     assert tools_instance.getCandleType(dailyData) == True
+
 
 # PositiveNiftyPrediction function
 def test_getNiftyPrediction_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Mocking the scaler
     scaler = MagicMock()
     pkl = {"columns": scaler}
@@ -251,7 +1203,12 @@ def test_getNiftyPrediction_positive(tools_instance):
     # Mocking the Utility class
     Utility.tools.getNiftyModel.return_value = (model, pkl)
     # Call the function and assert the result
-    assert tools_instance.getNiftyPrediction(data) == (ANY, "Market may Open BEARISH next day! Hold your Short position!", "Probability/Strength of Prediction = 100.0%")
+    assert tools_instance.getNiftyPrediction(data) == (
+        ANY,
+        "Market may Open BEARISH next day! Hold your Short position!",
+        "Probability/Strength of Prediction = 100.0%",
+    )
+
 
 # # Positive test case for monitorFiveEma function
 # def test_monitorFiveEma_positive():
@@ -285,39 +1242,281 @@ def test_getNiftyPrediction_positive(tools_instance):
 #     # Call the function and assert the result
 #     assert tool.monitorFiveEma(fetcher, result_df, last_signal) != result_df
 
+
 # Positive test case for preprocessData function
 def test_preprocessData_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200.1, 190.1, 180.1, 170.1, 160.1, 150.1, 140.1, 130.1, 120.1, 110.1, 100.1, 90.1, 80.1, 70.1, 60.1, 50.1, 40.1, 30.1, 20.1, 10.1],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Other': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
-   
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200.1,
+                190.1,
+                180.1,
+                170.1,
+                160.1,
+                150.1,
+                140.1,
+                130.1,
+                120.1,
+                110.1,
+                100.1,
+                90.1,
+                80.1,
+                70.1,
+                60.1,
+                50.1,
+                40.1,
+                30.1,
+                20.1,
+                10.1,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Other": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
+
     # Call the function and assert the result
     assert tools_instance.preprocessData(data, 10) is not None
+
 
 # Positive test case for validate15MinutePriceVolumeBreakout function
 def test_validate15MinutePriceVolumeBreakout_positive(tools_instance):
     # Mocking the data
-    data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-                         'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
-                         'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-                         'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
+    data = pd.DataFrame(
+        {
+            "High": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70,
+                80,
+                90,
+                100,
+                110,
+                120,
+                130,
+                140,
+                150,
+                160,
+                170,
+                180,
+                190,
+                200,
+            ],
+            "Open": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Close": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Low": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+            "Volume": [
+                200,
+                190,
+                180,
+                170,
+                160,
+                150,
+                140,
+                130,
+                120,
+                110,
+                100,
+                90,
+                80,
+                70,
+                60,
+                50,
+                40,
+                30,
+                20,
+                10,
+            ],
+        }
+    )
     # Call the function and assert the result
     assert tools_instance.validate15MinutePriceVolumeBreakout(data) == True
+
 
 # # Positive test case for validateBullishForTomorrow function
 # def test_validateBullishForTomorrow_positive(tools_instance):
 #     # Mocking the data
-#     data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200], 
-#                          'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10], 
+#     data = pd.DataFrame({'High': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
+#                          'Open': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
 #                          'Close': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
 #                          'Low': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
 #                          'Volume': [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10],})
-   
+
 #     # Call the function and assert the result
 #     assert tools_instance.validateBullishForTomorrow(data) == True
 
@@ -515,33 +1714,41 @@ def test_validate15MinutePriceVolumeBreakout_positive(tools_instance):
 #     # Call the function and assert the result
 #     assert tool.validateLowestVolume(data, 10) == False
 
+
 # Positive test case for validateLTP function
 def test_validateLTP_positive(tools_instance):
-    data = pd.DataFrame({'Close': [100, 110, 120]})
+    data = pd.DataFrame({"Close": [100, 110, 120]})
     screenDict = {}
     saveDict = {}
-    result, verifyStageTwo = tools_instance.validateLTP(data, screenDict, saveDict, minLTP=100, maxLTP=120)
+    result, verifyStageTwo = tools_instance.validateLTP(
+        data, screenDict, saveDict, minLTP=100, maxLTP=120
+    )
     assert result == True
     assert verifyStageTwo == True
-    assert screenDict['LTP'] == '\x1b[92m100.00\x1b[0m'
-    assert saveDict['LTP'] == 100
+    assert screenDict["LTP"] == "\x1b[92m100.00\x1b[0m"
+    assert saveDict["LTP"] == 100
+
 
 # Negative test case for validateLTP function
 def test_validateLTP_negative(tools_instance):
-    data = pd.DataFrame({'Close': [90, 95, 100]})
+    data = pd.DataFrame({"Close": [90, 95, 100]})
     screenDict = {}
     saveDict = {}
-    result, verifyStageTwo = tools_instance.validateLTP(data, screenDict, saveDict, minLTP=100, maxLTP=120)
+    result, verifyStageTwo = tools_instance.validateLTP(
+        data, screenDict, saveDict, minLTP=100, maxLTP=120
+    )
     assert result == False
     assert verifyStageTwo == True
-    assert screenDict['LTP'] == '\x1b[91m90.00\x1b[0m'
-    assert saveDict['LTP'] == 90
+    assert screenDict["LTP"] == "\x1b[91m90.00\x1b[0m"
+    assert saveDict["LTP"] == 90
+
 
 # Positive test case for validateMACDHistogramBelow0 function
 def test_validateMACDHistogramBelow0_positive(tools_instance):
-    data = pd.DataFrame({'Close': [100, 110, 120]})
+    data = pd.DataFrame({"Close": [100, 110, 120]})
     result = tools_instance.validateMACDHistogramBelow0(data)
     assert result == False
+
 
 # # Negative test case for validateMACDHistogramBelow0 function
 # def test_validateMACDHistogramBelow0_negative(tools_instance):
@@ -559,13 +1766,15 @@ def test_validateMACDHistogramBelow0_positive(tools_instance):
 #     assert screenDict['Pattern'] == '\x1b[1m\x1b[92mMomentum Gainer\x1b[0m'
 #     assert saveDict['Pattern'] == 'Momentum Gainer'
 
+
 # Negative test case for validateMomentum function
 def test_validateMomentum_negative(tools_instance):
-    data = pd.DataFrame({'Close': [100, 90, 80], 'Open': [110, 100, 90]})
+    data = pd.DataFrame({"Close": [100, 90, 80], "Open": [110, 100, 90]})
     screenDict = {}
     saveDict = {}
     result = tools_instance.validateMomentum(data, screenDict, saveDict)
     assert result == False
+
 
 # # Positive test case for validateMovingAverages function
 # def test_validateMovingAverages_positive(tools_instance):
@@ -604,49 +1813,66 @@ def test_validateMomentum_negative(tools_instance):
 #     result = tools_instance.validateNarrowRange(data, screenDict, saveDict, nr=2)
 #     assert result == False
 
+
 # Positiveed function
 def test_validateNewlyListed_positive(tools_instance):
-    data = pd.DataFrame({'Close': [100, 110, 120]})
-    result = tools_instance.validateNewlyListed(data, daysToLookback='2d')
+    data = pd.DataFrame({"Close": [100, 110, 120]})
+    result = tools_instance.validateNewlyListed(data, daysToLookback="2d")
     assert result == False
+
 
 # Negative test case for validateNewlyListed function
 def test_validateNewlyListed_negative(tools_instance):
-    data = pd.DataFrame({'Close': [100]})
-    result = tools_instance.validateNewlyListed(data, daysToLookback='2d')
+    data = pd.DataFrame({"Close": [100]})
+    result = tools_instance.validateNewlyListed(data, daysToLookback="2d")
     assert result == True
+
 
 @pytest.fixture
 def mock_data():
-    return pd.DataFrame({
-        'Close': [100, 105, 110, 115],
-        'RSI': [60, 65, 70, 75],
-        'FASTK': [30, 40, 50, 60],
-        'Open': [95, 100, 105, 110],
-        'High': [105, 110, 115, 120],
-        'Low': [95, 100, 105, 110],
-        'Volume': [1000, 2000, 3000, 4000],
-        'VolMA': [1500, 2000, 2500, 3000]
-    })
+    return pd.DataFrame(
+        {
+            "Close": [100, 105, 110, 115],
+            "RSI": [60, 65, 70, 75],
+            "FASTK": [30, 40, 50, 60],
+            "Open": [95, 100, 105, 110],
+            "High": [105, 110, 115, 120],
+            "Low": [95, 100, 105, 110],
+            "Volume": [1000, 2000, 3000, 4000],
+            "VolMA": [1500, 2000, 2500, 3000],
+        }
+    )
+
 
 @pytest.fixture
 def mock_screen_dict():
     return {}
 
+
 @pytest.fixture
 def mock_save_dict():
     return {}
+
 
 # def test_validatePriceRisingByAtLeast2Percent_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validatePriceRisingByAtLeast2Percent(mock_data, mock_screen_dict, mock_save_dict) == True
 #     assert mock_screen_dict["LTP"] == "\033[92m115.00 (5.0%, 4.8%, 4.3%)\033[0m"
 #     assert mock_save_dict["LTP"] == "115.00 (5.0%, 4.8%, 4.3%)"
 
-def test_validatePriceRisingByAtLeast2Percent_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
+
+def test_validatePriceRisingByAtLeast2Percent_negative(
+    mock_data, mock_screen_dict, mock_save_dict, tools_instance
+):
     mock_data["Close"] = [100, 105, 110, 112]
-    assert tools_instance.validatePriceRisingByAtLeast2Percent(mock_data, mock_screen_dict, mock_save_dict) == False
+    assert (
+        tools_instance.validatePriceRisingByAtLeast2Percent(
+            mock_data, mock_screen_dict, mock_save_dict
+        )
+        == False
+    )
     assert mock_screen_dict.get("LTP") is None
     assert mock_save_dict.get("LTP") is None
+
 
 # def test_validateRSI_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateRSI(mock_data, mock_screen_dict, mock_save_dict, 60, 80) == True
@@ -663,22 +1889,40 @@ def test_validatePriceRisingByAtLeast2Percent_negative(mock_data, mock_screen_di
 #     assert mock_screen_dict["MA-Signal"] == "\033[1m\033[92mBullish\033[0m"
 #     assert mock_save_dict["MA-Signal"] == "Bullish"
 
-def test_validateShortTermBullish_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
+
+def test_validateShortTermBullish_negative(
+    mock_data, mock_screen_dict, mock_save_dict, tools_instance
+):
     mock_data["FASTK"] = [70, 60, 50, 40]
-    assert tools_instance.validateShortTermBullish(mock_data, mock_screen_dict, mock_save_dict) == False
+    assert (
+        tools_instance.validateShortTermBullish(
+            mock_data, mock_screen_dict, mock_save_dict
+        )
+        == False
+    )
     assert mock_screen_dict.get("MA-Signal") is None
     assert mock_save_dict.get("MA-Signal") is None
+
 
 # def test_validateVCP_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateVCP(mock_data, mock_screen_dict, mock_save_dict, "Stock A", 3, 3) == True
 #     assert mock_screen_dict["Pattern"] == "\033[1m\033[92mVCP (BO: 115.0)\033[0m"
 #     assert mock_save_dict["Pattern"] == "VCP (BO: 115.0)"
 
-def test_validateVCP_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
+
+def test_validateVCP_negative(
+    mock_data, mock_screen_dict, mock_save_dict, tools_instance
+):
     mock_data["High"] = [105, 110, 115, 120]
-    assert tools_instance.validateVCP(mock_data, mock_screen_dict, mock_save_dict, "Stock A", 3, 3) == False
+    assert (
+        tools_instance.validateVCP(
+            mock_data, mock_screen_dict, mock_save_dict, "Stock A", 3, 3
+        )
+        == False
+    )
     assert mock_screen_dict.get("Pattern") is None
     assert mock_save_dict.get("Pattern") is None
+
 
 # def test_validateVolume_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
 #     assert tools_instance.validateVolume(mock_data, mock_screen_dict, mock_save_dict, 2.5) == True
@@ -697,7 +1941,7 @@ def test_validateVCP_negative(mock_data, mock_screen_dict, mock_save_dict, tools
 #     assert mock_save_dict["Pattern"] == "Supply Drought"
 
 # def test_validateVolumeSpreadAnalysis_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
-#     mock_data["Open"] = [100, 105, 110,]    
+#     mock_data["Open"] = [100, 105, 110,]
 #     assert tools_instance.validateVolumeSpreadAnalysis(mock_data, mock_screen_dict, mock_save_dict) == False
 #     assert mock_screen_dict.get("Pattern") == None
 #     assert mock_save_dict.get("Pattern") == None

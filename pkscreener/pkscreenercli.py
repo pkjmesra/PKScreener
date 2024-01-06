@@ -30,6 +30,7 @@ import argparse
 import builtins
 import logging
 import multiprocessing
+
 # Keep module imports prior to classes
 import os
 import sys
@@ -41,6 +42,7 @@ try:
     logging.getLogger("tensorflow").setLevel(logging.ERROR)
 except Exception:
     pass
+
 
 def decorator(func):
     def new_func(*args, **kwargs):
@@ -71,7 +73,7 @@ import pkscreener.classes.ConfigManager as ConfigManager
 
 multiprocessing.freeze_support()
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ['AUTOGRAPH_VERBOSITY'] = '0'
+os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 # from pkscreener.classes.IntradayMonitor import intradayMonitorInstance
 
 # Argument Parsing for test purpose
@@ -159,9 +161,11 @@ args = argsv[0]
 
 configManager = ConfigManager.tools()
 
+
 def logFilePath():
     try:
         from PKDevTools.classes import Archiver
+
         filePath = os.path.join(Archiver.get_user_outputs_dir(), "pkscreener-logs.txt")
         f = open(filePath, "w")
         f.write("Logger file for pkscreener!")
@@ -169,6 +173,7 @@ def logFilePath():
     except Exception:
         filePath = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
     return filePath
+
 
 def setupLogger(shouldLog=False, trace=False):
     if not shouldLog:
@@ -182,7 +187,9 @@ def setupLogger(shouldLog=False, trace=False):
             pass
     print("[+] Logs will be written to:")
     print(f"[+] {log_file_path}")
-    print("[+] If you need to share, open this folder, copy and zip the log file to share.")
+    print(
+        "[+] If you need to share, open this folder, copy and zip the log file to share."
+    )
     # logger = multiprocessing.log_to_stderr(log.logging.DEBUG)
     log.setup_custom_logger(
         "pkscreener",
@@ -191,18 +198,23 @@ def setupLogger(shouldLog=False, trace=False):
         log_file_path=log_file_path,
         filter=None,
     )
-    os.environ['PKDevTools_Default_Log_Level'] = str(log.logging.DEBUG)
+    os.environ["PKDevTools_Default_Log_Level"] = str(log.logging.DEBUG)
+
 
 def runApplication():
     from pkscreener.globals import main
+
     main(userArgs=args)
+
 
 def pkscreenercli():
     if sys.platform.startswith("darwin"):
         try:
             multiprocessing.set_start_method("fork")
         except RuntimeError:
-            print("[+] RuntimeError with 'multiprocessing'.\n[+] Please contact the Developer, if this does not work!")
+            print(
+                "[+] RuntimeError with 'multiprocessing'.\n[+] Please contact the Developer, if this does not work!"
+            )
             pass
     configManager.getConfig(ConfigManager.parser)
 
@@ -211,7 +223,7 @@ def pkscreenercli():
         if not args.prodbuild and args.answerdefault is None:
             input("Press <Enter> to continue...")
     else:
-        os.environ['PKDevTools_Default_Log_Level'] = str(log.logging.NOTSET)
+        os.environ["PKDevTools_Default_Log_Level"] = str(log.logging.NOTSET)
     # Import other dependency here because if we import them at the top
     # multiprocessing behaves in unpredictable ways
     import pkscreener.classes.Utility as Utility
@@ -236,7 +248,7 @@ def pkscreenercli():
     if args.options is not None and str(args.options) == "0":
         # Must be from unit tests to be able to break out of loops via eventing
         args.options = None
-        
+
     if args.testbuild and not args.prodbuild:
         print(
             colorText.BOLD
@@ -259,6 +271,7 @@ def pkscreenercli():
     else:
         runApplicationForScreening(Utility.tools)
 
+
 def runApplicationForScreening(tools):
     try:
         while True:
@@ -271,10 +284,13 @@ def runApplicationForScreening(tools):
         if args.v:
             return
         sys.exit(0)
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         default_logger().debug(e, exc_info=True)
-        print("[+] An error occurred! Please run with '-l' option to collect the logs.\n[+] For example, 'pkscreener -l' and then contact the developer!")
+        print(
+            "[+] An error occurred! Please run with '-l' option to collect the logs.\n[+] For example, 'pkscreener -l' and then contact the developer!"
+        )
         sys.exit(0)
+
 
 def scheduleNextRun(tools):
     sleepUntilNextExecution = not tools.isTradingTime()
@@ -298,26 +314,22 @@ def scheduleNextRun(tools):
             + colorText.END
         )
         if (tools.secondsAfterCloseTime() >= 3600) and (
-                            tools.secondsAfterCloseTime()
-                            <= (3600 + 1.5 * int(args.croninterval))
-                        ):
+            tools.secondsAfterCloseTime() <= (3600 + 1.5 * int(args.croninterval))
+        ):
             sleepUntilNextExecution = False
         if (tools.secondsBeforeOpenTime() <= -3600) and (
-                            tools.secondsBeforeOpenTime()
-                            >= (-3600 - 1.5 * int(args.croninterval))
-                        ):
+            tools.secondsBeforeOpenTime() >= (-3600 - 1.5 * int(args.croninterval))
+        ):
             sleepUntilNextExecution = False
         sleep(int(args.croninterval))
     print(
-        colorText.BOLD
-        + colorText.GREEN
-        + "=> Going to fetch again!"
-        + colorText.END,
+        colorText.BOLD + colorText.GREEN + "=> Going to fetch again!" + colorText.END,
         end="\r",
         flush=True,
     )
     sleep(3)
     runApplication()
+
 
 if __name__ == "__main__":
     pkscreenercli()

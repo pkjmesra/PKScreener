@@ -27,6 +27,7 @@ import os
 import platform
 
 from PKDevTools.classes import Archiver
+
 # argParser = argparse.ArgumentParser()
 # required = False
 # argParser.add_argument("-m", "--message", help="Commit message", required=required)
@@ -35,30 +36,50 @@ from PKDevTools.classes import Archiver
 # )
 # args = argParser.parse_known_args()
 
+
 def commitTempOutcomes(reportName):
     if "Windows" not in platform.system():
         return
     try:
-        if ('BACKTEST_NAME' not in os.environ.keys()) or ('RUNNER' not in os.environ.keys()):
-            print("This commit does not seem to have been triggered from GitHub Action! Ignoring...")
+        if ("BACKTEST_NAME" not in os.environ.keys()) or (
+            "RUNNER" not in os.environ.keys()
+        ):
+            print(
+                "This commit does not seem to have been triggered from GitHub Action! Ignoring..."
+            )
             return
     except Exception:
         return
 
-    execOSCommand(f"copy {os.path.join(Archiver.get_user_outputs_dir(),'PKScreener_*.html')} {os.path.join(os.getcwd(),'Backtest-Reports')}")
+    execOSCommand(
+        f"copy {os.path.join(Archiver.get_user_outputs_dir(),'PKScreener_*.html')} {os.path.join(os.getcwd(),'Backtest-Reports')}"
+    )
     execOSCommand("git config user.name github-actions")
     execOSCommand("git config user.email github-actions@github.com")
-    execOSCommand("git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'")
+    execOSCommand(
+        "git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'"
+    )
     execOSCommand("git remote update")
     execOSCommand("git fetch")
     execOSCommand("git pull")
-    execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_backtest_result_StockSorted.html --force")
-    execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Summary_StockSorted.html --force")
-    execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_OneLine_Summary.html --force")
-    execOSCommand(f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Insights_DateSorted.html --force")
-    execOSCommand(f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'")
+    execOSCommand(
+        f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_backtest_result_StockSorted.html --force"
+    )
+    execOSCommand(
+        f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Summary_StockSorted.html --force"
+    )
+    execOSCommand(
+        f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_OneLine_Summary.html --force"
+    )
+    execOSCommand(
+        f"git add {os.path.join(os.getcwd(),'Backtest-Reports')}/PKScreener_{reportName}_Insights_DateSorted.html --force"
+    )
+    execOSCommand(
+        f"git commit -m '[Temp-Commit]GitHub-Action-Workflow-Backtest-Reports-({reportName})'"
+    )
     execOSCommand("git pull")
     execOSCommand("git push -v -u origin +gh-pages")
+
 
 def execOSCommand(command):
     try:

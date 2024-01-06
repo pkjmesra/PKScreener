@@ -69,9 +69,15 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
-                          ContextTypes, ConversationHandler, MessageHandler,
-                          filters)
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
 # Enable logging
 logging.basicConfig(
@@ -143,7 +149,7 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show new choice of buttons"""
     query = update.callback_query
     data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
-    if data not in ["X", "B","G"]:
+    if data not in ["X", "B", "G"]:
         return start(update, context)
     midSkip = "1" if data == "X" else "N"
     menuText = (
@@ -173,7 +179,22 @@ async def XScanners(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     mns = m1.renderForMenu(
         m0.find(data),
-        skip=["W", "E", "M", "Z", "0", "2", midSkip, "3", "4", "6", "7", "9", "10", "13"],
+        skip=[
+            "W",
+            "E",
+            "M",
+            "Z",
+            "0",
+            "2",
+            midSkip,
+            "3",
+            "4",
+            "6",
+            "7",
+            "9",
+            "10",
+            "13",
+        ],
         asList=True,
     )
     inlineMenus = []
@@ -197,10 +218,12 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     mns = []
     query = update.callback_query
     await query.answer()
-    preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+    preSelection = (
+        query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+    )
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if selection[0].upper() not in ["X","B","G"]:
+    if selection[0].upper() not in ["X", "B", "G"]:
         return start(update, context)
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -544,7 +567,9 @@ async def Level2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
     elif len(selection) == 4:
-        preSelection = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+        preSelection = (
+            query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+        )
     optionChoices = ""
     if len(selection) <= 3:
         for mnu in mns:
@@ -609,21 +634,25 @@ async def sendUpdatedMenu(menuText, update: Update, context, reply_markup):
 async def launchScreener(options, user, context, optionChoices, update):
     try:
         if str(optionChoices.upper()).startswith("B"):
-            optionChoices = optionChoices.replace(" ","").replace(">","_")
-            while(optionChoices.endswith('_')):
+            optionChoices = optionChoices.replace(" ", "").replace(">", "_")
+            while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
-            run_workflow(optionChoices,str(user.id),str(options.upper()))
+            run_workflow(optionChoices, str(user.id), str(options.upper()))
         elif str(optionChoices.upper()).startswith("X"):
-            optionChoices = optionChoices.replace(" ","").replace(">","_")
-            while(optionChoices.endswith('_')):
+            optionChoices = optionChoices.replace(" ", "").replace(">", "_")
+            while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
-            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="X")
+            run_workflow(
+                optionChoices, str(user.id), str(options.upper()), workflowType="X"
+            )
         elif str(optionChoices.upper()).startswith("G"):
-            optionChoices = optionChoices.replace(" ","").replace(">","_")
-            while(optionChoices.endswith('_')):
+            optionChoices = optionChoices.replace(" ", "").replace(">", "_")
+            while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
-            options = options.upper().replace("G","G:3").replace("::",":D:D:D")
-            run_workflow(optionChoices,str(user.id),str(options.upper()),workflowType="G")
+            options = options.upper().replace("G", "G:3").replace("::", ":D:D:D")
+            run_workflow(
+                optionChoices, str(user.id), str(options.upper()), workflowType="G"
+            )
             # Popen(
             #     [
             #         "pkscreener",
@@ -731,7 +760,9 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         try:
             if "telegram.error.Conflict" not in tb_string:
                 await context.bot.send_message(
-                    chat_id=int(f"-{Channel_Id}"), text=tb_string, parse_mode=ParseMode.HTML
+                    chat_id=int(f"-{Channel_Id}"),
+                    text=tb_string,
+                    parse_mode=ParseMode.HTML,
                 )
         except Exception:
             print(tb_string)
@@ -760,7 +791,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if cmd == "help":
         await help_command(update=update, context=context)
         return START_ROUTES
-    if cmd in ["x","b","g"]:
+    if cmd in ["x", "b", "g"]:
         await shareUpdateWithChannel(update=update, context=context)
         m0.renderForMenu(
             selectedMenu=None,
@@ -771,12 +802,14 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         cmdText = ""
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z","N","0"]),
+            skip=(
+                ["W", "E", "M", "Z"] if cmd in ["x"] else ["W", "E", "M", "Z", "N", "0"]
+            ),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for cmd in cmds:
-            if cmd in ["N","0"]:
+            if cmd in ["N", "0"]:
                 continue
             cmdText = (
                 f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
@@ -795,7 +828,12 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         shouldScan = False
         if len(args) > 0:
             shouldScan = True
-            selection = [cmd.split("_")[0].upper(), "0", "0", f"{','.join(args)}".replace(" ", "")]
+            selection = [
+                cmd.split("_")[0].upper(),
+                "0",
+                "0",
+                f"{','.join(args)}".replace(" ", ""),
+            ]
         if shouldScan:
             options = ":".join(selection)
             await launchScreener(
@@ -826,7 +864,11 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
+                skip=(
+                    ["W", "E", "M", "Z"]
+                    if "x_" in cmd
+                    else ["W", "E", "M", "Z", "N", "0"]
+                ),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -842,7 +884,9 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 )
                 await sendRequestSubmitted(cmd.upper(), update=update, context=context)
                 return START_ROUTES
-            elif "x_" in cmd and selectedMenu.menuKey == "0":  # a specific stock by name
+            elif (
+                "x_" in cmd and selectedMenu.menuKey == "0"
+            ):  # a specific stock by name
                 cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,)."
                 """Send a message when the command /help is issued."""
                 await update.message.reply_text(f"Choose an option:\n{cmdText}")
@@ -879,7 +923,11 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             selectedMenu = m0.find(selection[0].upper())
             m1.renderForMenu(
                 selectedMenu=selectedMenu,
-                skip=(["W", "E", "M", "Z"] if "x_" in cmd else ["W", "E", "M", "Z","N","0"]),
+                skip=(
+                    ["W", "E", "M", "Z"]
+                    if "x_" in cmd
+                    else ["W", "E", "M", "Z", "N", "0"]
+                ),
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -940,7 +988,7 @@ async def command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     "21",
                     "22",
                     "23",
-                    "24"
+                    "24",
                 ]:  # Vol gainer ratio
                     selection.extend(["", ""])
         if len(selection) >= 4:
@@ -1009,6 +1057,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         chat_id=int(f"-{Channel_Id}"), text=message, parse_mode=ParseMode.HTML
     )
 
+
 def _shouldAvoidResponse(update):
     sentFrom = []
     if update.callback_query is not None:
@@ -1026,11 +1075,13 @@ def _shouldAvoidResponse(update):
             sentFrom.append(abs(update.channel_post.sender_chat.id))
             sentFrom.append(update.channel_post.sender_chat.username)
 
-    if abs(int(Channel_Id)) in sentFrom or \
-        abs(int(GROUP_CHAT_ID)) in sentFrom or \
-        "GroupAnonymousBot" in sentFrom or \
-        "PKScreener" in sentFrom or \
-        "PKScreeners" in sentFrom:
+    if (
+        abs(int(Channel_Id)) in sentFrom
+        or abs(int(GROUP_CHAT_ID)) in sentFrom
+        or "GroupAnonymousBot" in sentFrom
+        or "PKScreener" in sentFrom
+        or "PKScreeners" in sentFrom
+    ):
         # We want to avoid sending any help message back to channel
         # or group in response to our own messages
         return True
@@ -1050,15 +1101,19 @@ def addCommandsForMenuItems(application):
         selectedMenu = m0.find(p0)
         cmds1 = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z","N","0"]),
+            skip=(
+                ["W", "E", "M", "Z"] if p0 == "X" else ["W", "E", "M", "Z", "N", "0"]
+            ),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for mnu1 in cmds1:
             p1 = mnu1.menuKey.upper()
-            if p1 in ["N","0"]:
+            if p1 in ["N", "0"]:
                 if p1 in ["N"]:
-                    application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
+                    application.add_handler(
+                        CommandHandler(f"{p0}_{p1}", command_handler)
+                    )
                 continue
             application.add_handler(CommandHandler(f"{p0}_{p1}", command_handler))
             selectedMenu = m1.find(p1)
@@ -1102,7 +1157,7 @@ def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id
-    Channel_Id, TOKEN, chat_idADMIN,GITHUB_TOKEN = get_secrets()
+    Channel_Id, TOKEN, chat_idADMIN, GITHUB_TOKEN = get_secrets()
     # TOKEN = '1234567'
     # Channel_Id = 1001785195297
     application = Application.builder().token(TOKEN).build()

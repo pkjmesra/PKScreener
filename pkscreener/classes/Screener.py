@@ -58,13 +58,16 @@ class DownloadDataOnly(Exception):
 class NotNewlyListed(Exception):
     pass
 
+
 # Exception for stocks which are not stage two
 class NotAStageTwoStock(Exception):
     pass
 
+
 # Exception for stocks which are low in volume as per configuration of 'minimumVolume'
 class NotEnoughVolumeAsPerConfig(Exception):
     pass
+
 
 # Exception for newly listed stocks with candle nos < daysToLookback
 class StockDataNotAdequate(Exception):
@@ -76,7 +79,7 @@ class tools:
     def __init__(self, configManager, default_logger) -> None:
         self.configManager = configManager
         self.default_logger = default_logger
- 
+
     # Find stocks that have broken through 52 week low.
     def find52WeekHighBreakout(self, data):
         # https://chartink.com/screener/52-week-low-breakout
@@ -85,42 +88,54 @@ class tools:
         one_week = 5
         recent = data.head(1)["High"].iloc[0]
         last1Week = data.head(one_week)
-        last2Week = data.head(2*one_week)
+        last2Week = data.head(2 * one_week)
         previousWeek = last2Week.tail(one_week)
-        full52Week = data.head(50*one_week)
+        full52Week = data.head(50 * one_week)
         last1WeekHigh = last1Week["High"].max()
         previousWeekHigh = previousWeek["High"].max()
         full52WeekHigh = full52Week["High"].max()
-        return (recent >= full52WeekHigh) or (last1WeekHigh >= max(full52WeekHigh,last1WeekHigh)) or (last1WeekHigh >= previousWeekHigh >= max(full52WeekHigh,previousWeekHigh))
-    
+        return (
+            (recent >= full52WeekHigh)
+            or (last1WeekHigh >= max(full52WeekHigh, last1WeekHigh))
+            or (
+                last1WeekHigh
+                >= previousWeekHigh
+                >= max(full52WeekHigh, previousWeekHigh)
+            )
+        )
+
     # Find stocks' 52 week high/low.
     def find52WeekHighLow(self, data, saveDict, screenDict):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        week_52 = one_week * 50 # Considering holidays etc as well of 10 days
-        full52Week = data.head(week_52 +1).tail(week_52)
+        week_52 = one_week * 50  # Considering holidays etc as well of 10 days
+        full52Week = data.head(week_52 + 1).tail(week_52)
         recentHigh = data.head(1)["High"].iloc[0]
         recentLow = data.head(1)["Low"].iloc[0]
         full52WeekHigh = full52Week["High"].max()
         full52WeekLow = full52Week["Low"].min()
-        
-        saveDict["52Wk H"] = '{:.2f}'.format(full52WeekHigh)
-        saveDict["52Wk L"] = '{:.2f}'.format(full52WeekLow)
+
+        saveDict["52Wk H"] = "{:.2f}".format(full52WeekHigh)
+        saveDict["52Wk L"] = "{:.2f}".format(full52WeekLow)
         if recentHigh >= full52WeekHigh:
             highColor = colorText.GREEN
-        elif recentHigh >= 0.9*full52WeekHigh:
+        elif recentHigh >= 0.9 * full52WeekHigh:
             highColor = colorText.WARN
         else:
             highColor = colorText.FAIL
         if recentLow <= full52WeekLow:
             lowColor = colorText.FAIL
-        elif recentLow <= 1.1*full52WeekLow:
+        elif recentLow <= 1.1 * full52WeekLow:
             lowColor = colorText.WARN
         else:
             lowColor = colorText.GREEN
-        screenDict["52Wk H"] = f"{highColor}{str('{:.2f}'.format(full52WeekHigh))}{colorText.END}"
-        screenDict["52Wk L"] = f"{lowColor}{str('{:.2f}'.format(full52WeekLow))}{colorText.END}"
+        screenDict[
+            "52Wk H"
+        ] = f"{highColor}{str('{:.2f}'.format(full52WeekHigh))}{colorText.END}"
+        screenDict[
+            "52Wk L"
+        ] = f"{lowColor}{str('{:.2f}'.format(full52WeekLow))}{colorText.END}"
 
     # Find stocks that have broken through 52 week low.
     def find52WeekLowBreakout(self, data):
@@ -130,34 +145,42 @@ class tools:
         one_week = 5
         recent = data.head(1)["Low"].iloc[0]
         last1Week = data.head(one_week)
-        last2Week = data.head(2*one_week)
+        last2Week = data.head(2 * one_week)
         previousWeek = last2Week.tail(one_week)
-        full52Week = data.head(50*one_week)
+        full52Week = data.head(50 * one_week)
         last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
         full52WeekLow = full52Week["Low"].min()
-        return (recent <= full52WeekLow) or (last1WeekLow <= min(full52WeekLow,last1WeekLow)) or (last1WeekLow <= previousWeekLow <= min(full52WeekLow,previousWeekLow))
-    
+        return (
+            (recent <= full52WeekLow)
+            or (last1WeekLow <= min(full52WeekLow, last1WeekLow))
+            or (last1WeekLow <= previousWeekLow <= min(full52WeekLow, previousWeekLow))
+        )
+
         # Find stocks that have broken through 52 week low.
+
     def find10DaysLowBreakout(self, data):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
         recent = data.head(1)["Low"].iloc[0]
         last1Week = data.head(one_week)
-        last2Week = data.head(2*one_week)
+        last2Week = data.head(2 * one_week)
         previousWeek = last2Week.tail(one_week)
         last1WeekLow = last1Week["Low"].min()
         previousWeekLow = previousWeek["Low"].min()
-        return (recent <= min(previousWeekLow,last1WeekLow)) and (last1WeekLow <= previousWeekLow)
-    
+        return (recent <= min(previousWeekLow, last1WeekLow)) and (
+            last1WeekLow <= previousWeekLow
+        )
+
         # Find stocks that have broken through 52 week low.
+
     def findAroonBullishCrossover(self, data):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         period = 14
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        aroondf = pktalib.Aroon(data['High'],data['Low'], period)
+        aroondf = pktalib.Aroon(data["High"], data["Low"], period)
         recent = aroondf.tail(1)
         up = recent[f"AROONU_{period}"].iloc[0]
         down = recent[f"AROOND_{period}"].iloc[0]
@@ -174,14 +197,20 @@ class tools:
         totalCandleHeight = 0
         candle = 0
         while candle < 10:
-            candle +=1
-            candleHeight =  abs(self.getCandleBodyHeight(data[candle:]))
+            candle += 1
+            candleHeight = abs(self.getCandleBodyHeight(data[candle:]))
             totalCandleHeight += candleHeight
-        
-        return (recentCandleHeight > 0 and totalCandleHeight > 0 and (recentCandleHeight >= 3*(float(totalCandleHeight/candle))))
+
+        return (
+            recentCandleHeight > 0
+            and totalCandleHeight > 0
+            and (recentCandleHeight >= 3 * (float(totalCandleHeight / candle)))
+        )
 
     # Find accurate breakout value
-    def findBreakoutValue(self, data, screenDict, saveDict, daysToLookback,alreadyBrokenout=False):
+    def findBreakoutValue(
+        self, data, screenDict, saveDict, daysToLookback, alreadyBrokenout=False
+    ):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
@@ -237,7 +266,7 @@ class tools:
                         + colorText.GREEN
                         + "BO: "
                         + str(maxHigh)
-                         + " R: 0"
+                        + " R: 0"
                         + colorText.END
                     )
                     self.default_logger.info(
@@ -248,7 +277,12 @@ class tools:
                     f'Stock:{saveDict["Stock"]}, does not have a breakout yet because recent-close ({recentClose}) < max-high ({maxHigh})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.FAIL + "BO: " + str(maxHigh)  + " R: 0" + colorText.END
+                    colorText.BOLD
+                    + colorText.FAIL
+                    + "BO: "
+                    + str(maxHigh)
+                    + " R: 0"
+                    + colorText.END
                 )
                 return not alreadyBrokenout
             saveDict["Breakout"] = "BO: " + str(maxClose) + " R: " + str(maxHigh)
@@ -286,14 +320,24 @@ class tools:
                     f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) >= max-close ({maxClose})'
                 )
                 screenDict["Breakout"] = (
-                    colorText.BOLD + colorText.GREEN + "BO: " + str(maxClose)  + " R: 0" + colorText.END
+                    colorText.BOLD
+                    + colorText.GREEN
+                    + "BO: "
+                    + str(maxClose)
+                    + " R: 0"
+                    + colorText.END
                 )
                 return True and alreadyBrokenout and self.getCandleType(recent)
             self.default_logger.info(
                 f'Stock:{saveDict["Stock"]}, has a breakout because recent-close ({recentClose}) < max-close ({maxClose})'
             )
             screenDict["Breakout"] = (
-                colorText.BOLD + colorText.FAIL + "BO: " + str(maxClose)  + " R: 0" + colorText.END
+                colorText.BOLD
+                + colorText.FAIL
+                + "BO: "
+                + str(maxClose)
+                + " R: 0"
+                + colorText.END
             )
             return not alreadyBrokenout
 
@@ -342,10 +386,10 @@ class tools:
         return cond6
 
     # Find potential breakout stocks
-    # This scanner filters stocks whose current close price + 5% is higher 
-    # than the highest High price in past 200 candles and the maximum high 
-    # in the previous 30 candles is lower than the highest high made in the 
-    # previous 200 candles, starting from the previous 30th candle. At the 
+    # This scanner filters stocks whose current close price + 5% is higher
+    # than the highest High price in past 200 candles and the maximum high
+    # in the previous 30 candles is lower than the highest high made in the
+    # previous 200 candles, starting from the previous 30th candle. At the
     # same time the current candle volume is higher than 200 SMA of volume.
     def findPotentialBreakout(self, data, screenDict, saveDict, daysToLookback):
         data = data.fillna(0)
@@ -363,19 +407,30 @@ class tools:
         data["SMA200V"] = vol["Volume"]
         recent = data.tail(1)
         sma200v = recent["SMA200V"].iloc[0]
-        if np.isnan(recentClose) or np.isnan(highestHigh200) or np.isnan(highestHigh30) or np.isnan(highestHigh200From30) or np.isnan(recentVolume) or np.isnan(sma200v):
+        if (
+            np.isnan(recentClose)
+            or np.isnan(highestHigh200)
+            or np.isnan(highestHigh30)
+            or np.isnan(highestHigh200From30)
+            or np.isnan(recentVolume)
+            or np.isnan(sma200v)
+        ):
             return False
-        if (recentClose > highestHigh200) and (highestHigh30 < highestHigh200From30) and (recentVolume > sma200v):
+        if (
+            (recentClose > highestHigh200)
+            and (highestHigh30 < highestHigh200From30)
+            and (recentVolume > sma200v)
+        ):
             saveDict["Breakout"] = saveDict["Breakout"] + "(Potential)"
             screenDict["Breakout"] = screenDict["Breakout"] + (
                 colorText.BOLD + colorText.GREEN + " (Potential)" + colorText.END
             )
             return True
         return False
-    
+
     # Find stock reversing at given MA
     def findReversalMA(self, data, screenDict, saveDict, maLength, percentage=0.02):
-        maRange = [10,20,50,200]
+        maRange = [10, 20, 50, 200]
         results = []
         hasReversals = False
         data = data[::-1]
@@ -386,7 +441,7 @@ class tools:
             else:
                 maRev = pktalib.MA(dataCopy["Close"], timeperiod=maLength)
             try:
-                dataCopy.drop('maRev', axis=1, inplace=True, errors='ignore')
+                dataCopy.drop("maRev", axis=1, inplace=True, errors="ignore")
             except Exception:
                 pass
             dataCopy.insert(len(dataCopy.columns), "maRev", maRev)
@@ -394,21 +449,28 @@ class tools:
             if (
                 dataCopy.equals(
                     dataCopy[
-                        (dataCopy.Close >= (dataCopy.maRev - (dataCopy.maRev * percentage)))
-                        & (dataCopy.Close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))
+                        (
+                            dataCopy.Close
+                            >= (dataCopy.maRev - (dataCopy.maRev * percentage))
+                        )
+                        & (
+                            dataCopy.Close
+                            <= (dataCopy.maRev + (dataCopy.maRev * percentage))
+                        )
                     ]
                 )
-                and dataCopy.head(1)["Close"].iloc[0] >= dataCopy.head(1)["maRev"].iloc[0]
+                and dataCopy.head(1)["Close"].iloc[0]
+                >= dataCopy.head(1)["maRev"].iloc[0]
             ):
                 hasReversals = True
                 results.append(str(maLength))
         if hasReversals:
             screenDict["MA-Signal"] = (
-                    colorText.BOLD
-                    + colorText.GREEN
-                    + f"Reversal-[{','.join(results)}]MA"
-                    + colorText.END
-                )
+                colorText.BOLD
+                + colorText.GREEN
+                + f"Reversal-[{','.join(results)}]MA"
+                + colorText.END
+            )
             saveDict["MA-Signal"] = f"Reversal-[{','.join(results)}]MA"
         return hasReversals
 
@@ -439,8 +501,10 @@ class tools:
                 #     raise StockDataNotAdequate
                 data = data.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna()
                 if len(data["tops"][data.tops > 0]) > 1:
-                    slope = np.polyfit(data.index[data.tops > 0], data["tops"][data.tops > 0], 1)[0]
-                else: 
+                    slope = np.polyfit(
+                        data.index[data.tops > 0], data["tops"][data.tops > 0], 1
+                    )[0]
+                else:
                     slope = 0
             except np.linalg.LinAlgError as e:
                 self.default_logger.debug(e, exc_info=True)
@@ -449,7 +513,7 @@ class tools:
                 )
                 saveDict["Trend"] = "Unknown"
                 return saveDict["Trend"]
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 slope, _ = 0, 0
             angle = np.rad2deg(np.arctan(slope))
@@ -515,7 +579,7 @@ class tools:
                 slope, intercept, r_value, p_value, std_err = linregress(
                     x=data_low["Number"], y=data_low["Low"]
                 )
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 continue
             data_low = data_low.loc[
@@ -636,9 +700,7 @@ class tools:
 
         return pred, predictionText.replace(out, outText), strengthText
 
-    def monitorFiveEma(
-        self, fetcher, result_df, last_signal, risk_reward=3
-    ):
+    def monitorFiveEma(self, fetcher, result_df, last_signal, risk_reward=3):
         col_names = ["High", "Low", "Close", "5EMA"]
         data_list = ["nifty_buy", "banknifty_buy", "nifty_sell", "banknifty_sell"]
 
@@ -745,7 +807,7 @@ class tools:
                             axis=0,
                         )
                         result_df.reset_index(drop=True, inplace=True)
-                    except Exception as e: # pragma: no cover
+                    except Exception as e:  # pragma: no cover
                         self.default_logger.debug(e, exc_info=True)
                         pass
                     # Then update
@@ -820,16 +882,28 @@ class tools:
         macdLine = pktalib.MACD(data["Close"], 12, 26, 9)[0].tail(3)
         macdSignal = pktalib.MACD(data["Close"], 12, 26, 9)[1].tail(3)
         macdHist = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(3)
-        
+
         return (
-                (macdHist.iloc[:1].iloc[0] < macdHist.iloc[:2].iloc[1]) and
-                (macdHist.iloc[:3].iloc[2] > macdHist.iloc[:2].iloc[1]) and
-                ((macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2]) - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) >= 0.4) and
-                ((macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) - (macdLine.iloc[:1].iloc[0] - macdSignal.iloc[:1].iloc[0]) <= 0.2) and
-                (macdLine.iloc[:3].iloc[2] > macdSignal.iloc[:3].iloc[2]) and
-                ((macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2]) - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1]) < 1)
-                )
-    
+            (macdHist.iloc[:1].iloc[0] < macdHist.iloc[:2].iloc[1])
+            and (macdHist.iloc[:3].iloc[2] > macdHist.iloc[:2].iloc[1])
+            and (
+                (macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2])
+                - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1])
+                >= 0.4
+            )
+            and (
+                (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1])
+                - (macdLine.iloc[:1].iloc[0] - macdSignal.iloc[:1].iloc[0])
+                <= 0.2
+            )
+            and (macdLine.iloc[:3].iloc[2] > macdSignal.iloc[:3].iloc[2])
+            and (
+                (macdLine.iloc[:3].iloc[2] - macdSignal.iloc[:3].iloc[2])
+                - (macdLine.iloc[:2].iloc[1] - macdSignal.iloc[:2].iloc[1])
+                < 1
+            )
+        )
+
     # validate if CCI is within given range
     def validateCCI(self, data, screenDict, saveDict, minCCI, maxCCI):
         data = data.fillna(0)
@@ -852,9 +926,14 @@ class tools:
     # Find Conflucence
     def validateConfluence(self, stock, data, screenDict, saveDict, percentage=0.1):
         recent = data.head(1)
-        if abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0]) <= (recent["SMA"].iloc[0] * percentage):
+        if abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0]) <= (
+            recent["SMA"].iloc[0] * percentage
+        ):
             difference = round(
-                abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0]) / recent["Close"].iloc[0] * 100, 2
+                abs(recent["SMA"].iloc[0] - recent["LMA"].iloc[0])
+                / recent["Close"].iloc[0]
+                * 100,
+                2,
             )
             if recent["SMA"].iloc[0] >= recent["LMA"].iloc[0]:
                 screenDict["MA-Signal"] = (
@@ -909,27 +988,35 @@ class tools:
         day1 = data[1:]
         day2 = data[2:]
         day3 = data[3:]
-        higherHighs = (day0["High"].iloc[0] > day1["High"].iloc[0]) and \
-                        (day1["High"].iloc[0] > day2["High"].iloc[0]) and \
-                        (day2["High"].iloc[0] > day3["High"].iloc[0])
-        higherLows = (day0["Low"].iloc[0] > day1["Low"].iloc[0]) and \
-                        (day1["Low"].iloc[0] > day2["Low"].iloc[0]) and \
-                        (day2["Low"].iloc[0] > day3["Low"].iloc[0])
-        higherClose = (day0["Close"].iloc[0] > day1["Close"].iloc[0]) and \
-                        (day1["Close"].iloc[0] > day2["Close"].iloc[0]) and \
-                        (day2["Close"].iloc[0] > day3["Close"].iloc[0])
+        higherHighs = (
+            (day0["High"].iloc[0] > day1["High"].iloc[0])
+            and (day1["High"].iloc[0] > day2["High"].iloc[0])
+            and (day2["High"].iloc[0] > day3["High"].iloc[0])
+        )
+        higherLows = (
+            (day0["Low"].iloc[0] > day1["Low"].iloc[0])
+            and (day1["Low"].iloc[0] > day2["Low"].iloc[0])
+            and (day2["Low"].iloc[0] > day3["Low"].iloc[0])
+        )
+        higherClose = (
+            (day0["Close"].iloc[0] > day1["Close"].iloc[0])
+            and (day1["Close"].iloc[0] > day2["Close"].iloc[0])
+            and (day2["Close"].iloc[0] > day3["Close"].iloc[0])
+        )
         # higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
         #                 (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
         #                 (day2["RSI"].iloc[0] > day3["RSI"].iloc[0]) and \
         #                 day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
         reversedData = data[::-1].copy()
-        reversedData['SUPERT'] = pktalib.supertrend(reversedData,7,3)['SUPERT_7_3.0']
-        reversedData['EMA8'] = pktalib.EMA(reversedData["Close"], timeperiod=9)
-        higherClose = higherClose and \
-                        day0["Close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0] and \
-                        day0["Close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
+        reversedData["SUPERT"] = pktalib.supertrend(reversedData, 7, 3)["SUPERT_7_3.0"]
+        reversedData["EMA8"] = pktalib.EMA(reversedData["Close"], timeperiod=9)
+        higherClose = (
+            higherClose
+            and day0["Close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0]
+            and day0["Close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
+        )
         return higherHighs and higherLows and higherClose
-    
+
     # Validate 'Inside Bar' structure for recent days
     def validateInsideBar(
         self, data, screenDict, saveDict, chartPattern=1, daysToLookback=5
@@ -1018,25 +1105,37 @@ class tools:
             return True
         return False
 
-    # Validate Lorentzian Classification signal  
+    # Validate Lorentzian Classification signal
     def validateLorentzian(self, data, screenDict, saveDict, lookFor=1):
         # lookFor: 1-Any, 2-Buy, 3-Sell
-        data = data[::-1]               # Reverse the dataframe
-        data = data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume'})
+        data = data[::-1]  # Reverse the dataframe
+        data = data.rename(
+            columns={
+                "Open": "open",
+                "Close": "close",
+                "High": "high",
+                "Low": "low",
+                "Volume": "volume",
+            }
+        )
         try:
             lc = LorentzianClassification(data=data)
-            if lc.df.iloc[-1]['isNewBuySignal']:
-                screenDict['Pattern'] = colorText.BOLD + colorText.GREEN + 'Lorentzian-Buy' + colorText.END
-                saveDict['Pattern'] = 'Lorentzian-Buy'
+            if lc.df.iloc[-1]["isNewBuySignal"]:
+                screenDict["Pattern"] = (
+                    colorText.BOLD + colorText.GREEN + "Lorentzian-Buy" + colorText.END
+                )
+                saveDict["Pattern"] = "Lorentzian-Buy"
                 if lookFor != 3:
                     return True
-            elif lc.df.iloc[-1]['isNewSellSignal']:
-                screenDict['Pattern'] = colorText.BOLD + colorText.FAIL + 'Lorentzian-Sell' + colorText.END
-                saveDict['Pattern'] = 'Lorentzian-Sell'
+            elif lc.df.iloc[-1]["isNewSellSignal"]:
+                screenDict["Pattern"] = (
+                    colorText.BOLD + colorText.FAIL + "Lorentzian-Sell" + colorText.END
+                )
+                saveDict["Pattern"] = "Lorentzian-Sell"
                 if lookFor != 2:
                     return True
-        except Exception: # pragma: no cover
-            # ValueError: operands could not be broadcast together with shapes (20,) (26,) 
+        except Exception:  # pragma: no cover
+            # ValueError: operands could not be broadcast together with shapes (20,) (26,)
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 186, in __init__
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 395, in __classify
             # File "/opt/homebrew/lib/python3.11/site-packages/pandas/core/ops/common.py", line 76, in new_method
@@ -1047,25 +1146,31 @@ class tools:
             # self.default_logger.debug(e, exc_info=True)
             pass
         return False
-    
+
     # validate if the stock has been having lower lows, lower highs
     def validateLowerHighsLowerLows(self, data):
         day0 = data
         day1 = data[1:]
         day2 = data[2:]
         day3 = data[3:]
-        lowerHighs = (day0["High"].iloc[0] < day1["High"].iloc[0]) and \
-                        (day1["High"].iloc[0] < day2["High"].iloc[0]) and \
-                        (day2["High"].iloc[0] < day3["High"].iloc[0])
-        lowerLows = (day0["Low"].iloc[0] < day1["Low"].iloc[0]) and \
-                        (day1["Low"].iloc[0] < day2["Low"].iloc[0]) and \
-                        (day2["Low"].iloc[0] < day3["Low"].iloc[0])
-        higherRSI = (day0["RSI"].iloc[0] < day1["RSI"].iloc[0]) and \
-                        (day1["RSI"].iloc[0] < day2["RSI"].iloc[0]) and \
-                        (day2["RSI"].iloc[0] < day3["RSI"].iloc[0]) and \
-                        day0["RSI"].iloc[0] >= 50
+        lowerHighs = (
+            (day0["High"].iloc[0] < day1["High"].iloc[0])
+            and (day1["High"].iloc[0] < day2["High"].iloc[0])
+            and (day2["High"].iloc[0] < day3["High"].iloc[0])
+        )
+        lowerLows = (
+            (day0["Low"].iloc[0] < day1["Low"].iloc[0])
+            and (day1["Low"].iloc[0] < day2["Low"].iloc[0])
+            and (day2["Low"].iloc[0] < day3["Low"].iloc[0])
+        )
+        higherRSI = (
+            (day0["RSI"].iloc[0] < day1["RSI"].iloc[0])
+            and (day1["RSI"].iloc[0] < day2["RSI"].iloc[0])
+            and (day2["RSI"].iloc[0] < day3["RSI"].iloc[0])
+            and day0["RSI"].iloc[0] >= 50
+        )
         return lowerHighs and lowerLows and higherRSI
-    
+
     # Validate if recent volume is lowest of last 'N' Days
     def validateLowestVolume(self, data, daysForLowestVolume):
         data = data.fillna(0)
@@ -1111,33 +1216,41 @@ class tools:
                 screenDict["Stock"] = colorText.FAIL + saveDict["Stock"] + colorText.END
         if ltp >= minLTP and ltp <= maxLTP:
             ltpValid = True
-            saveDict["LTP"] = round(ltp,2)
+            saveDict["LTP"] = round(ltp, 2)
             screenDict["LTP"] = colorText.GREEN + ("%.2f" % ltp) + colorText.END
             return ltpValid, verifyStageTwo
         screenDict["LTP"] = colorText.FAIL + ("%.2f" % ltp) + colorText.END
-        saveDict["LTP"] = round(ltp,2)
+        saveDict["LTP"] = round(ltp, 2)
         return ltpValid, verifyStageTwo
 
     def validateLTPForPortfolioCalc(self, data, screenDict, saveDict):
-        periods = [1,2,3,4,5,10,15,22,30]
+        periods = [1, 2, 3, 4, 5, 10, 15, 22, 30]
         previous_recent = data.head(1)
         previous_recent.reset_index(inplace=True)
         calc_date = str(previous_recent.iloc[:, 0][0]).split(" ")[0]
         for prd in periods:
-            if len(data) >= prd+1:
-                prevLtp = data['Close'].iloc[0]
-                ltpTdy = data['Close'].iloc[prd]
-                screenDict[f'LTP{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy)) + colorText.END
-                screenDict[f'Growth{prd}'] = (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL)) + str('{:.2f}'.format(ltpTdy-prevLtp)) + colorText.END
-                saveDict[f'LTP{prd}'] = round(ltpTdy,2)
-                saveDict[f'Growth{prd}'] = round(ltpTdy-prevLtp,2)
-                screenDict['Date'] = calc_date
-                saveDict['Date'] = calc_date
+            if len(data) >= prd + 1:
+                prevLtp = data["Close"].iloc[0]
+                ltpTdy = data["Close"].iloc[prd]
+                screenDict[f"LTP{prd}"] = (
+                    (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL))
+                    + str("{:.2f}".format(ltpTdy))
+                    + colorText.END
+                )
+                screenDict[f"Growth{prd}"] = (
+                    (colorText.GREEN if (ltpTdy >= prevLtp) else (colorText.FAIL))
+                    + str("{:.2f}".format(ltpTdy - prevLtp))
+                    + colorText.END
+                )
+                saveDict[f"LTP{prd}"] = round(ltpTdy, 2)
+                saveDict[f"Growth{prd}"] = round(ltpTdy - prevLtp, 2)
+                screenDict["Date"] = calc_date
+                saveDict["Date"] = calc_date
             else:
-                saveDict[f'LTP{prd}'] = np.nan
-                saveDict[f'Growth{prd}'] = np.nan
-                screenDict['Date'] = calc_date
-                saveDict['Date'] = calc_date
+                saveDict[f"LTP{prd}"] = np.nan
+                saveDict[f"Growth{prd}"] = np.nan
+                screenDict["Date"] = calc_date
+                saveDict["Date"] = calc_date
 
     # Find stocks that are bearish intraday: Macd Histogram negative
     def validateMACDHistogramBelow0(self, data):
@@ -1146,7 +1259,7 @@ class tools:
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
         macd = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(1)
         return macd.iloc[:1][0] < 0
-    
+
     # Find if stock gaining bullish momentum
     def validateMomentum(self, data, screenDict, saveDict):
         try:
@@ -1198,7 +1311,7 @@ class tools:
                 # self.default_logger.debug(data)
                 pass
             return False
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False
 
@@ -1311,7 +1424,10 @@ class tools:
             now_candle = data.head(1)
             rangeData["Range"] = abs(rangeData["Close"] - rangeData["Open"])
             recent = rangeData.head(1)
-            if len(recent) ==1 and recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
+            if (
+                len(recent) == 1
+                and recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]
+            ):
                 if (
                     self.getCandleType(recent)
                     and now_candle["Close"].iloc[0] >= recent["Close"].iloc[0]
@@ -1370,7 +1486,7 @@ class tools:
 
         if percent1 >= 2 and percent2 >= 2 and percent3 >= 2:
             pct_change_text = (
-                  ("%.1f%%" % percent1) 
+                ("%.1f%%" % percent1)
                 + (" (%.1f%%," % percent2)
                 + (" %.1f%%)" % percent3)
             )
@@ -1385,8 +1501,8 @@ class tools:
         data = data.replace([np.inf, -np.inf], 0)
         rsi = int(data.head(1)["RSI"].iloc[0])
         saveDict["RSI"] = rsi
-        #https://chartink.com/screener/rsi-screening
-        if (rsi >= minRSI and rsi <= maxRSI): # or (rsi <= 71 and rsi >= 67):
+        # https://chartink.com/screener/rsi-screening
+        if rsi >= minRSI and rsi <= maxRSI:  # or (rsi <= 71 and rsi >= 67):
             screenDict["RSI"] = (
                 colorText.BOLD + colorText.GREEN + str(rsi) + colorText.END
             )
@@ -1422,7 +1538,7 @@ class tools:
             df_new = df_new.head(1)
             df_new["cloud_green"] = df_new["ISA_9"].iloc[0] > df_new["ISB_26"].iloc[0]
             df_new["cloud_red"] = df_new["ISB_26"].iloc[0] > df_new["ISA_9"].iloc[0]
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             pass
         aboveCloudTop = False
@@ -1530,28 +1646,29 @@ class tools:
                     )
                     saveDict["Pattern"] = f"VCP (BO: {highestTop})"
                     return True
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
         return False
 
     # Validate if volume of last day is higher than avg
-    def validateVolume(self, data, screenDict, saveDict, volumeRatio=2.5, minVolume=100):
+    def validateVolume(
+        self, data, screenDict, saveDict, volumeRatio=2.5, minVolume=100
+    ):
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         # Either the rolling volume of past 20 sessions or today's volume should be > min volume
-        hasMinimumVolume = (recent["VolMA"].iloc[0] >= minVolume or recent["Volume"].iloc[0] >= minVolume)
+        hasMinimumVolume = (
+            recent["VolMA"].iloc[0] >= minVolume
+            or recent["Volume"].iloc[0] >= minVolume
+        )
         if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
             saveDict["Volume"] = 0  # "Unknown"
             screenDict["Volume"] = 0
             return True, hasMinimumVolume
         ratio = round(recent["Volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
         saveDict["Volume"] = ratio
-        if (
-            ratio >= volumeRatio
-            and ratio != np.nan
-            and (not math.isinf(ratio))
-        ):
+        if ratio >= volumeRatio and ratio != np.nan and (not math.isinf(ratio)):
             screenDict["Volume"] = ratio
             return True, hasMinimumVolume
         screenDict["Volume"] = ratio
@@ -1609,7 +1726,7 @@ class tools:
                 self.default_logger.debug(e, exc_info=True)
                 pass
             return False
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False
 

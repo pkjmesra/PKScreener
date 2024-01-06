@@ -29,8 +29,8 @@ import math
 import os
 import textwrap
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['AUTOGRAPH_VERBOSITY'] = '0'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 
 import pickle
 import platform
@@ -66,9 +66,11 @@ import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes import VERSION, Changelog
 from pkscreener.classes.MenuOptions import menus
 
-session = CachedSession(cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
-                                         db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'), 
-                                         cache_control=True)
+session = CachedSession(
+    cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
+    db_path=os.path.join(Archiver.get_user_outputs_dir(), "PKDevTools_cache.sqlite"),
+    cache_control=True,
+)
 fetcher = Fetcher.screenerStockDataFetcher(ConfigManager.tools())
 artText = """
 PPPPPPPPPPPPPPPPP   KKKKKKKKK    KKKKKKK   SSSSSSSSSSSSSSS
@@ -90,9 +92,12 @@ PPPPPPPPPP          KKKKKKKKK    KKKKKKK SSSSSSSSSSSSSSS       cccccccccccccccc 
 """
 art = colorText.GREEN + artText + colorText.END
 
-lastScreened = os.path.join(Archiver.get_user_outputs_dir(),"last_screened_results.pkl")
+lastScreened = os.path.join(
+    Archiver.get_user_outputs_dir(), "last_screened_results.pkl"
+)
 
 # Class for managing misc and utility methods
+
 
 class tools:
     def clearScreen():
@@ -133,7 +138,7 @@ class tools:
         try:
             df.sort_values(by=["Stock"], ascending=True, inplace=True)
             df.to_pickle(lastScreened)
-        except IOError as e: # pragma: no cover
+        except IOError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -152,7 +157,11 @@ class tools:
                 + "\n[+] Showing recently screened results..\n"
                 + colorText.END
             )
-            print(colorText.miniTabulator().tabulate(df, headers="keys", tablefmt=colorText.No_Pad_GridFormat))
+            print(
+                colorText.miniTabulator().tabulate(
+                    df, headers="keys", tablefmt=colorText.No_Pad_GridFormat
+                )
+            )
             print(
                 colorText.BOLD
                 + colorText.WARN
@@ -165,7 +174,7 @@ class tools:
                 + "[+] Press <Enter> to continue.."
                 + colorText.END
             )
-        except FileNotFoundError as e: # pragma: no cover
+        except FileNotFoundError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             print(
                 colorText.BOLD
@@ -174,7 +183,7 @@ class tools:
                 + colorText.END
             )
 
-    def formattedBacktestOutput(outcome,pnlStats=False, htmlOutput=True):
+    def formattedBacktestOutput(outcome, pnlStats=False, htmlOutput=True):
         if not pnlStats:
             if htmlOutput:
                 if outcome >= 80:
@@ -188,20 +197,25 @@ class tools:
             if outcome >= 0:
                 return f'{colorText.GREEN}{"%.2f%%" % outcome}{colorText.END}'
             return f'{colorText.FAIL}{"%.2f%%" % outcome}{colorText.END}'
-        
-    def getFormattedBacktestSummary(x,pnlStats=False,columnName=None):
+
+    def getFormattedBacktestSummary(x, pnlStats=False, columnName=None):
         if x is not None and "%" in str(x):
             values = x.split("%")
-            if len(values) ==2 and columnName is not None and ("-Pd" in columnName or "Overall" in columnName):
-                return "{0}{1}".format(tools.formattedBacktestOutput(float(values[0]),pnlStats=pnlStats,htmlOutput=False),values[1])
+            if (
+                len(values) == 2
+                and columnName is not None
+                and ("-Pd" in columnName or "Overall" in columnName)
+            ):
+                return "{0}{1}".format(
+                    tools.formattedBacktestOutput(
+                        float(values[0]), pnlStats=pnlStats, htmlOutput=False
+                    ),
+                    values[1],
+                )
         return x
-    
+
     def formatRatio(ratio, volumeRatio):
-        if (
-            ratio >= volumeRatio
-            and ratio != np.nan
-            and (not math.isinf(ratio))
-        ):
+        if ratio >= volumeRatio and ratio != np.nan and (not math.isinf(ratio)):
             return colorText.BOLD + colorText.GREEN + str(ratio) + "x" + colorText.END
         return colorText.BOLD + colorText.FAIL + str(ratio) + "x" + colorText.END
 
@@ -224,13 +238,19 @@ class tools:
 
     def getCellColor(cellStyledValue="", defaultCellFillColor="black"):
         otherStyles = [colorText.HEAD, colorText.END, colorText.BOLD, colorText.UNDR]
-        mainStyles = [colorText.BLUE, colorText.GREEN, colorText.WARN, colorText.FAIL, colorText.WHITE]
+        mainStyles = [
+            colorText.BLUE,
+            colorText.GREEN,
+            colorText.WARN,
+            colorText.FAIL,
+            colorText.WHITE,
+        ]
         colorsDict = {
             colorText.BLUE: "blue",
             colorText.GREEN: "green",
             colorText.WARN: "yellow",
             colorText.FAIL: "red",
-            colorText.WHITE: "white"
+            colorText.WHITE: "white",
         }
         cleanedUpStyledValue = cellStyledValue
         cellFillColor = defaultCellFillColor
@@ -243,17 +263,26 @@ class tools:
                 break
         return cellFillColor, cleanedUpStyledValue
 
-    def tableToImage(table, styledTable, filename, label, backtestSummary=None, backtestDetail=None, addendum=None, addendumLabel=None):
+    def tableToImage(
+        table,
+        styledTable,
+        filename,
+        label,
+        backtestSummary=None,
+        backtestDetail=None,
+        addendum=None,
+        addendumLabel=None,
+    ):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         # First 4 lines are headers. Last 1 line is bottom grid line
-        fontURL = 'https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf'
-        fontFile = fontURL.split('/')[-1]
+        fontURL = "https://raw.githubusercontent.com/pkjmesra/pkscreener/main/pkscreener/courbd.ttf"
+        fontFile = fontURL.split("/")[-1]
         bData, fontPath, _ = Archiver.findFile(fontFile)
         if bData is None:
             resp = fetcher.fetchURL(fontURL, stream=True)
-            with open(fontPath, 'wb') as f:
-                for chunk in resp.iter_content(chunk_size=1024): 
-                    if chunk: # filter out keep-alive new chunks
+            with open(fontPath, "wb") as f:
+                for chunk in resp.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
         bgColor = "black"
         gridColor = "white"
@@ -261,19 +290,19 @@ class tools:
         menuColor = "red"
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
-        legendText =           "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout(30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
-        legendText= f"{legendText} An investor should consider both BO & R level to analyse entry / exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out.  *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the"
-        legendText= f"{legendText} stock price has increased / decreased since last trading session. (1.5%, 1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous"
-        legendText= f"{legendText} trading session. Red means it fell.  *** 6. Volume ***: This shows the relative volume in the most recent trading day /today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at"
-        legendText= f"{legendText} least 2.5 times more than the average volume of last 20 sessions. If the volume is in red, it means the given date's volume is less than 2.5 times the avg volume of the last 20 sessions. *** 7. MA-Signal ***: It shows the price trend of the given stock by analyzing various 50-200 moving/exponential averages crossover strategies. Perform a Google search for the shown MA-Signals"
-        legendText= f"{legendText} to learn about them more. If it is in green, the signal is bullish. Red means bearish. *** 8. RSI ***: Relative Strength Index is a momentum index which describes 14-period relative strength at the given price. Generally, below 30 is considered oversold and above 80 is considered overbought.  *** 9. Trend(30Prds) ***:  This describes the average trendline computed based on the"
-        legendText= f"{legendText} last 30 trading sessions. Their strength is displayed depending on the steepness of the trendlines. (Strong / Weak) Up / Down shows how high/low the demand is respectively. A Sideways trend is the horizontal price movement that occurs when the forces of supply and demand are nearly equal. *** 10. Pattern ***:This shows if the chart or the candle (from the candlestick chart) is"
-        legendText= f"{legendText} forming any known pattern in the recent timeframe or as per the selected screening options. Do a google search for the shown pattern names to learn. *** 11. CCI ***: The Commodity Channel Index (CCI) is a technical indicator that measures the difference between the current price and the historical average price of the given stock. Generally below '- 100' is considered oversold"
-        legendText= f"{legendText} and above 100 is considered overbought. If the CCI is < '-100' or CCI is > 100 and the Trend(30Prds) is Strong/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan"
-        legendText= f"{legendText} options. Similarly, 61.69 % of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%"
-        legendText= f"{legendText} of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss table/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in"
-        legendText= f"{legendText} red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions. *** 14. 52Wk H/L ***: These have 52 weeks high/low prices within 10% of LTP:Yellow, above high:Green. Below 90% High:Red."
-        legendText= f"{legendText} *** 1D-% ***: Shows the 1 period gain in percent from the given date. Similarly 2D-%, 3D-% etc shows 2 day, 3 days gain etc. *** 1D-10k ***: Shows 1 period/day portfolio value if you would have invested 10,000 on the given date. *** [T]... *** : [T] is for Trends followed by the trend name in the filter. *** [BO] ***: Shows the Breakout filter value. *** [P] ***: [P] shows pattern name\n"
+        legendText = "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout(30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
+        legendText = f"{legendText} An investor should consider both BO & R level to analyse entry / exits in their trading lessons. If the BO value is green, it means the stock has already broken out (is above BO level). If BO is in red, it means the stock is yet to break out.  *** 4. LTP ***: This is the last/latest trading/closing price of the given stock on a given date at NSE. The LTP in green/red means the"
+        legendText = f"{legendText} stock price has increased / decreased since last trading session. (1.5%, 1.3%,1.8%) with LTP shows the stock price rose by 1.5%, 1.3% and 1.8% in the last 1, 2 and 3 trading sessions respectively.*** 5. %Chng ***: This is the change(rise/fall in percentage) in closing/trading price from the previous trading session's closing price. Green means that price rose from the previous"
+        legendText = f"{legendText} trading session. Red means it fell.  *** 6. Volume ***: This shows the relative volume in the most recent trading day /today with respect to last 20 trading periods moving average of Volume. For example, 8.5x would mean today's volume so far is 8.5 times the average volume traded in the last 20 trading sessions. Volume in green means that volume for the date so far has been at"
+        legendText = f"{legendText} least 2.5 times more than the average volume of last 20 sessions. If the volume is in red, it means the given date's volume is less than 2.5 times the avg volume of the last 20 sessions. *** 7. MA-Signal ***: It shows the price trend of the given stock by analyzing various 50-200 moving/exponential averages crossover strategies. Perform a Google search for the shown MA-Signals"
+        legendText = f"{legendText} to learn about them more. If it is in green, the signal is bullish. Red means bearish. *** 8. RSI ***: Relative Strength Index is a momentum index which describes 14-period relative strength at the given price. Generally, below 30 is considered oversold and above 80 is considered overbought.  *** 9. Trend(30Prds) ***:  This describes the average trendline computed based on the"
+        legendText = f"{legendText} last 30 trading sessions. Their strength is displayed depending on the steepness of the trendlines. (Strong / Weak) Up / Down shows how high/low the demand is respectively. A Sideways trend is the horizontal price movement that occurs when the forces of supply and demand are nearly equal. *** 10. Pattern ***:This shows if the chart or the candle (from the candlestick chart) is"
+        legendText = f"{legendText} forming any known pattern in the recent timeframe or as per the selected screening options. Do a google search for the shown pattern names to learn. *** 11. CCI ***: The Commodity Channel Index (CCI) is a technical indicator that measures the difference between the current price and the historical average price of the given stock. Generally below '- 100' is considered oversold"
+        legendText = f"{legendText} and above 100 is considered overbought. If the CCI is < '-100' or CCI is > 100 and the Trend(30Prds) is Strong/Weak Up, it is shown in green. Otherwise it's in red. *** 12. 1-Pd/2-Pd etc. ***: 60.29% of (413) under 1-Pd in green shows that the given scan option was correct 60.23% of the times for 413 stocks that scanner found in the last 30 trading sessions under the same scan"
+        legendText = f"{legendText} options. Similarly, 61.69 % of (154) in green under 22-Pd, means we found that 61.56% of 154 stocks (~95 stocks) prices found under the same scan options increased in 22 trading periods. 57.87% of (2661) under 'Overall' means that over the last 30 trading sessions we found 2661 stock instances under the same scanning options (for example, Momentum Gainers), out of which 57.87%"
+        legendText = f"{legendText} of the stock prices increased in one or more of the last 1 or 2 or 3 or 4 or 5 or 10 or 22 or 30 trading sessions. If you want to see by what percent the prices increased, you should see the details. *** 13. 1 to 30 period gain/loss % ***: 4.17% under 1-Pd in green in the gain/loss table/grid means the stock price increased by 4.17% in the next 1 trading session. If this is in"
+        legendText = f"{legendText} red, example, -5.67%, it means the price actually decreased by 5.67%. Gains are in green and losses are in red in this grid. The Date column has the date(s) on which that specific stock was found under the chosen scan options in the past 30 trading sessions. *** 14. 52Wk H/L ***: These have 52 weeks high/low prices within 10% of LTP:Yellow, above high:Green. Below 90% High:Red."
+        legendText = f"{legendText} *** 1D-% ***: Shows the 1 period gain in percent from the given date. Similarly 2D-%, 3D-% etc shows 2 day, 3 days gain etc. *** 1D-10k ***: Shows 1 period/day portfolio value if you would have invested 10,000 on the given date. *** [T]... *** : [T] is for Trends followed by the trend name in the filter. *** [BO] ***: Shows the Breakout filter value. *** [P] ***: [P] shows pattern name\n"
 
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
@@ -283,27 +312,49 @@ class tools:
         bt_text_width, bt_text_height = font.getsize_multiline(backtestSummary)
         btd_text_width, btd_text_height = font.getsize_multiline(backtestDetail)
         repotext_width, repotext_height = artfont.getsize_multiline(repoText)
-        
+
         text_width_artfont, _ = artfont.getsize_multiline(table)
         bt_text_width_artfont, _ = font.getsize_multiline(backtestSummary)
 
         startColValue = 100
-        im_width = int(0.72*bt_text_width) if (bt_text_width > text_width) else (text_width + int(startColValue*2))
-        
-        wrapper = textwrap.TextWrapper(width=2*int(len(table.split('\n')[0]) if len(table) >0 else len(backtestSummary.split('\n')[0]))) 
-        word_list = wrapper.wrap(text=legendText) 
-        legendText_new = ''
+        im_width = (
+            int(0.72 * bt_text_width)
+            if (bt_text_width > text_width)
+            else (text_width + int(startColValue * 2))
+        )
+
+        wrapper = textwrap.TextWrapper(
+            width=2
+            * int(
+                len(table.split("\n")[0])
+                if len(table) > 0
+                else len(backtestSummary.split("\n")[0])
+            )
+        )
+        word_list = wrapper.wrap(text=legendText)
+        legendText_new = ""
         for ii in word_list[:-1]:
-            legendText_new = legendText_new + ii + '\n'
+            legendText_new = legendText_new + ii + "\n"
         legendText_new += word_list[-1]
         legendText = legendText_new
         legendtext_width, legendtext_height = artfont.getsize_multiline(legendText)
         addendumtext_height = 0
-        if addendum is not None and len(addendum) >0:
+        if addendum is not None and len(addendum) > 0:
             addendumtext_width, addendumtext_height = font.getsize_multiline(addendum)
         im = Image.new(
             "RGB",
-            (im_width, arttext_height + text_height + bt_text_height + btd_text_height + label_height + repotext_height + legendtext_height + addendumtext_height + label_height),
+            (
+                im_width,
+                arttext_height
+                + text_height
+                + bt_text_height
+                + btd_text_height
+                + label_height
+                + repotext_height
+                + legendtext_height
+                + addendumtext_height
+                + label_height,
+            ),
             bgColor,
         )
         draw = ImageDraw.Draw(im)
@@ -315,15 +366,19 @@ class tools:
         dfs_to_print = [styledTable, backtestSummary, backtestDetail]
         unstyled_dfs = [table, backtestSummary, backtestDetail]
         reportTitle = f"[+] As of {tools.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}"
-        titleLabels = [f"[+] Scan results for {label} :",
-                       "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
-                       "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]"]
-        if addendum is not None and len(addendum) >0:
+        titleLabels = [
+            f"[+] Scan results for {label} :",
+            "[+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
+            "[+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]",
+        ]
+        if addendum is not None and len(addendum) > 0:
             titleLabels.append(addendumLabel)
             dfs_to_print.append(addendum)
             unstyled_dfs.append(tools.removeAllColorStyles(addendum))
-        draw.text((startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor)
-        rowPixelRunValue += label_height +1
+        draw.text(
+            (startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor
+        )
+        rowPixelRunValue += label_height + 1
         counter = -1
         for df in dfs_to_print:
             counter += 1
@@ -331,7 +386,12 @@ class tools:
             if df is None or len(df) == 0:
                 continue
             # selected menu options and As of DateTime
-            draw.text((colPixelRunValue, rowPixelRunValue), titleLabels[counter], font=font, fill=menuColor)
+            draw.text(
+                (colPixelRunValue, rowPixelRunValue),
+                titleLabels[counter],
+                font=font,
+                fill=menuColor,
+            )
             rowPixelRunValue = rowPixelRunValue + label_height
             unstyledLines = unstyled_dfs[counter].splitlines()
             lineNumber = 0
@@ -368,7 +428,9 @@ class tools:
                         if lineNumber >= len(unstyledLines):
                             continue
                         unstyledLine = unstyledLines[lineNumber]
-                        style, cleanValue = tools.getCellColor(val, defaultCellFillColor=gridColor)
+                        style, cleanValue = tools.getCellColor(
+                            val, defaultCellFillColor=gridColor
+                        )
                         if columnNumber == 0:
                             cleanValue = unstyledLine.split(separator)[1]
                             style = style if "%" in cleanValue else gridColor
@@ -405,15 +467,25 @@ class tools:
                     rowPixelRunValue = rowPixelRunValue + line_height + 1
                 lineNumber = lineNumber + 1
             rowPixelRunValue = rowPixelRunValue + label_height
-        draw.text((colPixelRunValue, rowPixelRunValue + 1), repoText, font=artfont, fill=menuColor)
-        draw.text((colPixelRunValue, rowPixelRunValue + 2*label_height + 10), legendText, font=artfont, fill=gridColor)
+        draw.text(
+            (colPixelRunValue, rowPixelRunValue + 1),
+            repoText,
+            font=artfont,
+            fill=menuColor,
+        )
+        draw.text(
+            (colPixelRunValue, rowPixelRunValue + 2 * label_height + 10),
+            legendText,
+            font=artfont,
+            fill=gridColor,
+        )
         im = im.resize(im.size, Image.ANTIALIAS, reducing_gap=2)
-        im.save(filename, format="png", bitmap_format="png",optimize=True, quality=20)
+        im.save(filename, format="png", bitmap_format="png", optimize=True, quality=20)
         # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
         #     im.show()
 
     def tradingDate(simulate=False, day=None):
-        curr = tools.currentDateTime(simulate=simulate,day=day)
+        curr = tools.currentDateTime(simulate=simulate, day=day)
         if simulate:
             return curr.replace(day=day)
         else:
@@ -428,14 +500,16 @@ class tools:
                 return (curr - datetime.timedelta(days=(curr.weekday() - 4))).date()
 
     def dateFromYmdString(Ymd=None):
-       return datetime.datetime.strptime(Ymd, "%Y-%m-%d")
+        return datetime.datetime.strptime(Ymd, "%Y-%m-%d")
 
     def days_between(d1, d2):
         return abs((d2 - d1).days)
 
     def trading_days_between(d1, d2):
-        return np.busday_count(d1,d2) # ,weekmask=[1,1,1,1,1,0,0],holidays=['2020-01-01'])
-    
+        return np.busday_count(
+            d1, d2
+        )  # ,weekmask=[1,1,1,1,1,0,0],holidays=['2020-01-01'])
+
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         if simulate:
@@ -530,23 +604,25 @@ class tools:
         pattern = f"{'intraday_' if intraday else ''}stock_data_"
         cache_file = pattern + str(cache_date) + ".pkl"
         exists = False
-        for f in glob.glob(f"{pattern}*.pkl",root_dir=Archiver.get_user_outputs_dir()):
+        for f in glob.glob(f"{pattern}*.pkl", root_dir=Archiver.get_user_outputs_dir()):
             if f.endswith(cache_file):
                 exists = True
                 break
         return exists, cache_file
 
     def saveStockData(stockDict, configManager, loadCount, intraday=False):
-        exists, cache_file = tools.afterMarketStockDataExists(configManager.isIntradayConfig() or intraday)
+        exists, cache_file = tools.afterMarketStockDataExists(
+            configManager.isIntradayConfig() or intraday
+        )
         if exists:
             configManager.deleteFileWithPattern(excludeFile=cache_file)
-        cache_file = os.path.join(Archiver.get_user_outputs_dir(),cache_file)
+        cache_file = os.path.join(Archiver.get_user_outputs_dir(), cache_file)
         if not os.path.exists(cache_file) or len(stockDict) > (loadCount + 1):
             try:
                 with open(cache_file, "wb") as f:
-                    pickle.dump(stockDict.copy(), f,protocol=pickle.HIGHEST_PROTOCOL)
+                    pickle.dump(stockDict.copy(), f, protocol=pickle.HIGHEST_PROTOCOL)
                     print(colorText.BOLD + colorText.GREEN + "=> Done." + colorText.END)
-            except pickle.PicklingError as e: # pragma: no cover
+            except pickle.PicklingError as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -554,7 +630,7 @@ class tools:
                     + "=> Error while Caching Stock Data."
                     + colorText.END
                 )
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
         else:
             print(
@@ -567,18 +643,22 @@ class tools:
         downloadOnly=False,
         defaultAnswer=None,
         retrial=False,
-        forceLoad=False
+        forceLoad=False,
     ):
         if downloadOnly:
             return
         isIntraday = configManager.isIntradayConfig()
-        exists, cache_file = tools.afterMarketStockDataExists(isIntraday, forceLoad=forceLoad)
+        exists, cache_file = tools.afterMarketStockDataExists(
+            isIntraday, forceLoad=forceLoad
+        )
         default_logger().info(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
         stockDataLoaded = False
         if exists:
-            with open(os.path.join(Archiver.get_user_outputs_dir(),cache_file), "rb") as f:
+            with open(
+                os.path.join(Archiver.get_user_outputs_dir(), cache_file), "rb"
+            ) as f:
                 try:
                     stockData = pickle.load(f)
                     if not downloadOnly:
@@ -602,7 +682,7 @@ class tools:
                     )
                     if tools.promptFileExists(defaultAnswer=defaultAnswer) == "Y":
                         configManager.deleteFileWithPattern()
-                except EOFError as e: # pragma: no cover
+                except EOFError as e:  # pragma: no cover
                     default_logger().debug(e, exc_info=True)
                     f.close()
                     print(
@@ -615,12 +695,14 @@ class tools:
                         configManager.deleteFileWithPattern()
         if (
             not stockDataLoaded
-            and ("1d" if isIntraday else ConfigManager.default_period) == configManager.period
-            and ("1m" if isIntraday else ConfigManager.default_duration) == configManager.duration
+            and ("1d" if isIntraday else ConfigManager.default_period)
+            == configManager.period
+            and ("1m" if isIntraday else ConfigManager.default_duration)
+            == configManager.duration
         ):
             cache_url = (
                 "https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/"
-                + cache_file #.split(os.sep)[-1]
+                + cache_file  # .split(os.sep)[-1]
             )
             resp = fetcher.fetchURL(cache_url, stream=True)
             if resp is not None:
@@ -645,7 +727,10 @@ class tools:
                     filesize = int(int(resp.headers.get("content-length")) / chunksize)
                     if filesize > 0:
                         bar, spinner = tools.getProgressbarStyle()
-                        f = open(os.path.join(Archiver.get_user_outputs_dir(),cache_file), "wb") # .split(os.sep)[-1]
+                        f = open(
+                            os.path.join(Archiver.get_user_outputs_dir(), cache_file),
+                            "wb",
+                        )  # .split(os.sep)[-1]
                         dl = 0
                         with alive_bar(
                             filesize, bar=bar, spinner=spinner, manual=True
@@ -662,7 +747,7 @@ class tools:
                         default_logger().debug(
                             f"Stock data cache file:{cache_file} on server has length ->{filesize}"
                         )
-                except Exception as e: # pragma: no cover
+                except Exception as e:  # pragma: no cover
                     default_logger().debug(e, exc_info=True)
                     f.close()
                     print("[!] Download Error - " + str(e))
@@ -675,7 +760,7 @@ class tools:
                         downloadOnly,
                         defaultAnswer,
                         retrial=True,
-                        forceLoad=forceLoad
+                        forceLoad=forceLoad,
                     )
         if not stockDataLoaded:
             print(
@@ -698,7 +783,7 @@ class tools:
                 ).upper()
             else:
                 response = defaultAnswer
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             response = "Y"
         if response != "N":
@@ -715,23 +800,34 @@ class tools:
                     os.path.join(os.getcwd(), filename), engine="xlsxwriter"
                 )  # openpyxl throws an error exporting % sign.
                 filename = os.path.join(os.getcwd(), filename)
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
-                print(colorText.FAIL
-                + ("[+] Error saving file at %s" % os.path.join(os.getcwd(), filename))
-                + colorText.END)
+                print(
+                    colorText.FAIL
+                    + (
+                        "[+] Error saving file at %s"
+                        % os.path.join(os.getcwd(), filename)
+                    )
+                    + colorText.END
+                )
                 try:
                     df.to_excel(
                         os.path.join(desktop, filename), engine="xlsxwriter"
                     )  # openpyxl throws an error exporting % sign.
                     filename = os.path.join(desktop, filename)
-                except Exception as ex: # pragma: no cover
+                except Exception as ex:  # pragma: no cover
                     default_logger().debug(ex, exc_info=True)
-                    print(colorText.FAIL
-                        + ("[+] Error saving file at %s" % os.path.join(desktop, filename))
-                        + colorText.END)
+                    print(
+                        colorText.FAIL
+                        + (
+                            "[+] Error saving file at %s"
+                            % os.path.join(desktop, filename)
+                        )
+                        + colorText.END
+                    )
                     df.to_excel(
-                        os.path.join(tempfile.gettempdir(), filename), engine="xlsxwriter"
+                        os.path.join(tempfile.gettempdir(), filename),
+                        engine="xlsxwriter",
                     )
                     filename = os.path.join(tempfile.gettempdir(), filename)
             print(
@@ -758,7 +854,7 @@ class tools:
                 ).upper()
             else:
                 response = defaultAnswer
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         return "Y" if response != "N" else "N"
@@ -788,7 +884,7 @@ class tools:
             ):
                 return (minRSI, maxRSI)
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return (0, 0)
 
@@ -815,7 +911,7 @@ class tools:
             if minCCI <= maxCCI:
                 return (minCCI, maxCCI)
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return (-100, 100)
 
@@ -835,7 +931,7 @@ class tools:
             if volumeRatio > 0:
                 return volumeRatio
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             return 2
 
@@ -858,7 +954,7 @@ class tools:
             if resp >= 0 and resp <= 3:
                 return resp
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -867,7 +963,7 @@ class tools:
                 + colorText.END
             )
             return None
-        
+
     # Prompt for Reversal screening
     def promptReversalScreening(menu=None):
         try:
@@ -892,7 +988,7 @@ class tools:
                             )
                         )
                         return resp, maLength
-                    except ValueError as e: # pragma: no cover
+                    except ValueError as e:  # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -912,7 +1008,7 @@ class tools:
                             )
                         )
                         return resp, maLength
-                    except ValueError as e: # pragma: no cover
+                    except ValueError as e:  # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -923,7 +1019,7 @@ class tools:
                         raise ValueError
                 return resp, None
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -968,7 +1064,7 @@ class tools:
             if resp >= 0 and resp <= 6:
                 return resp, 0
             raise ValueError
-        except ValueError as e: # pragma: no cover
+        except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             input(
                 colorText.BOLD
@@ -987,8 +1083,10 @@ class tools:
         return bar, spinner
 
     def getNiftyModel(retrial=False):
-        files = [os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.h5"), 
-                 os.path.join(Archiver.get_user_outputs_dir(),"nifty_model_v2.pkl")]
+        files = [
+            os.path.join(Archiver.get_user_outputs_dir(), "nifty_model_v2.h5"),
+            os.path.join(Archiver.get_user_outputs_dir(), "nifty_model_v2.pkl"),
+        ]
         model = None
         urls = [
             "https://raw.github.com/pkjmesra/PKScreener/main/pkscreener/ml/nifty_model_v2.h5",
@@ -1021,7 +1119,12 @@ class tools:
                         )
                         filesize = 1 if not filesize else filesize
                         bar, spinner = tools.getProgressbarStyle()
-                        f = open(os.path.join(Archiver.get_user_outputs_dir(),file_url.split("/")[-1]), "wb")
+                        f = open(
+                            os.path.join(
+                                Archiver.get_user_outputs_dir(), file_url.split("/")[-1]
+                            ),
+                            "wb",
+                        )
                         dl = 0
                         with alive_bar(
                             filesize, bar=bar, spinner=spinner, manual=True
@@ -1033,7 +1136,7 @@ class tools:
                                 if dl >= filesize:
                                     progressbar(1.0)
                         f.close()
-                    except Exception as e: # pragma: no cover
+                    except Exception as e:  # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print("[!] Download Error - " + str(e))
             time.sleep(3)
@@ -1041,7 +1144,7 @@ class tools:
             if os.path.isfile(files[0]) and os.path.isfile(files[1]):
                 pkl = joblib.load(files[1])
                 model = keras.models.load_model(files[0]) if Imports["keras"] else None
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             os.remove(files[0])
             os.remove(files[1])

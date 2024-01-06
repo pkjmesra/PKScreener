@@ -35,8 +35,8 @@ from pkscreener.classes.OtaUpdater import OTAUpdater
 def getPlatformSpecificDetails(jsonDict):
     url = ""
     platName = ""
-    platforms = {0:"Linux",1:"Windows", 2:"Darwin"}
-    platformNames = {"Linux":"Linux","Windows":"Windows", "Darwin":"Mac"}
+    platforms = {0: "Linux", 1: "Windows", 2: "Darwin"}
+    platformNames = {"Linux": "Linux", "Windows": "Windows", "Darwin": "Mac"}
     for key in platforms.keys():
         if platforms[key] in platform.system():
             url = jsonDict["assets"][key]["browser_download_url"]
@@ -47,6 +47,7 @@ def getPlatformSpecificDetails(jsonDict):
         platName = platformNames[platforms[0]]
     return url, platName
 
+
 # Positive test case: Test updateForWindows function
 def test_updateForWindows():
     url = "https://example.com/update.exe"
@@ -54,7 +55,8 @@ def test_updateForWindows():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForWindows(url)
             mock_popen.assert_called_with("start updater.bat", shell=True)
-    os.remove('updater.bat')
+    os.remove("updater.bat")
+
 
 # Positive test case: Test updateForLinux function
 def test_updateForLinux():
@@ -63,7 +65,8 @@ def test_updateForLinux():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForLinux(url)
             mock_popen.assert_called_with("bash updater.sh", shell=True)
-    os.remove('updater.sh')
+    os.remove("updater.sh")
+
 
 # Positive test case: Test updateForMac function
 def test_updateForMac():
@@ -72,7 +75,8 @@ def test_updateForMac():
         with pytest.raises((SystemExit)):
             OTAUpdater.updateForMac(url)
             mock_popen.assert_called_with("bash updater.sh", shell=True)
-    os.remove('updater.sh')
+    os.remove("updater.sh")
+
 
 # Positive test case: Test showWhatsNew function
 def test_showWhatsNew():
@@ -82,6 +86,7 @@ def test_showWhatsNew():
         output = OTAUpdater.showWhatsNew()
         assert output == expected_output
 
+
 # Positive test case: Test checkForUpdate function with prod_update = True
 def test_checkForUpdate_prod_update():
     VERSION = "1.0.0"
@@ -89,16 +94,30 @@ def test_checkForUpdate_prod_update():
         mock_get.return_value.json.return_value = {
             "tag_name": "2.0.0",
             "assets": [
-                {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                {
+                    "browser_download_url": "https://example.com/update3.run",
+                    "size": 300,
+                },
+                {
+                    "browser_download_url": "https://example.com/update1.exe",
+                    "size": 100,
+                },
+                {
+                    "browser_download_url": "https://example.com/update2.bin",
+                    "size": 200,
+                },
             ],
         }
-        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
+        url, platName = getPlatformSpecificDetails(
+            mock_get.return_value.json.return_value
+        )
         with patch("builtins.input", return_value="y"):
-            with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+            with patch(
+                f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
+            ) as mock_updateForPlatform:
                 OTAUpdater.checkForUpdate(VERSION)
                 mock_updateForPlatform.assert_called_with(url)
+
 
 # Positive test case: Test checkForUpdate function with prod_update = False
 def test_checkForUpdate_not_prod_update():
@@ -107,17 +126,31 @@ def test_checkForUpdate_not_prod_update():
         mock_get.return_value.json.return_value = {
             "tag_name": "1.0.0",
             "assets": [
-                {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                {
+                    "browser_download_url": "https://example.com/update3.run",
+                    "size": 300,
+                },
+                {
+                    "browser_download_url": "https://example.com/update1.exe",
+                    "size": 100,
+                },
+                {
+                    "browser_download_url": "https://example.com/update2.bin",
+                    "size": 200,
+                },
             ],
         }
-        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
+        url, platName = getPlatformSpecificDetails(
+            mock_get.return_value.json.return_value
+        )
         with patch("builtins.input", return_value="y"):
-            with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+            with patch(
+                f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
+            ) as mock_updateForPlatform:
                 with pytest.raises((Exception)):
                     OTAUpdater.checkForUpdate(VERSION)
                     assert not mock_updateForPlatform.called
+
 
 # Negative test case: Test checkForUpdate function with exception
 def test_checkForUpdate_exception():
@@ -129,14 +162,27 @@ def test_checkForUpdate_exception():
             mock_get.return_value.json.return_value = {
                 "tag_name": "1.0.0",
                 "assets": [
-                    {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                    {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                    {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                    {
+                        "browser_download_url": "https://example.com/update3.run",
+                        "size": 300,
+                    },
+                    {
+                        "browser_download_url": "https://example.com/update1.exe",
+                        "size": 100,
+                    },
+                    {
+                        "browser_download_url": "https://example.com/update2.bin",
+                        "size": 200,
+                    },
                 ],
             }
-            url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
+            url, platName = getPlatformSpecificDetails(
+                mock_get.return_value.json.return_value
+            )
             with patch("builtins.input", return_value="y"):
-                with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+                with patch(
+                    f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
+                ) as mock_updateForPlatform:
                     with patch("builtins.print") as mock_print:
                         OTAUpdater.checkForUpdate(VERSION)
                         assert not mock_updateForPlatform.called
@@ -144,7 +190,9 @@ def test_checkForUpdate_exception():
                             colorText.BOLD
                             + colorText.FAIL
                             + "[+] Failure while checking update!"
-                            + colorText.END)
+                            + colorText.END
+                        )
+
 
 # Positive test case: Test checkForUpdate function with skipDownload = True
 def test_checkForUpdate_skipDownload():
@@ -153,18 +201,34 @@ def test_checkForUpdate_skipDownload():
         mock_get.return_value.json.return_value = {
             "tag_name": "2.0.0",
             "assets": [
-                {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                {
+                    "browser_download_url": "https://example.com/update3.run",
+                    "size": 300,
+                },
+                {
+                    "browser_download_url": "https://example.com/update1.exe",
+                    "size": 100,
+                },
+                {
+                    "browser_download_url": "https://example.com/update2.bin",
+                    "size": 200,
+                },
             ],
         }
-        with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
+        with patch(
+            "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
+        ) as mock_showWhatsNew:
             with patch("builtins.input", return_value="n"):
-                url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
-                with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+                url, platName = getPlatformSpecificDetails(
+                    mock_get.return_value.json.return_value
+                )
+                with patch(
+                    f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
+                ) as mock_updateForPlatform:
                     OTAUpdater.checkForUpdate(VERSION, skipDownload=True)
                     assert mock_showWhatsNew.called
                     assert not mock_updateForPlatform.called
+
 
 # Positive test case: Test checkForUpdate function with no update available
 def test_checkForUpdate_no_update():
@@ -173,26 +237,45 @@ def test_checkForUpdate_no_update():
         mock_get.return_value.json.return_value = {
             "tag_name": "1.0.0.0",
             "assets": [
-                {"browser_download_url": "https://example.com/update3.run", "size": 300},
-                {"browser_download_url": "https://example.com/update1.exe", "size": 100},
-                {"browser_download_url": "https://example.com/update2.bin", "size": 200},
+                {
+                    "browser_download_url": "https://example.com/update3.run",
+                    "size": 300,
+                },
+                {
+                    "browser_download_url": "https://example.com/update1.exe",
+                    "size": 100,
+                },
+                {
+                    "browser_download_url": "https://example.com/update2.bin",
+                    "size": 200,
+                },
             ],
         }
-        url, platName = getPlatformSpecificDetails(mock_get.return_value.json.return_value)
-        with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
-            with patch(f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}") as mock_updateForPlatform:
+        url, platName = getPlatformSpecificDetails(
+            mock_get.return_value.json.return_value
+        )
+        with patch(
+            "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
+        ) as mock_showWhatsNew:
+            with patch(
+                f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
+            ) as mock_updateForPlatform:
                 OTAUpdater.checkForUpdate(VERSION)
                 assert not mock_showWhatsNew.called
                 assert not mock_updateForPlatform.called
+
 
 # Negative test case: Test checkForUpdate function with "Not Found" response
 def test_checkForUpdate_not_found():
     VERSION = "1.0.0"
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {"message": "Not Found"}
-        with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
+        with patch(
+            "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
+        ) as mock_showWhatsNew:
             OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
+
 
 # Negative test case: Test checkForUpdate function with exception and url not None
 def test_checkForUpdate_exception_url_not_none():
@@ -200,9 +283,12 @@ def test_checkForUpdate_exception_url_not_none():
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = "https://example.com/update.exe"
-        with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
+        with patch(
+            "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
+        ) as mock_showWhatsNew:
             OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
+
 
 # Negative test case: Test checkForUpdate function with exception and url None
 def test_checkForUpdate_exception_url_none():
@@ -210,9 +296,12 @@ def test_checkForUpdate_exception_url_none():
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.side_effect = Exception("Error")
         OTAUpdater.checkForUpdate.url = None
-        with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
+        with patch(
+            "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
+        ) as mock_showWhatsNew:
             OTAUpdater.checkForUpdate(VERSION)
             assert not mock_showWhatsNew.called
+
 
 def test_get_latest_release_info():
     resp, size = OTAUpdater.get_latest_release_info()

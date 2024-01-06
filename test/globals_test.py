@@ -31,10 +31,12 @@ from pkscreener.globals import *
 
 # Positive test cases
 
+
 def test_initExecution_positive():
     menuOption = "X"
     selectedMenu = initExecution(menuOption)
     assert selectedMenu.menuKey == menuOption
+
 
 def test_initPostLevel0Execution_positive():
     menuOption = "X"
@@ -44,6 +46,7 @@ def test_initPostLevel0Execution_positive():
     assert str(t) == tickerOption
     assert str(e) == executeOption
 
+
 def test_initPostLevel1Execution_positive():
     tickerOption = "1"
     executeOption = "0"
@@ -51,43 +54,61 @@ def test_initPostLevel1Execution_positive():
     assert str(t) == tickerOption
     assert str(e) == executeOption
 
+
 def test_getTestBuildChoices_positive():
     tickerOption = "1"
     executeOption = "0"
-    menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getTestBuildChoices(tickerOption, executeOption)
+    (
+        menuOption,
+        selectedTickerOption,
+        selectedExecuteOption,
+        selectedChoice,
+    ) = getTestBuildChoices(tickerOption, executeOption)
     assert menuOption == "X"
     assert str(selectedTickerOption) == tickerOption
     assert str(selectedExecuteOption) == executeOption
     assert selectedChoice == {"0": "X", "1": tickerOption, "2": executeOption}
 
+
 def test_getDownloadChoices_positive():
-    menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices(defaultAnswer='Y')
+    (
+        menuOption,
+        selectedTickerOption,
+        selectedExecuteOption,
+        selectedChoice,
+    ) = getDownloadChoices(defaultAnswer="Y")
     assert menuOption == "X"
     assert str(selectedTickerOption) == "12"
     assert str(selectedExecuteOption) == "0"
     assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
 
+
 def test_handleSecondaryMenuChoices_positive():
     menuOption = "H"
     with patch("pkscreener.classes.Utility.tools.showDevInfo") as mock_showDevInfo:
-        handleSecondaryMenuChoices(menuOption,defaultAnswer='Y')
-        mock_showDevInfo.assert_called_once_with(defaultAnswer='Y')
+        handleSecondaryMenuChoices(menuOption, defaultAnswer="Y")
+        mock_showDevInfo.assert_called_once_with(defaultAnswer="Y")
+
 
 def test_getTopLevelMenuChoices_positive():
     startupoptions = "X:1:0"
     testBuild = False
     downloadOnly = False
-    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly)
+    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(
+        startupoptions, testBuild, downloadOnly
+    )
     assert options == ["X", "1", "0"]
     assert menuOption == "X"
     assert tickerOption == "1"
     assert executeOption == "0"
+
 
 def test_handleScannerExecuteOption4_positive():
     executeOption = 4
     options = ["X", "1", "0", "30"]
     daysForLowestVolume = handleScannerExecuteOption4(executeOption, options)
     assert daysForLowestVolume == 30
+
 
 def test_populateQueues_positive():
     items = [(1, 2, 3), (4, 5, 6), (7, 8, 9)]
@@ -102,9 +123,11 @@ def test_populateQueues_positive():
         assert tasks_queue.qsize() == len(items) + multiprocessing.cpu_count()
         populateQueues(items, tasks_queue)
         # Raises NotImplementedError on Mac OSX because of broken sem_getvalue()
-        assert tasks_queue.qsize() == 2*len(items) + multiprocessing.cpu_count()
+        assert tasks_queue.qsize() == 2 * len(items) + multiprocessing.cpu_count()
+
 
 # Negative test cases
+
 
 def test_initExecution_exit_positive():
     menuOption = "Z"
@@ -112,60 +135,79 @@ def test_initExecution_exit_positive():
         with patch("builtins.input"):
             initExecution(menuOption)
 
+
 def test_initPostLevel0Execution_negative():
     menuOption = "X"
     tickerOption = "15"
     executeOption = "0"
     with patch("builtins.print") as mock_print:
         initPostLevel0Execution(menuOption, tickerOption, executeOption)
-        mock_print.assert_called_with(colorText.BOLD
+        mock_print.assert_called_with(
+            colorText.BOLD
             + colorText.FAIL
             + "\n[+] Please enter a valid numeric option & Try Again!"
-            + colorText.END)
+            + colorText.END
+        )
+
 
 def test_initPostLevel1Execution_negative():
     tickerOption = "1"
     executeOption = "45"
     with patch("builtins.print") as mock_print:
         initPostLevel1Execution(tickerOption, executeOption)
-        mock_print.assert_called_with(colorText.BOLD
-        + colorText.FAIL
-        + "\n[+] Please enter a valid numeric option & Try Again!"
-        + colorText.END)
+        mock_print.assert_called_with(
+            colorText.BOLD
+            + colorText.FAIL
+            + "\n[+] Please enter a valid numeric option & Try Again!"
+            + colorText.END
+        )
+
 
 def test_getTestBuildChoices_negative():
     tickerOption = "A"
     executeOption = "0"
     r1, r2, r3, r4 = getTestBuildChoices(tickerOption, executeOption)
-    assert r1 == 'X'
+    assert r1 == "X"
     assert r2 == 1
     assert r3 == 0
     assert r4 == {"0": "X", "1": "1", "2": "0"}
 
+
 def test_getDownloadChoices_negative():
-    with patch('builtins.input', return_value='N'):
-        with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+    with patch("builtins.input", return_value="N"):
+        with patch(
+            "pkscreener.classes.Utility.tools.afterMarketStockDataExists"
+        ) as mock_data:
             mock_data.return_value = True, "stock_data_1.pkl"
             with pytest.raises(SystemExit):
-                menuOption, selectedTickerOption, selectedExecuteOption, selectedChoice = getDownloadChoices()
+                (
+                    menuOption,
+                    selectedTickerOption,
+                    selectedExecuteOption,
+                    selectedChoice,
+                ) = getDownloadChoices()
                 assert menuOption == "X"
                 assert selectedTickerOption == 12
                 assert selectedExecuteOption == 0
                 assert selectedChoice == {"0": "X", "1": "12", "2": "0"}
     try:
-        os.remove('stock_data_1.pkl')
+        os.remove("stock_data_1.pkl")
     except:
         pass
+
 
 def test_getTopLevelMenuChoices_negative():
     startupoptions = "X:1:0"
     testBuild = False
     downloadOnly = False
-    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly)
+    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(
+        startupoptions, testBuild, downloadOnly
+    )
     assert options == ["X", "1", "0"]
     assert menuOption == "X"
     assert tickerOption == "1"
     assert executeOption == "0"
+
 
 def test_handleScannerExecuteOption4_negative():
     executeOption = 4
@@ -173,17 +215,22 @@ def test_handleScannerExecuteOption4_negative():
     with patch("builtins.print") as mock_print:
         with patch("builtins.input"):
             handleScannerExecuteOption4(executeOption, options)
-            mock_print.assert_called_with(colorText.BOLD
+            mock_print.assert_called_with(
+                colorText.BOLD
                 + colorText.FAIL
                 + "[+] Error: Non-numeric value entered! Please try again!"
-                + colorText.END)
+                + colorText.END
+            )
+
 
 def test_getTopLevelMenuChoices_edge():
     startupoptions = ""
     testBuild = False
     downloadOnly = False
-    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly)
-    assert options == ['']
+    options, menuOption, tickerOption, executeOption = getTopLevelMenuChoices(
+        startupoptions, testBuild, downloadOnly
+    )
+    assert options == [""]
     assert menuOption == ""
     assert tickerOption is None
     assert executeOption is None

@@ -40,7 +40,7 @@ from pkscreener.classes import VERSION
 
 session = CachedSession(
     cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
-    db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'),
+    db_path=os.path.join(Archiver.get_user_outputs_dir(), "PKDevTools_cache.sqlite"),
     expire_after=timedelta(days=1),
     stale_if_error=True,
 )
@@ -50,8 +50,9 @@ class OTAUpdater:
     developmentVersion = "d"
     _configManager = ConfigManager.tools()
     _tools = Fetcher.screenerStockDataFetcher(_configManager)
-    configManager = _configManager 
+    configManager = _configManager
     fetcher = _tools
+
     # Download and replace exe through other process for Windows
     def updateForWindows(url):
         batFile = (
@@ -135,25 +136,27 @@ rm updater.sh
         txt = txt.split("## Older Releases")[0]
         txt = txt.replace("* ", "- ").replace("`", "").strip()
         return txt + "\n"
-    
+
     def get_latest_release_info():
-        resp = OTAUpdater.fetcher.fetchURL("https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
+        resp = OTAUpdater.fetcher.fetchURL(
+            "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest"
+        )
         if "Windows" in platform.system():
             OTAUpdater.checkForUpdate.url = resp.json()["assets"][1][
-                    "browser_download_url"
-                ]
+                "browser_download_url"
+            ]
             size = int(resp.json()["assets"][1]["size"] / (1024 * 1024))
         elif "Darwin" in platform.system():
             OTAUpdater.checkForUpdate.url = resp.json()["assets"][2][
-                    "browser_download_url"
-                ]
+                "browser_download_url"
+            ]
             size = int(resp.json()["assets"][2]["size"] / (1024 * 1024))
         else:
             OTAUpdater.checkForUpdate.url = resp.json()["assets"][0][
-                    "browser_download_url"
-                ]
+                "browser_download_url"
+            ]
             size = int(resp.json()["assets"][0]["size"] / (1024 * 1024))
-        return resp,size
+        return resp, size
 
     # Check for update and download if available
     def checkForUpdate(VERSION=VERSION, skipDownload=False):
@@ -212,7 +215,7 @@ rm updater.sh
                             OTAUpdater.updateForMac(OTAUpdater.checkForUpdate.url)
                         else:
                             OTAUpdater.updateForLinux(OTAUpdater.checkForUpdate.url)
-                    except Exception as e: # pragma: no cover
+                    except Exception as e:  # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         print(
                             colorText.BOLD
@@ -243,7 +246,7 @@ rm updater.sh
                         + colorText.END
                     )
                     return OTAUpdater.developmentVersion
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             if OTAUpdater.checkForUpdate.url is not None:
                 print(
@@ -256,7 +259,9 @@ rm updater.sh
                     + colorText.END
                 )
             else:
-                OTAUpdater.checkForUpdate.url = "[+] No exe/bin/run file as an update available!"
+                OTAUpdater.checkForUpdate.url = (
+                    "[+] No exe/bin/run file as an update available!"
+                )
             if resp is not None and resp.json()["message"] == "Not Found":
                 print(
                     colorText.BOLD
