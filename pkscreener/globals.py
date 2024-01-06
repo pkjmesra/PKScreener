@@ -287,7 +287,7 @@ def getTestBuildChoices(tickerOption=None, executeOption=None, menuOption=None):
 
 
 def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly, defaultAnswer=None):
-    global selectedChoice
+    global selectedChoice, userPassedArgs
     executeOption = None
     menuOption = None
     tickerOption = None
@@ -307,6 +307,10 @@ def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly, defaultAnswe
         menuOption, tickerOption, executeOption, selectedChoice = getDownloadChoices(
             defaultAnswer=defaultAnswer
         )
+        intraday = userPassedArgs.intraday or configManager.isIntradayConfig()
+        filePrefix = "INTRADAY_" if intraday else ""
+        _, cache_file_name = Utility.tools.afterMarketStockDataExists(intraday)
+        Utility.tools.set_github_output(f"{filePrefix}DOWNLOAD_CACHE_FILE_NAME",cache_file_name)
     return options, menuOption, tickerOption, executeOption
 
 
