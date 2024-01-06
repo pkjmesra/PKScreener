@@ -247,8 +247,12 @@ class tools:
         ]
         colorsDict = {
             colorText.BLUE: "blue",
-            colorText.GREEN: "green",
-            colorText.WARN: "yellow",
+            colorText.GREEN: "darkgreen"
+            if defaultCellFillColor == "black"
+            else "lightgreen",
+            colorText.WARN: "darkorange"
+            if defaultCellFillColor == "black"
+            else "yellow",
             colorText.FAIL: "red",
             colorText.WHITE: "white",
         }
@@ -284,10 +288,12 @@ class tools:
                 for chunk in resp.iter_content(chunk_size=1024):
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
-        bgColor = "black"
-        gridColor = "white"
-        artColor = "green"
+
+        bgColor = "white" if tools.currentDateTime().day % 2 == 0 else "black"
+        gridColor = "black" if bgColor == "white" else "white"
+        artColor = "lightgreen" if bgColor == "black" else "blue"
         menuColor = "red"
+
         repoText = f"Source: https://GitHub.com/pkjmesra/pkscreener/  | © {datetime.date.today().year} pkjmesra |Telegram: https://t.me/PKScreener | This report is for learning/analysis purposes ONLY. pkjmesra assumes no responsibility or liability for any errors or omissions in this report or repository or gain/loss bearing out of this analysis.\n"
         repoText = f"{repoText}\n[+] Understanding this report:\n"
         legendText = "\n*** 1. Stock ***: This is the NSE symbol/ticker for a company. Stocks that are NOT stage two, are coloured red. *** 2. Consol.(30Prds) *** : It shows the price range in which stock is trading for the last 30 trading sessions(20 trading sessions per month) 3. *** Breakout(30Prds) ***: The BO is Breakout level based on last 30 sessions. R is the resistance level (if available)."
@@ -307,21 +313,33 @@ class tools:
         artfont = ImageFont.truetype(fontPath, 30)
         font = ImageFont.truetype(fontPath, 60)
         arttext_width, arttext_height = artfont.getsize_multiline(artText)
-        label_width, label_height = font.getsize_multiline(label)
-        text_width, text_height = font.getsize_multiline(table)
-        bt_text_width, bt_text_height = font.getsize_multiline(backtestSummary)
-        btd_text_width, btd_text_height = font.getsize_multiline(backtestDetail)
+        oneLinelabel_width, oneLinelabel_height = font.getsize_multiline(label)
+        scanResulttext_width, scanResulttext_height = font.getsize_multiline(table)
+        (
+            backtestSummary_text_width,
+            backtestSummary_text_height,
+        ) = font.getsize_multiline(backtestSummary)
+        backtestDetail_text_width, backtestDetail_text_height = font.getsize_multiline(
+            backtestDetail
+        )
         repotext_width, repotext_height = artfont.getsize_multiline(repoText)
 
-        text_width_artfont, _ = artfont.getsize_multiline(table)
-        bt_text_width_artfont, _ = font.getsize_multiline(backtestSummary)
+        scanResultText_width_inArtfont, _ = artfont.getsize_multiline(table)
+        backtestSummary_text_width_inArtfont, _ = font.getsize_multiline(
+            backtestSummary
+        )
 
         startColValue = 100
-        im_width = (
-            int(0.72 * bt_text_width)
-            if (bt_text_width > text_width)
-            else (text_width + int(startColValue * 2))
-        )
+        im_width = max(
+            arttext_width,
+            oneLinelabel_width,
+            scanResulttext_width,
+            backtestSummary_text_width,
+            backtestDetail_text_width,
+            repotext_width,
+            scanResultText_width_inArtfont,
+            backtestSummary_text_width_inArtfont,
+        ) + int(startColValue * 2)
 
         wrapper = textwrap.TextWrapper(
             width=2
@@ -346,14 +364,14 @@ class tools:
             (
                 im_width,
                 arttext_height
-                + text_height
-                + bt_text_height
-                + btd_text_height
-                + label_height
+                + scanResulttext_height
+                + backtestSummary_text_height
+                + backtestDetail_text_height
+                + oneLinelabel_height
                 + repotext_height
                 + legendtext_height
                 + addendumtext_height
-                + label_height,
+                + oneLinelabel_height,
             ),
             bgColor,
         )
@@ -378,7 +396,7 @@ class tools:
         draw.text(
             (startColValue, rowPixelRunValue), reportTitle, font=font, fill=menuColor
         )
-        rowPixelRunValue += label_height + 1
+        rowPixelRunValue += oneLinelabel_height + 1
         counter = -1
         for df in dfs_to_print:
             counter += 1
@@ -392,7 +410,7 @@ class tools:
                 font=font,
                 fill=menuColor,
             )
-            rowPixelRunValue = rowPixelRunValue + label_height
+            rowPixelRunValue = rowPixelRunValue + oneLinelabel_height
             unstyledLines = unstyled_dfs[counter].splitlines()
             lineNumber = 0
             screenLines = df.splitlines()
@@ -466,7 +484,7 @@ class tools:
                     colPixelRunValue = startColValue
                     rowPixelRunValue = rowPixelRunValue + line_height + 1
                 lineNumber = lineNumber + 1
-            rowPixelRunValue = rowPixelRunValue + label_height
+            rowPixelRunValue = rowPixelRunValue + oneLinelabel_height
         draw.text(
             (colPixelRunValue, rowPixelRunValue + 1),
             repoText,
@@ -474,7 +492,7 @@ class tools:
             fill=menuColor,
         )
         draw.text(
-            (colPixelRunValue, rowPixelRunValue + 2 * label_height + 10),
+            (colPixelRunValue, rowPixelRunValue + 2 * oneLinelabel_height + 10),
             legendText,
             font=artfont,
             fill=gridColor,
@@ -482,7 +500,7 @@ class tools:
         im = im.resize(im.size, Image.ANTIALIAS, reducing_gap=2)
         im.save(filename, format="png", bitmap_format="png", optimize=True, quality=20)
         # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
-        #     im.show()
+        # im.show()
 
     def tradingDate(simulate=False, day=None):
         curr = tools.currentDateTime(simulate=simulate, day=day)
