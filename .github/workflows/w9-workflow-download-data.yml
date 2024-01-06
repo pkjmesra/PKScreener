@@ -142,9 +142,10 @@ jobs:
       if: startsWith(runner.os, 'Linux')
       run: |
         rm -rf actions-data-download
+        mkdir actions-data-download
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y -i 1m
-        cp results/stock_data_*.pkl "actions-data-download"
+        cp results/stock_data_*.pkl actions-data-download
         ls -l results
         ls -l actions-data-download
 
