@@ -145,6 +145,8 @@ jobs:
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y -i 1m
         cp results/stock_data_*.pkl "actions-data-download"
+        ls -l results
+        ls -l actions-data-download
 
     - name: Download 52 week Stock Data on Windows
       if: startsWith(runner.os, 'Windows')
@@ -178,7 +180,7 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git checkout -b actions-data-download origin/actions-data-download
+        # git checkout -b actions-data-download origin/actions-data-download
         git add actions-data-download/stock_data_*.pkl --force
         git add actions-data-download/intraday_stock_data_*.pkl --force
         git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
