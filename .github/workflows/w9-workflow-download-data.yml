@@ -50,7 +50,7 @@ jobs:
 
   Download_Stock_Data:
 
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -104,6 +104,7 @@ jobs:
     - name: Install TA-Lib for Linux
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
+        pip3 install requests
         cd .github/dependencies/
         pwd
         tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -166,8 +167,9 @@ jobs:
       if: startsWith(runner.os, 'Windows')
       shell: cmd
       run: |
-        copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }}
-        copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }}
+        copy results/stock_data_*.pkl actions-data-download
+        # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }}
+        # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }}
   
     - name: Push Pickle Data
       shell: bash
