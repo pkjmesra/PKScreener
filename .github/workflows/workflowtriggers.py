@@ -367,6 +367,8 @@ def triggerBacktestWorkflowActions(launchLocal=False):
                 + branch
                 + '","inputs":{"user":"'
                 + f"{args.user}"
+                + '","runson":"'
+                + f'{"ubuntu-20.04" if key % 2 == 0 else "windows-latest"}'
                 + '","params":"'
                 + f'{options}{" -i 1m" if args.intraday else ""}'
                 + '","name":"'
