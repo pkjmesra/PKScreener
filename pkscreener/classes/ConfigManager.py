@@ -29,8 +29,8 @@ import os
 import sys
 
 import requests_cache
-from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes import Archiver
+from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 
 parser = configparser.ConfigParser(strict=False)
@@ -39,6 +39,7 @@ parser = configparser.ConfigParser(strict=False)
 default_period = "280d"
 default_duration = "1d"
 default_timeout = 2
+
 
 # This Class manages read/write of user configuration
 class tools:
@@ -73,16 +74,20 @@ class tools:
 
     def deleteFileWithPattern(self, pattern=None, excludeFile=None):
         if pattern is None:
-            pattern = f"{'intraday_' if self.isIntradayConfig() else ''}stock_data_*.pkl"
-            
-        for f in glob.glob(pattern,root_dir=os.sep.join(os.getcwd().split(os.sep)[:-1])):
+            pattern = (
+                f"{'intraday_' if self.isIntradayConfig() else ''}stock_data_*.pkl"
+            )
+
+        for f in glob.glob(
+            pattern, root_dir=os.sep.join(os.getcwd().split(os.sep)[:-1])
+        ):
             try:
                 if excludeFile is not None:
                     if not f.endswith(excludeFile):
                         os.remove(f)
                 else:
                     os.remove(f)
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
 
@@ -92,7 +97,7 @@ class tools:
         if default:
             try:
                 parser.remove_section("config")
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
             parser.add_section("config")
@@ -109,7 +114,9 @@ class tools:
             parser.set("config", "cacheStockData", "y" if self.cacheEnabled else "n")
             parser.set("config", "onlyStageTwoStocks", "y" if self.stageTwo else "n")
             parser.set("config", "useEMA", "y" if self.useEMA else "n")
-            parser.set("config", "showunknowntrends", "y" if self.showunknowntrends else "n")
+            parser.set(
+                "config", "showunknowntrends", "y" if self.showunknowntrends else "n"
+            )
             parser.set("config", "logsEnabled", "y" if self.logsEnabled else "n")
             parser.set("config", "generalTimeout", str(self.generalTimeout))
             parser.set("config", "longTimeout", str(self.longTimeout))
@@ -129,7 +136,7 @@ class tools:
                     )
                     input("Press <Enter> to continue...")
                     return
-            except IOError as e: # pragma: no cover
+            except IOError as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -256,7 +263,7 @@ class tools:
                 )
                 input("Press <Enter> to continue...")
                 return
-            except IOError as e: # pragma: no cover
+            except IOError as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 print(
                     colorText.BOLD
@@ -313,7 +320,9 @@ class tools:
                 )
                 self.generalTimeout = float(parser.get("config", "generalTimeout"))
                 self.longTimeout = float(parser.get("config", "longTimeout"))
-                self.maxNetworkRetryCount = int(parser.get("config", "maxNetworkRetryCount"))
+                self.maxNetworkRetryCount = int(
+                    parser.get("config", "maxNetworkRetryCount")
+                )
                 self.backtestPeriod = int(parser.get("config", "backtestPeriod"))
                 self.minVolume = int(parser.get("config", "minimumVolume"))
             except configparser.NoOptionError as e:
@@ -322,7 +331,7 @@ class tools:
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
                 parser.remove_section("config")
                 self.setConfig(parser, default=True, showFileCreatedText=False)
-            except Exception as e: # pragma: no cover
+            except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 # input(colorText.BOLD + colorText.FAIL +
                 #       '[+] pkscreener requires user configuration again. Press enter to continue..' + colorText.END)
@@ -332,22 +341,22 @@ class tools:
             self.setConfig(parser, default=True, showFileCreatedText=False)
 
     # Toggle the duration and period for use in intraday and swing trading
-    def toggleConfig(self, candleDuration,clearCache=True):
+    def toggleConfig(self, candleDuration, clearCache=True):
         if candleDuration is None:
             candleDuration = self.duration.lower()
         self.getConfig(parser)
         if candleDuration[-1] in ["d"]:
             self.period = "280d"
             self.cacheEnabled = True
-        if candleDuration[-1] in ["m","h"] and not self.isIntradayConfig():
+        if candleDuration[-1] in ["m", "h"] and not self.isIntradayConfig():
             self.period = "1d"
             self.cacheEnabled = True
         if self.isIntradayConfig():
-            self.duration = candleDuration if candleDuration[-1] in ["m","h"] else "1m"
-            self.daysToLookback = 120 # At least the past 2 hours
+            self.duration = candleDuration if candleDuration[-1] in ["m", "h"] else "1m"
+            self.daysToLookback = 120  # At least the past 2 hours
         else:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
-            self.daysToLookback = 30 # At least the past 1.5 month
+            self.daysToLookback = 30  # At least the past 1.5 month
         self.setConfig(parser, default=True, showFileCreatedText=False)
         if clearCache:
             # Delete any cached *.pkl data
@@ -361,15 +370,17 @@ class tools:
                 requests_cache.clear()
                 requests_cache.uninstall_cache()
             self.deleteFileWithPattern("*_cache.sqlite")
-            requests_cache.install_cache(cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
-                                         db_path=os.path.join(Archiver.get_user_outputs_dir(),'PKDevTools_cache.sqlite'))
-        except Exception as e: # pragma: no cover
+            requests_cache.install_cache(
+                cache_name=f"{Archiver.get_user_outputs_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
+                db_path=os.path.join(
+                    Archiver.get_user_outputs_dir(), "PKDevTools_cache.sqlite"
+                ),
+            )
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
-            
+
     def isIntradayConfig(self):
-        return (
-            self.period == "1d"
-        )
+        return self.period == "1d"
 
     # Print config file
     def showConfigFile(self, defaultAnswer=None):
@@ -383,7 +394,7 @@ class tools:
             if defaultAnswer != "Y":
                 input("Press <Enter> to continue...")
             return f"{prompt}\n{configData}"
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             print(
                 colorText.BOLD
@@ -406,6 +417,6 @@ class tools:
             f.close()
             self.getConfig(parser)
             return True
-        except FileNotFoundError as e: # pragma: no cover
+        except FileNotFoundError as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             self.setConfig(parser, default=True, showFileCreatedText=False)

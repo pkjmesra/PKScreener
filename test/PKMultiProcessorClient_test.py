@@ -32,48 +32,58 @@ from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
 
 @pytest.fixture(autouse=True)
 def mock_dependencies():
-    with patch('queue.Queue.task_done', new=patched_caller):
-            yield
+    with patch("queue.Queue.task_done", new=patched_caller):
+        yield
 
 
 def patched_caller(*args, **kwargs):
     args[0].put(None)
     args[0].unfinished_tasks = 0
 
+
 def patched_task_queue_get(*args, **kwargs):
     return None
+
 
 @pytest.fixture
 def task_queue():
     return Queue()
 
+
 @pytest.fixture
 def result_queue():
     return Queue()
+
 
 @pytest.fixture
 def processing_counter():
     return Mock()
 
+
 @pytest.fixture
 def processing_results_counter():
     return Mock()
+
 
 @pytest.fixture
 def object_dictionary():
     return {}
 
+
 @pytest.fixture
 def proxy_server():
     return Mock()
+
 
 @pytest.fixture
 def keyboard_interrupt_event():
     return Event()
 
+
 @pytest.fixture
 def default_logger():
     return Mock()
+
 
 @pytest.fixture
 def client(
@@ -84,7 +94,7 @@ def client(
     object_dictionary,
     proxy_server,
     keyboard_interrupt_event,
-    default_logger
+    default_logger,
 ):
     return PKMultiProcessorClient(
         Mock(),
@@ -95,8 +105,9 @@ def client(
         object_dictionary,
         proxy_server,
         keyboard_interrupt_event,
-        default_logger
+        default_logger,
     )
+
 
 def test_run_positive(client, task_queue, result_queue, default_logger):
     client.task_queue.put("task")
@@ -105,12 +116,14 @@ def test_run_positive(client, task_queue, result_queue, default_logger):
     assert not client.result_queue.empty()
     assert default_logger.info.called
 
+
 def test_run_no_task(client, task_queue, result_queue, default_logger):
     client.task_queue.put(None)
     client.run()
     assert client.task_queue.unfinished_tasks == 0
     assert client.result_queue.empty()
     assert default_logger.info.called
+
 
 def test_run_exception(client, task_queue, result_queue, default_logger):
     task_queue.put("task")
@@ -122,7 +135,10 @@ def test_run_exception(client, task_queue, result_queue, default_logger):
     assert default_logger.debug.called
     assert default_logger.info.called
 
-def test_run_keyboard_interrupt(client, task_queue, result_queue, default_logger, keyboard_interrupt_event):
+
+def test_run_keyboard_interrupt(
+    client, task_queue, result_queue, default_logger, keyboard_interrupt_event
+):
     task_queue.put("task")
     keyboard_interrupt_event.set()
     client.run()

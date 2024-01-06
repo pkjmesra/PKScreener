@@ -46,15 +46,17 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 with open("requirements.txt", "r") as fh:
     install_requires = fh.read().splitlines()
-    install_requires.append('advanced_ta')
+    install_requires.append("advanced_ta")
 
 if "Windows" in platform.system():
-    install_requires = ['.github/dependencies/TA_Lib-0.4.28-cp311-cp311-win_amd64.whl'].extend(install_requires)
+    install_requires = [
+        ".github/dependencies/TA_Lib-0.4.28-cp311-cp311-win_amd64.whl"
+    ].extend(install_requires)
 elif "Linux" in platform.system():
-    subprocess.Popen(["chmod", "+x",".github/dependencies/talib.sh"])
+    subprocess.Popen(["chmod", "+x", ".github/dependencies/talib.sh"])
     subprocess.Popen("start .github/dependencies/talib.sh", shell=True)
 # For Darwin, brew install ta-lib will work
-    
+
 SYS_MAJOR_VERSION = str(sys.version_info.major)
 SYS_VERSION = SYS_MAJOR_VERSION + "." + str(sys.version_info.minor)
 
@@ -78,7 +80,14 @@ setup(
     name=__PACKAGENAME__,
     packages=setuptools.find_packages(where=".", exclude=["docs", "test"]),
     include_package_data=True,  # include everything in source control
-    package_data={__PACKAGENAME__: [__PACKAGENAME__ + ".ini", 'courbd.ttf', 'LICENSE','LICENSE-Screenipy']},
+    package_data={
+        __PACKAGENAME__: [
+            __PACKAGENAME__ + ".ini",
+            "courbd.ttf",
+            "LICENSE",
+            "LICENSE-Screenipy",
+        ]
+    },
     # ...but exclude README.txt from all packages
     exclude_package_data={"": ["*.yml"]},
     version=VERSION,

@@ -34,17 +34,73 @@ import requests
 
 argParser = argparse.ArgumentParser()
 required = False
-argParser.add_argument("-s0","--skiplistlevel0", help="skip list of menus for level 0 menus", required=required)
-argParser.add_argument("-s1","--skiplistlevel1", help="skip list of menus for level 1 menus", required=required)
-argParser.add_argument("-s2","--skiplistlevel2",help="skip list of menus for level 2 menus", required=required)
-argParser.add_argument("-s3","--skiplistlevel3",help="skip list of menus for level 3 menus", required=required)
-argParser.add_argument("-r","--report", action="store_true", help="Generate backtest-report main page if true", required=required)
-argParser.add_argument("-s","--scans", action="store_true", help="Trigger scans if true", required=required)
-argParser.add_argument("-b","--backtests", action="store_true", help="Trigger backtests if true", required=required)
-argParser.add_argument("-i","--intraday", action="store_true", help="Trigger backtests for intraday if true", required=required)
-argParser.add_argument("-u","--user", help="Telegram user id", required=required)
-argParser.add_argument("-l","--local", help="Launch locally", required=required, action=argparse.BooleanOptionalAction)
-argParser.add_argument("-f","--force", help="Force launch scan/backtests", required=required, action=argparse.BooleanOptionalAction)
+argParser.add_argument(
+    "-s0",
+    "--skiplistlevel0",
+    help="skip list of menus for level 0 menus",
+    required=required,
+)
+argParser.add_argument(
+    "-s1",
+    "--skiplistlevel1",
+    help="skip list of menus for level 1 menus",
+    required=required,
+)
+argParser.add_argument(
+    "-s2",
+    "--skiplistlevel2",
+    help="skip list of menus for level 2 menus",
+    required=required,
+)
+argParser.add_argument(
+    "-s3",
+    "--skiplistlevel3",
+    help="skip list of menus for level 3 menus",
+    required=required,
+)
+argParser.add_argument(
+    "-r",
+    "--report",
+    action="store_true",
+    help="Generate backtest-report main page if true",
+    required=required,
+)
+argParser.add_argument(
+    "-s",
+    "--scans",
+    action="store_true",
+    help="Trigger scans if true",
+    required=required,
+)
+argParser.add_argument(
+    "-b",
+    "--backtests",
+    action="store_true",
+    help="Trigger backtests if true",
+    required=required,
+)
+argParser.add_argument(
+    "-i",
+    "--intraday",
+    action="store_true",
+    help="Trigger backtests for intraday if true",
+    required=required,
+)
+argParser.add_argument("-u", "--user", help="Telegram user id", required=required)
+argParser.add_argument(
+    "-l",
+    "--local",
+    help="Launch locally",
+    required=required,
+    action=argparse.BooleanOptionalAction,
+)
+argParser.add_argument(
+    "-f",
+    "--force",
+    help="Force launch scan/backtests",
+    required=required,
+    action=argparse.BooleanOptionalAction,
+)
 
 argsv = argParser.parse_known_args()
 args = argsv[0]
@@ -58,13 +114,13 @@ m3 = menus()
 objectDictionary = {}
 
 # args.scans = True
-# args.report = True 
+# args.report = True
 # args.intraday = True
 # args.backtests = True
 # args.local = True
-# args.user="-1001785195297" 
+# args.user="-1001785195297"
 # args.skiplistlevel0 ="S,T,E,U,Z,H,Y,X"
-# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13,14" 
+# args.skiplistlevel1 ="W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13,14"
 # args.skiplistlevel2 ="0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,42,M,Z"
 # args.skiplistlevel3 = "0,1,2,4,5,6"
 
@@ -81,11 +137,11 @@ if not args.report and not args.scans and not args.backtests:
     args.report = True
 
 cmds0 = m0.renderForMenu(
-        selectedMenu=None,
-        skip=args.skiplistlevel0.split(","),
-        asList=True,
-        renderStyle=MenuRenderStyle.STANDALONE,
-    )
+    selectedMenu=None,
+    skip=args.skiplistlevel0.split(","),
+    asList=True,
+    renderStyle=MenuRenderStyle.STANDALONE,
+)
 counter = 1
 for mnu0 in cmds0:
     p0 = mnu0.menuKey.upper()
@@ -120,22 +176,30 @@ for mnu0 in cmds0:
                 for mnu3 in cmds3:
                     p3 = mnu3.menuKey.upper()
                     p_all = f"{p0}_{p1}_{p2}_{p3}"
-                    if p_all.endswith('_'):
+                    if p_all.endswith("_"):
                         p_all = p_all[:-1]
-                    objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip(),mnu3.menuText.strip()],
-                                                 "td3":p_all}
+                    objectDictionary[counter] = {
+                        "td2": [
+                            mnu1.menuText.strip(),
+                            mnu2.menuText.strip(),
+                            mnu3.menuText.strip(),
+                        ],
+                        "td3": p_all,
+                    }
                     counter += 1
             else:
                 p_all = f"{p0}_{p1}_{p2}"
-                if p_all.endswith('_'):
+                if p_all.endswith("_"):
                     p_all = p_all[:-1]
-                objectDictionary[counter] = {"td2":[mnu1.menuText.strip(),mnu2.menuText.strip()],
-                                                 "td3":p_all}
+                objectDictionary[counter] = {
+                    "td2": [mnu1.menuText.strip(), mnu2.menuText.strip()],
+                    "td3": p_all,
+                }
                 counter += 1
 
 
 def generateBacktestReportMainPage():
-    HTMLHEAD_TEXT="""
+    HTMLHEAD_TEXT = """
     <!DOCTYPE html><html>
         <head>
             <script type='application/javascript' src='pkscreener/classes/tableSorting.js' ></script>
@@ -180,16 +244,23 @@ def generateBacktestReportMainPage():
     """
     TR_OPENER = "\n            <tr>"
     TR_CLOSER = "            </tr>\n"
-    TD_GENERAL="\n                <td>{}</td>"
-    TD_GENERAL_OPEN="\n                {}"
-    TD_LINK="\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_{}Sorted.html' target='_blank'>{}</a></td>"
+    TD_GENERAL = "\n                <td>{}</td>"
+    TD_GENERAL_OPEN = "\n                {}"
+    TD_LINK = "\n                <td><a style='color:white;' href='https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{}{}_{}Sorted.html' target='_blank'>{}</a></td>"
 
-    f = open(os.path.join(os.getcwd(),f"BacktestReports{'Intraday' if args.intraday else ''}.html"), "w")
+    f = open(
+        os.path.join(
+            os.getcwd(), f"BacktestReports{'Intraday' if args.intraday else ''}.html"
+        ),
+        "w",
+    )
     f.write(HTMLHEAD_TEXT)
     for key in objectDictionary.keys():
         td2 = " > <br />".join(objectDictionary[key]["td2"])
         td3 = objectDictionary[key]["td3"]
-        oneline_summary_file = f"PKScreener_{td3}{'_i' if args.intraday else ''}_OneLine_Summary.html"
+        oneline_summary_file = (
+            f"PKScreener_{td3}{'_i' if args.intraday else ''}_OneLine_Summary.html"
+        )
         oneline_summary = "<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>"
         if os.path.isfile(f"Backtest-Reports/{oneline_summary_file}"):
             try:
@@ -197,36 +268,52 @@ def generateBacktestReportMainPage():
                     oneline_summary = sf.read()
             except Exception:
                 pass
-        f.writelines([TR_OPENER,
-                    f"{TD_GENERAL}".format(str(key)),
-                    f"{TD_GENERAL}".format(f"{td2}{' (Intraday)' if args.intraday else ''}"),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_backtest_result",'Stock',td3),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Summary",'Stock', td3),
-                    f"{TD_LINK}".format(td3,f"{'_i' if args.intraday else ''}_Insights",'Date', td3),
-                    f"{TD_GENERAL_OPEN}".format(oneline_summary),
-                    TR_CLOSER
-                    ])
+        f.writelines(
+            [
+                TR_OPENER,
+                f"{TD_GENERAL}".format(str(key)),
+                f"{TD_GENERAL}".format(
+                    f"{td2}{' (Intraday)' if args.intraday else ''}"
+                ),
+                f"{TD_LINK}".format(
+                    td3,
+                    f"{'_i' if args.intraday else ''}_backtest_result",
+                    "Stock",
+                    td3,
+                ),
+                f"{TD_LINK}".format(
+                    td3, f"{'_i' if args.intraday else ''}_Summary", "Stock", td3
+                ),
+                f"{TD_LINK}".format(
+                    td3, f"{'_i' if args.intraday else ''}_Insights", "Date", td3
+                ),
+                f"{TD_GENERAL_OPEN}".format(oneline_summary),
+                TR_CLOSER,
+            ]
+        )
     f.write(HTMLFOOTER_TEXT)
     f.close()
 
-def run_workflow(workflow_name,postdata):
-    owner, repo="pkjmesra", "PKScreener"
+
+def run_workflow(workflow_name, postdata):
+    owner, repo = "pkjmesra", "PKScreener"
     ghp_token = ""
     if "GITHUB_TOKEN" in os.environ.keys():
-        ghp_token = os.environ['GITHUB_TOKEN']
+        ghp_token = os.environ["GITHUB_TOKEN"]
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
-    
+
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {ghp_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     resp = requests.post(url, data=postdata, headers=headers, timeout=4)
-    if resp.status_code==204:
+    if resp.status_code == 204:
         print(f"Workflow {workflow_name} Triggered!")
     else:
         print(f"Something went wrong while triggering {workflow_name}")
     return resp
+
 
 def triggerScanWorkflowActions():
     for key in objectDictionary.keys():
@@ -234,15 +321,32 @@ def triggerScanWorkflowActions():
         branch = "main"
         if args.user is None or len(args.user) == 0:
             args.user = ""
-            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+            postdata = (
+                '{"ref":"'
+                + branch
+                + '","inputs":{"user":"'
+                + f"{args.user}"
+                + '","params":"'
+                + f'-a Y -e -p -o {scanOptions.replace("_",":")}'
+                + '","ref":"main"}}'
+            )
         else:
-            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'+'","ref":"main"}}'
+            postdata = (
+                '{"ref":"'
+                + branch
+                + '","inputs":{"user":"'
+                + f"{args.user}"
+                + '","params":"'
+                + f'-a Y -e -p -u {args.user} -o {scanOptions.replace("_",":")}'
+                + '","ref":"main"}}'
+            )
 
-        resp = run_workflow("w8-workflow-alert-scan_generic.yml",postdata)
-        if resp.status_code==204:
+        resp = run_workflow("w8-workflow-alert-scan_generic.yml", postdata)
+        if resp.status_code == 204:
             sleep(5)
         else:
             break
+
 
 def triggerBacktestWorkflowActions(launchLocal=False):
     for key in objectDictionary.keys():
@@ -251,51 +355,71 @@ def triggerBacktestWorkflowActions(launchLocal=False):
         if launchLocal:
             from pkscreener import pkscreenercli
             from pkscreener.pkscreenercli import argParser as agp
+
             options = "B:30:{0}".format(options)
-            ag = agp.parse_known_args(args=["-e","-a","Y","-o",options,"-v"])[0]
+            ag = agp.parse_known_args(args=["-e", "-a", "Y", "-o", options, "-v"])[0]
             pkscreenercli.args = ag
             pkscreenercli.pkscreenercli()
         else:
             branch = "main"
-            postdata = '{"ref":"'+branch+'","inputs":{"user":"'+f'{args.user}'+'","params":"'+f'{options}{" -i 1m" if args.intraday else ""}'+'","name":"'+f'{scanOptions}{"_i" if args.intraday else ""}'+'","intraday":"'+f'{"-i" if args.intraday else ""}'+'"}}'
-            resp = run_workflow("w13-workflow-backtest_generic.yml",postdata)
-            if resp.status_code==204:
+            postdata = (
+                '{"ref":"'
+                + branch
+                + '","inputs":{"user":"'
+                + f"{args.user}"
+                + '","params":"'
+                + f'{options}{" -i 1m" if args.intraday else ""}'
+                + '","name":"'
+                + f'{scanOptions}{"_i" if args.intraday else ""}'
+                + '","intraday":"'
+                + f'{"-i" if args.intraday else ""}'
+                + '"}}'
+            )
+            resp = run_workflow("w13-workflow-backtest_generic.yml", postdata)
+            if resp.status_code == 204:
                 sleep(5)
             else:
                 break
     if launchLocal:
         sys.exit(0)
 
+
 def holidayList():
     url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/.github/dependencies/nse-holidays.json"
-    headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"}
-    res = requests.get(url,headers=headers)
+    headers = {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"
+    }
+    res = requests.get(url, headers=headers)
     if res is None or res.status_code != 200:
         return None
     try:
-        cm = res.json()['CM'] # CM = Capital Markets
+        cm = res.json()["CM"]  # CM = Capital Markets
         df = pd.DataFrame(cm)
-        df = df[['tradingDate', 'weekDay', 'description']]
-        df.loc[:, 'description'] = df.loc[:, 'description'].apply(
-                lambda x: x.replace('\r','')
-            )
+        df = df[["tradingDate", "weekDay", "description"]]
+        df.loc[:, "description"] = df.loc[:, "description"].apply(
+            lambda x: x.replace("\r", "")
+        )
         return df
-    except Exception: # pragma: no cover
+    except Exception:  # pragma: no cover
         return None
-    
+
+
 def isTodayHoliday():
     holidays = holidayList()
     if holidays is None:
         return False, None
-    
+
     curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
     today = curr.strftime("%d-%b-%Y")
     occasion = None
-    for holiday in holidays['tradingDate']:
+    for holiday in holidays["tradingDate"]:
         if today in holiday:
-            occasion = holidays[holidays['tradingDate']==holiday]['description'].iloc[0]
+            occasion = holidays[holidays["tradingDate"] == holiday]["description"].iloc[
+                0
+            ]
             break
     return occasion is not None, occasion
+
 
 if args.report:
     generateBacktestReportMainPage()

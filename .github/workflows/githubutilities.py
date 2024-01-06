@@ -31,57 +31,83 @@ import requests
 
 argParser = argparse.ArgumentParser()
 required = False
-argParser.add_argument("-a","--setoutput", help="set output for GITHUB_OUTPUT env variable", required=required)
-argParser.add_argument("-b", "--setmultilineoutput", help="set multiline out for GITHUB_OUTPUT env variable", required=required)
-argParser.add_argument("-c","--fetchurl",help="fetch given url", required=required)
-argParser.add_argument("-d","--getreleaseurl", action="store_true", help="get latest release url", required=required)
+argParser.add_argument(
+    "-a",
+    "--setoutput",
+    help="set output for GITHUB_OUTPUT env variable",
+    required=required,
+)
+argParser.add_argument(
+    "-b",
+    "--setmultilineoutput",
+    help="set multiline out for GITHUB_OUTPUT env variable",
+    required=required,
+)
+argParser.add_argument("-c", "--fetchurl", help="fetch given url", required=required)
+argParser.add_argument(
+    "-d",
+    "--getreleaseurl",
+    action="store_true",
+    help="get latest release url",
+    required=required,
+)
 
 argsv = argParser.parse_known_args()
 args = argsv[0]
 
+
 def aset_output(name, value):
     if "GITHUB_OUTPUT" in os.environ.keys():
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'{name}={value}', file=fh)
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            print(f"{name}={value}", file=fh)
 
 
 def bset_multiline_output(name, value):
     if "GITHUB_OUTPUT" in os.environ.keys():
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
             delimiter = uuid.uuid1()
-            print(f'{name}<<{delimiter}', file=fh)
+            print(f"{name}<<{delimiter}", file=fh)
             print(value, file=fh)
             print(delimiter, file=fh)
+
 
 # set_multiline_output("key_name", "my_multiline_string_value")
 # set_output("key_name", "value")
 
+
 def cfetchURL(key, url):
     resp = requests.get(url, timeout=2)
-    bset_multiline_output(key,resp.json())
+    bset_multiline_output(key, resp.json())
     return resp
 
+
 def dget_latest_release_url():
-    resp = cfetchURL("ReleaseResponse", "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest")
-    url=""
+    resp = cfetchURL(
+        "ReleaseResponse",
+        "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest",
+    )
+    url = ""
     if "Windows" in platform.system():
         url = resp.json()["assets"][1]["browser_download_url"]
-        aset_output("DOWNLOAD_URL",url)
+        aset_output("DOWNLOAD_URL", url)
     elif "Darwin" in platform.system():
         url = resp.json()["assets"][2]["browser_download_url"]
-        aset_output("DOWNLOAD_URL",url)
+        aset_output("DOWNLOAD_URL", url)
     else:
         url = resp.json()["assets"][0]["browser_download_url"]
-        aset_output("DOWNLOAD_URL",url)
-    rel_version=url.split("/")[-2]
-    aset_output("LAST_RELEASE_VERSION",rel_version)
+        aset_output("DOWNLOAD_URL", url)
+    rel_version = url.split("/")[-2]
+    aset_output("LAST_RELEASE_VERSION", rel_version)
     return url
+
 
 if args.getreleaseurl:
     print(dget_latest_release_url())
 if args.setoutput is not None:
-    aset_output(args.setoutput.split(",")[0],args.setoutput.split(",")[1])
+    aset_output(args.setoutput.split(",")[0], args.setoutput.split(",")[1])
 if args.setmultilineoutput is not None:
-    bset_multiline_output(args.setmultilineoutput.split(",")[0],args.setmultilineoutput.split(",")[1])
+    bset_multiline_output(
+        args.setmultilineoutput.split(",")[0], args.setmultilineoutput.split(",")[1]
+    )
 if args.fetchurl is not None:
-    cfetchURL(args.fetchurl.split(",")[0],args.fetchurl.split(",")[1])
+    cfetchURL(args.fetchurl.split(",")[0], args.fetchurl.split(",")[1])

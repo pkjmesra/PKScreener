@@ -29,35 +29,63 @@ from pkscreener.classes.Fetcher import screenerStockDataFetcher
 
 configManager = ConfigManager.tools()
 
-def run_workflow(command,user,options,workflowType="B"):
-    branch, owner, repo="main", "pkjmesra", "PKScreener"
+
+def run_workflow(command, user, options, workflowType="B"):
+    branch, owner, repo = "main", "pkjmesra", "PKScreener"
     if workflowType == "B":
         workflow_name = "w13-workflow-backtest_generic.yml"
         options = f'{options.replace("B:","")}:D:D:D'
-        data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'{options}'+'","name":"'+f'{command}'+'"}}'
+        data = (
+            '{"ref":"'
+            + branch
+            + '","inputs":{"user":"'
+            + f"{user}"
+            + '","params":"'
+            + f"{options}"
+            + '","name":"'
+            + f"{command}"
+            + '"}}'
+        )
     elif workflowType == "X" or workflowType == "G":
         workflow_name = "w8-workflow-alert-scan_generic.yml"
         if user is None or len(user) == 0:
             user = ""
-            data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'-a Y -e -p -o {options.replace("_",":")}'+'","ref":"main"}}'
+            data = (
+                '{"ref":"'
+                + branch
+                + '","inputs":{"user":"'
+                + f"{user}"
+                + '","params":"'
+                + f'-a Y -e -p -o {options.replace("_",":")}'
+                + '","ref":"main"}}'
+            )
         else:
-            data = '{"ref":"'+branch+'","inputs":{"user":"'+f'{user}'+'","params":"'+f'-a Y -e -p -u {user} -o {options.replace("_",":")}'+'","ref":"main"}}'
+            data = (
+                '{"ref":"'
+                + branch
+                + '","inputs":{"user":"'
+                + f"{user}"
+                + '","params":"'
+                + f'-a Y -e -p -u {user} -o {options.replace("_",":")}'
+                + '","ref":"main"}}'
+            )
 
-    _,_,_,ghp_token = get_secrets()
+    _, _, _, ghp_token = get_secrets()
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
-    
+
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {ghp_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-    
+
     fetcher = screenerStockDataFetcher(configManager)
     resp = fetcher.postURL(url, data=data, headers=headers)
-    if resp.status_code==204:
+    if resp.status_code == 204:
         print(f"Workflow {workflow_name} Triggered!")
     else:
         print(f"Something went wrong while triggering {workflow_name}")
     return resp
+
 
 # resp = run_workflow("B_12_1","-1001785195297")

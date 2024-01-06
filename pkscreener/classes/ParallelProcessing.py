@@ -98,12 +98,13 @@ class StockConsumer:
             # )
             hostData = hostRef.objectDictionary.get(stock)
             if (
-                (not shouldCache
+                not shouldCache
                 or downloadOnly
                 or self.isTradingTime
-                or hostData is None) 
-                and (hostData is None and backtestDuration >= 0) # Fetch only if we are NOT backtesting
-            ):
+                or hostData is None
+            ) and (
+                hostData is None and backtestDuration >= 0
+            ):  # Fetch only if we are NOT backtesting
                 data = fetcher.fetchStockData(
                     stock,
                     period,
@@ -115,12 +116,11 @@ class StockConsumer:
                 )
                 # hostRef.default_logger.info(f"Fetcher fetched stock data:\n{data}")
                 if (
-                    ((shouldCache
-                    and not self.isTradingTime
-                    and (hostData is None))
-                    or downloadOnly) 
-                    or (shouldCache and hostData is None) # and backtestDuration == 0 # save only if we're NOT backtesting
-                ):
+                    (shouldCache and not self.isTradingTime and (hostData is None))
+                    or downloadOnly
+                ) or (
+                    shouldCache and hostData is None
+                ):  # and backtestDuration == 0 # save only if we're NOT backtesting
                     hostRef.objectDictionary[stock] = data.to_dict("split")
                     hostData = hostRef.objectDictionary.get(stock)
                     # hostRef.default_logger.info(
@@ -182,10 +182,14 @@ class StockConsumer:
                     inputData = data.head(len(data) - backtestDuration)
                     # imputData will have the last row as the date for which the entire calculation
                     # and prediction is being done
-                    data = data.tail(backtestDuration + 1) #.head(backtestPeriodToLookback+1)
+                    data = data.tail(
+                        backtestDuration + 1
+                    )  # .head(backtestPeriodToLookback+1)
                     # Let's get today's data
                     if portfolio:
-                        screener.validateLTPForPortfolioCalc(data, screeningDictionary, saveDictionary)
+                        screener.validateLTPForPortfolioCalc(
+                            data, screeningDictionary, saveDictionary
+                        )
                     # data has the last row from inputData at the top.
                     fullData, processedData = screener.preprocessData(
                         inputData, daysToLookback=configManager.daysToLookback
@@ -205,11 +209,15 @@ class StockConsumer:
             if not processedData.empty:
                 screeningDictionary["Stock"] = (
                     colorText.WHITE
-                    + (f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
+                    + (
+                        f"\x1B]8;;https://in.tradingview.com/chart?symbol=NSE%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\"
+                    )
                     + colorText.END
                 )
                 saveDictionary["Stock"] = stock
-                screener.find52WeekHighLow(fullData, saveDictionary, screeningDictionary)
+                screener.find52WeekHighLow(
+                    fullData, saveDictionary, screeningDictionary
+                )
                 isLtpValid, verifyStageTwo = screener.validateLTP(
                     fullData,
                     screeningDictionary,
@@ -219,17 +227,19 @@ class StockConsumer:
                 )
                 if configManager.stageTwo and not verifyStageTwo and executeOption > 0:
                     raise Screener.NotAStageTwoStock
-                minVolume = configManager.minVolume / (100 if configManager.isIntradayConfig() else 1)
+                minVolume = configManager.minVolume / (
+                    100 if configManager.isIntradayConfig() else 1
+                )
                 hasMinVolumeRatio, hasMinVolQty = screener.validateVolume(
                     processedData,
                     screeningDictionary,
                     saveDictionary,
                     volumeRatio=volumeRatio,
-                    minVolume=minVolume
+                    minVolume=minVolume,
                 )
                 if not hasMinVolQty and executeOption > 0:
                     raise Screener.NotEnoughVolumeAsPerConfig
-                
+
                 consolidationValue = screener.validateConsolidation(
                     processedData,
                     screeningDictionary,
@@ -270,7 +280,7 @@ class StockConsumer:
                     screeningDictionary,
                     saveDictionary,
                     daysToLookback=configManager.daysToLookback,
-                    alreadyBrokenout=(executeOption == 2)
+                    alreadyBrokenout=(executeOption == 2),
                 )
                 if executeOption == 1:
                     isPotentialBreaking = screener.findPotentialBreakout(
@@ -282,7 +292,9 @@ class StockConsumer:
                 if executeOption == 23:
                     isBreakingOutNow = screener.findBreakingoutNow(processedData)
                 if executeOption == 24:
-                    higherHighsLowsClose = screener.validateHigherHighsHigherLowsHigherClose(fullData)
+                    higherHighsLowsClose = (
+                        screener.validateHigherHighsHigherLowsHigherClose(fullData)
+                    )
                 if executeOption == 25:
                     hasLowerLows = screener.validateLowerHighsLowerLows(processedData)
                 if executeOption == 4:
@@ -320,7 +332,7 @@ class StockConsumer:
                     isCandlePattern = candlePatterns.findPattern(
                         processedData, screeningDictionary, saveDictionary
                     )
-                except Exception as e: # pragma: no cover
+                except Exception as e:  # pragma: no cover
                     hostRef.default_logger.debug(e, exc_info=True)
                     screeningDictionary["Pattern"] = ""
                     saveDictionary["Pattern"] = ""
@@ -401,7 +413,12 @@ class StockConsumer:
                             )
                 if sys.version_info >= (3, 11):
                     with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
-                        isLorentzian = screener.validateLorentzian(fullData, screeningDictionary, saveDictionary, lookFor = maLength)
+                        isLorentzian = screener.validateLorentzian(
+                            fullData,
+                            screeningDictionary,
+                            saveDictionary,
+                            lookFor=maLength,
+                        )
                 else:
                     isLorentzian = False
                 with hostRef.processingResultsCounter.get_lock():
@@ -418,8 +435,10 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        ((executeOption == 1 and (isBreaking or isPotentialBreaking)) or 
-                         (executeOption == 2 and isBreaking))
+                        (
+                            (executeOption == 1 and (isBreaking or isPotentialBreaking))
+                            or (executeOption == 2 and isBreaking)
+                        )
                         and hasMinVolumeRatio
                         and isLtpValid
                     ):
@@ -654,15 +673,15 @@ class StockConsumer:
                             backtestDuration,
                         )
                     if (
-                        (executeOption == 15 and is52WeekLowBreakout) or 
-                        (executeOption == 16 and is10DaysLowBreakout) or 
-                        (executeOption == 17 and is52WeekHighBreakout) or 
-                        (executeOption == 18 and isLtpValid and isAroonCrossover) or
-                        (executeOption == 19 and macdHistBelow0) or
-                        (executeOption == 20 and bullishForTomorrow) or
-                        (executeOption == 23 and isBreakingOutNow) or
-                        (executeOption == 24 and higherHighsLowsClose) or
-                        (executeOption == 25 and hasLowerLows)
+                        (executeOption == 15 and is52WeekLowBreakout)
+                        or (executeOption == 16 and is10DaysLowBreakout)
+                        or (executeOption == 17 and is52WeekHighBreakout)
+                        or (executeOption == 18 and isLtpValid and isAroonCrossover)
+                        or (executeOption == 19 and macdHistBelow0)
+                        or (executeOption == 20 and bullishForTomorrow)
+                        or (executeOption == 23 and isBreakingOutNow)
+                        or (executeOption == 24 and higherHighsLowsClose)
+                        or (executeOption == 25 and hasLowerLows)
                     ):
                         hostRef.processingResultsCounter.value += 1
                         return (
@@ -695,7 +714,7 @@ class StockConsumer:
             pass
         except OSError as e:
             pass
-        except Exception as e: # pragma: no cover
+        except Exception as e:  # pragma: no cover
             hostRef.default_logger.debug(e, exc_info=True)
             if testbuild or printCounter:
                 print(e)
@@ -721,27 +740,25 @@ class StockConsumer:
         screener.default_logger.level = logLevel
         hostRef.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
         screener.default_logger.addHandlers(log_file_path=None, levelname=logLevel)
-        hostRef.default_logger.info(
-            f"Beginning the stock screening for stock:{stock}"
-        )
+        hostRef.default_logger.info(f"Beginning the stock screening for stock:{stock}")
 
     def initResultDictionaries(self):
-        periods = [1,2,3,4,5,10,15,22,30]
-        columns=[
-                "Stock",
-                "Consol.",
-                "Breakout",
-                "MA-Signal",
-                "Volume",
-                "LTP",
-                "52Wk H",
-                "52Wk L",
-                "%Chng",
-                "RSI",
-                "Trend",
-                "Pattern",
-                "CCI",
-            ]
+        periods = [1, 2, 3, 4, 5, 10, 15, 22, 30]
+        columns = [
+            "Stock",
+            "Consol.",
+            "Breakout",
+            "MA-Signal",
+            "Volume",
+            "LTP",
+            "52Wk H",
+            "52Wk L",
+            "%Chng",
+            "RSI",
+            "Trend",
+            "Pattern",
+            "CCI",
+        ]
         screeningDictionary = {
             "Stock": "",
             "Consol.": "",
@@ -780,8 +797,6 @@ class StockConsumer:
             screeningDictionary[f"Growth{prd}"] = np.nan
             saveDictionary[f"Growth{prd}"] = np.nan
 
-        screenResults = pd.DataFrame(
-            columns=columns
-        )
+        screenResults = pd.DataFrame(columns=columns)
 
-        return screeningDictionary,saveDictionary
+        return screeningDictionary, saveDictionary
