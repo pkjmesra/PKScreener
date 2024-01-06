@@ -180,10 +180,7 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
         pkscreenercli.exe -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
-        copy /Y results\*.html Backtest-Reports
-        #rmdir /s /q Backtest-Reports
-        #mkdir Backtest-Reports
-        # python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        copy /Y results\* Backtest-Reports
 
     - name: Run backtest on Linux
       shell: bash
@@ -194,9 +191,8 @@ jobs:
         BACKTEST_NAME: ${{ inputs.name }}
       run: |
         /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
+        ls -l results
         cp results/*.html Backtest-Reports
-        #rmdir /s /q Backtest-Reports
-        #mkdir Backtest-Reports
         # python3 pkscreener/pkscreenercli.py -a Y -e -p -o B:30:${{ inputs.params }} -u ${{ inputs.user }}
   
     - name: Push backtest and summary reports
@@ -208,7 +204,6 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        # git checkout -b gh-pages origin/gh-pages
         git pull
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_backtest_result_StockSorted.html --force
         git add Backtest-Reports/PKScreener_${{ inputs.name }}_Summary_StockSorted.html --force

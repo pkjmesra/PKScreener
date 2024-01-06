@@ -170,9 +170,7 @@ jobs:
       shell: cmd
       run: |
         copy results\*.pkl actions-data-download
-        # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }}
-        # copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }}
-  
+        
     - name: Push Pickle Data
       shell: bash
       run: |
@@ -181,7 +179,6 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        # git checkout -b actions-data-download origin/actions-data-download
         git add actions-data-download/stock_data_*.pkl --force
         git add actions-data-download/intraday_stock_data_*.pkl --force
         git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
@@ -193,7 +190,6 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git fetch
-        # git checkout -b actions-data-download origin/actions-data-download
         python3 .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
 
   Delete_Workflow_Run:
