@@ -35,7 +35,14 @@ on:
         required: false
         type: string
         default: '3.11'
-
+      runson:
+          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          required: false
+          default: 'ubuntu-20.04'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N)'
+        required: false
+        default: 'N'
   schedule:
   - cron: '58 9 * * 1-5'
 
@@ -55,7 +62,8 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion  || 3.11 }}
 
-    - name: Restore Dependencies from Cache
+    - name: Restore Dependencies from Windows Cache
+      if: startsWith(runner.os, 'Windows')
       uses: actions/cache@v2
       with:
         path: ~\AppData\Local\pip\Cache
@@ -63,7 +71,21 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+          
+    - name: Install TA-Lib for Windows
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
@@ -79,20 +101,53 @@ jobs:
           pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
         fi
 
+    - name: Install TA-Lib for Linux
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
+      run: |
+        cd .github/dependencies/
+        pwd
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib/
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib==0.4.28
+
     - name: Environment setup to get latest EXE
       shell: cmd
       id: releaseurlsetter
       run: |
         python3 .github/workflows/githubutilities.py -d
 
-    - name: Download latest executable
+    - name: Download latest executable on Windows
       shell: cmd
+      if: startsWith(runner.os, 'Windows')
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o pkscreenercli.exe -JL %exe_path%
 
-    - name: Download 52 week Stock Data
+    - name: Download latest executable on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin
+
+    - name: Run Scan on Ubuntu
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      run: |
+        rm -rf actions-data-download
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y -i 1m
+        cp results/stock_data_*.pkl "actions-data-download"
+
+    - name: Download 52 week Stock Data on Windows
+      if: startsWith(runner.os, 'Windows')
       shell: cmd
       id: downloader
       run: |
@@ -100,19 +155,22 @@ jobs:
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
             
-    - name: Download Intraday Stock Data
+    - name: Download Intraday Stock Data on Windows
+      if: startsWith(runner.os, 'Windows')
       shell: cmd
       id: intradaydownloader
       run: |
         pkscreenercli.exe -d -a Y -i 1m
 
-    - name: Copy Stock Data Pickles
+    - name: Copy Stock Data Pickles on Windows
+      if: startsWith(runner.os, 'Windows')
       shell: cmd
       run: |
         copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.downloader.outputs.DOWNLOAD_CACHE_FILE_NAME }}
         copy /Y D:/a/PKScreener/PKScreener/results/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }} D:/a/PKScreener/PKScreener/actions-data-download/${{ steps.intradaydownloader.outputs.INTRADAY_DOWNLOAD_CACHE_FILE_NAME }}
   
     - name: Push Pickle Data
+      shell: bash
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
@@ -126,7 +184,7 @@ jobs:
         git push -v -u origin +actions-data-download
 
     - name: Squash Commits (Python)
-      shell: cmd
+      shell: bash
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
