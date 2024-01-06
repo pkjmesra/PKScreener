@@ -73,7 +73,7 @@ session = CachedSession(
 )
 fetcher = Fetcher.screenerStockDataFetcher(ConfigManager.tools())
 artText = """
-PPPPPPPPPPPPPPPPP   KKKKKKKKK    KKKKKKK   SSSSSSSSSSSSSSS
+PPPPPPPPPPPPPPPPP   KKKKKKKKK    KKKKKKK   SSSSSSSSSSSSSSS                                                                                                                                         TM
 UPI:8007162973@APL  K:::::::K    K:::::K SS:::::::::::::::S
 P::::::PPPPPP:::::P K:::::::K    K:::::KS:::::SSSSSS::::::S
 PP:::::P     P:::::PK:::::::K   K::::::KS:::::S     SSSSSSS
@@ -90,6 +90,7 @@ P::::::::P          K:::::::K    K:::::KS::::::SSSSSS:::::S c:::::::::::::::::c 
 P::::::::P          K:::::::K    K:::::KS:::::::::::::::SS   cc:::::::::::::::c r:::::r              ee:::::::::::::e    ee:::::::::::::e    n::::n    n::::n  ee:::::::::::::e   r:::::r
 PPPPPPPPPP          KKKKKKKKK    KKKKKKK SSSSSSSSSSSSSSS       cccccccccccccccc rrrrrrr                eeeeeeeeeeeeee      eeeeeeeeeeeeee    nnnnnn    nnnnnn    eeeeeeeeeeeeee   rrrrrrr
 """
+artText = f"{artText}\nv{VERSION}"
 art = colorText.GREEN + artText + colorText.END
 
 lastScreened = os.path.join(
@@ -531,7 +532,9 @@ class tools:
     def currentDateTime(simulate=False, day=None, hour=None, minute=None):
         curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         if simulate:
-            return curr.replace(day=day, hour=hour, minute=minute)
+            return curr.replace(day=day if day is not None else curr.day,
+                                hour=hour if hour is not None else curr.hour,
+                                minute=minute if minute is not None else curr.minute,)
         else:
             return curr
 
