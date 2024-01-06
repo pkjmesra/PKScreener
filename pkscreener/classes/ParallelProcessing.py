@@ -122,7 +122,6 @@ class StockConsumer:
                     shouldCache and hostData is None
                 ):  # and backtestDuration == 0 # save only if we're NOT backtesting
                     hostRef.objectDictionary[stock] = data.to_dict("split")
-                    hostData = hostRef.objectDictionary.get(stock)
                     # hostRef.default_logger.info(
                     #     f"Stock data saved:\n{hostRef.objectDictionary[stock]}"
                     # )
@@ -130,6 +129,8 @@ class StockConsumer:
                         with hostRef.processingResultsCounter.get_lock():
                             hostRef.processingResultsCounter.value += 1
                         raise Screener.DownloadDataOnly
+                    else:
+                        hostData = hostRef.objectDictionary.get(stock)
             else:
                 if printCounter:
                     try:
