@@ -98,9 +98,9 @@ jobs:
         rmdir /s /q actions-data-download
         mkdir actions-data-download
         pkscreenercli.exe -d -a Y
-        copy "stock_data_*.pkl" "actions-data-download"
+        copy "results/stock_data_*.pkl" "actions-data-download"
         pkscreenercli.exe -d -a Y -i 1m
-        copy "intraday_stock_data_*.pkl" "actions-data-download"
+        copy "results/intraday_stock_data_*.pkl" "actions-data-download"
 
     - name: Push Pickle Data
       run: |
