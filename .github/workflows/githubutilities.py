@@ -51,7 +51,13 @@ argParser.add_argument(
     help="get latest release url",
     required=required,
 )
-
+argParser.add_argument(
+    "-w",
+    "--whatsnew",
+    action="store_true",
+    help="Whats new in this release",
+    required=required,
+)
 argsv = argParser.parse_known_args()
 args = argsv[0]
 
@@ -100,9 +106,21 @@ def dget_latest_release_url():
     aset_output("LAST_RELEASE_VERSION", rel_version)
     return url
 
-
+def whatsNew():
+    url = "https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/release.md"
+    md = requests.get(url,timeout=2)
+    txt = md.text
+    txt = txt.split("New?")[1]
+    txt = txt.split("## Older Releases")[0]
+    txt = txt.replace("* ", "- ").replace("`", "").strip()
+    txt = txt + "\n"
+    bset_multiline_output("WHATS_NEW_IN_THIS_RELEASE",txt)
+    return txt
+    
 if args.getreleaseurl:
     print(dget_latest_release_url())
+if args.whatsnew:
+    print(whatsNew())
 if args.setoutput is not None:
     aset_output(args.setoutput.split(",")[0], args.setoutput.split(",")[1])
 if args.setmultilineoutput is not None:
