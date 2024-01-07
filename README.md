@@ -3,11 +3,11 @@
 # PKScreener
 
 [![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![CodeFactor][Codefactor-badge]][Codefactor] [![Downloads][Downloads-badge]][Downloads] ![latest download][Latest-Downloads-badge] ![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov] [![Docker Status][Docker Status-badge]][Docker Status]
-[![Docker Pulls][Docker Pulls-badge]][Docker Status] 
+[![Docker Pulls][Docker Pulls-badge]][Docker Status]
 
 ## What is PKScreener?
-| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k|
-| :-------------: | :-----------------: | :------------------: | :--------------------: | ----------- |
+| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k |
+| :-------------: | :-----------------: | :------------------: | :--------------------: | --------------------------- |
 
 | Nifty screening | Volume scanners | Breakout detection | Consolidating stocks | Reversal Signals |
 | :-------------: | :-------------: | :----------------: | :------------------: | ---------------- |
@@ -18,11 +18,11 @@
 | RSI screening | MACD scanners | IPO Stocks | Momentum Gainers | Watchlist screening |
 | :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
 
-| Stock Performance | 52Wk H/L Breakouts | 10 days low breakouts | Aroon Crossover | Next Day Bullish Stocks|
-| :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
+| Stock Performance | 52Wk H/L Breakouts | 10 days low breakouts | Aroon Crossover | Next Day Bullish Stocks |
+| :---------------: | :----------------: | :-------------------: | :-------------: | ----------------------- |
 
-| Today's Breakouts | Breaking out now | Popular stocks by Mutual Funds / FIIs | Higher Highs | Lower Lows|
-| :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
+| Today's Breakouts | Breaking out now | Popular stocks by Mutual Funds / FIIs | Higher Highs | Lower Lows |
+| :---------------: | :--------------: | :-----------------------------------: | :----------: | ---------- |
 
 | F&O Stocks screening | Live 5-EMA Index Scan | Logging | Telegram Channel | Early Breakouts |
 | :------------------: | :-------------------: | :-----: | :--------------: | --------------- |
@@ -32,10 +32,10 @@
 pkscreener is totally customizable and it can screen stocks with the settings that you have provided.
 
 You can get daily scan results/alerts at scheduled times by subscribing to the following Telegram channel:
-|    Purpose     |                                                                                                                   Description/link                                                                                                                    | QR Code                                                                                                                                          |                                                                                                                                            |     |
-| :------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --- |
-| Alerts Channel | https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions. | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/> |                                                                                                                                            |     |
-|      |
+|    Purpose     |                                                                                                                   Description/link                                                                                                                    | QR Code                                                                                                                                          |     |     |
+| :------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ | --- | --- |
+| Alerts Channel | https://t.me/PKScreener > You wil receive all the major alerts on this telegram channel. These alerts are sent for all major strategy scans daily around 9:30am-10:15am and then around 4pm. You will also receive the next day's market predictions. | <img src="https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/Telegram_Channel_Prod.jpg" alt="Telegram Channel" width="100"/> |     |     |
+|                |                                                                                                                                                                                                                                                       |                                                                                                                                                  |     |     |
 
 ![telegram](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/telegram.png)
 
@@ -96,7 +96,7 @@ Followin scanners are already implemented. Others are `In Progress`
 * Download and install docker desktop: https://docs.docker.com/get-docker/
 * After installation, launch/run docker desktop and if it asks, login using your docker credentials.
 * Launch any command line (for example, cmd on windows or terminal on Mac) and type `docker pull pkjmesra/pkscreener:latest`. Then type `docker run -it pkjmesra/pkscreener:latest`.  
-The option `-i` will open the `pkscreener` in interactive mode within docker. `-t` will allocate a pseudo terminal for you so you can begin to use `pkscreener`
+  The option `-i` will open the `pkscreener` in interactive mode within docker. `-t` will allocate a pseudo terminal for you so you can begin to use `pkscreener`
 
 # Installing the latest version from PyPi.
 * Go ahead and install using `pip install pkscreener`
@@ -105,7 +105,7 @@ The option `-i` will open the `pkscreener` in interactive mode within docker. `-
 
 For example:
 
-For `Windows`: See https://github.com/pkjmesra/PKScreener/blob/c1e94ba3137915cb781161fa2d5fb69129940fd3/.github/workflows/w1-workflow-build-matrix.yml#L91-L101 
+For `Windows`: See https://github.com/pkjmesra/PKScreener/blob/c1e94ba3137915cb781161fa2d5fb69129940fd3/.github/workflows/w1-workflow-build-matrix.yml#L91-L101
 
 For `Mac`: Run `brew install ta-lib` assuming you have homebrew installed.
 
@@ -180,17 +180,17 @@ You can now use the *Backtests* menu to backtest any of the selected strategies.
 
 The Result table contains a lot of different parameters which can be pretty overwhelming to the new users, so here's the description and significance of each parameter.
 
-| Sr  |       Parameter       | Description                                                                                                                                                                                                                  | Example                                                                                  |
-| :-: | :-------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-|  1  |       **Stock**       | This is a NSE scrip symbol. If your OS/Terminal supports unicode, You can directly open **[TradingView](https://in.tradingview.com/)** charts by pressing `Ctrl+Click` on the stock name.                                    | [TATAMOTORS](https://in.tradingview.com/chart?symbol=NSE%3ATATAMOTORS)                   |
-|  2  |   **Consolidating**   | It gives the price range in which stock is trading since last `N` days. `N` is configurable and can be modified by executing `Edit User Configuration` option.                                                               | If stock is trading between price 100-120 in last 30 days, Output will be `Range:20.0 %` |
+| Sr  | Parameter             | Description                                                                                                                                                                                                                  | Example                                                                                  |
+| :-: | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+|  1  | **Stock**             | This is a NSE scrip symbol. If your OS/Terminal supports unicode, You can directly open **[TradingView](https://in.tradingview.com/)** charts by pressing `Ctrl+Click` on the stock name.                                    | [TATAMOTORS](https://in.tradingview.com/chart?symbol=NSE%3ATATAMOTORS)                   |
+|  2  | **Consolidating**     | It gives the price range in which stock is trading since last `N` days. `N` is configurable and can be modified by executing `Edit User Configuration` option.                                                               | If stock is trading between price 100-120 in last 30 days, Output will be `Range:20.0 %` |
 |  3  | **Breakout (N Days)** | This is pure magic! The `BO` is Breakout level in last N days while `R` is the next resistance level if available. Investor should consider both BO & R level to decide entry/exits in their trades.                         | `B:302, R:313`(Breakout level is 100 & Next resistance is 102)                           |
-|  4  |        **LTP**        | LTP is the Last Traded Price of an asset traded on NSE.                                                                                                                                                                      | `298.7` (Stock is trading at this price)                                                 |
-|  5  |      **Volume**       | Volume shows the relative volume of the recent candle with respect to 20 period MA of Volume. It could be `Unknown` for newly listed stocks.                                                                                 | if 20MA(Volume) is 1M and todays Volume is 2.8M, then `Volume = 2.8x`                    |
-|  6  |     **MA-Signal**     | It describes the price trend of an asset by analysing various 50-200 MA/EMA crossover strategies.                                                                                                                            | `200MA-Support`,`BullCross-50MA` etc                                                     |
-|  7  |        **RSI**        | For the momentum traders, it describes 14-period RSI for quick decision making about their trading plans                                                                                                                     | `0 to 100`                                                                               |
-|  8  |       **Trend**       | By using advance algorithms, the average trendlines are computed for `N` days and their strenght is displayed depending on steepness of trendlines. (This does NOT show any trendline on chart, it is calculated internally) | `Strong Up`, `Weak Down` etc.                                                            |
-|  9  |      **Pattern**      | If the chart or the candle itself forming any important pattern in the recent timeframe or as per the selected screening option, various important patterns will be indicated here.                                          | `Momentum Gainer`, `Inside Bar (N)`,`Bullish Engulfing` etc.                             |
+|  4  | **LTP**               | LTP is the Last Traded Price of an asset traded on NSE.                                                                                                                                                                      | `298.7` (Stock is trading at this price)                                                 |
+|  5  | **Volume**            | Volume shows the relative volume of the recent candle with respect to 20 period MA of Volume. It could be `Unknown` for newly listed stocks.                                                                                 | if 20MA(Volume) is 1M and todays Volume is 2.8M, then `Volume = 2.8x`                    |
+|  6  | **MA-Signal**         | It describes the price trend of an asset by analysing various 50-200 MA/EMA crossover strategies.                                                                                                                            | `200MA-Support`,`BullCross-50MA` etc                                                     |
+|  7  | **RSI**               | For the momentum traders, it describes 14-period RSI for quick decision making about their trading plans                                                                                                                     | `0 to 100`                                                                               |
+|  8  | **Trend**             | By using advance algorithms, the average trendlines are computed for `N` days and their strenght is displayed depending on steepness of trendlines. (This does NOT show any trendline on chart, it is calculated internally) | `Strong Up`, `Weak Down` etc.                                                            |
+|  9  | **Pattern**           | If the chart or the candle itself forming any important pattern in the recent timeframe or as per the selected screening option, various important patterns will be indicated here.                                          | `Momentum Gainer`, `Inside Bar (N)`,`Bullish Engulfing` etc.                             |
 
 ## Hack it your way:
 Feel free to Edit the parameters in the `pkscreener.ini` file which will be generated by the application.
