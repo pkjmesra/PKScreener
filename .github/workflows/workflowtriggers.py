@@ -125,7 +125,7 @@ objectDictionary = {}
 # args.skiplistlevel3 = "0,1,2,4,5,6"
 
 if args.skiplistlevel0 is None:
-    args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y"])
+    args.skiplistlevel0 = ",".join(["S", "T", "E", "U", "Z", "X", "H", "Y", "G"])
 if args.skiplistlevel1 is None:
     args.skiplistlevel1 = ",".join(["W,N,E,M,Z,0,1,2,3,4,5,6,7,8,9,10,11,13"])
 if args.skiplistlevel2 is None:
