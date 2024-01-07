@@ -2,11 +2,11 @@
 
 # PKScreener
 
-[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![CodeFactor][Codefactor-badge]][Codefactor] [![Downloads][Downloads-badge]][Downloads] ![latest download][Latest-Downloads-badge] ![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov] [![Documentation][Documentation-badge]][Documentation] [![Docker Status][Docker Status-badge]][Docker Status]
-[![Docker Pulls][Docker Pulls-badge]][Docker Status] [![Docker Build][Docker-Build-badge]][Docker-Build] [![PKScreener Test - New Features][New Features-badge]][New Features] [![w9. After-Market Data Gen][After Market-badge]][After Market] [![1. PKScreener Build - New Release][New Release-badge]][New Release]
+[![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] [![Windows][Windows-badge]][Windows] [![Linux][Linux-badge]][Linux] [![Mac OS][Mac OS-badge]][Mac OS] [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] [![CodeFactor][Codefactor-badge]][Codefactor] [![Downloads][Downloads-badge]][Downloads] ![latest download][Latest-Downloads-badge] ![github license][github-license] [![PyPI][pypi-badge]][pypi] [![is wheel][wheel-badge]][pypi] [![Coverage Status][Coverage-Status-badge]][Coverage-Status] [![codecov][codecov-badge]][codecov] [![Docker Status][Docker Status-badge]][Docker Status]
+[![Docker Pulls][Docker Pulls-badge]][Docker Status] 
 
 ## What is PKScreener?
-| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting |
+| Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k|
 | :-------------: | :-----------------: | :------------------: | :--------------------: | ----------- |
 
 | Nifty screening | Volume scanners | Breakout detection | Consolidating stocks | Reversal Signals |
@@ -16,6 +16,12 @@
 | :------------: | :----------: | :---------: | :--------------: | :-------: | --------------- |
 
 | RSI screening | MACD scanners | IPO Stocks | Momentum Gainers | Watchlist screening |
+| :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
+
+| Stock Performance | 52Wk H/L Breakouts | 10 days low breakouts | Aroon Crossover | Next Day Bullish Stocks|
+| :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
+
+| Today's Breakouts | Breaking out now | Popular stocks by Mutual Funds / FIIs | Higher Highs | Lower Lows|
 | :-----------: | :-----------: | :--------: | :--------------: | ------------------- |
 
 | F&O Stocks screening | Live 5-EMA Index Scan | Logging | Telegram Channel | Early Breakouts |
@@ -146,6 +152,16 @@ It also shows you how the chosen scan option has fared in the past. 1-Pd, 2-Pd m
 ![results](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/result_analysis.png)
 * Once done, you can also save the results in an excel file.
 
+## Growth of 10k
+
+You can see the performance of your stocks and/or at portfolio level using "Growth of 10k".
+
+![G10k](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/G10k.png)
+
+It also summarises the Growth of 10k at portfolio level for the last quarter so that you know which filters worked best in the past:
+
+![G10k_Sum](https://raw.githubusercontent.com/pkjmesra/PKScreener/main/screenshots/G10k_Sum.png)
+
 ## Backtests
 You can now use the *Backtests* menu to backtest any of the selected strategies. See https://pkjmesra.github.io/PKScreener/BacktestReports.html
 
@@ -226,7 +242,7 @@ After you have finished the run, go to that copied path, zip the contents of the
 * DO NOT use the results provided by the software 'solely' to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
 * The Author(s), the software and any related/unrelated entity will not be held liable for your own investing decisions or losses. The authors or this softfware does not make any claim about the correctness of the results.
-* This screener began as a fork of https://github.com/pranjal-joshi/Screeni-py but has since added a lot of additional scanners, backtesting, Telegram bots, Alerts and a number of modifications and improvements.
+* This screener began as a [fork](https://github.com/pranjal-joshi/Screeni-py) but has since added a lot of additional scanners, backtesting, Telegram bots, Alerts and a number of modifications and improvements.
 
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
@@ -274,7 +290,9 @@ After you have finished the run, go to that copied path, zip the contents of the
 [Docker-Build-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml/badge.svg
 [Docker-Build]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml
 
-<!-- [![GitHub all releases][GitHub all releases]](#) [![GitHub][License-badge]][License] [![BADGE][PR-Guidelines-badge]][PR-Guidelines]
+<!-- [![Docker Build][Docker-Build-badge]][Docker-Build] [![PKScreener Test - New Features][New Features-badge]][New Features] [![w9. After-Market Data Gen][After Market-badge]][After Market] [![1. PKScreener Build - New Release][New Release-badge]][New Release] [![Documentation][Documentation-badge]][Documentation]
+
+[![GitHub all releases][GitHub all releases]](#) [![GitHub][License-badge]][License] [![BADGE][PR-Guidelines-badge]][PR-Guidelines]
  [![w5. Production Scan Tests On Dev][Prod Scan Tests-badge]][Prod Scan Tests] 
 -->
 

@@ -134,6 +134,7 @@ jobs:
       id: releaseurlsetter
       run: |
         pip3 install requests
+        pip3 install pkscreener
         python3 .github/workflows/githubutilities.py -d
   
     - name: Download latest executable on Windows

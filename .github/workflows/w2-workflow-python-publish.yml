@@ -199,8 +199,9 @@ jobs:
         # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
         twine upload --verbose dist/*
 
-    - name: Configure .env.dev file
+    - name: Configure .env.dev file for Prod
       shell: bash
+      if: ${{ inputs.sendNotification != 'no' }}
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
@@ -208,14 +209,31 @@ jobs:
       run: |
         python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
       
+    - name: Configure .env.dev file for Dev
+      shell: bash
+      if: ${{ inputs.sendNotification == 'no' }}
+      env:
+        CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+      run: |
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        
+    - name: Environment setup to get whats new
+      shell: bash
+      id: whatsnewgetter
+      run: |
+        pip3 install pkscreener
+        python3 .github/workflows/githubutilities.py -w
+
     - name: Send notification about new release
-      if: ${{ inputs.sendNotification != 'no' }}
       shell: bash
       env:
         RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
+        WHATS_NEW: ${{ steps.vars.outputs.WHATS_NEW_IN_THIS_RELEASE }}
       run: |
         pip3 install .
-        python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases \n\n or \n\nhttps://pypi.org/project/pkscreener/')"
+        python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases\n or https://pypi.org/project/pkscreener/ \n\n'+os.environ['WHATS_NEW']+'\n');"
 
   Delete_Workflow_Run:
     runs-on: ubuntu-20.04
