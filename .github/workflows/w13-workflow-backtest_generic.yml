@@ -65,7 +65,7 @@ run-name: ${{ inputs.name }} Backtest for Generic params- ${{ inputs.params }}
 jobs:
 
   Generic:
-    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
+    runs-on: ${{ inputs.runson || 'ubuntu-20.04' }} #ubuntu-20.04 #windows-latest
     outputs:
       runIdentifier: ${{ github.event.inputs.id }}
     steps:
