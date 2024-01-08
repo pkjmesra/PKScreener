@@ -230,7 +230,7 @@ jobs:
       shell: bash
       env:
         RELEASE_VERSION : ${{ steps.vars.outputs.THIS_VERSION }}
-        WHATS_NEW: ${{ steps.vars.outputs.WHATS_NEW_IN_THIS_RELEASE }}
+        WHATS_NEW: ${{ steps.whatsnewgetter.outputs.WHATS_NEW_IN_THIS_RELEASE }}
       run: |
         pip3 install .
         python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases\n or https://pypi.org/project/pkscreener/ \n\n'+os.environ['WHATS_NEW']+'\n');"
