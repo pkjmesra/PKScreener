@@ -50,7 +50,7 @@ jobs:
 
   Download_Stock_Data:
 
-    runs-on: ${{ inputs.runson }} #ubuntu-20.04 #windows-latest
+    runs-on: ${{ inputs.runson || 'ubuntu-20.04'}} #ubuntu-20.04 #windows-latest
 
     steps:
     - uses: actions/checkout@v2
