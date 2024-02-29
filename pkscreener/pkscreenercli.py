@@ -289,7 +289,9 @@ def pkscreenercli():
         if not args.prodbuild and args.answerdefault is None:
             input("Press <Enter> to continue...")
     else:
-        os.environ["PKDevTools_Default_Log_Level"] = str(log.logging.NOTSET)
+        if "PKDevTools_Default_Log_Level" in os.environ.keys():
+            del os.environ['PKDevTools_Default_Log_Level']
+            # os.environ["PKDevTools_Default_Log_Level"] = str(log.logging.NOTSET)
     # Import other dependency here because if we import them at the top
     # multiprocessing behaves in unpredictable ways
     import pkscreener.classes.Utility as Utility

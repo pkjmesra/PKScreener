@@ -1643,9 +1643,7 @@ def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[], u
 
 
 def tabulateBacktestResults(saveResults, maxAllowed=0, force=False):
-    if (("RUNNER" not in os.environ.keys()) or \
-    ("RUNNER" in os.environ.keys() and not force) or \
-    not configManager.showPastStrategyData):
+    if ("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and not force) or not configManager.showPastStrategyData:
         if "PKDevTools_Default_Log_Level" not in os.environ.keys():
             return None, None
     tabulated_backtest_summary = ""
@@ -1699,8 +1697,7 @@ def sendQuickScanResult(
     addendum=None,
     addendumLabel=None,
 ):
-    if (("RUNNER" not in os.environ.keys()) or 
-        ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
+    if (("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
         if "PKDevTools_Default_Log_Level" not in os.environ.keys():
             return
     try:
