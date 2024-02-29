@@ -44,13 +44,10 @@ warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from alive_progress import alive_bar
-from PKDevTools.classes import Archiver
 from PKDevTools.classes.Committer import Committer
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.log import default_logger #, tracelog
-from PKDevTools.classes.PKGitFolderDownloader import downloadFolder
-from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from PKDevTools.classes.Telegram import (
     is_token_telegram_configured,
     send_document,
@@ -66,7 +63,7 @@ import pkscreener.classes.Utility as Utility
 from pkscreener.classes.Utility import STD_ENCODING
 from pkscreener.classes import VERSION, PortfolioXRay
 from pkscreener.classes.Backtest import backtest, backtestSummary
-from pkscreener.classes.CandlePatterns import CandlePatterns
+
 from pkscreener.classes.MenuOptions import (
     level0MenuDict,
     level1_X_MenuDict,
@@ -80,10 +77,10 @@ from pkscreener.classes.MenuOptions import (
     menus,
 )
 from pkscreener.classes.OtaUpdater import OTAUpdater
-from pkscreener.classes.StockScreener import StockScreener
 from pkscreener.classes.Portfolio import PortfolioCollection
 from pkscreener.classes.PKTask import PKTask
 from pkscreener.classes.PKScheduler import PKScheduler
+from pkscreener.classes.PKScanRunner import PKScanRunner
 
 multiprocessing.freeze_support()
 # import dataframe_image as dfi
@@ -94,7 +91,6 @@ TEST_STKCODE = "SBIN"
 np.seterr(divide="ignore", invalid="ignore")
 
 # Variabls
-candlePatterns = CandlePatterns()
 configManager = ConfigManager.tools()
 configManager.getConfig(ConfigManager.parser)
 defaultAnswer = None
@@ -385,45 +381,6 @@ def showSendHelpInfo(defaultAnswer=None, user=None):
     if user is not None:
         sendMessageToTelegramChannel(message=Utility.tools.removeAllColorStyles(helpData), user=user)
 
-
-def initDataframes():
-    screenResults = pd.DataFrame(
-        columns=[
-            "Stock",
-            "Consol.",
-            "Breakout",
-            "LTP",
-            "52Wk H",
-            "52Wk L",
-            "%Chng",
-            "Volume",
-            "MA-Signal",
-            "RSI",
-            "Trend",
-            "Pattern",
-            "CCI",
-        ]
-    )
-    saveResults = pd.DataFrame(
-        columns=[
-            "Stock",
-            "Consol.",
-            "Breakout",
-            "LTP",
-            "52Wk H",
-            "52Wk L",
-            "%Chng",
-            "Volume",
-            "MA-Signal",
-            "RSI",
-            "Trend",
-            "Pattern",
-            "CCI",
-        ]
-    )
-    return screenResults, saveResults
-
-
 def initExecution(menuOption=None):
     global selectedChoice
     Utility.tools.clearScreen()
@@ -567,19 +524,6 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
             return initPostLevel1Execution(indexOption, executeOption, retrial=True)
     return indexOption, executeOption
 
-
-def initQueues(minimumCount=0):
-    tasks_queue = multiprocessing.JoinableQueue(500)
-    results_queue = multiprocessing.Queue(500)
-
-    totalConsumers = min(minimumCount, multiprocessing.cpu_count())
-    if totalConsumers == 1:
-        totalConsumers = 2  # This is required for single core machine
-    if configManager.cacheEnabled is True and multiprocessing.cpu_count() > 2:
-        totalConsumers -= 1
-    return tasks_queue, results_queue, totalConsumers
-
-
 def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio,executeOption, reversalOption):
     # Publish to gSheet with https://github.com/burnash/gspread
     try:
@@ -668,7 +612,7 @@ def main(userArgs=None):
     backtestPeriod = 0
     reversalOption = None
     listStockCodes = None
-    screenResults, saveResults = initDataframes()
+    screenResults, saveResults = PKScanRunner.initDataframes()
     options, menuOption, indexOption, executeOption = getTopLevelMenuChoices(
         startupoptions, testBuild, downloadOnly, defaultAnswer=defaultAnswer
     )
@@ -1101,69 +1045,27 @@ def main(userArgs=None):
                 + colorText.WARN
                 + "[+] Starting download.. Press Ctrl+C to stop!"
             )
-
-        suggestedHistoricalDuration = (
-            getHistoricalDays(len(listStockCodes), testing)
-            if menuOption.upper() in ["B"]
-            else 1
-        )
-        # Number of days from past, including the backtest duration chosen by the user
-        # that we will need to consider to evaluate the data. If the user choses 10-period
-        # backtesting, we will need to have the past 6-months or whatever is returned by
-        # x = getHistoricalDays and 10 days of recent data. So total rows to consider
-        # will be x + 10 days.
-        samplingDuration = (
-            (suggestedHistoricalDuration + 1) if menuOption in ["B"] else 2
-        )
-        fillerPlaceHolder = 1 if menuOption in ["B"] else 2
-        backtest_df = None
         if menuOption.upper() in ["B", "G"]:
             print(
-                colorText.BOLD
-                + colorText.WARN
-                + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config."
-            )
+                    colorText.BOLD
+                    + colorText.WARN
+                    + f"[+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config."
+                )
+        samplingDuration, fillerPlaceHolder, actualHistoricalDuration = PKScanRunner.getScanDurationParameters(testing, menuOption)
+        totalStocksInReview = 0
+        savedStocksCount = 0
+        downloadedRecently = False
         items = []
-        actualHistoricalDuration = samplingDuration - fillerPlaceHolder
+        backtest_df = None
+        bar, spinner = Utility.tools.getProgressbarStyle()
         # Lets begin from y days ago, evaluate from that date if the selected strategy had yielded any result
         # and then keep coming to the next day (x-1) until we get to today (actualHistoricalDuration = 0)
-        bar, spinner = Utility.tools.getProgressbarStyle()
-        totalStocksInReview = 0
         print(f"{colorText.GREEN}[+] Adding stocks to the queue...{colorText.END}")
-        downloadedRecently = False
         with alive_bar(actualHistoricalDuration, bar=bar, spinner=spinner) as progressbar:
             while actualHistoricalDuration >= 0:
-                daysInPast = (
-                            actualHistoricalDuration
-                            if (menuOption == "B")
-                            else (
-                                (backtestPeriod)
-                                if (menuOption == "G")
-                                else (
-                                    0
-                                    if (userPassedArgs.backtestdaysago is None)
-                                    else (int(userPassedArgs.backtestdaysago))
-                                )
-                            )
-                        )
+                daysInPast = PKScanRunner.getBacktestDaysForScan(userPassedArgs, backtestPeriod, menuOption, actualHistoricalDuration)
                 try:
-                    savedStocksCount = 0
-                    pastDate, savedListResp = downloadSavedResults(daysInPast,downloadedRecently=downloadedRecently)
-                    downloadedRecently = True
-                    if savedListResp is not None and len(savedListResp) > 0:
-                        savedListStockCodes = savedListResp
-                        savedStocksCount = len(savedListStockCodes)
-                        if savedStocksCount > 0:
-                            listStockCodes = savedListStockCodes
-                            totalStocksInReview += savedStocksCount
-                        else:
-                            if menuOption in ["B"] and not userPassedArgs.forceBacktestsForZeroResultDays:
-                                # We have a zero length result saved in repo.
-                                # Likely we didn't have any stock in the result output. So why run the scan again?
-                                listStockCodes = savedListStockCodes
-                            totalStocksInReview += len(listStockCodes)
-                    else:
-                        totalStocksInReview += len(listStockCodes)
+                    listStockCodes, savedStocksCount, pastDate = PKScanRunner.getStocksListForScan(userPassedArgs, menuOption, totalStocksInReview, downloadedRecently, daysInPast)
                 except KeyboardInterrupt:
                     try:
                         keyboardInterruptEvent.set()
@@ -1180,40 +1082,7 @@ def main(userArgs=None):
                     )
                 except Exception:
                     pass
-                moreItems = [
-                    (
-                        executeOption,
-                        reversalOption,
-                        maLength,
-                        daysForLowestVolume,
-                        minRSI,
-                        maxRSI,
-                        respChartPattern,
-                        insideBarToLookback,
-                        len(listStockCodes),
-                        configManager.cacheEnabled,
-                        stock,
-                        newlyListedOnly,
-                        downloadOnly,
-                        volumeRatio,
-                        testBuild,
-                        userArgs.log,
-                        daysInPast,
-                        (
-                            backtestPeriod
-                            if menuOption == "B"
-                            else configManager.effectiveDaysToLookback
-                        ),
-                        default_logger().level,
-                        (menuOption in ["B", "G", "X", "S"])
-                        or (userPassedArgs.backtestdaysago is not None),
-                        # assumption is that fetcher.fetchStockData would be
-                        # mocked to avoid calling yf.download again and again
-                        fetcher.fetchStockData() if testing else None,
-                    )
-                    for stock in listStockCodes
-                ]
-                items.extend(moreItems)
+                PKScanRunner.addStocksToItemList(userPassedArgs, testing, testBuild, newlyListedOnly, downloadOnly, minRSI, maxRSI, insideBarToLookback, respChartPattern, daysForLowestVolume, backtestPeriod, reversalOption, maLength, listStockCodes, menuOption, executeOption, volumeRatio, items, daysInPast)
                 if savedStocksCount > 0:
                     progressbar.text(
                         colorText.BOLD
@@ -1227,47 +1096,7 @@ def main(userArgs=None):
                     progressbar()
         sys.stdout.write(f"\x1b[1A")
         if not keyboardInterruptEventFired:
-            tasks_queue, results_queue, totalConsumers = initQueues(len(items))
-            cp = CandlePatterns()
-            cm = configManager
-            # f = Fetcher.screenerStockDataFetcher(configManager)
-            scr = ScreeningStatistics.ScreeningStatistics(configManager, default_logger())
-            consumers = [
-                PKMultiProcessorClient(
-                    StockScreener().screenStocks,
-                    tasks_queue,
-                    results_queue,
-                    screenCounter,
-                    screenResultsCounter,
-                    stockDict,
-                    fetcher.proxyServer,
-                    keyboardInterruptEvent,
-                    default_logger(),
-                    fetcher,
-                    cm,
-                    cp,
-                    scr,
-                )
-                for _ in range(totalConsumers)
-            ]
-            startWorkers(consumers)
-            screenResults, saveResults, backtest_df = runScanners(
-                menuOption,
-                items,
-                tasks_queue,
-                results_queue,
-                len(items),
-                backtestPeriod,
-                samplingDuration - 1,
-                consumers,
-                screenResults,
-                saveResults,
-                backtest_df,
-                testing=testing,
-            )
-
-            print(colorText.END)
-            terminateAllWorkers(consumers, tasks_queue, testing)
+            screenResults, saveResults, backtest_df, scr = PKScanRunner.PrepareAndRunScan(keyboardInterruptEvent,screenCounter,screenResultsCounter,stockDict,testing, backtestPeriod, menuOption, samplingDuration, items,screenResults, saveResults, backtest_df,scanningCb=runScanners)
             if downloadOnly and menuOption in ["X"]:
                 scr.getFreshMFIStatus(stock="LatestCheckedOnDate")
                 scr.getFairValue(stock="LatestCheckedOnDate", force=True)
@@ -1333,29 +1162,6 @@ def main(userArgs=None):
     
     # Change the config back to usual
     resetConfigToDefault()
-
-def downloadSavedResults(daysInPast,downloadedRecently=False):
-    pastDate = PKDateUtilities.nthPastTradingDateStringFromFutureDate(daysInPast)
-    filePrefix = getFormattedChoices().replace("B","X").replace("G","X").replace("S","X")
-    # url = f"https://raw.github.com/pkjmesra/PKScreener/actions-data-download/actions-data-scan/{filePrefix}_{pastDate}.txt"
-    # savedListResp = fetcher.fetchURL(url)
-    localPath = Archiver.get_user_outputs_dir()
-    downloadedPath = os.path.join(localPath,"PKScreener","actions-data-scan")
-    if not downloadedRecently:
-        downloadedPath = downloadFolder(localPath=localPath,
-                                        repoPath="pkjmesra/PKScreener",
-                                        branchName="actions-data-download",
-                                        folderName="actions-data-scan")
-    items = []
-    savedList = []
-    fileName = os.path.join(downloadedPath,f"{filePrefix}_{pastDate}.txt")
-    if os.path.isfile(fileName):
-        #File already exists.
-        with open(fileName, 'r') as fe:
-            stocks = fe.read()
-            items = stocks.replace("\n","").replace("\"","").split(",")
-            savedList = sorted(list(filter(None,list(set(items)))))
-    return pastDate,savedList
 
 def FinishBacktestDataCleanup(backtest_df, df_xray):
     showBacktestResults(df_xray, sortKey="Date", optionalName="Insights")
@@ -1621,16 +1427,6 @@ def updateMenuChoiceHierarchy():
     )
     default_logger().info(menuChoiceHierarchy)
 
-
-def populateQueues(items, tasks_queue, exit=False):
-    for item in items:
-        tasks_queue.put(item)
-    if exit:
-        # Append exit signal for each process indicated by None
-        for _ in range(multiprocessing.cpu_count()):
-            tasks_queue.put(None)
-
-
 def printNotifySaveScreenedResults(
     screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None
 ):
@@ -1648,7 +1444,7 @@ def printNotifySaveScreenedResults(
         + f"[+] You chose: {menuChoiceHierarchy}"
         + colorText.END
     )
-    pngName = f'PKS_{getFormattedChoices()}_{PKDateUtilities.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
+    pngName = f'PKS_{PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)}_{PKDateUtilities.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
     pngExtension = ".png"
     eligible = is_token_telegram_configured()
     targetDateG10k = prepareGrowthOf10kResults(saveResults, selectedChoice, menuChoiceHierarchy, testing, user, pngName, pngExtension, eligible)
@@ -1782,7 +1578,7 @@ def printNotifySaveScreenedResults(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
         )
     if not testing:
-        Utility.tools.setLastScreenedResults(screenResults, saveResults, f"{getFormattedChoices()}_{recordDate if recordDate is not None else ''}")
+        Utility.tools.setLastScreenedResults(screenResults, saveResults, f"{PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)}_{recordDate if recordDate is not None else ''}")
 
 def prepareGrowthOf10kResults(saveResults, selectedChoice, menuChoiceHierarchy, testing, user, pngName, pngExtension, eligible):
     targetDateG10k = None
@@ -1847,8 +1643,11 @@ def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[], u
 
 
 def tabulateBacktestResults(saveResults, maxAllowed=0, force=False):
-    if ("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and not force) or not configManager.showPastStrategyData:
-        return None, None
+    if (("RUNNER" not in os.environ.keys()) or \
+    ("RUNNER" in os.environ.keys() and not force) or \
+    not configManager.showPastStrategyData):
+        if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+            return None, None
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     summarydf, detaildf = getSummaryCorrectnessOfStrategy(saveResults)
@@ -1900,8 +1699,10 @@ def sendQuickScanResult(
     addendum=None,
     addendumLabel=None,
 ):
-    if (("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
-        return
+    if (("RUNNER" not in os.environ.keys()) or 
+        ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
+        if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+            return
     try:
         Utility.tools.tableToImage(
             markdown_results,
@@ -1989,100 +1790,49 @@ def runScanners(
 ):
     global selectedChoice, userPassedArgs, elapsed_time, start_time
     result = None
-    choices = userReportName(selectedChoice)
-    reviewDate = PKDateUtilities.tradingDate().strftime('%Y-%m-%d')
-    if userPassedArgs.backtestdaysago is not None:
-        reviewDate = PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago))
-    max_allowed = iterations * (100 if userPassedArgs.maxdisplayresults is None else int(userPassedArgs.maxdisplayresults)) if not testing else 1
+    backtest_df = None
+    reviewDate = getReviewDate(userPassedArgs)
+    max_allowed = getMaxAllowedResultsCount(iterations, testing)
     try:
-        originalIterations = iterations
-        totalStocks = numStocks
-        # If we put in more into the queue, it might cause the warnings from multiprocessing resource_tracker
-        # about semaphore leakages etc. This is, caused due to overallocating RAM.
-        idealNumStocksMaxPerIteration = 100
-        iterations = int(numStocks*iterations/idealNumStocksMaxPerIteration) + 1
-        numStocksPerIteration = int(numStocks/int(iterations))
-        if numStocksPerIteration < 10:
-            numStocksPerIteration = numStocks if (iterations == 1 or numStocks<= iterations) else int(numStocks/int(iterations))
-            iterations = originalIterations
-        if numStocksPerIteration > 500:
-            numStocksPerIteration = 500
-            iterations = int(numStocks/numStocksPerIteration) + 1
+        originalNumberOfStocks = numStocks
+        iterations, numStocksPerIteration = getIterationsAndStockCounts(numStocks, iterations)
         print(
             colorText.BOLD
             + colorText.GREEN
             + f"[+] For {reviewDate}, total Stocks under review: {numStocks} over {iterations} iterations..."
             + colorText.END
         )
-        queueCounter = 0
-        dumpFreq = 1
-        bar, spinner = Utility.tools.getProgressbarStyle()
-        counter = 0
-        start_time = time.time()
         if not userPassedArgs.download:
             print(colorText.WARN
                 + f"[+] Starting Stock {'Screening' if menuOption=='X' else 'Backtesting.'}. Press Ctrl+C to stop!"
                 + colorText.END
             )
+        bar, spinner = Utility.tools.getProgressbarStyle()
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
-            while numStocks:
-                if counter == 0 and numStocks > 0:
-                    if queueCounter < int(iterations):
-                        populateQueues(
-                            items[
-                                numStocksPerIteration
-                                * queueCounter : numStocksPerIteration
-                                * (queueCounter + 1)
-                            ],
-                            tasks_queue,
-                            (queueCounter + 1 == int(iterations)) and ((queueCounter + 1)*int(iterations) == totalStocks),
-                        )
-                    else:
-                        populateQueues(
-                            items[
-                                numStocksPerIteration
-                                * queueCounter :
-                            ],
-                            tasks_queue,
-                            True,
-                        )
-                counter += 1
-                result = results_queue.get()
-                if result is not None:
-                    lstscreen.append(result[0])
-                    lstsave.append(result[1])
-                    sampleDays = result[4]
-                    if menuOption == "B":
-                        backtest_df = updateBacktestResults(
-                            backtestPeriod,
-                            choices,
-                            dumpFreq,
-                            start_time,
-                            result,
-                            sampleDays,
-                            backtest_df,
-                        )
+            result = None
+            backtest_df = None
+            start_time = time.time()
 
-                numStocks -= 1
+            def processResultsCallback(resultItem, processedCount,result_df, *otherArgs):
+                (menuOption, backtestPeriod, result, lstscreen, lstsave) = otherArgs
+                numStocks = processedCount
+                result = resultItem
+                backtest_df = processResults(menuOption, backtestPeriod, result, lstscreen, lstsave, result_df)
+                progressbar()
                 progressbar.text(
                     colorText.BOLD
                     + colorText.GREEN
-                    + f"{'Found' if menuOption in ['X'] else 'Analysed'} {len(lstscreen)} Stocks"
+                    + f"{'Found' if menuOption in ['X'] else 'Analysed'} {len(lstscreen)} {'Stocks' if menuOption in ['X'] else 'Records'}"
                     + colorText.END
                 )
-                progressbar()
-                # If it's being run under unit testing, let's wrap up if we find at least 1
-                # stock or if we've already tried screening through 5% of the list.
-                if (testing and (
-                    len(lstscreen) >= 1 or counter >= int(numStocksPerIteration * 0.05)
-                )) or len(lstscreen) >= max_allowed:
-                    break
-                # Add to the queue when we're through 75% of the previously added items already
-                if counter >= numStocksPerIteration: #int(numStocksPerIteration * 0.75):
-                    queueCounter += 1
-                    counter = 0
+                if keyboardInterruptEventFired:
+                    return False, backtest_df
+                return not ((testing and len(lstscreen) >= 1) or len(lstscreen) >= max_allowed), backtest_df
+            otherArgs = (menuOption, backtestPeriod, result, lstscreen, lstsave)
+            backtest_df, result =PKScanRunner.runScan(testing,numStocks,iterations,items,numStocksPerIteration,tasks_queue,results_queue,originalNumberOfStocks,backtest_df,*otherArgs,resultsReceivedCb=processResultsCallback)
+
         print(f"\x1b[3A")
         elapsed_time = time.time() - start_time
         if menuOption in ["X", "G"]:
@@ -2101,7 +1851,7 @@ def runScanners(
                 + "\n[+] Terminating Script, Please wait..."
                 + colorText.END
             )
-            terminateAllWorkers(consumers=consumers, tasks_queue=tasks_queue,testing=testing)
+            PKScanRunner.terminateAllWorkers(consumers=consumers, tasks_queue=tasks_queue,testing=testing)
             logging.shutdown()
         except KeyboardInterrupt:
             pass
@@ -2113,7 +1863,7 @@ def runScanners(
             + f"\nException:\n{e}\n[+] Terminating Script, Please wait..."
             + colorText.END
         )
-        terminateAllWorkers(consumers=consumers, tasks_queue=tasks_queue,testing=testing)
+        PKScanRunner.terminateAllWorkers(consumers=consumers, tasks_queue=tasks_queue,testing=testing)
         logging.shutdown()
 
     if result is not None and len(result) >=3 and "Date" not in saveResults.columns:
@@ -2129,9 +1879,50 @@ def runScanners(
         saveResults["Date"] = str(targetDate).split(" ")[0]
     return screenResults, saveResults, backtest_df
 
+        
+def processResults(menuOption, backtestPeriod, result, lstscreen, lstsave, backtest_df):
+    if result is not None:
+        lstscreen.append(result[0])
+        lstsave.append(result[1])
+        sampleDays = result[4]
+        if menuOption == "B":
+            backtest_df = updateBacktestResults(
+                            backtestPeriod,
+                            start_time,
+                            result,
+                            sampleDays,
+                            backtest_df,
+                        )
+            
+    return backtest_df
+
+def getReviewDate(userPassedArgs=None):
+    reviewDate = PKDateUtilities.tradingDate().strftime('%Y-%m-%d')
+    if userPassedArgs is not None and userPassedArgs.backtestdaysago is not None:
+        reviewDate = PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago))
+    return reviewDate
+
+def getMaxAllowedResultsCount(iterations, testing):
+    return iterations * (100 if userPassedArgs.maxdisplayresults is None else int(userPassedArgs.maxdisplayresults)) if not testing else 1
+
+def getIterationsAndStockCounts(numStocks, iterations):
+    originalIterations = iterations
+        # If we put in more into the queue, it might cause the warnings from multiprocessing resource_tracker
+        # about semaphore leakages etc. This is, caused due to overallocating RAM.
+    idealNumStocksMaxPerIteration = 100
+    iterations = int(numStocks*iterations/idealNumStocksMaxPerIteration) + 1
+    numStocksPerIteration = int(numStocks/int(iterations))
+    if numStocksPerIteration < 10:
+        numStocksPerIteration = numStocks if (iterations == 1 or numStocks<= iterations) else int(numStocks/int(iterations))
+        iterations = originalIterations
+    if numStocksPerIteration > 500:
+        numStocksPerIteration = 500
+        iterations = int(numStocks/numStocksPerIteration) + 1
+    return iterations,numStocksPerIteration
+
 
 def updateBacktestResults(
-    backtestPeriod, choices, dumpFreq, start_time, result, sampleDays, backtest_df
+    backtestPeriod, start_time, result, sampleDays, backtest_df
 ):
     global elapsed_time
     sellSignal = (
@@ -2148,18 +1939,6 @@ def updateBacktestResults(
         sellSignal,
     )
     elapsed_time = time.time() - start_time
-    # if  screenResultsCounter.value >= 50 * (4 if userPassedArgs.prodbuild else 1) * dumpFreq:
-    #     # Dump results on the screen and into a file every 50 results
-    #     showBacktestResults(backtest_df)
-    #     summary_df = backtestSummary(backtest_df)
-    #     # summary_df.set_index("Stock", inplace=True)
-    #     showBacktestResults(summary_df,optionalName="Summary")
-    #     dumpFreq = dumpFreq + 1
-    # Commit intermittently if its been running for over x hours
-    # if userPassedArgs.prodbuild and elapsed_time >= 5 * 3600:
-    #     Committer.commitTempOutcomes(addPath="Backtest-Reports/*.html",
-    #                                  commitMessage=f"[Temp-Commit]-{choices}",
-    #                                  branchName="gh-pages")
     return backtest_df
 
 
@@ -2359,27 +2138,10 @@ def scanOutputDirectory(backtest=False):
     return outputFolder
 
 def getBacktestReportFilename(sortKey="Stock", optionalName="backtest_result"):
-    choices = getFormattedChoices()
+    global userPassedArgs,selectedChoice
+    choices = PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)
     filename = f"PKScreener_{choices}_{optionalName}_{sortKey if sortKey is not None else 'Default'}Sorted.html"
     return choices, filename
-
-
-def getFormattedChoices():
-    global selectedChoice, userPassedArgs
-    isIntraday = configManager.isIntradayConfig() or (
-        userPassedArgs.intraday is not None
-    )
-    choices = ""
-    for choice in selectedChoice:
-        if len(selectedChoice[choice]) > 0:
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{selectedChoice[choice]}"
-    if choices.endswith("_"):
-        choices = choices[:-1]
-    choices = f"{choices}{'_i' if isIntraday else ''}"
-    return choices
-
 
 def showOptionErrorMessage():
     print(
@@ -2390,35 +2152,6 @@ def showOptionErrorMessage():
     )
     sleep(2)
     Utility.tools.clearScreen()
-
-
-def shutdown(frame, signum):
-    # your app's shutdown or whatever
-    print("Shutting down for test coverage")
-
-
-def startWorkers(consumers):
-    try:
-        from pytest_cov.embed import cleanup_on_signal, cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        if sys.platform.startswith("win"):
-            import signal
-
-            cleanup_on_signal(signal.SIGBREAK)
-        else:
-            cleanup_on_sigterm()
-    print(
-        colorText.BOLD
-        + colorText.FAIL
-        + f"[+] Using Period:{configManager.period} and Duration:{configManager.duration} for scan! You can change this in user config."
-        + colorText.END
-    )
-    for worker in consumers:
-        worker.daemon = True
-        worker.start()
-
 
 def takeBacktestInputs(
     menuOption=None, indexOption=None, executeOption=None, backtestPeriod=0
@@ -2461,34 +2194,6 @@ def takeBacktestInputs(
         ],
     )
     return indexOption, executeOption, backtestPeriod
-
-
-def terminateAllWorkers(consumers, tasks_queue, testing):
-    # Exit all processes. Without this, it threw error in next screening session
-    for worker in consumers:
-        try:
-            if testing: # pragma: no cover
-                if sys.platform.startswith("win"):
-                    import signal
-
-                    signal.signal(signal.SIGBREAK, shutdown)
-                    sleep(1)
-                # worker.join()  # necessary so that the Process exists before the test suite exits (thus coverage is collected)
-            # else:
-            worker.terminate()
-        except OSError as e: # pragma: no cover
-            default_logger().debug(e, exc_info=True)
-            # if e.winerror == 5:
-            continue
-
-    # Flush the queue so depending processes will end
-    while True:
-        try:
-            _ = tasks_queue.get(False)
-        except Exception as e:  # pragma: no cover
-            # default_logger().debug(e, exc_info=True)
-            break
-
 
 def toggleUserConfig():
     configManager.toggleConfig(
