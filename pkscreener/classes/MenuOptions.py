@@ -103,6 +103,7 @@ level2_X_MenuDict = {
     # "29": "Rising RSI                      ",
     # "30": "RSI entering bullish territory",
     "42": "Show Last Screened Results",
+    "C": "Analyse morning vs close outcomes",
     "M": "Back to the Top/Main menu",
     "Z": "Exit (Ctrl + C)",
 }

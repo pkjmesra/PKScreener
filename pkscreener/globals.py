@@ -81,6 +81,7 @@ from pkscreener.classes.Portfolio import PortfolioCollection
 from pkscreener.classes.PKTask import PKTask
 from pkscreener.classes.PKScheduler import PKScheduler
 from pkscreener.classes.PKScanRunner import PKScanRunner
+from pkscreener.classes.PKMarketOpenCloseAnalyser import PKMarketOpenCloseAnalyser
 
 multiprocessing.freeze_support()
 # import dataframe_image as dfi
@@ -729,6 +730,10 @@ def main(userArgs=None):
     handleExitRequest(executeOption)
     if executeOption is None:
         executeOption = 0
+    if str(executeOption).upper() == "C":
+        stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
+        listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
+        executeOption = 23
     executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 3:
@@ -1029,13 +1034,14 @@ def main(userArgs=None):
             and not loadedStockData
             and not testing
         ):
-            Utility.tools.loadStockData(
-                stockDict,
-                configManager,
-                downloadOnly=downloadOnly,
-                defaultAnswer=defaultAnswer,
-                forceLoad=(menuOption in ["X", "B", "G", "S"]),
-            )
+            if len(stockDict) == 0:
+                Utility.tools.loadStockData(
+                    stockDict,
+                    configManager,
+                    downloadOnly=downloadOnly,
+                    defaultAnswer=defaultAnswer,
+                    forceLoad=(menuOption in ["X", "B", "G", "S"]),
+                )
             loadedStockData = True
         loadCount = len(stockDict)
 
