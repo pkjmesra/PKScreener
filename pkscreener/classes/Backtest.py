@@ -71,6 +71,24 @@ def backtest(
         return backTestedData
     data = data.head(max(calcPeriods) + 1)
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
+    # columns=['Stock', 'Date', 'Volume', 'Trend', 'MA-Signal', 'LTP', '52Wk H',
+    #          '52Wk L', '1-Pd', '2-Pd', '3-Pd', '4-Pd', '5-Pd', '10-Pd', '15-Pd',
+    #          '22-Pd', '30-Pd', 'Consol.', 'Breakout', 'RSI', 'Pattern', 'CCI',
+    #          'LTP1', 'Growth1', 'LTP2', 'Growth2', 'LTP3', 'Growth3', 'LTP4',
+    #          'Growth4', 'LTP5', 'Growth5', 'LTP10', 'Growth10', 'LTP15', 'Growth15',
+    #          'LTP22', 'Growth22', 'LTP30', 'Growth30']
+    
+    # incoming = list(saveDict.keys())
+    # for prd in calcPeriods:
+    #     colNames = [f"LTP{prd}",f"Growth{prd}",f"{prd}-Pd"]
+    #     if colNames[0] not in incoming:
+    #         for col in colNames:
+    #             columns.remove(col)
+    # if backTestedData is None:
+    #     backTestedData = pd.DataFrame(columns=columns)
+    # df = pd.DataFrame([screenedDict],columns=columns)
+    # df[f"LTP{prd}"] = saveDict[f"LTP{prd}"]
+    # df[f"Growth{prd}"] = saveDict[f"Growth{prd}"]
     columns=[
                 "Stock",
                 "Date",
