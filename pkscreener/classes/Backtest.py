@@ -69,8 +69,7 @@ def backtest(
     )  # This is the row which has the date for which the recommendation is valid
     if len(previous_recent) <= 0:
         return backTestedData
-    previous_recent.reset_index(inplace=True)
-    data = data.head(periods + 1)
+    data = data.head(max(calcPeriods) + 1)
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
     columns=[
                 "Stock",
@@ -98,13 +97,7 @@ def backtest(
     if backTestedData is None:
         backTestedData = pd.DataFrame(columns=columns)
     backTestedStock["Stock"] = stock
-    targetDate = (
-        str(previous_recent["Date"].iloc[0])
-        if "Date" in previous_recent.columns
-        else str(previous_recent.iloc[:, 0][0])
-    )
-    targetDate = targetDate.split(" ")[0]  # Date or index column
-    backTestedStock["Date"] = targetDate
+    backTestedStock["Date"] = saveDict["Date"]
     backTestedStock["Consol."] = screenedDict["Consol."]
     backTestedStock["Breakout"] = screenedDict["Breakout"]
     backTestedStock["MA-Signal"] = screenedDict["MA-Signal"]
@@ -116,26 +109,22 @@ def backtest(
     backTestedStock["Trend"] = screenedDict["Trend"]
     backTestedStock["Pattern"] = screenedDict["Pattern"]
     backTestedStock["CCI"] = screenedDict["CCI"]
-    today = PKDateUtilities.currentDateTime()
-    gap = PKDateUtilities.trading_days_between(
-        PKDateUtilities.dateFromYmdString(targetDate).replace(tzinfo=today.tzinfo).date(),
-        today.date(),
-    )
-    periods = gap if gap > periods else periods
     for prd in calcPeriods:
-        if prd <= periods:
-            try:
-                rolling_pct = data["Close"].pct_change(periods=prd) * 100
-                pct_change = rolling_pct.iloc[prd]
-                if not sellSignal:
-                    colored_pct = colorText.GREEN if pct_change >= 0 else colorText.FAIL
-                else:
-                    colored_pct = colorText.FAIL if pct_change >= 0 else colorText.GREEN
-                backTestedStock[f"{abs(prd)}-Pd"] = (
-                    colored_pct + "%.2f%%" % pct_change + colorText.END
-                )
-            except Exception:# pragma: no cover
-                pass
+        try:
+            backTestedStock[f"{abs(prd)}-Pd"] = ""
+            backTestedStock[f"LTP{prd}"] = ""
+            backTestedStock[f"Growth{prd}"] = ""
+            rolling_pct = data["Close"].pct_change(periods=prd) * 100
+            pct_change = rolling_pct.iloc[prd]
+            if not sellSignal:
+                colored_pct = colorText.GREEN if pct_change >= 0 else colorText.FAIL
+            else:
+                colored_pct = colorText.FAIL if pct_change >= 0 else colorText.GREEN
+            backTestedStock[f"{abs(prd)}-Pd"] = (
+                colored_pct + "%.2f%%" % pct_change + colorText.END
+            )
+        except Exception:# pragma: no cover
+            pass
         # Let's capture the portfolio data, if available
         try:
             backTestedStock[f"LTP{prd}"] = saveDict[f"LTP{prd}"]

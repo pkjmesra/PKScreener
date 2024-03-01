@@ -387,8 +387,24 @@ def statScanCalculationForPatterns(*args, **kwargs):
             task.result = scanResults
     return scanResults
 
+def ensureColumnsExist(saveResults):
+    columns = ['Stock', 'Date', 'Volume', 'Trend', 'MA-Signal', 'LTP', '52Wk H',
+               '52Wk L', '1-Pd', '2-Pd', '3-Pd', '4-Pd', '5-Pd', '10-Pd', '15-Pd',
+               '22-Pd', '30-Pd', 'Consol.', 'Breakout', 'RSI', 'Pattern', 'CCI',
+               'LTP1', 'Growth1', 'LTP2', 'Growth2', 'LTP3', 'Growth3', 'LTP4',
+               'Growth4', 'LTP5', 'Growth5', 'LTP10', 'Growth10', 'LTP15', 'Growth15',
+               'LTP22', 'Growth22', 'LTP30', 'Growth30']
+    if saveResults is None:
+        saveResults = pd.DataFrame(columns=columns)
+    else:
+        for col in columns:
+            if col not in saveResults.columns:
+                saveResults[col] = ""
+    return saveResults
+
 def cleanupData(savedResults):
     saveResults = savedResults.copy()
+    saveResults = ensureColumnsExist(saveResults)
     for col in saveResults.columns:
         saveResults.loc[:, col] = saveResults.loc[:, col].apply(
                 lambda x: Utility.tools.removeAllColorStyles(x)
@@ -419,7 +435,7 @@ def cleanupData(savedResults):
         )
     saveResults.loc[:, "Resistance"] = saveResults.loc[
             :, "Resistance"
-        ].apply(lambda x: x.replace("(Potential)", ""))
+        ].apply(lambda x: x.replace("(Potential)", "") if x is not None else x)
     saveResults["Volume"] = saveResults["Volume"].astype(float).fillna(0.0)
     saveResults[f"Consol."] = (
             saveResults[f"Consol."].astype(float).fillna(0.0)

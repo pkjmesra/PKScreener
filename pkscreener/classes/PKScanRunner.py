@@ -119,6 +119,7 @@ class PKScanRunner:
     def addStocksToItemList(userArgs, testing, testBuild, newlyListedOnly, downloadOnly, minRSI, maxRSI, insideBarToLookback, respChartPattern, daysForLowestVolume, backtestPeriod, reversalOption, maLength, listStockCodes, menuOption, executeOption, volumeRatio, items, daysInPast):
         moreItems = [
                         (
+                            menuOption,
                             executeOption,
                             reversalOption,
                             maLength,
