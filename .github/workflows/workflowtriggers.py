@@ -160,6 +160,7 @@ originalStdOut = sys.stdout
 original__stdout = sys.__stdout__
 
 # args.force = True
+# args.misc = True
 # args.scans = True
 # args.report = True
 # args.intraday = True

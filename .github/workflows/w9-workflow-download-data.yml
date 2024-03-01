@@ -241,6 +241,8 @@ jobs:
       continue-on-error: true
       run: |
         python3 .github/workflows/workflowtriggers.py -f --misc
+      env:
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
     - name: Clean up old historical scan results
       shell: bash

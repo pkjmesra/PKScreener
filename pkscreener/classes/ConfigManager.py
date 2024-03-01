@@ -62,6 +62,8 @@ class tools:
         self.backtestPeriod = 120
         self.maxBacktestWindow = 30
         self.minVolume = 10000
+        self.morninganalysiscandlenumber = 43 # 9:58am IST, since market opens at 9:15am IST
+        self.morninganalysiscandleduration = '1m'
         self.logger = None
         self.showPastStrategyData = False
         # This determines how many days apart the backtest calculations are run.
@@ -154,6 +156,8 @@ class tools:
             parser.set("config", "maxNetworkRetryCount", str(self.maxNetworkRetryCount))
             parser.set("config", "backtestPeriod", str(self.backtestPeriod))
             parser.set("config", "maxBacktestWindow", str(self.maxBacktestWindow))
+            parser.set("config", "morninganalysiscandlenumber", str(self.morninganalysiscandlenumber))
+            parser.set("config", "morninganalysiscandleduration", self.morninganalysiscandleduration)
             parser.set("config", "minimumVolume", str(self.minVolume))
             parser.set("config", "backtestPeriodFactor", str(self.backtestPeriodFactor))
             try:
@@ -265,6 +269,12 @@ class tools:
             self.maxBacktestWindow = input(
                 "[+] Number of days to show the results for backtesting(in days)(Optimal = 1 to 30): "
             )
+            self.morninganalysiscandlenumber = input(
+                "[+] Candle number since the market open time(Optimal = 15 to 60): "
+            )
+            self.morninganalysiscandleduration = input(
+                "[+] Enter Duration of each candle (minutes)(Optimal = 1 to 5): "
+            )
             self.minVolume = input(
                 "[+] Minimum per day traded volume of any stock (number)(Optimal = 100000): "
             )
@@ -293,6 +303,8 @@ class tools:
             parser.set("config", "maxNetworkRetryCount", self.maxNetworkRetryCount)
             parser.set("config", "backtestPeriod", self.backtestPeriod)
             parser.set("config", "maxBacktestWindow", self.maxBacktestWindow)
+            parser.set("config", "morninganalysiscandlenumber", self.morninganalysiscandlenumber)
+            parser.set("config", "morninganalysiscandleduration", self.morninganalysiscandleduration + "m")
             parser.set("config", "minimumVolume", self.minVolume)
             parser.set("config", "backtestPeriodFactor", self.backtestPeriodFactor)
             # delete stock data due to config change
@@ -388,6 +400,8 @@ class tools:
                 )
                 self.backtestPeriod = int(parser.get("config", "backtestPeriod"))
                 self.maxBacktestWindow = int(parser.get("config", "maxBacktestWindow"))
+                self.morninganalysiscandlenumber = int(parser.get("config", "morninganalysiscandlenumber"))
+                self.morninganalysiscandleduration = parser.get("config", "morninganalysiscandleduration")
                 self.minVolume = int(parser.get("config", "minimumVolume"))
                 self.backtestPeriodFactor = int(parser.get("config", "backtestPeriodFactor"))
             except configparser.NoOptionError as e:# pragma: no cover
@@ -418,7 +432,12 @@ class tools:
             self.cacheEnabled = True
         if self.isIntradayConfig():
             self.duration = candleDuration if candleDuration[-1] in ["m", "h"] else "1m"
-            self.daysToLookback = 120  # At least the past 2 hours
+            candleType = candleDuration.replace("m","").replace("h","")
+            if candleDuration[-1] in ["m"]:
+                lookback = int(60/int(candleType)) * 6 # 6 hours
+            elif candleDuration[-1] in ["h"]:
+                lookback = (int(24/int(candleType)) + 1 )*2 #  at least 24 hours
+            self.daysToLookback = lookback  # At least the past 6 to 24 hours
         else:
             self.duration = candleDuration if candleDuration[-1] == "d" else "1d"
             self.daysToLookback = 22  # At least the past 1.5 month
