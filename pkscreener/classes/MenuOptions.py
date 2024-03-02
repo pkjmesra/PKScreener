@@ -39,6 +39,7 @@ level0MenuDict = {
     "T": "~",
     "E": "Edit user configuration",
     "Y": "View your user configuration",
+    "C": "Analyse morning vs close outcomes",
     "U": "Check for software update",
     "H": "Help / About Developer",
     "Z": "Exit (Ctrl + C)",
@@ -103,7 +104,6 @@ level2_X_MenuDict = {
     # "29": "Rising RSI                      ",
     # "30": "RSI entering bullish territory",
     "42": "Show Last Screened Results",
-    "C": "Analyse morning vs close outcomes",
     "M": "Back to the Top/Main menu",
     "Z": "Exit (Ctrl + C)",
 }

@@ -113,7 +113,7 @@ class PKScanRunner:
         # will be x + 10 days.
         samplingDuration = (3 if testing else PKScanRunner.configManager.backtestPeriod+1) if menuOption.upper() in ["B"] else 2
         fillerPlaceHolder = 1 if menuOption in ["B"] else 2
-        actualHistoricalDuration = samplingDuration - fillerPlaceHolder
+        actualHistoricalDuration = (samplingDuration - fillerPlaceHolder) if menuOption not in ["C"] else -1
         return samplingDuration,fillerPlaceHolder,actualHistoricalDuration
 
     def addStocksToItemList(userArgs, testing, testBuild, newlyListedOnly, downloadOnly, minRSI, maxRSI, insideBarToLookback, respChartPattern, daysForLowestVolume, backtestPeriod, reversalOption, maLength, listStockCodes, menuOption, executeOption, volumeRatio, items, daysInPast):

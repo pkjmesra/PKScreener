@@ -404,7 +404,7 @@ def initExecution(menuOption=None):
                     + colorText.END
                 )
                 sys.exit(0)
-            elif selectedMenu.menuKey in ["B", "G", "H", "U", "T", "S", "E", "X", "Y"]:
+            elif selectedMenu.menuKey in ["B", "C", "G", "H", "U", "T", "S", "E", "X", "Y"]:
                 Utility.tools.clearScreen()
                 selectedChoice["0"] = selectedMenu.menuKey
                 return selectedMenu
@@ -620,7 +620,7 @@ def main(userArgs=None):
     # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
-    if menuOption in ["X", "T", "E", "Y", "U", "H"]:
+    if menuOption in ["X", "T", "E", "Y", "U", "H", "C"]:
         # Print Level 2 menu options
         menuOption, indexOption, executeOption, selectedChoice = getScannerMenuChoices(
             testBuild or testing,
@@ -730,10 +730,6 @@ def main(userArgs=None):
     handleExitRequest(executeOption)
     if executeOption is None:
         executeOption = 0
-    if str(executeOption).upper() == "C":
-        stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
-        listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
-        executeOption = 23
     executeOption = int(executeOption)
     volumeRatio = configManager.volumeRatio
     if executeOption == 3:
@@ -967,6 +963,9 @@ def main(userArgs=None):
         )
         input("Press <Enter> to continue...")
         return
+    if str(menuOption).upper() == "C":
+        stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
+        listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
     if (
         not str(indexOption).isnumeric() and indexOption in ["W", "E", "M", "N", "Z"]
     ) or (
@@ -1034,7 +1033,7 @@ def main(userArgs=None):
             and not loadedStockData
             and not testing
         ):
-            if len(stockDict) == 0:
+            if menuOption not in ["C"]:
                 Utility.tools.loadStockData(
                     stockDict,
                     configManager,
@@ -1061,7 +1060,7 @@ def main(userArgs=None):
         totalStocksInReview = 0
         savedStocksCount = 0
         downloadedRecently = False
-        items = []
+        items = [] if menuOption not in ["C"] else [listStockCodes]
         backtest_df = None
         bar, spinner = Utility.tools.getProgressbarStyle()
         # Lets begin from y days ago, evaluate from that date if the selected strategy had yielded any result
