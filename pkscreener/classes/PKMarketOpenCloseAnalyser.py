@@ -108,10 +108,13 @@ class PKMarketOpenCloseAnalyser:
         latestDailyCandle = {}
         stocks = list(allDailyCandles.keys())
         for stock in stocks:
-            df = pd.DataFrame(data=[allDailyCandles[stock]["data"][-1]],
+            try:
+                df = pd.DataFrame(data=[allDailyCandles[stock]["data"][-1]],
                               columns=allDailyCandles[stock]["columns"],
                               index=[allDailyCandles[stock]["index"][-1]])
-            latestDailyCandle[stock] = df.to_dict("split")
+                latestDailyCandle[stock] = df.to_dict("split")
+            except Exception as e:
+                continue
         return latestDailyCandle,allDailyCandles
     
     def getIntradayCandleFromMorning(int_cache_file):
@@ -124,15 +127,18 @@ class PKMarketOpenCloseAnalyser:
         duration = PKMarketOpenCloseAnalyser.configManager.morninganalysiscandleduration
         numOfCandles = numOfCandles * int(duration.replace("m",""))
         for stock in stocks:
-            df = pd.DataFrame(data=allDailyIntradayCandles[stock]["data"],
-                              columns=allDailyIntradayCandles[stock]["columns"],
-                              index=allDailyIntradayCandles[stock]["index"])
-            df = df.head(numOfCandles)
-            combinedCandle = {"Open":df["Open"][0], "High":max(df["High"]), 
-                              "Low":min(df["Low"]),"Close":df["Close"][-1],
-                              "Adj Close":df["Adj Close"][-1],"Volume":sum(df["Volume"])}
-            df = pd.DataFrame([combinedCandle], columns=df.columns)
-            morningIntradayCandle[stock] = df.to_dict("split")
+            try:
+                df = pd.DataFrame(data=allDailyIntradayCandles[stock]["data"],
+                                columns=allDailyIntradayCandles[stock]["columns"],
+                                index=allDailyIntradayCandles[stock]["index"])
+                df = df.head(numOfCandles)
+                combinedCandle = {"Open":df["Open"][0], "High":max(df["High"]), 
+                                "Low":min(df["Low"]),"Close":df["Close"][-1],
+                                "Adj Close":df["Adj Close"][-1],"Volume":sum(df["Volume"])}
+                df = pd.DataFrame([combinedCandle], columns=df.columns)
+                morningIntradayCandle[stock] = df.to_dict("split")
+            except:
+                continue
         return morningIntradayCandle
     
     def combineDailyStockDataWithMorningSimulation(latestDailyCandle,morningIntradayCandle):

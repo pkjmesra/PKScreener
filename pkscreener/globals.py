@@ -198,7 +198,7 @@ def getScannerMenuChoices(
             handleSecondaryMenuChoices(
                 menuOption, testBuild, defaultAnswer=defaultAnswer, user=user
             )
-        elif menuOption == "X":
+        elif menuOption in ["X","C"]:
             indexOption, executeOption = initPostLevel0Execution(
                 menuOption=menuOption,
                 indexOption=indexOption,
@@ -963,9 +963,6 @@ def main(userArgs=None):
         )
         input("Press <Enter> to continue...")
         return
-    if str(menuOption).upper() == "C":
-        stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
-        listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
     if (
         not str(indexOption).isnumeric() and indexOption in ["W", "E", "M", "N", "Z"]
     ) or (
@@ -1010,6 +1007,9 @@ def main(userArgs=None):
             elif indexOption == "E":
                 return handleMonitorFiveEMA()
             else:
+                if str(menuOption).upper() == "C":
+                    stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
+                    listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
                 listStockCodes = prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption)
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
@@ -1379,7 +1379,7 @@ def handleExitRequest(executeOption):
         sys.exit(0)
 
 def handleMenu_XBG(menuOption, indexOption, executeOption):
-    if menuOption in ["X", "B", "G"]:
+    if menuOption in ["X", "B", "G","C"]:
         selMenu = m0.find(menuOption)
         m1.renderForMenu(selMenu, asList=True)
         if indexOption is not None:
