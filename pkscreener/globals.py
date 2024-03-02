@@ -2170,7 +2170,7 @@ def takeBacktestInputs(
                 input(
                     colorText.BOLD
                     + colorText.FAIL
-                    + f"[+] Enter {g10k if menuOption == 'G' else 'backtesting'} period (Default is {3 if menuOption == 'G' else 30} [days]): "
+                    + f"[+] Enter {g10k if menuOption == 'G' else 'backtesting'} period (Default is {15 if menuOption == 'G' else 30} [days]): "
                 )
             )
     except Exception as e:  # pragma: no cover
