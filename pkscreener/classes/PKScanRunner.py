@@ -113,7 +113,7 @@ class PKScanRunner:
         # will be x + 10 days.
         samplingDuration = (3 if testing else PKScanRunner.configManager.backtestPeriod+1) if menuOption.upper() in ["B"] else 2
         fillerPlaceHolder = 1 if menuOption in ["B"] else 2
-        actualHistoricalDuration = (samplingDuration - fillerPlaceHolder) if menuOption not in ["C"] else -1
+        actualHistoricalDuration = (samplingDuration - fillerPlaceHolder)
         return samplingDuration,fillerPlaceHolder,actualHistoricalDuration
 
     def addStocksToItemList(userArgs, testing, testBuild, newlyListedOnly, downloadOnly, minRSI, maxRSI, insideBarToLookback, respChartPattern, daysForLowestVolume, backtestPeriod, reversalOption, maLength, listStockCodes, menuOption, executeOption, volumeRatio, items, daysInPast):
@@ -143,7 +143,7 @@ class PKScanRunner:
                                 else PKScanRunner.configManager.effectiveDaysToLookback
                             ),
                             default_logger().level,
-                            (menuOption in ["B", "G", "X", "S"])
+                            (menuOption in ["B", "G", "X", "S","C"])
                             or (userArgs.backtestdaysago is not None),
                             # assumption is that fetcher.fetchStockData would be
                             # mocked to avoid calling yf.download again and again

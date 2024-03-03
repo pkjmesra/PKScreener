@@ -604,7 +604,7 @@ def main(userArgs=None):
     if stockDict is None:
         stockDict = multiprocessing.Manager().dict()
         loadCount = 0
-
+    endOfdayCandles = None
     minRSI = 0
     maxRSI = 100
     insideBarToLookback = 7
@@ -1008,8 +1008,11 @@ def main(userArgs=None):
                 return handleMonitorFiveEMA()
             else:
                 if str(menuOption).upper() == "C":
-                    stockDict = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
-                    listStockCodes = ",".join(sorted(list(filter(None,list(set(stockDict.keys()))))))
+                    stockDict,endOfdayCandles = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
+                    if stockDict is None or endOfdayCandles is None:
+                        print(f"Cannot proceed! Stock data is unavailable. Please check the error logs/messages !")
+                        return
+                    listStockCodes = sorted(list(filter(None,list(set(stockDict.keys())))))
                 listStockCodes = prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption)
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
@@ -1026,7 +1029,7 @@ def main(userArgs=None):
             for choice in selectedChoice.keys():
                 userPassedArgs.options = (f"{userPassedArgs.options}:" if len(userPassedArgs.options) > 0  else '') + f"{selectedChoice[choice]}"
 
-        if (menuOption in ["X", "B", "G", "S"] and not loadedStockData) or (
+        if (menuOption in ["X", "B", "G", "S","C"] and not loadedStockData) or (
             not downloadOnly
             and not PKDateUtilities.isTradingTime()
             and configManager.cacheEnabled
@@ -1060,7 +1063,7 @@ def main(userArgs=None):
         totalStocksInReview = 0
         savedStocksCount = 0
         downloadedRecently = False
-        items = [] if menuOption not in ["C"] else [listStockCodes]
+        items = []
         backtest_df = None
         bar, spinner = Utility.tools.getProgressbarStyle()
         # Lets begin from y days ago, evaluate from that date if the selected strategy had yielded any result
@@ -1070,7 +1073,7 @@ def main(userArgs=None):
             while actualHistoricalDuration >= 0:
                 daysInPast = PKScanRunner.getBacktestDaysForScan(userPassedArgs, backtestPeriod, menuOption, actualHistoricalDuration)
                 try:
-                    listStockCodes, savedStocksCount, pastDate = PKScanRunner.getStocksListForScan(userPassedArgs, menuOption, totalStocksInReview, downloadedRecently, daysInPast)
+                    listStockCodes, savedStocksCount, pastDate = PKScanRunner.getStocksListForScan(userPassedArgs, menuOption, totalStocksInReview, downloadedRecently, daysInPast) if menuOption not in ["C"] else (listStockCodes, 0, "")
                 except KeyboardInterrupt:
                     try:
                         keyboardInterruptEvent.set()
@@ -1102,10 +1105,12 @@ def main(userArgs=None):
         sys.stdout.write(f"\x1b[1A")
         if not keyboardInterruptEventFired:
             screenResults, saveResults, backtest_df, scr = PKScanRunner.PrepareAndRunScan(keyboardInterruptEvent,screenCounter,screenResultsCounter,stockDict,testing, backtestPeriod, menuOption, samplingDuration, items,screenResults, saveResults, backtest_df,scanningCb=runScanners)
+            if menuOption in ["C"]:
+                PKMarketOpenCloseAnalyser.runOpenCloseAnalysis(stockDict,endOfdayCandles,screenResults, saveResults)
             if downloadOnly and menuOption in ["X"]:
                 scr.getFreshMFIStatus(stock="LatestCheckedOnDate")
                 scr.getFairValue(stock="LatestCheckedOnDate", force=True)
-            if not downloadOnly and menuOption in ["X", "G"]:
+            if not downloadOnly and menuOption in ["X", "G", "C"]:
                 if menuOption == "G":
                     userPassedArgs.backtestdaysago = backtestPeriod
                 if len(screenResults) > 0:
@@ -1136,7 +1141,7 @@ def main(userArgs=None):
                     testing,
                     user=user,
                 )
-        if menuOption == "X":
+        if menuOption in ["X","C"]:
             finishScreening(
                 downloadOnly,
                 testing,
@@ -1837,7 +1842,7 @@ def runScanners(
 
         print(f"\x1b[3A")
         elapsed_time = time.time() - start_time
-        if menuOption in ["X", "G"]:
+        if menuOption in ["X", "G", "C"]:
             # create extension
             screenResults = pd.DataFrame(lstscreen)
             saveResults = pd.DataFrame(lstsave)
