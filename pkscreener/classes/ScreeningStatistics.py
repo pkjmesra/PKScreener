@@ -867,7 +867,10 @@ class ScreeningStatistics:
         # Let's look for fair values
         fairValue = 0
         if "FairValue" in hostData.columns and PKDateUtilities.currentDateTime().weekday() <= 4:
-            fairValue = hostData["FairValue"].iloc[0]
+            try:
+                fairValue = hostData[hostData.index[-1],"FairValue"]
+            except (KeyError,IndexError):
+                    pass
         else:
             if PKDateUtilities.currentDateTime().weekday() >= 5 or force:
                 security = None
@@ -888,7 +891,10 @@ class ScreeningStatistics:
                             pass
                             # self.default_logger.debug(f"{e}\nResponse:fv:\n{fv}", exc_info=True)
                     fairValue = round(float(fairValue),1)
-                    hostData.loc[:"FairValue"] = fairValue
+                    try:
+                        hostData.loc[hostData.index[-1],"FairValue"] = fairValue
+                    except (KeyError,IndexError):
+                        pass
         return fairValue
 
     def getMutualFundStatus(self, stock,onlyMF=False, hostData=None, force=False):
@@ -904,20 +910,20 @@ class ScreeningStatistics:
         if hostData is not None and len(hostData) > 0:
             if "MF" in hostData.columns or "FII" in hostData.columns:
                 try:
-                    netChangeMF = hostData["MF"].iloc[0]
-                except KeyError:
+                    netChangeMF = hostData[hostData.index[-1],"MF"]
+                except (KeyError,IndexError):
                     pass
                 try:
-                    netChangeInst = hostData["FII"].iloc[0]
-                except KeyError:
+                    netChangeInst = hostData[hostData.index[-1],"FII"]
+                except (KeyError,IndexError):
                     pass
                 try:
-                    latest_mfdate = hostData["MF_Date"].iloc[0]
-                except KeyError:
+                    latest_mfdate = hostData[hostData.index[-1],"MF_Date"]
+                except (KeyError,IndexError):
                     pass
                 try:
-                    latest_instdate = hostData["FII_Date"].iloc[0]
-                except KeyError:
+                    latest_instdate = hostData[hostData.index[-1],"FII_Date"]
+                except (KeyError,IndexError):
                     pass
                 if latest_mfdate is not None:
                     saved_mfdate = PKDateUtilities.dateFromYmdString(latest_mfdate.split("T")[0])
@@ -935,17 +941,29 @@ class ScreeningStatistics:
         if needsFreshUpdate and force:
             netChangeMF, netChangeInst, latest_mfdate, latest_instdate = self.getFreshMFIStatus(stock)
             if netChangeMF is not None:
-                hostData.loc[:"MF"] = netChangeMF
+                try:
+                    hostData.loc[hostData.index[-1],"MF"] = netChangeMF
+                except (KeyError,IndexError):
+                    pass
             else:
                 netChangeMF = 0
             if latest_mfdate is not None:
-                hostData.loc[:"MF_Date"] = latest_mfdate
+                try:
+                    hostData.loc[hostData.index[-1],"MF_Date"] = latest_mfdate
+                except (KeyError,IndexError):
+                    pass
             if netChangeInst is not None:
-                hostData.loc[:"FII"] = netChangeInst
+                try:
+                    hostData.loc[hostData.index[-1],"FII"] = netChangeInst
+                except (KeyError,IndexError):
+                    pass
             else:
                 netChangeInst = 0
             if latest_instdate is not None:
-                hostData.loc[:"FII_Date"] = latest_instdate
+                try:
+                    hostData.loc[hostData.index[-1],"FII_Date"] = latest_instdate
+                except (KeyError,IndexError):
+                    pass
         lastDayLastMonth = lastDayLastMonth.strftime("%Y-%m-%dT00:00:00.000")
         if onlyMF:
             return netChangeMF

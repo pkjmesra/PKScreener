@@ -716,6 +716,7 @@ def triggerBacktestWorkflowActions(launchLocal=False):
             triggerGithubPagesDeploymentAction()
 
     cmt_msg = "Strategy_Report"
+    branch = "gh-pages"
     postdata = (
         '{"ref":"'
         + branch
