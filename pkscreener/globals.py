@@ -1915,6 +1915,8 @@ def getMaxAllowedResultsCount(iterations, testing):
     return iterations * (100 if userPassedArgs.maxdisplayresults is None else int(userPassedArgs.maxdisplayresults)) if not testing else 1
 
 def getIterationsAndStockCounts(numStocks, iterations):
+    if numStocks <= 2500:
+        return 1,numStocks
     originalIterations = iterations
         # If we put in more into the queue, it might cause the warnings from multiprocessing resource_tracker
         # about semaphore leakages etc. This is, caused due to overallocating RAM.

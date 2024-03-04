@@ -87,7 +87,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
                 progress=False,
                 rounding = True,
                 group_by='ticker',
-                timeout=self.configManager.longTimeout,
+                timeout=self.configManager.generaltimeout,
                 start=start,
                 end=end
             )

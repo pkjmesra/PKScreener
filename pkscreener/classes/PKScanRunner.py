@@ -86,8 +86,8 @@ class PKScanRunner:
         return screenResults, saveResults
 
     def initQueues(minimumCount=0):
-        tasks_queue = multiprocessing.JoinableQueue(500)
-        results_queue = multiprocessing.Queue(500)
+        tasks_queue = multiprocessing.JoinableQueue()
+        results_queue = multiprocessing.Queue()
 
         totalConsumers = min(minimumCount, multiprocessing.cpu_count())
         if totalConsumers == 1:
