@@ -651,16 +651,16 @@ class StockScreener:
     def getRelevantDataForStock(self, totalSymbols, shouldCache, stock, downloadOnly, printCounter, backtestDuration, hostRef, configManager, fetcher, period, testData=None):
         hostData = hostRef.objectDictionary.get(stock)
         data = None
+        start = None
+        if (period == '1d' or configManager.duration[-1] == "m") and backtestDuration > 0:
+            start = PKDateUtilities.nthPastTradingDateStringFromFutureDate(backtestDuration)
+            end = start
         if (
                 not shouldCache
-                or downloadOnly
-                or self.isTradingTime
+                or (downloadOnly and hostData is None)
+                or (hostData is None and self.isTradingTime)
                 or hostData is None
             ):
-            start = None
-            if (period == '1d' or configManager.duration[-1] == "m") and backtestDuration > 0:
-                start = PKDateUtilities.nthPastTradingDateStringFromFutureDate(backtestDuration)
-                end = start
             if testData is not None:
                 data = testData
             else:
@@ -692,12 +692,14 @@ class StockScreener:
                         data["FairValue"] = hostData["FairValue"]
                     except KeyError:
                         pass
-            if (
-                    (shouldCache and not self.isTradingTime and (hostData is None))
-                    or downloadOnly
-                ) or (
-                    shouldCache and hostData is None
-                ):  # and backtestDuration == 0 # save only if we're NOT backtesting
+        else:
+            self.printProcessingCounter(totalSymbols, stock, printCounter, hostRef)
+            data = hostData
+            data = pd.DataFrame(
+                    data["data"], columns=data["columns"], index=data["index"]
+                )
+        if ((shouldCache and not self.isTradingTime and (hostData is None)) or downloadOnly) \
+            or (shouldCache and hostData is None):  # and backtestDuration == 0 # save only if we're NOT backtesting
                 if start is None and data is not None:
                     hostRef.objectDictionary[stock] = data.to_dict("split")
                 if downloadOnly:
@@ -706,13 +708,6 @@ class StockScreener:
                     raise ScreeningStatistics.DownloadDataOnly
                 else:
                     hostData = hostRef.objectDictionary.get(stock)
-        else:
-            self.printProcessingCounter(totalSymbols, stock, printCounter, hostRef)
-            data = hostData
-            data = pd.DataFrame(
-                    data["data"], columns=data["columns"], index=data["index"]
-                )
-            
         return data
 
     def determineBasicConfigs(self, stock, newlyListedOnly, volumeRatio, logLevel, hostRef, configManager, screener, userArgsLog):

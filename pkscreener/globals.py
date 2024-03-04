@@ -1029,10 +1029,11 @@ def main(userArgs=None):
             for choice in selectedChoice.keys():
                 userPassedArgs.options = (f"{userPassedArgs.options}:" if len(userPassedArgs.options) > 0  else '') + f"{selectedChoice[choice]}"
 
-        if (menuOption in ["X", "B", "G", "S","C"] and not loadedStockData) or (
-            not downloadOnly
-            and not PKDateUtilities.isTradingTime()
-            and configManager.cacheEnabled
+        if (menuOption in ["X", "B", "G", "S"] and not loadedStockData) or (
+            # not downloadOnly
+            # and not PKDateUtilities.isTradingTime()
+            # and 
+            configManager.cacheEnabled
             and not loadedStockData
             and not testing
         ):
@@ -1043,7 +1044,8 @@ def main(userArgs=None):
                     downloadOnly=downloadOnly,
                     defaultAnswer=defaultAnswer,
                     forceLoad=(menuOption in ["X", "B", "G", "S"]),
-                )
+                    stockCodes = listStockCodes
+            )
             loadedStockData = True
         loadCount = len(stockDict)
 
