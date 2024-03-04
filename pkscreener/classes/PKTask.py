@@ -38,3 +38,4 @@ class PKTask:
         self.progress_fn = progress_fn
         self.resultsDict = None
         self.result = None
+        self.userData = None

@@ -60,7 +60,7 @@ def init_pool_processes(the_lock):
 
 progressUpdater=None
 class PKScheduler():
-    def scheduleTasks(tasksList=[], label:str=None, showProgressBars=False):
+    def scheduleTasks(tasksList=[], label:str=None, showProgressBars=False,submitTaskAsArgs=True):
         n_workers = multiprocessing.cpu_count() - 1  # set this to the number of cores you have on your machine
         global progressUpdater
         console = Console()
@@ -99,7 +99,7 @@ class PKScheduler():
                         task.taskId = task_id
                         task.progressStatusDict = _progress
                         task.resultsDict = _results
-                        futures.append(executor.submit(task.long_running_fn, task))
+                        futures.append(executor.submit(task.long_running_fn, task if submitTaskAsArgs else task.long_running_fn_args))
 
                     # monitor the progress:
                     while (n_finished := sum([future.done() for future in futures])) < len(futures):
