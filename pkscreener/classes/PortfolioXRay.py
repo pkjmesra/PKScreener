@@ -23,6 +23,7 @@
 
 """
 import os
+import sys
 import numpy as np
 import pandas as pd
 from argparse import Namespace
@@ -41,7 +42,10 @@ configManager.getConfig(parser)
 def summariseAllStrategies(testing=False):
     reports = getSavedBacktestReportNames(testing=testing)
     df_all = None
+    counter = 0
     for report in reports:
+        counter += 1
+        print(f"Processing {counter} of {len(reports)}...")
         df = bestStrategiesFromSummaryForReport(
             f"PKScreener_{report}_Insights_DateSorted.html", summary=True,includeLargestDatasets=True
         )
@@ -51,6 +55,7 @@ def summariseAllStrategies(testing=False):
                 df_all = pd.concat([df_all, df], axis=0)
             else:
                 df_all = df
+        sys.stdout.write("\x1b[1A")
     if df_all is not None:
         df_all = df_all.replace(np.nan, "-", regex=True)
     return df_all
@@ -59,9 +64,9 @@ def getSavedBacktestReportNames(testing=False):
     indices = [1,5,8,11,12,14] if not testing else [1]
     scanSkipIndices = [21, 22] if not testing else [1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
     indexWithSubindices = [6, 7] if not testing else [6]
-    subIndices = {6: [1, 2, 3, 4, 5, 6, 7], 7: [1, 2, 3, 4, 5]} if not testing else {6: [7]}
-    indexWithSubLevelindices = [7]
-    subLevelIndices = {7: [1, 2, 3]} if not testing else {7: [1]}
+    subIndices = {6: [1, 2, 3, 4, 5, 6, 7], 7: [1, 2, 3, 4, 5, 6, 7]} if not testing else {6: [7]}
+    indexWithSubLevelindices = {6:[7],7:[6]}
+    subLevelIndices = {7: [1, 2, 3], 6: [1, 2, 3]} if not testing else {7: [1]}
     reports = []
     for index in indices:
         scanTypeStartIndex = 1
@@ -73,7 +78,7 @@ def getSavedBacktestReportNames(testing=False):
                 if scanTypeStartIndex in indexWithSubindices:
                     for subIndex in subIndices[scanTypeStartIndex]:
                         subReportName = f"{reportName}_{subIndex}"
-                        if subIndex in indexWithSubLevelindices:
+                        if subIndex in indexWithSubLevelindices[scanTypeStartIndex]:
                             for subLevelIndex in subLevelIndices[subIndex]:
                                 subLevelReportName = f"{subReportName}_{subLevelIndex}"
                                 reports.append(subLevelReportName)
@@ -89,8 +94,8 @@ def getSavedBacktestReportNames(testing=False):
 def bestStrategiesFromSummaryForReport(reportName: None, summary=False,includeLargestDatasets=False):
     dfs = []
     insights = None
-    if (("RUNNER" not in os.environ.keys()) or not configManager.showPastStrategyData):
-        if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+    if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+        if (("RUNNER" not in os.environ.keys()) or not configManager.showPastStrategyData):
             return None
     try:
         dfs = pd.read_html(
@@ -100,7 +105,7 @@ def bestStrategiesFromSummaryForReport(reportName: None, summary=False,includeLa
         )
     except Exception as e: # pragma: no cover
         pass
-    if len(dfs) > 0:
+    if dfs is not None and len(dfs) > 0:
         df = dfs[0]
         if len(df) > 0:
             periods = configManager.periodsRange
@@ -175,8 +180,10 @@ def getMaxBestInsight(summary, dfs, periods, insights_list):
                     default_logger().debug(e, exc_info=True)
                     pass
                 pass
+            if summary:
+                strategy[f"{prd}-Pd"] = strategy_percent[f"{prd}-Pd"].split("from")[0] + " " + strategy[f"{prd}-Pd"]
             firstPeriod = False
-        insights_list.extend([strategy, strategy_percent])
+        insights_list.extend([strategy] if summary else [strategy, strategy_percent])
 
 def addLargeDatasetInsights(dfs, max_datasets_df):
     max_datasets_df[["ScanTypeSplit", "DatasetSize"]] = max_datasets_df[
@@ -787,17 +794,17 @@ def statScanCalculationForRSI(*args, **kwargs):
         userArgs, saveResults, period, scanResults = args[0],args[1],args[2],args[3]
     scanResults.append(
                 getCalculatedValues(
-                    filterRSIAbove50(saveResults), period, "RSI>=50", userArgs, task
+                    filterRSIAbove50(saveResults), period, "[RSI]>=50", userArgs, task
                 )
             )
     scanResults.append(
                 getCalculatedValues(
-                    filterRSI50To67(saveResults), period, "50<=RSI<=67", userArgs,task
+                    filterRSI50To67(saveResults), period, "[RSI]50<=RSI<=67", userArgs,task
                 )
             )
     scanResults.append(
                 getCalculatedValues(
-                    filterRSI68OrAbove(saveResults), period, "RSI>=68", userArgs,task
+                    filterRSI68OrAbove(saveResults), period, "[RSI]>=68", userArgs,task
                 )
             )
     if task is not None:
@@ -1195,9 +1202,9 @@ def strategyDictionary():
     """
     strategies = {}
     # RSI
-    strategies["RSI>=50"] = filterRSIAbove50
-    strategies["50<=RSI<=67"] = filterRSI50To67
-    strategies["RSI>=68"] = filterRSI68OrAbove
+    strategies["[RSI]>=50"] = filterRSIAbove50
+    strategies["[RSI]50<=RSI<=67"] = filterRSI50To67
+    strategies["[RSI]>=68"] = filterRSI68OrAbove
     # CCI
     strategies["[CCI]<=-100"] = filterCCIBelowMinus100
     strategies["[CCI]-100<C<0"] = filterCCIBelow0

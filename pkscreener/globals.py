@@ -244,7 +244,7 @@ def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
             ),encoding="UTF-8", attrs = {'id': 'resultsTable'}
         )
 
-        if summaryRequired and len(dfs) > 0:
+        if summaryRequired and dfs is not None and len(dfs) > 0:
             df = dfs[0]
             summarydf = df[df["Stock"] == "SUMMARY"]
             for col in summarydf.columns:
@@ -254,7 +254,7 @@ def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
                     )
                 )
             summarydf = summarydf.replace(np.nan, "", regex=True)
-        if len(dfd) > 0:
+        if dfd is not None and len(dfd) > 0:
             df = dfd[0]
             results.reset_index(inplace=True)
             detaildf = df[df["Stock"].isin(results["Stock"])]
@@ -699,6 +699,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 + "[+] Collecting all metrics for summarising..."
                 + colorText.END
             )
+            # Enable showing/saving past strategy data
+            savedValue = configManager.showPastStrategyData
+            configManager.showPastStrategyData = True
             df_all = PortfolioXRay.summariseAllStrategies()
             if df_all is not None and len(df_all) > 0:
                 print(
@@ -715,6 +718,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 )
             else:
                 print("[!] Nothing to show here yet. Check back later.")
+            # reinstate whatever was the earlier saved value
+            configManager.showPastStrategyData = savedValue
             if defaultAnswer is None:
                 input("Press <Enter> to continue...")
             return
@@ -1135,7 +1140,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             if not downloadOnly and menuOption in ["X", "G", "C"]:
                 if menuOption == "G":
                     userPassedArgs.backtestdaysago = backtestPeriod
-                if len(screenResults) > 0:
+                if screenResults is not None and len(screenResults) > 0:
                     screenResults, saveResults = labelDataForPrinting(
                         screenResults, saveResults, configManager, volumeRatio, executeOption, reversalOption or respChartPattern
                     )
@@ -1152,7 +1157,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     for stk in saveResults.index.values:
                         df_screenResults_filter = screenResults[screenResults.index.astype(str).str.contains(f"NSE%3A{stk}") == True]
                         df_screenResults = pd.concat([df_screenResults, df_screenResults_filter], axis=0)
-                    if len(df_screenResults) == 0:
+                    if df_screenResults is None or len(df_screenResults) == 0:
                         print(colorText.FAIL + f"[+] Of the {len(screenResults)} stocks, no results matching the selected strategies!" + colorText.END)
                     screenResults = df_screenResults
                 printNotifySaveScreenedResults(
@@ -1444,7 +1449,7 @@ def handleMonitorFiveEMA():
                                 ).encode("utf-8").decode(STD_ENCODING)
                             )
             print("\nPress Ctrl+C to exit.")
-            if len(result_df) != last_result_len and not first_scan:
+            if result_df is not None and len(result_df) != last_result_len and not first_scan:
                 Utility.tools.alertSound(beeps=5)
             sleep(60)
             first_scan = False
@@ -1739,8 +1744,8 @@ def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[], u
 
 
 def tabulateBacktestResults(saveResults, maxAllowed=0, force=False):
-    if ("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and not force) or not configManager.showPastStrategyData:
-        if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+    if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+        if ("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and not force) or not configManager.showPastStrategyData:
             return None, None
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
@@ -1793,8 +1798,8 @@ def sendQuickScanResult(
     addendum=None,
     addendumLabel=None,
 ):
-    if (("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
-        if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+    if "PKDevTools_Default_Log_Level" not in os.environ.keys():
+        if (("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
             return
     try:
         Utility.tools.tableToImage(

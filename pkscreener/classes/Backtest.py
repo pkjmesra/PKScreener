@@ -29,7 +29,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
-
+from PKDevTools.classes.log import default_logger
 from pkscreener.classes import Utility
 from pkscreener.classes.ConfigManager import parser, tools
 
@@ -48,10 +48,10 @@ def backtest(
     sellSignal=False,
 ):
     if stock == "" or data is None:
-        print(f"No data/stock {(stock)} received for backtesting!")
+        default_logger().debug(f"No data/stock {(stock)} received for backtesting!")
         return
     if screenedDict is None or len(screenedDict) == 0:
-        print(f"{(stock)}No backtesting strategy or screened dictionary received!")
+        default_logger().debug(f"{(stock)}No backtesting strategy or screened dictionary received!")
         return
     calcPeriods = configManager.periodsRange
     allStockBacktestData = []
