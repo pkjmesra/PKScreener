@@ -34,3 +34,4 @@ windows-curses; "windows" in sys.platform
 # torch
 # torchvision
 # -f https://download.pytorch.org/whl/torch_stable.html
+werkzeug>=3.0.3 # not directly required, pinned by Snyk to avoid a vulnerability
