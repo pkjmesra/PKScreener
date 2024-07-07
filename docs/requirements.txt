@@ -1,3 +1,5 @@
 sphinx==5.3.0
 sphinx_rtd_theme
 sphinx-toolbox
+requests>=2.32.2 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.2.2 # not directly required, pinned by Snyk to avoid a vulnerability
