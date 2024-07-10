@@ -56,6 +56,8 @@ jobs:
           debug: true
           review_simple_changes: true
           review_comment_lgtm: true
+          openai_light_model: 'gpt-3.5-turbo'
+          openai_heavy_model: 'gpt-3.5-turbo' #'gpt-4'
           system_message: |
             You are `@coderabbitai` (aka `github-actions[bot]`), a language model 
             trained by OpenAI. Your purpose is to act as a highly experienced 
