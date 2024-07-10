@@ -57,24 +57,22 @@ level0MenuDict = {
 }
 level1_index_options_sectoral= {
     "1": "Nifty Auto (^CNXAUTO)",
-    "2": "Nifty Bank (^NSEBANK)",
-    "3": "Nifty Financial Services (NIFTY_FIN_SERVICE.NS)",
-    "4": "Nifty Financial Services 25/50 (^CNXFIN)",
-    "5": "Nifty Financial Services Ex Bank",
-    "6": "Nifty FMCG",
-    "7": "Nifty Healthcare",
-    "8": "Nifty IT",
-    "9": "Nifty Media",
-    "10": "Nifty Metal",
-    "11": "Nifty Pharma",
-    "12": "Nifty Private Bank",
-    "13": "Nifty PSU Bank",
-    "14": "Nifty Realty",
-    "15": "Nifty Consumer Durables",
-    "16": "Nifty Oil and Gas",
-    "17": "Nifty MidSmall Financial Services",
-    "18": "Nifty MidSmall Healthcare",
-    "19": "Nifty MidSmall IT & Telecom",
+    "2": "Nifty Bank (^NSEBANK)                             ",
+    "3": "Nifty Consumption (^CNXCONSUM)",
+    "4": "Nifty Financial Services (NIFTY_FIN_SERVICE.NS)   ",
+    "5": "Nifty Financial Services 25/50 (^CNXFIN)",
+    "6": "Nifty FMCG (^CNXFMCG)                             ",
+    "7": "Nifty Healthcare (NIFTY_HEALTHCARE.NS)",
+    "8": "Nifty IT (^CNXIT)                                 ",
+    "9": "Nifty Media (^CNXMEDIA)",
+    "10": "Nifty Metal (^CNXMETAL)                          ",
+    "11": "Nifty Pharma (^CNXPHARMA)",
+    "12": "Nifty Private Bank (NIFTY_PVT_BANK.NS)           ",
+    "13": "Nifty PSU Bank (^CNXPSUBANK)",
+    "14": "Nifty Realty (^CNXREALTY)                        ",
+    "15": "Nifty Consumer Durables (NIFTY_CONSR_DURBL.NS)",
+    "16": "Nifty Oil and Gas (NIFTY_OIL_AND_GAS.NS)         ",
+    "17": "Nifty MidSmall Healthcare (NIFTY_MIDSML_HLTH.NS)",
 }
 level1_P_MenuDict = {
     "1": "Predefined Piped Scanners",
@@ -176,6 +174,7 @@ level1_X_MenuDict = {
     "W": "Screen stocks from my own Watchlist",
     "N": "Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)",
     "E": "Live Index Scan : 5 EMA for Intraday",
+    "S": "Sectoral Indices",
     "0": "Screen stocks/index by the stock/index names (NSE Stock Code, e.g. SBIN,BANKINDIA or Yahoo Finance index symbol, e.g. ^NSEI, ^NSEBANK, ^BSESN)",
     "1": "Nifty 50          ",
     "2": "Nifty Next 50     ",
@@ -576,6 +575,13 @@ class menus:
                         renderStyle=renderStyle,
                         parent=selectedMenu,
                     )
+                elif selectedMenu.menuKey == "S":
+                    return self.renderLevel2_Sectoral_Menus(
+                        skip=skip,
+                        asList=asList,
+                        renderStyle=renderStyle,
+                        parent=selectedMenu,
+                    )
                 else:
                     # next levelsub-menu of the selected sub-menu
                     return self.renderLevel2_X_Menus(
@@ -881,13 +887,48 @@ class menus:
                     "" + colorText.END
                 )
             return menuText
-        
+
+    def renderLevel2_Sectoral_Menus(
+        self, skip=[], asList=False, renderStyle=None, parent=None
+    ):
+        menuText = self.fromDictionary(
+            level1_index_options_sectoral,
+            renderExceptionKeys=["2"],
+            renderStyle=renderStyle
+            if renderStyle is not None
+            else MenuRenderStyle.TWO_PER_ROW,
+            skip=skip,
+            parent=parent,
+        ).render(asList=asList,coloredValues=["2"] if not asList else [])
+        if asList:
+            return menuText
+        else:
+            if OutputControls().enableMultipleLineOutput:
+                OutputControls().printOutput(
+                    colorText.BOLD
+                    + colorText.WARN
+                    + "[+] Select a sectoral index:"
+                    + colorText.END
+                )
+                OutputControls().printOutput(
+                    colorText.BOLD
+                    + menuText
+                    + """
+
+    Enter your choice > (default is """
+                    + colorText.WARN
+                    + (self.find('2') or menu().create('?','?')).keyTextLabel().strip()
+                    + ")  "
+                    "" + colorText.END
+                )
+            return menuText
+
     def renderLevel1_X_Menus(
         self, skip=[], asList=False, renderStyle=None, parent=None
     ):
         menuText = self.fromDictionary(
             level1_X_MenuDict,
-            renderExceptionKeys=["W", "0", "M", "15"],
+            renderExceptionKeys=["W", "0", "M", "S", "15"],
             renderStyle=renderStyle
             if renderStyle is not None
             else MenuRenderStyle.THREE_PER_ROW,

@@ -80,6 +80,7 @@ from pkscreener.classes.MenuOptions import (
     level4_X_ChartPattern_Confluence_MenuDict,
     level4_X_ChartPattern_BBands_SQZ_MenuDict,
     level4_X_ChartPattern_MASignalMenuDict,
+    level1_index_options_sectoral,
     menus,
     MAX_SUPPORTED_MENU_OPTION,
     MAX_MENU_OPTION,
@@ -589,7 +590,7 @@ def initPostLevel0Execution(
 
 
 def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=False):
-    global selectedChoice, userPassedArgs
+    global selectedChoice, userPassedArgs, listStockCodes
     if executeOption is None:
         if indexOption is not None and indexOption != "W":
             Utility.tools.clearScreen()
@@ -605,6 +606,16 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
             )
             selectedMenu = m1.find(indexOption)
             m2.renderForMenu(selectedMenu=selectedMenu, skip=skip)
+            stockIndexCode = "2"
+            if indexOption == "S":
+                stockIndexCode = input(
+                    colorText.BOLD + colorText.FAIL + "[+] Select option: "
+                ) or "2"
+                OutputControls().printOutput(colorText.END, end="")
+                listStockCodes = [level1_index_options_sectoral[str(stockIndexCode)].split("(")[1].split(")")[0]]
+                selectedMenu.menuKey = "0" # Reset because user must have selected specific index menu with single stock
+                Utility.tools.clearScreen()
+                m2.renderForMenu(selectedMenu=selectedMenu, skip=skip)
     try:
         needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
         pastDate = f"[+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
@@ -1304,7 +1315,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         input("Press <Enter> to continue...")
         return None, None
     if (
-        not str(indexOption).isnumeric() and indexOption in ["W", "E", "M", "N", "Z"]
+        not str(indexOption).isnumeric() and indexOption in ["W", "E", "M", "N", "Z", "S"]
     ) or (
         str(indexOption).isnumeric()
         and (int(indexOption) >= 0 and int(indexOption) < 16)
@@ -1364,7 +1375,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                         return None, None
                     if indexOption > 0:
                         listStockCodes = sorted(list(filter(None,list(set(stockDictPrimary.keys())))))
-                listStockCodes = prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption)
+                if str(indexOption) not in ["S"]:
+                    listStockCodes = prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption)
         except urllib.error.URLError as e:
             default_logger().debug(e, exc_info=True)
             OutputControls().printOutput(
@@ -1977,7 +1989,8 @@ def handleMonitorFiveEMA():
         return
 
 def handleRequestForSpecificStocks(options, indexOption):
-    listStockCodes = []
+    global listStockCodes
+    listStockCodes = [] if listStockCodes is None or len(listStockCodes) ==0 else listStockCodes
     strOptions = ""
     if isinstance(options, list):
         strOptions = ":".join(options).split(">")[0]
@@ -2005,7 +2018,7 @@ def handleExitRequest(executeOption):
         sys.exit(0)
 
 def handleMenu_XBG(menuOption, indexOption, executeOption):
-    if menuOption in ["X", "B", "G","C"]:
+    if menuOption in ["X", "B", "G", "C"]:
         selMenu = m0.find(menuOption)
         m1.renderForMenu(selMenu, asList=True)
         if indexOption is not None:
