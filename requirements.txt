@@ -10,7 +10,7 @@ numpy
 openpyxl
 pandas
 pandas_ta
-Pillow==9.5.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
+Pillow==10.3.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
 PKDevTools
 PKNSETools
 Pyarrow
