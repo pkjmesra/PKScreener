@@ -1045,6 +1045,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             return None, None
         selectedChoice["1"] = predefinedOption
         updateMenuChoiceHierarchy()
+
         if predefinedOption in ["1", "4"]:
             selectedMenu = m1.find(predefinedOption)
             m2.renderForMenu(selectedMenu=selectedMenu)
@@ -1053,8 +1054,10 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             OutputControls().printOutput(colorText.END, end="")
             if selPredefinedOption in PREDEFINED_SCAN_MENU_KEYS:
                 scannerOption = PIPED_SCANNERS[selPredefinedOption]
+
                 if predefinedOption == "4": # Watchlist
                     scannerOption = scannerOption.replace("-o 'X:12:","-o 'X:W:")
+                    
                 elif predefinedOption == "1": # Predefined
                     if selIndexOption is None and (userPassedArgs is None or userPassedArgs.answerdefault is None):
                         m1.renderForMenu(m0.find(key="X"),skip=["W","N","E","S","Z"])
@@ -1079,6 +1082,20 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     scannerOptionQuotedParts = scannerOptionQuoted.split(">|")
                     scannerOptionQuotedParts[0] = f"{scannerOptionQuotedParts[0]}{'' if scannerOptionQuotedParts[0].endswith(':') else ':'}{','.join(listStockCodes)}"
                     scannerOptionQuoted = ">|".join(scannerOptionQuotedParts)
+                if configManager.isIntradayConfig() and userPassedArgs is not None and userPassedArgs.answerdefault is None:
+                    shouldUseIntraday = OutputControls().takeUserInput("  [+] The period/config is set for intraday while the scanners will run for default daily candles. Use Intraday config candles? [Y/N] [Default: N]: ",enableUserInput=True,defaultInput="N")
+                    if shouldUseIntraday is not None and "y" in shouldUseIntraday.lower():
+                        scannerOptionQuotedParts = scannerOptionQuoted.split(">|")
+                        updatedScannerParts = []
+                        for quotedPart in scannerOptionQuotedParts:
+                            lastPartQuoted = quotedPart.split(":")
+                            if "i" not in lastPartQuoted[-1] and "i" not in lastPartQuoted[-2]:
+                                updatedScannerParts.append(f"{quotedPart}i {configManager.duration}" if ':"' not in quotedPart else quotedPart.replace(':"',f':i {configManager.duration}"'))
+                            else:
+                                updatedScannerParts.append(f"{quotedPart}")
+                        if len(updatedScannerParts) > 0:
+                            scannerOptionQuoted = ">|".join(updatedScannerParts)
+
                 requestingUser = f" -u {userPassedArgs.user}" if userPassedArgs.user is not None else ""
                 enableLog = f" -l" if userPassedArgs.log else ""
                 enableTelegramMode = f" --telegram" if userPassedArgs is not None and userPassedArgs.telegram else ""

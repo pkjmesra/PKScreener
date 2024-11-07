@@ -1142,6 +1142,152 @@ class ScreeningStatistics:
         screenDict["B/S"] = (colorText.GREEN + "Buy") if trend == 1 else ((colorText.FAIL+ "Sell") if trend == -1 else (colorText.WARN + "NA")) + colorText.END
         return buySellAll == trend
 
+    # 1. Cup Formation (Bowl)
+    # During the cup formation phase, the price experiences a prolonged downtrend or consolidation, 
+    # creating a rounded or U-shaped bottom. This phase represents a period of price stabilization, 
+    # where investors who bought at higher levels are selling to cut their losses, and new buyers 
+    # cautiously enter the market as they see potential value at these lower price levels. The 
+    # psychology during this phase includes:
+        # Capitulation and Despair:
+        # The initial phase of the cup is marked by capitulation, where panicked investors sell off 
+        # their holdings due to fear and negative sentiment.
+    # Value Perception:
+        # As the price stabilizes and gradually starts to rise, some investors perceive value in the 
+        # stock at these lower levels, leading to accumulation of shares.
+    
+    # 2. Handle Formation
+    # The handle formation phase follows the cup’s rounded bottom, characterized by a short-term 
+    # decline in price. This decline typically ranges from 10% to 20% and is often referred to as 
+    # the “handle” of the pattern. During this phase, the psychology involves:
+    # Consolidation and Profit-Taking:
+        # After the cup’s advance, some investors decide to take profits, leading to a brief pullback 
+        # in price. This retracement is seen as a normal part of the market cycle.
+    # Temporary Skepticism:
+        # The pullback in price could make some investors skeptical about the stock’s future prospects, 
+        # creating a cautious sentiment.
+    
+    # 3. Breakout and Upside Potential
+    # The psychology behind the breakout from the handle involves the culmination of buying pressure 
+    # exceeding selling pressure. This breakout is signaled when the price breaks above the resistance 
+    # level formed by the cup’s rim. Investors who missed the earlier opportunity or who had been 
+    # waiting for confirmation now step in, leading to renewed buying interest. The psychology during 
+    # this phase includes:
+    # Confirmation of Strength:
+        # The breakout above the resistance level validates the bullish sentiment and confirms that the 
+        # consolidation phase is ending. This attracts traders looking for confirmation before committing 
+        # capital.
+    # Fear of Missing Out (FOMO):
+        # As the price starts to rise and gain momentum, FOMO can kick in, driving more investors to buy 
+        # in at fear of missing out on potential gains.
+    # Recovery and Optimism:
+        # The price’s ability to surpass previous highs reinforces optimism, encouraging further buying 
+        # from both existing and new investors.
+    def findCupAndHandlePattern(self, df, stockName):
+        if df is None or len(df) == 0:
+            return False
+        data = df.copy()
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+
+        df_point = pd.DataFrame(columns=['StockName', 'DateK', 'DateA', 'DateB', 'DateC', 'DateD', 'Gamma'])
+
+        data = data.reset_index()
+        data['Date'] = data['Date'].apply(lambda x : x.strftime('%Y-%m-%d'))
+        data['Close_ch'] = data['Close'].shift(+1)
+        data['rpv'] = ((data['Close'] / data['Close_ch']) - 1) * data['Volume']
+        data['SMA50_Volume'] = data.Volume.rolling(50).mean()
+        data['SMA50_rpv'] = data.rpv.rolling(50).mean()
+
+        T = 0
+        i = 1
+        t = 51
+        foundStockWithCupNHandle = False
+        while t < len(data)-T:
+            dat = data.loc[t:]
+            Dk = dat.loc[t]['Date']
+            Pk = dat.loc[t]['Close']   
+            # search for region K to A
+            k = 25
+            while k > 15:
+                #print('Searching SETUP with width = ', k)
+                datA = dat.loc[:t+k] # Dk = t
+                # first find absolute maxima point A
+                Da_index = datA[datA['Close'] == max(datA['Close'])]['Date'].index[0]
+                Da_value = datA[datA['Close'] == max(datA['Close'])]['Date'].values[0]
+                Pa_index = datA[datA['Close'] == max(datA['Close'])]['Close'].index[0]
+                Pa_value = datA[datA['Close'] == max(datA['Close'])]['Close'].values[0]
+                uprv1 = abs(datA.loc[t:Da_index].loc[datA['rpv'] > 0, :]['rpv'].mean())
+                dprv1 = abs(datA.loc[t:Da_index].loc[datA['rpv'] <= 0, :]['rpv'].mean())
+                if (dprv1 == 'NaN') | (dprv1 == 0):
+                    dprv1 = datA['SMA50_rpv'].mean()   
+                alpha1 = uprv1/dprv1
+                #delta = Pa_index/t 
+                delta = Pa_value/Pk
+                if (delta > 1) & (alpha1 > 1):
+                    #print('Okay good setup! Lets move on now')
+                    a = 40
+                    while a > 10:
+                        #print('Lets search for LEFT SIDE CUP with width = ', a)
+                        datB = dat.loc[Da_index:Da_index+a]
+                        Db_index = datB[datB['Close'] == min(datB['Close'])]['Date'].index[0]
+                        Db_value = datB[datB['Close'] == min(datB['Close'])]['Date'].values[0]
+                        Pb_index = datB[datB['Close'] == min(datB['Close'])]['Close'].index[0]
+                        Pb_value = datB[datB['Close'] == min(datB['Close'])]['Close'].values[0]
+                        avg_vol = datB['Volume'].mean()
+                        avg_ma_vol = data['SMA50_Volume'].mean()
+                        if (Pb_value < Pa_value) & (avg_vol < avg_ma_vol):
+                            #print("Voila! You found the bottom, it's all uphill from here")
+                            b = a
+                            while b > round(a/3):
+                                #print("Let's search for RIGHT SIDE CUP with width = ", b)
+                                datC = dat.loc[Db_index:Db_index+b+1]
+                                Dc_index = datC[datC['Close'] == max(datC['Close'])]['Date'].index[0]
+                                Dc_value = datC[datC['Close'] == max(datC['Close'])]['Date'].values[0]
+                                Pc_index = datC[datC['Close'] == max(datC['Close'])]['Close'].index[0]
+                                Pc_value = datC[datC['Close'] == max(datC['Close'])]['Close'].values[0]
+                                uprv2 = abs(datC.loc[datC['rpv'] > 0, :]['rpv'].mean())
+                                dprv2 = abs(datC.loc[datC['rpv'] <= 0, :]['rpv'].mean())
+                                if (dprv2 == 'NaN') | (dprv2 == 0):
+                                    dprv2 = datC['SMA50_rpv'].mean()      
+                                alpha2 = uprv2/dprv2
+                                if (Pc_value > Pb_value) & (alpha2 > 1):
+                                    #print("Almost there... be patient now! :D")
+                                    # search for region C to D
+                                    c = b/2
+                                    while c > round(b/4):
+                                        #print("Let's search for the handle now with width = ", c)
+                                        #print(t, " ", k, " ", a, " ", b, " ", c)
+                                        datD = dat.loc[Dc_index:Dc_index+c+1]
+                                        Dd_index = datD[datD['Close'] == min(datD['Close'])]['Date'].index[0]
+                                        Dd_value = datD[datD['Close'] == min(datD['Close'])]['Date'].values[0]
+                                        Pd_index = datD[datD['Close'] == min(datD['Close'])]['Close'].index[0]
+                                        Pd_value = datD[datD['Close'] == min(datD['Close'])]['Close'].values[0]
+                                        uprv3 = abs(datD.loc[datD['rpv'] > 0, :]['rpv'].mean())
+                                        dprv3 = abs(datD.loc[datD['rpv'] <= 0, :]['rpv'].mean())
+                                        if (dprv3 == 'NaN') | (dprv3 == 0):
+                                            dprv3 = datD['SMA50_rpv'].mean()      
+                                        beta = uprv2/dprv3
+                                        if (Pd_value <= Pc_value) & (Pd_value > 0.8 * Pc_value + 0.2 * Pb_value) & (beta > 1):
+                                            if (Pc_value <= Pa_value) & (Pd_value > Pb_value):
+                                                foundStockWithCupNHandle = True
+                                                gamma = math.log(alpha2) + math.log(beta) + delta
+                                                df_point.loc[len(df_point)] = [stockName, Dk, Da_value, Db_value, Dc_value, Dd_value, gamma]
+                                                #print("Hurrah! Got "+str(i)+" hits!")
+                                                k = 15
+                                                a = 10
+                                                b = round(a/3)
+                                                c = round(b/4)
+                                                i = i+1
+                                                t = t+15
+                                                break
+                                        c = c-1
+                                b = b-1
+                        a = a-1
+                k = k-1
+            t = t + 1
+        return foundStockWithCupNHandle, df_point
+
     def findCurrentSavedValue(self, screenDict, saveDict, key):
         existingScreen = screenDict.get(key)
         existingSave = saveDict.get(key)
@@ -3224,9 +3370,13 @@ class ScreeningStatistics:
                     dayDate = f"{indexDate.day}/{indexDate.month}"
                 elif len(dateTimePart) == 2:
                     today = PKDateUtilities.currentDateTime()
-                    indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
-                    dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}"
-                    screenDict["Time"] = f"{colorText.FAIL}{dayDate}{colorText.END}"
+                    try:
+                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
+                    except:
+                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S%z").replace(tzinfo=today.tzinfo)
+                        pass
+                    dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
+                    screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
                     saveDict["Time"] = str(dayDate)
             except Exception as e:
                 self.default_logger.debug(e, exc_info=True)
