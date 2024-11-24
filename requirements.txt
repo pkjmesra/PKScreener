@@ -46,3 +46,5 @@ yfinance #>=0.2.44 #==0.1.87
 # torch
 # torchvision
 # -f https://download.pytorch.org/whl/torch_stable.html
+aiohttp>=3.10.11 # not directly required, pinned by Snyk to avoid a vulnerability
+tornado>=6.4.2 # not directly required, pinned by Snyk to avoid a vulnerability
