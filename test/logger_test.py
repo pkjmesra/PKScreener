@@ -77,7 +77,7 @@ def test_setupLogger_positive_removeLogFile():
             mock_exists.return_value
             with patch("os.remove") as mock_remove:
                 setupLogger(shouldLog=True)
-                assert mock_remove.called_with(log_file_path)
+                mock_remove.assert_called() #_with(log_file_path)
 
 
 # Negative test case - should not remove log file if it does not exist

@@ -41,7 +41,7 @@ jobs:
         name: Check build trigger
         run: bash .github/dependencies/build_tools/github/check_build_trigger.sh
 
-  # Build the wheels for Linux, Windows and macOS for Python 3.11 and newer
+  # Build the wheels for Linux, Windows and macOS for Python 3.12 and newer
   build_wheels:
     name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}-${{ matrix.manylinux_image }}
     runs-on: ${{ matrix.os }}
@@ -125,7 +125,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11" # update once build dependencies are available
+          python-version: "3.12" # update once build dependencies are available
 
       - name: Install conda for macos arm64
         if: ${{ matrix.platform_id == 'macosx_arm64' }}
@@ -178,8 +178,9 @@ jobs:
         run: bash .github/dependencies/build_tools/wheels/build_wheels.sh
 
       - name: Store artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: wheel-${{ matrix.os }}
           path: dist/*.whl #wheelhouse/*.whl
 
   # build_wheels:
@@ -223,7 +224,7 @@ jobs:
   #         CIBW_ARCHS: ${{ matrix.cibw_archs }}
   #       if: matrix.cibw_archs != 'aarch64'
   
-  #     - uses: actions/upload-artifact@v3
+  #     - uses: actions/upload-artifact@v4
   #       with:
   #         name: wheels
   #         path: ./wheelhouse/*.whl
@@ -252,7 +253,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: "3.11" # update once build dependencies are available
+          python-version: "3.12" # update once build dependencies are available
 
       - name: Build source distribution
         run: bash .github/dependencies/build_tools/github/build_source.sh
@@ -265,8 +266,9 @@ jobs:
       #     SKLEARN_SKIP_NETWORK_TESTS: 1
 
       - name: Store artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: artifact
           path: dist/*.tar.gz
 
   # Upload the wheels and the source distribution

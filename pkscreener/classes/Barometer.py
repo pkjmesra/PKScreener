@@ -35,16 +35,19 @@ from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
 from pkscreener.classes import Utility
 from pkscreener.classes.MarketStatus import MarketStatus
+from pkscreener.classes import ConfigManager
+configManager = ConfigManager.tools()
 
 QUERY_SELECTOR_TIMEOUT = 1000
 
 async def takeScreenshot(page,saveFileName=None,text=""):
-    clip_x = 240
-    clip_y = 245
-    clip_width = 1010
-    clip_height = 650
-    window_width=1920
-    window_height=1080
+    configManager.getConfig(ConfigManager.parser)
+    clip_x = configManager.barometerx
+    clip_y = configManager.barometery
+    clip_width = configManager.barometerwidth
+    clip_height = configManager.barometerheight
+    window_width = configManager.barometerwindowwidth
+    window_height = configManager.barometerwindowheight
 
     countriesSVG = await page.querySelector(selector='.countries.zoomable')
     await page.waitFor(selectorOrFunctionOrTimeout=QUERY_SELECTOR_TIMEOUT)
@@ -127,13 +130,16 @@ async def getScreenshotsForGlobalMarketBarometer():
 # adds the watermarks, repository details and then saves it as a
 # PNG file that can then be shared with others.
 def getGlobalMarketBarometerValuation():
+    gmbPath = None
     try:
         asyncio.get_event_loop().run_until_complete(getScreenshotsForGlobalMarketBarometer())
+    except (asyncio.exceptions.IncompleteReadError,asyncio.exceptions.InvalidStateError):
+        return gmbPath
     except Exception as e:
         default_logger().debug(e, exc_info=True)
         pass
     folderPath = Archiver.get_user_data_dir()
-    gmbPath = None
+
     try:
         gapHeight = 65
         bgColor = (0,0,0)

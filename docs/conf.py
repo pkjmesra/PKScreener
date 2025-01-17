@@ -332,5 +332,5 @@ epub_copyright = "%s, pkjmesra" % date.today().year
 
 # Intersphinx configuration
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.11", (None, "python-inv.txt")),
+    "python": ("https://docs.python.org/3.12", (None, "python-inv.txt")),
 }

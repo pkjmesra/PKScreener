@@ -25,7 +25,7 @@
 # docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag pkjmesra/pkscreener:latest -f ./Dockerfile_base . --no-cache
 # docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag pkjmesra/pkscreener:latest -f ./Dockerfile_base . --no-cache
 
-FROM python:3.11.9-slim as base
+FROM python:3.12.8-slim as base
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get install -y apt-transport-https

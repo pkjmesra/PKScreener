@@ -34,7 +34,7 @@ on:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
       runson:
           description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
           required: false
@@ -90,7 +90,7 @@ jobs:
     - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ inputs.targetPythonVersion  || 3.11 }}
+        python-version: ${{ inputs.targetPythonVersion  || 3.12 }}
 
     - name: Restore Dependencies from Windows Cache
       if: startsWith(runner.os, 'Windows')
@@ -123,13 +123,13 @@ jobs:
         python3 -m pip install --upgrade pip
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
           pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
           pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         fi
 
     - name: Install TA-Lib for Linux
@@ -246,6 +246,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git config --global http.postBuffer 150000000
         git remote update
         git fetch
         git add actions-data-download/*.pkl --force
@@ -266,6 +267,7 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
+        git config --global http.postBuffer 150000000
         git fetch
         python3 .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
       env:
@@ -335,13 +337,13 @@ jobs:
       run: |
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
           pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
           pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         fi
         cd ..
         cd ..
@@ -385,6 +387,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git config --global http.postBuffer 150000000
         git remote update
         git fetch
         git add actions-data-scan/*.txt --force

@@ -51,10 +51,10 @@ on:
         type: string
         default: 'N'
       targetPythonVersion:
-        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        description: 'Target Python version: 3.9 , 3.10, 3.11,3.12,3.13 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
       lastReleasedVersion:
         description: 'Last Released Version'
         required: false
@@ -112,19 +112,19 @@ jobs:
           - os: windows-latest
             TARGET: Windows
             CMD_BUILD: |
-              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs\LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import yfinance --hidden-import vectorbt --hidden-import PKDevTools --hidden-import PKNSETools
+              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs\LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import yfinance --hidden-import vectorbt --hidden-import PKDevTools --hidden-import PKNSETools --hidden-import scipy.special._cdflib
             DEP_BUILD: |
               python3 -m pip install --upgrade pip
               echo Installing TA-lib...
               cd .github/dependencies/
               if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-                pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+                pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
                 pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
                 pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-                pip3 install TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+                pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
               fi
               cd ..
               cd ..
@@ -143,7 +143,7 @@ jobs:
           - os: ubuntu-20.04
             TARGET: Linux
             CMD_BUILD: |
-              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress
+              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress  --hidden-import scipy.special._cdflib
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
             DEP_BUILD: |
@@ -171,16 +171,20 @@ jobs:
           - os: macos-latest
             TARGET: MacOS
             CMD_BUILD: |
-              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress
+              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
             DEP_BUILD: |
               brew install ta-lib
+              arch -arm64 brew install ta-lib
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              python3 -m pip install -U ta-lib==0.4.32
+              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+              #python3 -m pip install -U ta-lib==0.4.32
+              python3 -m pip install --no-cache-dir ta-lib
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run --testbuild
@@ -231,6 +235,7 @@ jobs:
         run: |
             git config user.name github-actions
             git config user.email github-actions@github.com
+            git config --global http.postBuffer 150000000
             pip3 install mistletoe
             echo ${{ steps.vars.outputs.CURRENT_VERSION }}
             echo ${{ steps.vars.outputs.THIS_VERSION }}
@@ -294,7 +299,7 @@ jobs:
         run: ${{ matrix.TEST_BUILD }}
 
       - name: Save Binaries as Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.FILE_NAME }}
           path: ${{ matrix.OUT_PATH }}

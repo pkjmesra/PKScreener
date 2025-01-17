@@ -57,6 +57,14 @@ class tools(SingletonMixin, metaclass=SingletonType):
         self.telegramImageFormat = "JPEG"
         self.telegramImageCompressionRatio = 0.6
         self.telegramImageQualityPercentage = 20
+
+        self.barometerx = 240
+        self.barometery = 305
+        self.barometerwidth = 1010
+        self.barometerheight = 630
+        self.barometerwindowwidth = 1920
+        self.barometerwindowheight = 1080
+
         self.volumeRatio = 2.5
         self.minLTP = 20.0
         self.maxLTP = 50000
@@ -223,6 +231,12 @@ class tools(SingletonMixin, metaclass=SingletonType):
             parser.set("config", "atrtrailingstopsensitivity", str(self.atrTrailingStopSensitivity))
             parser.set("config", "backtestPeriod", str(self.backtestPeriod))
             parser.set("config", "backtestPeriodFactor", str(self.backtestPeriodFactor))
+            parser.set("config", "barometerx", str(self.barometerx))
+            parser.set("config", "barometery", str(self.barometery))
+            parser.set("config", "barometerwidth", str(self.barometerwidth))
+            parser.set("config", "barometerheight", str(self.barometerheight))
+            parser.set("config", "barometerwindowwidth", str(self.barometerwindowwidth))
+            parser.set("config", "barometerwindowheight", str(self.barometerwindowheight))
             parser.set("config", "baseIndex", str(self.baseIndex))
             parser.set("config", "cacheStockData", "y" if self.cacheEnabled else "n")
             parser.set("config", "calculatersiintraday", "y" if self.calculatersiintraday else "n")
@@ -494,6 +508,12 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 parser.set("config", "atrtrailingstopsensitivity", str(self.atrTrailingStopSensitivity))
                 parser.set("config", "backtestPeriod", str(self.backtestPeriod))
                 parser.set("config", "backtestPeriodFactor", str(self.backtestPeriodFactor))
+                parser.set("config", "barometerx", str(self.barometerx))
+                parser.set("config", "barometery", str(self.barometery))
+                parser.set("config", "barometerwidth", str(self.barometerwidth))
+                parser.set("config", "barometerheight", str(self.barometerheight))
+                parser.set("config", "barometerwindowwidth", str(self.barometerwindowwidth))
+                parser.set("config", "barometerwindowheight", str(self.barometerwindowheight))
                 parser.set("config", "baseIndex", str(self.baseIndex))
                 parser.set("config", "cacheStockData", str(self.cacheStockData))
                 parser.set("config", "calculatersiintraday", str(self.calculatersiintraday))
@@ -702,6 +722,12 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 self.minVolume = int(parser.get("filters", "minimumVolume"))
                 self.minimumChangePercentage = float(parser.get("filters", "minimumchangepercentage"))
                 self.backtestPeriodFactor = int(parser.get("config", "backtestPeriodFactor"))
+                self.barometerx = int(parser.get("config", "barometerx"))
+                self.barometery = int(parser.get("config", "barometery"))
+                self.barometerwidth = int(parser.get("config", "barometerwidth"))
+                self.barometerheight = int(parser.get("config", "barometerheight"))
+                self.barometerwindowwidth = int(parser.get("config", "barometerwindowwidth"))
+                self.barometerwindowheight = int(parser.get("config", "barometerwindowheight"))
                 self.defaultMonitorOptions = str(parser.get("config", "defaultMonitorOptions"))
                 self.marketOpen = str(parser.get("config", "marketOpen"))
                 self.marketClose = str(parser.get("config", "marketClose"))

@@ -838,7 +838,7 @@ def triggerBacktestWorkflowActions(launchLocal=False):
         + f'-a Y -e -p -o S:S'
         + f'","ref":"{branch}"'
         + ',"postrun":"'
-        + f'git config user.name github-actions && git config user.email github-actions@github.com && git pull && git commit -m {cmt_msg} && git push -v -u origin +{branch}'
+        + f'git config user.name github-actions && git config user.email github-actions@github.com && git config --global http.postBuffer 150000000 && git pull && git commit -m {cmt_msg} && git push -v -u origin +{branch}'
         + '"}}')
     resp = run_workflow("w8-workflow-alert-scan_generic.yml", postdata,"S:")
     if launchLocal:

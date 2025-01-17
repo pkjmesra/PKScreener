@@ -191,7 +191,7 @@ For `Ubuntu/Linux`: See https://github.com/pkjmesra/PKScreener/blob/main/.github
 * Now launch your favorite command line CLI and issue `pkscreener`. This will launch the pkscreener executable.
 
 # Building from source repo
-* Install python 3.11 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
+* Install python 3.12 for your OS/CPU. Download the installer from https://www.python.org/downloads/release/python-3913/#Files
 * Just clone the repo with `git clone https://github.com/pkjmesra/PKScreener.git`
 * `cd PKScreener`
 * `pip install -r requirements.txt` .
@@ -328,11 +328,11 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20241017.632/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.exe
 [Linux-badge]: https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black
-[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20241017.632/pkscreenercli.bin
+[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.bin
 [Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?logo=apple&logoColor=000000
-[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20241017.632/pkscreenercli.run
+[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square

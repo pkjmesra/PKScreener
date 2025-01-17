@@ -31,7 +31,7 @@ git merge pkscreener_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_B
 ## 2. Install Project Dependencies
 
 * This project uses [**TA-Lib**](https://github.com/mrjbq7/ta-lib). Please visit the hyperlink for the official guide of installation.
-* This Project requires Python 3.11.9 or above environment setup. [Click Here to Download](https://www.python.org/downloads/)
+* This Project requires Python 3.12 or above environment setup. [Click Here to Download](https://www.python.org/downloads/)
 * Install python dependencies by running `pip install -r requirements.txt` in the root directory of this project. If you would also like to have technical indicators evaluated from ta-lib, install ta-lib as well :`pip3 install ta-lib`
 
 ## 3. Create Dependency Requirements
@@ -58,7 +58,7 @@ git merge pkscreener_upstream/<BRANCH_FROM_THIS_REPO_YOU_WANT_TO_MERGE_IN_YOUR_B
 
 1. [Fork][fork] and clone the repository.
 1. Configure and install the dependencies: `pip3 install -r requirements.txt` and `pip3 install -r requirements-dev.txt`.
-1. Make sure the tests pass on your machine: `pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0`. Use `Flake8` as linter: `flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics` and `flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics`
+1. Make sure the tests pass on your machine: `python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0`. Use `Flake8` as linter: `flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics` and `flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics`
 1. Create a new branch: `git checkout -b my-branch-name`.
 1. Make your change, add tests, and make sure the tests still pass.
 1. Push to your fork and [submit a pull request][pr].

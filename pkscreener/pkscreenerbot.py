@@ -344,7 +344,7 @@ def launchIntradayMonitor():
     appLogsEnabled = ("PKDevTools_Default_Log_Level" in os.environ.keys() or sys.argv[0].endswith(".py"))
     # User wants an Int. Monitor
     launcher = "/home/runner/work/PKScreener/PKScreener/pkscreenercli.bin" if "MONITORING_BOT_RUNNER" in os.environ.keys() else "pkscreener"
-    launcher = f"python3.11 {launcher}" if launcher.endswith(".py") else launcher
+    launcher = f"python3.12 {launcher}" if launcher.endswith(".py") else launcher
     
     try:
         from subprocess import Popen

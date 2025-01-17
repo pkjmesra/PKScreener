@@ -34,7 +34,7 @@ on:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
   # workflow_run:
   #   workflows: ["0. New Features - Tests"]
   #   types:
@@ -49,7 +49,7 @@ on:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
 jobs:
 
   Prod_Scan_Tests_OnDev:
@@ -64,7 +64,7 @@ jobs:
     - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ inputs.targetPythonVersion || 3.11 }}
+        python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v4
@@ -80,13 +80,13 @@ jobs:
         python3 -m pip install --upgrade pip
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
           pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
           pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         fi
 
     - name: Install Python Dependencies

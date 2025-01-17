@@ -317,8 +317,12 @@ class tools:
         zeroSizeImage = Image.new('RGB',(0, 0), (0,0,0))
         zeroDraw = ImageDraw.Draw(zeroSizeImage)
         # zeroDraw = ImageDraw.Draw(zeroSizeImage)
-        left, top, bottom, right = zeroDraw.multiline_textbbox((x,y),srcText,font)
-        return right - left, bottom - top
+        bbox = zeroDraw.multiline_textbbox((x,y),srcText,font)
+        # Calculate width and height from the bounding box
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+        # default_logger().debug(f"Text size for text: {srcText}: {width}x{height}")
+        return width, height
 
     def getsize(font,srcText,x=0,y=0):
         left, top, bottom, right = font.getbbox(srcText)
@@ -386,7 +390,7 @@ class tools:
         
         # Draw the data sources
         dataSrcFont = ImageFont.truetype(fontPath, DATASRC_FONTSIZE)
-        dataSrc_width, dataSrc_height = dataSrcFont.getsize_multiline(dataSrc)
+        dataSrc_width, dataSrc_height = tools.getsize_multiline(font=dataSrcFont,srcText=dataSrc)
         draw = ImageDraw.Draw(sourceImage)
         draw.text((width-dataSrc_width, height-dataSrc_height-2), text=dataSrc, font=dataSrcFont, fill=(128, 128, 128, opacity))
         # sourceImage.show()
@@ -527,231 +531,234 @@ class tools:
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         ART_FONT_SIZE = 30
         STD_FONT_SIZE = 60
-        # First 4 lines are headers. Last 1 line is bottom grid line
-        fontPath = tools.setupReportFont()
-        artfont = ImageFont.truetype(fontPath, ART_FONT_SIZE)
-        stdfont = ImageFont.truetype(fontPath, STD_FONT_SIZE)
-        
-        bgColor, gridColor, artColor, menuColor = tools.getDefaultColors()
+        try:
+            # First 4 lines are headers. Last 1 line is bottom grid line
+            fontPath = tools.setupReportFont()
+            artfont = ImageFont.truetype(fontPath, ART_FONT_SIZE)
+            stdfont = ImageFont.truetype(fontPath, STD_FONT_SIZE)
+            
+            bgColor, gridColor, artColor, menuColor = tools.getDefaultColors()
 
-        dfs_to_print = [styledTable, backtestSummary, backtestDetail]
-        unstyled_dfs = [table, backtestSummary, backtestDetail]
-        reportTitle = f"  [+] As of {PKDateUtilities.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}"
-        titleLabels = [
-            f"  [+] Scan results for {label} :",
-            summaryLabel if summaryLabel is not None else "  [+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
-            detailLabel if detailLabel is not None else "  [+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]",
-        ]
+            dfs_to_print = [styledTable, backtestSummary, backtestDetail]
+            unstyled_dfs = [table, backtestSummary, backtestDetail]
+            reportTitle = f"  [+] As of {PKDateUtilities.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}"
+            titleLabels = [
+                f"  [+] Scan results for {label} :",
+                summaryLabel if summaryLabel is not None else "  [+] For chosen scan, summary of correctness from past: [Example, 70% of (100) under 1-Pd, means out of 100 stocks that were in the scan result in the past, 70% of them gained next day.)",
+                detailLabel if detailLabel is not None else "  [+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]",
+            ]
 
-        artfont_arttext_width, artfont_arttext_height = artfont.getsize_multiline(artText+ f" | {marketStatus()}")
-        stdFont_oneLinelabel_width, stdFont_oneLinelabel_height = stdfont.getsize_multiline(label)
-        stdFont_scanResulttext_width, stdFont_scanResulttext_height = stdfont.getsize_multiline(table) if len(table) > 0 else (0,0)
-        unstyled_backtestsummary = tools.removeAllColorStyles(backtestSummary)
-        unstyled_backtestDetail = tools.removeAllColorStyles(backtestDetail)
-        stdFont_backtestSummary_text_width,stdFont_backtestSummary_text_height= stdfont.getsize_multiline(unstyled_backtestsummary) if len(unstyled_backtestsummary) > 0 else (0,0)
-        stdFont_backtestDetail_text_width, stdFont_backtestDetail_text_height = stdfont.getsize_multiline(unstyled_backtestDetail) if len(unstyled_backtestDetail) > 0 else (0,0)
-        artfont_scanResultText_width, _ = artfont.getsize_multiline(table) if len(table) > 0 else (0,0)
-        artfont_backtestSummary_text_width, _ = artfont.getsize_multiline(backtestSummary) if (backtestSummary is not None and len(backtestSummary)) > 0 else (0,0)
-        stdfont_addendumtext_height = 0
-        stdfont_addendumtext_width = 0
-        if addendum is not None and len(addendum) > 0:
-            unstyled_addendum = tools.removeAllColorStyles(addendum)
-            stdfont_addendumtext_width , stdfont_addendumtext_height = stdfont.getsize_multiline(unstyled_addendum)
-            titleLabels.append(addendumLabel)
-            dfs_to_print.append(addendum)
-            unstyled_dfs.append(unstyled_addendum)
+            artfont_arttext_width, artfont_arttext_height = tools.getsize_multiline(font=artfont,srcText=artText+ f" | {marketStatus()}")
+            stdFont_oneLinelabel_width, stdFont_oneLinelabel_height = tools.getsize_multiline(font=stdfont,srcText=label)
+            stdFont_scanResulttext_width, stdFont_scanResulttext_height = tools.getsize_multiline(font=stdfont,srcText=table) if len(table) > 0 else (0,0)
+            unstyled_backtestsummary = tools.removeAllColorStyles(backtestSummary)
+            unstyled_backtestDetail = tools.removeAllColorStyles(backtestDetail)
+            stdFont_backtestSummary_text_width,stdFont_backtestSummary_text_height= tools.getsize_multiline(font=stdfont,srcText=unstyled_backtestsummary) if len(unstyled_backtestsummary) > 0 else (0,0)
+            stdFont_backtestDetail_text_width, stdFont_backtestDetail_text_height = tools.getsize_multiline(font=stdfont, srcText=unstyled_backtestDetail) if len(unstyled_backtestDetail) > 0 else (0,0)
+            artfont_scanResultText_width, _ = tools.getsize_multiline(font=artfont,srcText=table) if len(table) > 0 else (0,0)
+            artfont_backtestSummary_text_width, _ = tools.getsize_multiline(font= artfont,srcText=backtestSummary) if (backtestSummary is not None and len(backtestSummary)) > 0 else (0,0)
+            stdfont_addendumtext_height = 0
+            stdfont_addendumtext_width = 0
+            if addendum is not None and len(addendum) > 0:
+                unstyled_addendum = tools.removeAllColorStyles(addendum)
+                stdfont_addendumtext_width , stdfont_addendumtext_height = tools.getsize_multiline(font=stdfont,srcText=unstyled_addendum)
+                titleLabels.append(addendumLabel)
+                dfs_to_print.append(addendum)
+                unstyled_dfs.append(unstyled_addendum)
 
-        repoText = tools.getRepoHelpText(table,backtestSummary)
-        artfont_repotext_width, artfont_repotext_height = artfont.getsize_multiline(repoText)
-        legendText = legendPrefixText + tools.getLegendHelpText(table,backtestSummary)
-        _, artfont_legendtext_height = artfont.getsize_multiline(legendText)
-        column_separator = "|"
-        line_separator = "+"
-        stdfont_sep_width, _ = stdfont.getsize_multiline(column_separator)
+            repoText = tools.getRepoHelpText(table,backtestSummary)
+            artfont_repotext_width, artfont_repotext_height = tools.getsize_multiline(font=artfont,srcText=repoText)
+            legendText = legendPrefixText + tools.getLegendHelpText(table,backtestSummary)
+            _, artfont_legendtext_height = tools.getsize_multiline(font=artfont,srcText=legendText)
+            column_separator = "|"
+            line_separator = "+"
+            stdfont_sep_width, _ = tools.getsize_multiline(font=stdfont, srcText=column_separator)
 
-        startColValue = 100
-        xVertical = startColValue
-        rowPixelRunValue = 9
-        im_width = max(
-            artfont_arttext_width,
-            stdFont_oneLinelabel_width,
-            stdFont_scanResulttext_width,
-            stdFont_backtestSummary_text_width,
-            stdFont_backtestDetail_text_width,
-            artfont_repotext_width,
-            artfont_scanResultText_width,
-            artfont_backtestSummary_text_width,
-            stdfont_addendumtext_width
-        ) + int(startColValue * 2)
-        im_height = int(
-                    artfont_arttext_height # Always
-                    + 3*stdFont_oneLinelabel_height # Title label # Always
-                    + stdFont_scanResulttext_height + (stdFont_oneLinelabel_height if stdFont_scanResulttext_height > 0 else 0)
-                    + stdFont_backtestSummary_text_height + (stdFont_oneLinelabel_height if stdFont_backtestSummary_text_height > 0 else 0)
-                    + stdFont_backtestDetail_text_height + (stdFont_oneLinelabel_height if stdFont_backtestDetail_text_height > 0 else 0)
-                    + artfont_repotext_height # Always
-                    + artfont_legendtext_height # Always
-                    + stdfont_addendumtext_height + (stdFont_oneLinelabel_height if stdfont_addendumtext_height > 0 else 0)
-                )
-        im = Image.new("RGB",(im_width,im_height),bgColor)
-        draw = ImageDraw.Draw(im)
-        # artwork
-        draw.text((startColValue, rowPixelRunValue), artText+ f" | {tools.removeAllColorStyles(marketStatus())}", font=artfont, fill=artColor)
-        rowPixelRunValue += artfont_arttext_height + 1
-        # Report title
-        # reportTitle = tools.wrapFitLegendText(table,backtestSummary, reportTitle)
-        draw.text((startColValue, rowPixelRunValue), reportTitle, font=stdfont, fill=menuColor)
-        rowPixelRunValue += stdFont_oneLinelabel_height + 1
-        counter = -1
-        for df in dfs_to_print:
-            counter += 1
-            colPixelRunValue = startColValue
-            try:
-                if df is None or len(df) == 0:
-                    continue
-            except:
-                continue
-            # selected menu options and As of DateTime
-            draw.text(
-                (colPixelRunValue, rowPixelRunValue),
-                titleLabels[counter],
-                font=stdfont,
-                fill=menuColor,
-            )
-            rowPixelRunValue += stdFont_oneLinelabel_height
-            unstyledLines = unstyled_dfs[counter].splitlines()
-            lineNumber = 0
-            screenLines = df.splitlines()
-            for line in screenLines:
-                _, stdfont_line_height = stdfont.getsize_multiline(line)
-                # Print the row separators
-                if not (line.startswith(column_separator)):
-                    draw.text(
-                        (colPixelRunValue, rowPixelRunValue),
-                        line,
-                        font=stdfont,
-                        fill=gridColor,
+            startColValue = 100
+            xVertical = startColValue
+            rowPixelRunValue = 9
+            im_width = max(
+                artfont_arttext_width,
+                stdFont_oneLinelabel_width,
+                stdFont_scanResulttext_width,
+                stdFont_backtestSummary_text_width,
+                stdFont_backtestDetail_text_width,
+                artfont_repotext_width,
+                artfont_scanResultText_width,
+                artfont_backtestSummary_text_width,
+                stdfont_addendumtext_width
+            ) + int(startColValue * 2)
+            im_height = int(
+                        artfont_arttext_height # Always
+                        + 3*stdFont_oneLinelabel_height # Title label # Always
+                        + stdFont_scanResulttext_height + (stdFont_oneLinelabel_height if stdFont_scanResulttext_height > 0 else 0)
+                        + stdFont_backtestSummary_text_height + (stdFont_oneLinelabel_height if stdFont_backtestSummary_text_height > 0 else 0)
+                        + stdFont_backtestDetail_text_height + (stdFont_oneLinelabel_height if stdFont_backtestDetail_text_height > 0 else 0)
+                        + artfont_repotext_height # Always
+                        + artfont_legendtext_height # Always
+                        + stdfont_addendumtext_height + (stdFont_oneLinelabel_height if stdfont_addendumtext_height > 0 else 0)
                     )
-                    rowPixelRunValue += stdfont_line_height + 1
-                else: # if (line.startswith(column_separator)):
-                    # Print the row contents
-                    columnNumber = 0
-                    valueScreenCols = line.split(column_separator)
-                    try:
-                        del valueScreenCols[0] # Remove the empty column header at the first position
-                        del valueScreenCols[-1] # Remove the empty column header at the last position
-                    except Exception as e:# pragma: no cover
-                        default_logger().debug(e, exc_info=True)
+            im = Image.new("RGB",(im_width,im_height),bgColor)
+            draw = ImageDraw.Draw(im)
+            # artwork
+            draw.text((startColValue, rowPixelRunValue), artText+ f" | {tools.removeAllColorStyles(marketStatus())}", font=artfont, fill=artColor)
+            rowPixelRunValue += artfont_arttext_height + 1
+            # Report title
+            # reportTitle = tools.wrapFitLegendText(table,backtestSummary, reportTitle)
+            draw.text((startColValue, rowPixelRunValue), reportTitle, font=stdfont, fill=menuColor)
+            rowPixelRunValue += stdFont_oneLinelabel_height + 1
+            counter = -1
+            for df in dfs_to_print:
+                counter += 1
+                colPixelRunValue = startColValue
+                try:
+                    if df is None or len(df) == 0:
+                        continue
+                except:
+                    continue
+                # selected menu options and As of DateTime
+                draw.text(
+                    (colPixelRunValue, rowPixelRunValue),
+                    titleLabels[counter],
+                    font=stdfont,
+                    fill=menuColor,
+                )
+                rowPixelRunValue += stdFont_oneLinelabel_height
+                unstyledLines = unstyled_dfs[counter].splitlines()
+                lineNumber = 0
+                screenLines = df.splitlines()
+                for line in screenLines:
+                    _, stdfont_line_height = tools.getsize_multiline(font=stdfont, srcText=line)
+                    # Print the row separators
+                    if not (line.startswith(column_separator)):
                         draw.text(
                             (colPixelRunValue, rowPixelRunValue),
                             line,
                             font=stdfont,
                             fill=gridColor,
                         )
-                        lineNumber = lineNumber - 1
-                        pass
-                    # Print each colored value of each cell as we go over each row
-                    for val in valueScreenCols:
-                        if lineNumber >= len(unstyledLines):
-                            continue
-                        # Draw the column separator first
-                        draw.text(
-                            (colPixelRunValue, rowPixelRunValue),
-                            column_separator,
-                            font=stdfont,
-                            fill=gridColor,
-                        )
-                        colPixelRunValue = colPixelRunValue + stdfont_sep_width
-                        unstyledLine = unstyledLines[lineNumber]
-                        cellStyles, cellCleanValues = tools.getCellColors(
-                            val, defaultCellFillColor=gridColor
-                        )
-                        valCounter = 0
-                        for style in cellStyles:
-                            cleanValue = cellCleanValues[valCounter]
-                            valCounter += 1
-                            if columnNumber == 0 and len(cleanValue.strip()) > 0:
-                                if column_separator in unstyledLine:
-                                    cleanValue = unstyledLine.split(column_separator)[1]
-                                if "\\" in cleanValue:
-                                    cleanValue = cleanValue.split("\\")[-1]
-                                # style = style if "%" in cleanValue else gridColor
-                            if bgColor == "white" and style == "yellow":
-                                # Yellow on a white background is difficult to read
-                                style = "blue"
-                            elif bgColor == "black" and style == "blue":
-                                # blue on a black background is difficult to read
-                                style = "yellow"
-                            col_width, _ = stdfont.getsize_multiline(cleanValue)
+                        rowPixelRunValue += stdfont_line_height + 1
+                    else: # if (line.startswith(column_separator)):
+                        # Print the row contents
+                        columnNumber = 0
+                        valueScreenCols = line.split(column_separator)
+                        try:
+                            del valueScreenCols[0] # Remove the empty column header at the first position
+                            del valueScreenCols[-1] # Remove the empty column header at the last position
+                        except Exception as e:# pragma: no cover
+                            default_logger().debug(e, exc_info=True)
                             draw.text(
                                 (colPixelRunValue, rowPixelRunValue),
-                                cleanValue,
+                                line,
                                 font=stdfont,
-                                fill=style,
+                                fill=gridColor,
                             )
-                            colPixelRunValue = colPixelRunValue + col_width
-                            if columnNumber == 0:
-                                xVertical = int(columnNumber/2)
+                            lineNumber = lineNumber - 1
+                            pass
+                        # Print each colored value of each cell as we go over each row
+                        for val in valueScreenCols:
+                            if lineNumber >= len(unstyledLines):
+                                continue
+                            # Draw the column separator first
+                            draw.text(
+                                (colPixelRunValue, rowPixelRunValue),
+                                column_separator,
+                                font=stdfont,
+                                fill=gridColor,
+                            )
+                            colPixelRunValue = colPixelRunValue + stdfont_sep_width
+                            unstyledLine = unstyledLines[lineNumber]
+                            cellStyles, cellCleanValues = tools.getCellColors(
+                                val, defaultCellFillColor=gridColor
+                            )
+                            valCounter = 0
+                            for style in cellStyles:
+                                cleanValue = cellCleanValues[valCounter]
+                                valCounter += 1
+                                if columnNumber == 0 and len(cleanValue.strip()) > 0:
+                                    if column_separator in unstyledLine:
+                                        cleanValue = unstyledLine.split(column_separator)[1]
+                                    if "\\" in cleanValue:
+                                        cleanValue = cleanValue.split("\\")[-1]
+                                    # style = style if "%" in cleanValue else gridColor
+                                if bgColor == "white" and style == "yellow":
+                                    # Yellow on a white background is difficult to read
+                                    style = "blue"
+                                elif bgColor == "black" and style == "blue":
+                                    # blue on a black background is difficult to read
+                                    style = "yellow"
+                                col_width, _ = tools.getsize_multiline(font=stdfont, srcText=cleanValue)
+                                draw.text(
+                                    (colPixelRunValue, rowPixelRunValue),
+                                    cleanValue,
+                                    font=stdfont,
+                                    fill=style,
+                                )
+                                colPixelRunValue = colPixelRunValue + col_width
+                                if columnNumber == 0:
+                                    xVertical = int(columnNumber/2)
 
-                        columnNumber = columnNumber + 1
-                    if len(valueScreenCols) > 0:
-                        # Close the row with the separator
+                            columnNumber = columnNumber + 1
+                        if len(valueScreenCols) > 0:
+                            # Close the row with the separator
+                            draw.text(
+                                (colPixelRunValue, rowPixelRunValue),
+                                column_separator,
+                                font=stdfont,
+                                fill=gridColor,
+                            )
+                            colPixelRunValue = startColValue
+                        rowPixelRunValue +=  stdfont_line_height + 1
+                    lineNumber = lineNumber + 1
+                rowPixelRunValue += stdFont_oneLinelabel_height
+            
+            # Repo text
+            draw.text(
+                (colPixelRunValue, rowPixelRunValue + 1),
+                repoText,
+                font=artfont,
+                fill=menuColor,
+            )
+            # Legend text
+            rowPixelRunValue += 2 * stdFont_oneLinelabel_height + 20
+            legendLines = legendText.splitlines()
+            legendSeperator = "***"
+            col_width_sep, _ = tools.getsize_multiline(font=artfont, srcText=legendSeperator)
+            for line in legendLines:
+                colPixelRunValue = startColValue
+                _, artfont_line_height = tools.getsize_multiline(font=artfont, srcText=line)
+                lineitems = line.split(legendSeperator)
+                red = True
+                for lineitem in lineitems:
+                    if lineitem == "" or not red:
                         draw.text(
                             (colPixelRunValue, rowPixelRunValue),
-                            column_separator,
-                            font=stdfont,
+                            legendSeperator,
+                            font=artfont,
                             fill=gridColor,
                         )
-                        colPixelRunValue = startColValue
-                    rowPixelRunValue +=  stdfont_line_height + 1
-                lineNumber = lineNumber + 1
-            rowPixelRunValue += stdFont_oneLinelabel_height
-        
-        # Repo text
-        draw.text(
-            (colPixelRunValue, rowPixelRunValue + 1),
-            repoText,
-            font=artfont,
-            fill=menuColor,
-        )
-        # Legend text
-        rowPixelRunValue += 2 * stdFont_oneLinelabel_height + 20
-        legendLines = legendText.splitlines()
-        legendSeperator = "***"
-        col_width_sep, _ = artfont.getsize_multiline(legendSeperator)
-        for line in legendLines:
-            colPixelRunValue = startColValue
-            _, artfont_line_height = artfont.getsize_multiline(line)
-            lineitems = line.split(legendSeperator)
-            red = True
-            for lineitem in lineitems:
-                if lineitem == "" or not red:
+                        colPixelRunValue += col_width_sep + 1
+                    style = "red" if not red else gridColor
+                    red = not red
+                    lineitem = lineitem.replace(": ","***: ")
                     draw.text(
                         (colPixelRunValue, rowPixelRunValue),
-                        legendSeperator,
+                        lineitem,
                         font=artfont,
-                        fill=gridColor,
+                        fill=style,
                     )
-                    colPixelRunValue += col_width_sep + 1
-                style = "red" if not red else gridColor
-                red = not red
-                lineitem = lineitem.replace(": ","***: ")
-                draw.text(
-                    (colPixelRunValue, rowPixelRunValue),
-                    lineitem,
-                    font=artfont,
-                    fill=style,
-                )
-                col_width, _ = artfont.getsize_multiline(lineitem)
-                # Move to the next text in the same line
-                colPixelRunValue += col_width + 1
-                
-            # Let's go to the next line
-            rowPixelRunValue += artfont_line_height + 1
+                    col_width, _ = tools.getsize_multiline(font=artfont, srcText=lineitem)
+                    # Move to the next text in the same line
+                    colPixelRunValue += col_width + 1
+                    
+                # Let's go to the next line
+                rowPixelRunValue += artfont_line_height + 1
 
-        im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.ANTIALIAS, reducing_gap=2)
-        im = tools.addQuickWatermark(im,xVertical,dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",dataSrcFontSize=ART_FONT_SIZE)
-        im.save(filename, format=configManager.telegramImageFormat, bitmap_format=configManager.telegramImageFormat, optimize=True, quality=int(configManager.telegramImageQualityPercentage))
+            im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.ANTIALIAS, reducing_gap=2)
+            im = tools.addQuickWatermark(im,xVertical,dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",dataSrcFontSize=ART_FONT_SIZE)
+            im.save(filename, format=configManager.telegramImageFormat, bitmap_format=configManager.telegramImageFormat, optimize=True, quality=int(configManager.telegramImageQualityPercentage))
+        except Exception as e:
+            default_logger().debug(e, exc_info=True)
         # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
         # im.show()
 

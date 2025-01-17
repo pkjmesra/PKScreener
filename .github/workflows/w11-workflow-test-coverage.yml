@@ -47,7 +47,7 @@ on:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
   workflow_call:
     inputs:
       branch-name:
@@ -121,7 +121,7 @@ jobs:
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
                 pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
               elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-                pip3 install TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+                pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
               fi
               cd ..
               cd ..
@@ -130,7 +130,7 @@ jobs:
               pip3 install -r requirements-dev.txt
               pip3 install .
             TEST_BUILD: |
-              pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0
+              python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0
           - os: macos-latest
             TARGET: MacOS
             CMD_BUILD: |
@@ -143,18 +143,32 @@ jobs:
               find . -name ".coverage.*" -exec rm -rf {} \;
             DEP_BUILD: |
               brew install ta-lib
+              arch -arm64 brew install ta-lib
               python3 -m pip install --upgrade pip
+              pip3 uninstall -y PKNSETools
+              pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.32
+              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+              python3 -m pip install --no-cache-dir ta-lib
+              pip3 install -r requirements.txt
+              pip3 install -r requirements-dev.txt
               pip3 install .
             TEST_BUILD: |
-              pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0
+              python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --durations=0
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch-name || github.head_ref || github.ref }}
+
+      - name: Activate virtualenv for MacOS
+        if: startsWith(runner.os, 'MacOS')
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
 
       - name: Declare env variables
         id: vars
@@ -171,7 +185,7 @@ jobs:
       - name: Set up Python 
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs.targetPythonVersion || 3.11 }}
+          python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
       - name: Load Cache for Linux Dependencies
         uses: actions/cache@v4

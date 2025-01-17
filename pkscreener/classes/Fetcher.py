@@ -56,12 +56,11 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             stockCode,period,duration,exchangeSuffix = args[0],args[1],args[2],args[3]
         result = self.fetchStockData(stockCode,period,duration,None,0,0,0,exchangeSuffix=exchangeSuffix)
         if task is not None:
-            if task.taskId > 0:
+            if task.taskId >= 0:
                 task.progressStatusDict[task.taskId] = {'progress': 0, 'total': 1}
                 task.resultsDict[task.taskId] = result
                 task.progressStatusDict[task.taskId] = {'progress': 1, 'total': 1}
-            else:
-                task.result = result
+            task.result = result
         return result
 
     def get_stats(self,ticker):

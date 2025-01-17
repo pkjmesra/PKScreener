@@ -54,10 +54,10 @@ on:
         default: 'yes'
 
       targetPythonVersion:
-        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        description: 'Target Python version: 3.9 , 3.10, 3.11,3,12,3.13 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
 
   # schedule:
   #   - cron: '30 7 * * 6'
@@ -77,10 +77,10 @@ on:
         required: false
         default: 'no'
       targetPythonVersion:
-        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        description: 'Target Python version: 3.9 , 3.10, 3.11, 3.12, 3.13 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -140,21 +140,21 @@ jobs:
           # Note: windows-2019 is needed for older Python versions:
           # https://github.com/PKScreener/PKScreener/issues/22530
           - os: windows-latest
-            python: 311
+            python: 312
             platform_id: win_amd64
 
           # NumPy on Python 3.10 only supports 64bit and is only available with manylinux2014
           - os: ubuntu-latest
-            python: 311
+            python: 312
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
 
-          - os: macos-12
-            python: 311
+          - os: macos-13
+            python: 312
             platform_id: macosx_x86_64
 
           - os: macos-14
-            python: 311
+            python: 312
             platform_id: macosx_arm64
 
     steps:
@@ -164,7 +164,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11" # update once build dependencies are available
+          python-version: "3.12" # update once build dependencies are available
 
       - name: Install conda for macos arm64
         if: ${{ matrix.platform_id == 'macosx_arm64' }}
@@ -188,10 +188,18 @@ jobs:
           echo "$MINIFORGE_PATH/bin" >> $GITHUB_PATH
           echo "CONDA_HOME=$MINIFORGE_PATH" >> $GITHUB_ENV
 
-      - name: Set conda environment for non-macos arm64 environments
-        if: ${{ matrix.platform_id != 'macosx_arm64' }}
+      - name: Install conda for macos x86_64
+        if: ${{ matrix.platform_id == 'macosx_x86_64' }}
         run: |
-          # Non-macos arm64 envrionments already have conda installed
+          set -ex
+          brew install anaconda
+          export PATH="/usr/local/anaconda3/bin:$PATH"
+          echo "CONDA_HOME=/usr/local/anaconda3" >> $GITHUB_ENV
+          
+      - name: Set conda environment for non-macos arm64 environments
+        if: ${{ matrix.platform_id != 'macosx_arm64' && matrix.platform_id != 'macosx_x86_64'}}
+        run: |
+          # Non-macos arm64 environments already have conda installed
           echo "CONDA_HOME=/usr/local/miniconda" >> $GITHUB_ENV
 
       # - name: Install TA-Lib
@@ -341,9 +349,9 @@ jobs:
           pip3 install .
           python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message('Dear Channel!\nA new version of PKScreener (v' + os.environ['RELEASE_VERSION'] + ') just got released. Check it out at \n\nhttps://github.com/pkjmesra/PKScreener/releases\n or https://pypi.org/project/pkscreener/ \n\n'+os.environ['WHATS_NEW']+'\n');"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-cp${{ matrix.python }}-${{ matrix.platform_id }}-${{ matrix.manylinux_image }}
           path: dist/*.whl
           if-no-files-found: ignore
 

@@ -509,6 +509,7 @@ def runApplication():
 
         if args.barometer:
             sendGlobalMarketBarometer(userArgs=args)
+            sys.exit(0)
         else:
             monitorOption_org = ""
             # args.monitor = configManager.defaultMonitorOptions

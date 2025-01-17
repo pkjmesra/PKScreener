@@ -45,7 +45,7 @@ on:
           description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
           required: false
           type: string
-          default: '3.11'
+          default: '3.12'
 
 jobs:
 
@@ -63,7 +63,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ inputs.targetPythonVersion || 3.11 }}
+        python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v4
@@ -130,7 +130,7 @@ jobs:
         echo ${{steps.create_pr.outputs.pr_number}} >> pr.txt
 
     - name: Save PR Log File
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PR_Log.txt
         path: pr.txt

@@ -1,5 +1,5 @@
-venv/
-.venv/
+venv*/
+.venv*/
 build/
 dist/
 test/*.ini
