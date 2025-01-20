@@ -3,7 +3,7 @@
 # PKScreener (# 1 Stock screener/scanner for NSE India)
 | [![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] | [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] | [![Downloads][Downloads-badge]][Downloads] | ![latest download][Latest-Downloads-badge]  | [![Docker Pulls][Docker Pulls-badge]][Docker Status] |
 | :-------------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: |
-| Platforms | [![Windows][Windows-badge]][Windows] | [![Linux][Linux-badge]][Linux] | [![Mac OS][Mac OS-badge]][Mac OS] | [![Docker Status][Docker Status-badge]][Docker Status] |
+| Platforms | [![Windows][Windows-badge]][Windows] | [![Linux(x64)][Linux-badge_x64]][Linux_x64] [![Linux(arm64)][Linux-badge_arm64]][Linux_arm64] | [![Mac OS(x64)][Mac OS-badge_x64]][Mac OS_x64] [![Mac OS(arm64)][Mac OS-badge_arm64]][Mac OS_arm64] | [![Docker Status][Docker Status-badge]][Docker Status] |
 | Package / Docs | [![Documentation][Documentation-badge]][Documentation] | [![PyPI][pypi-badge]][pypi] | [![is wheel][wheel-badge]][pypi] | ![github license][github-license] |
 | Tests | [![CodeFactor][Codefactor-badge]][Codefactor] | [![Coverage Status][Coverage-Status-badge]][Coverage-Status] | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
 
@@ -201,7 +201,7 @@ For `Ubuntu/Linux`: See https://github.com/pkjmesra/PKScreener/blob/main/.github
 
 # Running the executables
 * Download the suitable file according to your OS.
-* Linux & Mac users should make sure that the `pkscreenercli.bin or pkscreenercli.run` is having `execute` permission. (`chmod +x pkscreenercli.run`)
+* Linux & Mac users should make sure that the `pkscreenercli_x64.bin or pkscreenercli_x64.run` is having `execute` permission. (`chmod +x pkscreenercli_x64.run`)
 
 * **Run** the file. Following window will appear.
 
@@ -328,11 +328,15 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.exe
-[Linux-badge]: https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black
-[Linux]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.bin
-[Mac OS-badge]: https://img.shields.io/badge/mac%20os-D3D3D3?logo=apple&logoColor=000000
-[Mac OS]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250117.642/pkscreenercli.run
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250120.655/pkscreenercli.exe
+[Linux-badge_x64]: https://img.shields.io/badge/Linux(x64)-FCC624?logo=linux&logoColor=black
+[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250120.655/pkscreenercli_x64.bin
+[Linux-badge_arm64]: https://img.shields.io/badge/Linux(arm64)-FCC624?logo=linux&logoColor=black
+[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250120.655/pkscreenercli_arm64.bin
+[Mac OS-badge_x64]: https://img.shields.io/badge/mac%20os(x64)-D3D3D3?logo=apple&logoColor=000000
+[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250120.655/pkscreenercli_x64.run
+[Mac OS-badge_arm64]: https://img.shields.io/badge/mac%20os(arm64)-D3D3D3?logo=apple&logoColor=000000
+[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.45.20250120.655/pkscreenercli_arm64.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
@@ -346,7 +350,7 @@ After you have finished the run, go to that copied path, zip the contents of the
 [PR-Guidelines-badge]: https://img.shields.io/badge/PULL%20REQUEST-GUIDELINES-red?style=for-the-badge
 [PR-Guidelines]: https://github.com/pkjmesra/PKScreener/blob/new-features/CONTRIBUTING.md
 [github-license]: https://img.shields.io/github/license/pkjmesra/pkscreener
-[Downloads-badge]: https://static.pepy.tech/personalized-badge/pkscreener?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=PyPi%20Downloads
+[Downloads-badge]: https://static.pepy.tech/personalized-badge/pkscreener?period=total&units=international_system&left_color=black&right_color=brightgreen&left_text=Total%20Downloads
 [Downloads]: https://pepy.tech/project/pkscreener
 [Latest-Downloads-badge]: https://img.shields.io/github/downloads-pre/pkjmesra/pkscreener/latest/total?logo=github
 [Coverage-Status-badge]: https://coveralls.io/repos/github/pkjmesra/PKScreener/badge.svg?branch=main

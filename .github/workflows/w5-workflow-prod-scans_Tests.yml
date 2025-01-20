@@ -206,7 +206,7 @@ jobs:
         python3 pkscreenercli.py -a Y -p -t -o X:N -e
 
   # Delete_Workflow_Run:
-  #   runs-on: ubuntu-20.04
+  #   runs-on: ubuntu-latest
   #   needs: [Prod_Scan_Tests_OnDev]
   #   name: Delete workflow run
   #   steps:

@@ -95,7 +95,7 @@ def cfetchURL(key, url):
 
 
 def dget_latest_release_url():
-    exe_name = "pkscreenercli.bin"
+    exe_name = "pkscreenercli_x64.bin"
     try:
         resp = cfetchURL(
             "ReleaseResponse",
@@ -105,9 +105,9 @@ def dget_latest_release_url():
         if "Windows" in platform.system():
             exe_name = "pkscreenercli.exe"
         elif "Darwin" in platform.system():
-            exe_name = "pkscreenercli.run"
+            exe_name = "pkscreenercli_x64.run"
         else:
-            exe_name = "pkscreenercli.bin"
+            exe_name = "pkscreenercli_x64.bin"
         for asset in resp.json()["assets"]:
             url = asset["browser_download_url"]
             if url.endswith(exe_name):

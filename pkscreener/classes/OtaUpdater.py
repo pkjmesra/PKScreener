@@ -84,10 +84,10 @@ echo "  [+] Downloading Software Update..."
 echo "  [+] This may take some time as per your Internet Speed, Please Wait..."
 wget -q """
             + url
-            + """ -O pkscreenercli.bin
+            + """ -O pkscreenercli_x64.bin
 echo "  [+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreenercli.bin
-echo "  [+] Update Completed! Run 'pkscreenercli.bin' again as usual to continue.."
+chmod +x pkscreenercli_x64.bin
+echo "  [+] Update Completed! Run 'pkscreenercli_x64.bin' again as usual to continue.."
 rm updater.sh
         """
         )
@@ -110,12 +110,12 @@ sleep 3
 echo "  [+] pkscreener Software Updater!"
 echo "  [+] Downloading Software Update..."
 echo "  [+] This may take some time as per your Internet Speed, Please Wait..."
-curl -o pkscreenercli.run -L """
+curl -o pkscreenercli_x64.run -L """
             + url
             + """
 echo "  [+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreenercli.run
-echo "  [+] Update Completed! Run 'pkscreenercli.run' again as usual to continue.."
+chmod +x pkscreenercli_x64.run
+echo "  [+] Update Completed! Run 'pkscreenercli_x64.run' again as usual to continue.."
 rm updater.sh
         """
         )
@@ -143,9 +143,9 @@ rm updater.sh
         if "Windows" in platform.system():
             exe_name = "pkscreenercli.exe"
         elif "Darwin" in platform.system():
-            exe_name = "pkscreenercli.run"
+            exe_name = "pkscreenercli_x64.run"
         else:
-            exe_name = "pkscreenercli.bin"
+            exe_name = "pkscreenercli_x64.bin"
         for asset in resp.json()["assets"]:
             url = asset["browser_download_url"]
             if url.endswith(exe_name):

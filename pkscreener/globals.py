@@ -926,10 +926,12 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener to Download daily OHLC data. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} -a Y -e -d{colorText.END}\n{colorText.WARN}Press Ctrl + C to exit at any time.{colorText.END}")
                 sleep(2)
                 os.system(f"{launcher} -a Y -e -d")
+                return None, None
             elif selDownloadOption.upper() == "I":
                 OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener to Download intraday OHLC data. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} -a Y -e -d -i 1m{colorText.END}\n{colorText.WARN}Press Ctrl + C to exit at any time.{colorText.END}")
                 sleep(2)
                 os.system(f"{launcher} -a Y -e -d -i 1m")
+                return None, None
             elif selDownloadOption.upper() == "N":
                 selectedMenu = m1.find(selDownloadOption.upper())
                 Utility.tools.clearScreen(forceTop=True)
@@ -966,6 +968,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                         OutputControls().printOutput(f"{colorText.FAIL}We encountered an error. Please try again!{colorText.END}")
                     input(f"{colorText.GREEN}Press any key to continue...{colorText.END}")
                     return None, None
+                return None, None
             elif selDownloadOption.upper() == "S":
                 selectedMenu = m1.find(selDownloadOption.upper())
                 Utility.tools.clearScreen(forceTop=True)
@@ -3733,11 +3736,13 @@ def saveDownloadedData(downloadOnly, testing, stockDictPrimary, configManager, l
                 except:
                     pass
                 # Let's try again with logging
-                if download_trials < 1:
-                    download_trials += 1
+                if "PKDevTools_Default_Log_Level" not in os.environ.keys():
                     launcher = f'"{sys.argv[0]}"' if " " in sys.argv[0] else sys.argv[0]
                     launcher = f"python3.12 {launcher}" if (launcher.endswith(".py\"") or launcher.endswith(".py")) else launcher
                     os.system(f"{launcher} -a Y -e -l -d {'-i 1m' if configManager.isIntradayConfig() else ''}")
+                else:
+                    del os.environ['PKDevTools_Default_Log_Level']
+                    sys.exit(0)
     else:
         OutputControls().printOutput(colorText.GREEN + "  [+] Skipped Saving!" + colorText.END)
 

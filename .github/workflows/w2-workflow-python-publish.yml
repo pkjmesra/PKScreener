@@ -128,6 +128,9 @@ jobs:
   build_wheels:
     name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}-${{ matrix.manylinux_image }}
     runs-on: ${{ matrix.os }}
+    # defaults:
+    #   run:
+    #     shell: bash -l {0}
     # needs: check_build_trigger
     # if: needs.check_build_trigger.outputs.build
 
@@ -166,11 +169,18 @@ jobs:
         with:
           python-version: "3.12" # update once build dependencies are available
 
+      # - name: Activate virtualenv for MacOS
+      #   if: startsWith(runner.os, 'MacOS')
+      #   run: |
+      #     python3 -m venv venv
+      #     source venv/bin/activate
+      #     echo PATH=$PATH >> $GITHUB_ENV
+  
       - name: Install conda for macos arm64
         if: ${{ matrix.platform_id == 'macosx_arm64' }}
         run: |
           set -ex
-          # macos arm64 runners do not have conda installed. Thus we much install conda manually
+          # macos arm64 runners do not have conda installed. Thus we must install conda manually
           EXPECTED_SHA="dd832d8a65a861b5592b2cf1d55f26031f7c1491b30321754443931e7b1e6832"
           MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-MacOSX-arm64.sh"
           curl -L --retry 10 $MINIFORGE_URL -o miniforge.sh
@@ -192,15 +202,40 @@ jobs:
         if: ${{ matrix.platform_id == 'macosx_x86_64' }}
         run: |
           set -ex
-          brew install anaconda
-          export PATH="/usr/local/anaconda3/bin:$PATH"
-          echo "CONDA_HOME=/usr/local/anaconda3" >> $GITHUB_ENV
+          # macos x64: install conda manually
+          EXPECTED_SHA="c6ac073b80cedb313561bc11c2e61b0bd102b74df0363ed6c1e90303b322092a"
+          MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-MacOSX-x86_64.sh"
+          curl -L --retry 10 $MINIFORGE_URL -o miniforge.sh
+
+          # Check SHA
+          file_sha=$(shasum -a 256 miniforge.sh | awk '{print $1}')
+          if [ "$EXPECTED_SHA" != "$file_sha" ]; then
+              echo "SHA values did not match!"
+              exit 1
+          fi
+
+          # Install miniforge
+          MINIFORGE_PATH=$HOME/miniforge
+          bash ./miniforge.sh -b -p $MINIFORGE_PATH
+          echo "$MINIFORGE_PATH/bin" >> $GITHUB_PATH
+          echo "CONDA_HOME=$MINIFORGE_PATH" >> $GITHUB_ENV
           
       - name: Set conda environment for non-macos arm64 environments
         if: ${{ matrix.platform_id != 'macosx_arm64' && matrix.platform_id != 'macosx_x86_64'}}
         run: |
           # Non-macos arm64 environments already have conda installed
           echo "CONDA_HOME=/usr/local/miniconda" >> $GITHUB_ENV
+
+      # - name: Install conda
+      #   if: ${{ matrix.platform_id == 'macosx_x86_64' }}
+      #   uses: conda-incubator/setup-miniconda@v3
+      #   with:
+      #     miniconda-version: "latest"
+      #     channels: bioconda, conda-forge, defaults
+      #     use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
+      #     auto-update-conda: true
+      #     auto-activate-base: true
+      #     python-version: "3.12"
 
       # - name: Install TA-Lib
       #   shell: bash
@@ -237,7 +272,7 @@ jobs:
           echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
           echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
           echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
-      
+
       - name: Install setuptools
         shell: bash
         run: |
@@ -294,14 +329,14 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
           repository_url: https://test.pypi.org/legacy/
         shell: bash
-        if: ${{ matrix.platform_id == 'manylinux_x86_64' && matrix.python == '311' }}
+        if: ${{ matrix.platform_id == 'manylinux_x86_64' && matrix.python == '312' }}
         run: |
           # del /s /q pkscreener/classes/__init__.py
           # echo VERSION='${{ steps.vars.outputs.THIS_VERSION }}' >> pkscreener/classes/__init__.py
           twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*.tar.gz
   
       - name: Publish source code 📦 to PyPI
-        if: ${{ matrix.platform_id == 'manylinux_x86_64' && matrix.python == '311' && startsWith(inputs.branch-name, 'refs/tags') }}
+        if: ${{ matrix.platform_id == 'manylinux_x86_64' && matrix.python == '312' && startsWith(inputs.branch-name, 'refs/tags') }}
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}

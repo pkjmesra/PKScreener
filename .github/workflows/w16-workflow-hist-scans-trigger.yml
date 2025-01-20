@@ -36,9 +36,9 @@ on:
         type: string
         default: '3.12'
       runson:
-          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
           required: false
-          default: 'ubuntu-20.04'
+          default: 'ubuntu-latest'
       installtalib:
         description: 'Is TA-Lib install required? (Y/N)'
         required: false
@@ -55,7 +55,7 @@ jobs:
 
   Download_Historical_Data:
 
-    runs-on: ${{ inputs.runson || 'ubuntu-20.04'}} #ubuntu-20.04 #windows-latest
+    runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -110,13 +110,13 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib/
+        tar -xzf ta-lib-0.6.4-src.tar.gz
+        cd ta-lib-0.6.4/
         ./configure --prefix=/usr
         make
         sudo make install
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib==0.4.32
+        pip3 install ta-lib
 
     - name: Setup Python environment for triggers on Ubuntu
       shell: bash
@@ -125,8 +125,8 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib/
+        tar -xzf ta-lib-0.6.4-src.tar.gz
+        cd ta-lib-0.6.4/
         ./configure --prefix=/usr
         make
         sudo make install
@@ -134,7 +134,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
         pip3 install -r requirements-dev.txt
-        pip3 install ta-lib==0.4.32
+        pip3 install ta-lib
         pip3 install .
 
     - name: Setup Python environment for triggers on Windows
@@ -203,7 +203,7 @@ jobs:
         python3 .github/workflows/workflowtriggers.py ${{ inputs.scanOptions  || '--reScanForZeroSize --scanDaysInPast 3 --triggerRemotely --scans -f -s2 0, -s0 S,T,E,U,Z,F,H,Y,B,G,C,M,D,I,L,X -s1 0,2,3,4, -s3 "0" -s4 "0"' }}
 
   # Delete_Workflow_Run:
-  #   runs-on: ubuntu-20.04
+  #   runs-on: ubuntu-latest
   #   needs: [Download_Historical_Data]
   #   name: Delete workflow run
   #   steps:

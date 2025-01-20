@@ -64,7 +64,7 @@ elif "Linux" in platform.system() and os.path.isfile(talibLinuxFile) and os.path
     subprocess.Popen(["chmod", "+x", talibLinuxFile])
     subprocess.Popen(talibLinuxFile, shell=True)
 elif "Darwin" in platform.system():
-    subprocess.Popen("brew install talib", shell=True)
+    subprocess.Popen("brew install ta-lib", shell=True)
 # For Darwin, brew install ta-lib will work
 
 SYS_MAJOR_VERSION = str(sys.version_info.major)

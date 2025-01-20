@@ -11,10 +11,10 @@ This is a troubleshooting guide for installing [pkscreener](https://github.com/p
 3. Execute following commands in the terminal (Commands are **Case Sensitive**)
 ```
 cd Downloads                 # Navigate to Downloads folder
-chmod +x pkscreenercli.run       # Apply Execute permission to the file
+chmod +x pkscreenercli_x64.run       # Apply Execute permission to the file
 ```
 
-4. Right click on 'pkscreenercli.run' and select option `Open with > Utilities > Terminal`. (Select All applications if `Terminal` is frozen)
+4. Right click on 'pkscreenercli_x64.run' and select option `Open with > Utilities > Terminal`. (Select All applications if `Terminal` is frozen)
 5. You may get **Developer not Verified** error as follow:
 
 ![Error](https://user-images.githubusercontent.com/6128978/119251001-95214580-bbc1-11eb-8484-e07ba33730dc.PNG)
@@ -30,12 +30,12 @@ chmod +x pkscreenercli.run       # Apply Execute permission to the file
 ![Allow](https://user-images.githubusercontent.com/6128978/119251073-11b42400-bbc2-11eb-9a15-7ebb6fec1c66.PNG)
 
 10. Close the window.
-11. Now double click on `pkscreenercli.run` file to use the application.
+11. Now double click on `pkscreenercli_x64.run` file to use the application.
 
 Alternative:
 1. You can simply open terminal on your Mac and run 
 ```
-sudo xattr -d com.apple.quarantine <full-path-where-you-downloaded-pkscreenercli.run>
+sudo xattr -d com.apple.quarantine <full-path-where-you-downloaded-pkscreenercli_x64.run>
 
 ```
 

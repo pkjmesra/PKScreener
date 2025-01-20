@@ -33,7 +33,7 @@ scikit-learn #>=1.5.2
 scipy #<=1.12.0 # cdflib removed from  #>=1.13.0 which breaks the build
 # ta-lib # Install this separately. See README.
 tabulate #>=0.9.0
-tensorflow # #>=2.16.2
+tensorflow>=2.16.2
 # torch
 # torchvision
 urllib3 #>=1.26.20

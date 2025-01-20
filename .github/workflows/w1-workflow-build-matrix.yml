@@ -140,17 +140,18 @@ jobs:
             OUT_PATH: .\dist\pkscreenercli.exe
             FILE_NAME: pkscreenercli.exe
           
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
+            platform_id: manylinux_x86_64
             TARGET: Linux
             CMD_BUILD: |
               pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress  --hidden-import scipy.special._cdflib
-              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
-              chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
+              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
+              chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
             DEP_BUILD: |
               cd .github/dependencies/
               pwd
-              tar -xzf ta-lib-0.4.0-src.tar.gz
-              cd ta-lib/
+              tar -xzf ta-lib-0.6.4-src.tar.gz
+              cd ta-lib-0.6.4/
               ./configure --prefix=/usr
               make
               sudo make install
@@ -160,19 +161,49 @@ jobs:
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.4.32
+              pip3 install ta-lib
               pip3 install .
             TEST_BUILD: |
-              /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin --testbuild
+              /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin --testbuild
               exit $?
-            OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli.bin
-            FILE_NAME: pkscreenercli.bin
+            OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
+            FILE_NAME: pkscreenercli_x64.bin
+
+          - os: ubuntu-24.04-arm
+            platform_id: manylinux_arm64
+            TARGET: Linux
+            CMD_BUILD: |
+              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress  --hidden-import scipy.special._cdflib
+              mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
+              chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
+            DEP_BUILD: |
+              cd .github/dependencies/
+              pwd
+              tar -xzf ta-lib-0.6.4-src.tar.gz
+              cd ta-lib-0.6.4/
+              ./configure --prefix=/usr --build=aarch64-unknown-linux-gnu
+              make
+              sudo make install
+              cd /home/runner/work/PKScreener/PKScreener/
+              python3 -m pip install --upgrade pip
+              pip3 uninstall -y PKNSETools
+              pip3 uninstall -y PKDevTools
+              pip3 install -r requirements.txt
+              pip3 install -r requirements-dev.txt
+              pip3 install ta-lib
+              pip3 install .
+            TEST_BUILD: |
+              /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin --testbuild
+              exit $?
+            OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
+            FILE_NAME: pkscreenercli_arm64.bin
 
           - os: macos-latest
+            platform_id: macosx_arm64
             TARGET: MacOS
             CMD_BUILD: |
               pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
-              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
+              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
             DEP_BUILD: |
               brew install ta-lib
               arch -arm64 brew install ta-lib
@@ -183,15 +214,39 @@ jobs:
               pip3 install -r requirements-dev.txt
               export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
               export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
-              #python3 -m pip install -U ta-lib==0.4.32
+              #python3 -m pip install -U ta-lib
               python3 -m pip install --no-cache-dir ta-lib
               pip3 install .
             TEST_BUILD: |
-              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run --testbuild
+              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run --testbuild
               exit $?
-            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli.run
-            FILE_NAME: pkscreenercli.run
+            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
+            FILE_NAME: pkscreenercli_arm64.run
           
+          - os: macos-13
+            platform_id: macosx_x86_64
+            TARGET: MacOS
+            CMD_BUILD: |
+              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
+              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
+            DEP_BUILD: |
+              brew install ta-lib
+              arch -x86_64 brew install ta-lib
+              python3 -m pip install --upgrade pip
+              pip3 uninstall -y PKNSETools
+              pip3 uninstall -y PKDevTools
+              pip3 install -r requirements.txt
+              pip3 install -r requirements-dev.txt
+              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+              #python3 -m pip install -U ta-lib
+              python3 -m pip install --no-cache-dir ta-lib
+              pip3 install .
+            TEST_BUILD: |
+              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run --testbuild
+              exit $?
+            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
+            FILE_NAME: pkscreenercli_x64.run
     steps:
       - uses: actions/checkout@v4
         with:
@@ -231,7 +286,7 @@ jobs:
           echo "##[set-output name=DEV_VERSION;]$(echo ${DEV_VERSION})"
 
       - name: Create Tag
-        if: startsWith(runner.os, 'Linux')
+        if: ${{ matrix.platform_id == 'manylinux_x86_64' }}
         run: |
             git config user.name github-actions
             git config user.email github-actions@github.com
@@ -320,7 +375,7 @@ jobs:
           make_latest: true
 
   README_Update:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions: write-all
       # actions: write
     needs: [Build]
@@ -372,7 +427,7 @@ jobs:
   
   Cleanup:
     name: Clean up and delete old release
-    runs-on: ${{ 'ubuntu-20.04'}} #ubuntu-20.04 #windows-latest
+    runs-on: ${{ 'ubuntu-latest'}} #ubuntu-latest #windows-latest
     permissions: write-all
     needs: [Build, README_Update]
     steps:

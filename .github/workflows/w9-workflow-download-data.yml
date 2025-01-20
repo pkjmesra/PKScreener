@@ -36,9 +36,9 @@ on:
         type: string
         default: '3.12'
       runson:
-          description: 'Runner OS. e.g: ubuntu-20.04, windows-latest or macos-latest'
+          description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
           required: false
-          default: 'ubuntu-20.04'
+          default: 'ubuntu-latest'
       installtalib:
         description: 'Is TA-Lib install required? (Y/N). N to skip installing talib.'
         required: false
@@ -65,7 +65,7 @@ jobs:
 
   Download_Stock_Data:
 
-    runs-on: ${{ inputs.runson || 'ubuntu-20.04'}} #ubuntu-20.04 #windows-latest
+    runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
     permissions: write-all
       # actions: write
     outputs:
@@ -137,13 +137,13 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib/
+        tar -xzf ta-lib-0.6.4-src.tar.gz
+        cd ta-lib-0.6.4/
         ./configure --prefix=/usr
         make
         sudo make install
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib==0.4.32
+        pip3 install ta-lib
 
     - name: Environment setup to get latest EXE
       if: ${{ inputs.skipDownload == '' }}
@@ -167,8 +167,8 @@ jobs:
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
-        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -JL $exe_path
-        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
 
     - name: Delete stock data
       shell: bash
@@ -198,8 +198,8 @@ jobs:
       continue-on-error: true
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
       run: |
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli.bin -d -a Y -i 1m
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
         rm -rf results//Data/*.lck || true
         ls -l results/Data
         cp results/Data/*.pkl actions-data-download
@@ -318,8 +318,8 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib/
+        tar -xzf ta-lib-0.6.4-src.tar.gz
+        cd ta-lib-0.6.4/
         ./configure --prefix=/usr
         make
         sudo make install
@@ -327,7 +327,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
         pip3 install -r requirements-dev.txt
-        pip3 install ta-lib==0.4.32
+        pip3 install ta-lib
         pip3 install .
 
     - name: Setup Python environment for triggers on Windows
@@ -407,7 +407,7 @@ jobs:
         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
   # || '--reScanForZeroSize --scans --local --scanDaysInPast 3 -s2 0,22,29,42,50,M,Z -s0 S,T,E,U,Z,F,H,Y,B,G,C,M,D,I,L,P -s1 W,N,E,M,Z,S,0,2,3,4,6,7,9,10,13,14,15 -s3 "0" -s4 "0" --branchname actions-data-download -f' }}
   # Delete_Workflow_Run:
-  #   runs-on: ubuntu-20.04
+  #   runs-on: ubuntu-latest
   #   needs: [Download_Stock_Data]
   #   if: ${{ needs.Download_Stock_Data.outputs.should_clean == ''}}
   #   name: Delete workflow run

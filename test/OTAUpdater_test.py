@@ -56,7 +56,7 @@ def test_checkForUpdate_skipDownload():
             "tag_name": "2.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
                     "size": 1024*1024*100,
                 },
                 {
@@ -64,7 +64,7 @@ def test_checkForUpdate_skipDownload():
                     "size": 1024*1024*200,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
                     "size": 1024*1024*300,
                 },
             ],
@@ -130,7 +130,7 @@ def test_checkForUpdate_prod_update():
             "tag_name": "2.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
                     "size": 1024*1024*300,
                 },
                 {
@@ -138,7 +138,7 @@ def test_checkForUpdate_prod_update():
                     "size": 1024*1024*100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
                     "size": 1024*1024*200,
                 },
             ],
@@ -162,7 +162,7 @@ def test_checkForUpdate_not_prod_update():
             "tag_name": "1.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
                     "size": 1024*1024*300,
                 },
                 {
@@ -170,7 +170,7 @@ def test_checkForUpdate_not_prod_update():
                     "size": 1024*1024*100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
                     "size": 1024*1024*200,
                 },
             ],
@@ -198,7 +198,7 @@ def test_checkForUpdate_exception():
                 "tag_name": "1.0.0",
                 "assets": [
                     {
-                        "browser_download_url": "https://example.com/pkscreenercli.run",
+                        "browser_download_url": "https://example.com/pkscreenercli_x64.run",
                         "size": 1024*1024*300,
                     },
                     {
@@ -206,7 +206,7 @@ def test_checkForUpdate_exception():
                         "size": 1024*1024*100,
                     },
                     {
-                        "browser_download_url": "https://example.com/pkscreenercli.bin",
+                        "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
                         "size": 1024*1024*200,
                     },
                 ],
@@ -237,7 +237,7 @@ def test_checkForUpdate_no_update():
             "tag_name": "1.0.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
                     "size": 300,
                 },
                 {
@@ -245,7 +245,7 @@ def test_checkForUpdate_no_update():
                     "size": 100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
                     "size": 200,
                 },
             ],
@@ -313,9 +313,9 @@ def test_get_latest_release_info(mocker):
     mock_resp = mocker.Mock()
     mock_resp.json.return_value = {
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
         ]
     }
     mocker.patch.object(OTAUpdater.fetcher, "fetchURL", return_value=mock_resp)
@@ -335,9 +335,9 @@ def test_get_latest_release_info_linux(mocker):
     mock_resp = mocker.Mock()
     mock_resp.json.return_value = {
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
         ],
         "tag_name": ".".join(VERSION.split(".")[:-1]) + "." +str(int(VERSION.split(".")[-1]) +1)
     }
@@ -395,9 +395,9 @@ def test_checkForUpdate_prod_update_2(mocker):
     mock_resp.json.return_value = {
         "tag_name": "1.2.0.0",
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
         ],
         "message": "Something interesting"
     }

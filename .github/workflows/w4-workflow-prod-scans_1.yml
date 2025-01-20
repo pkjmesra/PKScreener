@@ -112,7 +112,7 @@ jobs:
       run: |
         python3 .github/workflows/workflowtriggers.py --updateholidays
   # Delete_Workflow_Run:
-  #   runs-on: ubuntu-20.04
+  #   runs-on: ubuntu-latest
   #   needs: [NIFTY_Prediction_Alert]
   #   name: Delete workflow run
   #   steps:

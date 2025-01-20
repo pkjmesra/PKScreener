@@ -54,7 +54,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             stockCode,period,duration,exchangeSuffix = task.long_running_fn_args
         else:
             stockCode,period,duration,exchangeSuffix = args[0],args[1],args[2],args[3]
-        result = self.fetchStockData(stockCode,period,duration,None,0,0,0,exchangeSuffix=exchangeSuffix)
+        result = self.fetchStockData(stockCode,period,duration,None,0,0,0,exchangeSuffix=exchangeSuffix,printCounter=False)
         if task is not None:
             if task.taskId >= 0:
                 task.progressStatusDict[task.taskId] = {'progress': 0, 'total': 1}
@@ -144,7 +144,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
                 pass
             except (YFInvalidPeriodError,Exception) as e:
                 default_logger().debug(e,exc_info=True)                    
-        if printCounter:
+        if printCounter and type(screenCounter) != int:
             sys.stdout.write("\r\033[K")
             try:
                 OutputControls().printOutput(

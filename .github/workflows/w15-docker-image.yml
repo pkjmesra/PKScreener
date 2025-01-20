@@ -102,11 +102,13 @@ jobs:
       if: ${{ inputs.buildBase == 'Y' }}
       run: |
         docker buildx create --use
-        docker buildx build --push \
+        export DOCKER_BUILDKIT=1
+        DOCKER_BUILDKIT=1 docker buildx build --push \
           --tag pkjmesra/pkscreener:base \
           --platform linux/amd64,linux/arm64/v8 \
           -f ./Dockerfile_base . --no-cache
-        docker buildx build --push \
+        export DOCKER_BUILDKIT=1
+        DOCKER_BUILDKIT=1 docker buildx build --push \
           --tag pkjmesra/pkscreener:latest \
           --platform linux/amd64,linux/arm64/v8 . --no-cache
 
@@ -115,13 +117,13 @@ jobs:
       # if: startsWith(github.ref, 'refs/heads/main')
       run: |
         docker buildx create --use
-        docker buildx build --push \
+        DOCKER_BUILDKIT=1 docker buildx build --push \
         --tag pkjmesra/pkscreener:latest \
         --platform linux/amd64,linux/arm64/v8 . --no-cache
-        docker buildx build --push \
+        DOCKER_BUILDKIT=1 docker buildx build --push \
           --tag pkjmesra/pkscreener:dev-latest \
           --platform linux/amd64,linux/arm64/v8 . --no-cache
-        docker buildx build --push \
+        DOCKER_BUILDKIT=1 docker buildx build --push \
           --tag pkjmesra/pkscreener:${{ inputs.version }} \
           --platform linux/amd64,linux/arm64/v8 . --no-cache
         

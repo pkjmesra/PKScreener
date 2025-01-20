@@ -853,11 +853,11 @@ def test_release_readme_urls():
     contents = f.read()
     f.close()
     failUrl = [
-        f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli.bin",
+        f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli_x64.bin",
         f"https://github.com/pkjmesra/PKScreener/releases/download/{last_release}/pkscreenercli.exe",
     ]
     passUrl = [
-        f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.bin",
+        f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli_x64.bin",
         f"https://github.com/pkjmesra/PKScreener/releases/download/{VERSION}/pkscreenercli.exe",
     ]
     if this_version > float(last_release):

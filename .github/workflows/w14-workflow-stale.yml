@@ -61,7 +61,7 @@ jobs:
         # On Mac/Linux:
         # gh run list -w "13. Backtest for Generic" --limit 500 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
   Delete_Workflow_Run:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [stale]
     name: Delete workflow run
     steps:

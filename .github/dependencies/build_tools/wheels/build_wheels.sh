@@ -31,7 +31,7 @@ if [[ $(uname) == "Darwin" ]]; then
         # SciPy requires 12.0 on arm to prevent kernel panics
         # https://github.com/scipy/scipy/issues/14688
         # We use the same deployment target to match SciPy.
-        export MACOSX_DEPLOYMENT_TARGET=12.0
+        export MACOSX_DEPLOYMENT_TARGET=13.0
         OPENMP_URL="https://anaconda.org/conda-forge/llvm-openmp/11.1.0/download/osx-arm64/llvm-openmp-11.1.0-hf3c4609_1.tar.bz2"
     else
         export MACOSX_DEPLOYMENT_TARGET=10.9
