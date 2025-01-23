@@ -74,6 +74,8 @@ del updater.bat & exit
     def updateForLinux(url):
         if url is None or len(url) == 0:
             return
+        from PKDevTools.classes.System import PKSystem
+        _,_,_,_,sysArch = PKSystem.get_platform()
         bashFile = (
             """#!/bin/bash
 echo ""
@@ -84,10 +86,16 @@ echo "  [+] Downloading Software Update..."
 echo "  [+] This may take some time as per your Internet Speed, Please Wait..."
 wget -q """
             + url
-            + """ -O pkscreenercli_x64.bin
+            + """ -O pkscreenercli_"""
+            + sysArch
+            + """.bin
 echo "  [+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreenercli_x64.bin
-echo "  [+] Update Completed! Run 'pkscreenercli_x64.bin' again as usual to continue.."
+chmod +x pkscreenercli_"""
+            + sysArch
+            + """.bin
+echo "  [+] Update Completed! Run 'pkscreenercli_"""
+            + sysArch 
+            + """.bin' again as usual to continue.."
 rm updater.sh
         """
         )
@@ -102,6 +110,8 @@ rm updater.sh
     def updateForMac(url):
         if url is None or len(url) == 0:
             return
+        from PKDevTools.classes.System import PKSystem
+        _,_,_,_,sysArch = PKSystem.get_platform()
         bashFile = (
             """#!/bin/bash
 echo ""
@@ -110,12 +120,18 @@ sleep 3
 echo "  [+] pkscreener Software Updater!"
 echo "  [+] Downloading Software Update..."
 echo "  [+] This may take some time as per your Internet Speed, Please Wait..."
-curl -o pkscreenercli_x64.run -L """
+curl -o pkscreenercli_"""
+            + sysArch
+            + """.run -L """
             + url
             + """
 echo "  [+] Newly downloaded file saved in $(pwd)"
-chmod +x pkscreenercli_x64.run
-echo "  [+] Update Completed! Run 'pkscreenercli_x64.run' again as usual to continue.."
+chmod +x pkscreenercli_"""
+            + sysArch
+            + """.run
+echo "  [+] Update Completed! Run 'pkscreenercli_"""
+            + sysArch
+            + """.run' again as usual to continue.."
 rm updater.sh
         """
         )
@@ -140,12 +156,14 @@ rm updater.sh
             "https://api.github.com/repos/pkjmesra/PKScreener/releases/latest"
         )  
         size = 0
+        from PKDevTools.classes.System import PKSystem
+        _,_,_,_,sysArch = PKSystem.get_platform()
         if "Windows" in platform.system():
             exe_name = "pkscreenercli.exe"
         elif "Darwin" in platform.system():
-            exe_name = "pkscreenercli_x64.run"
+            exe_name = f"pkscreenercli_{sysArch}.run"
         else:
-            exe_name = "pkscreenercli_x64.bin"
+            exe_name = f"pkscreenercli_{sysArch}.bin"
         for asset in resp.json()["assets"]:
             url = asset["browser_download_url"]
             if url.endswith(exe_name):

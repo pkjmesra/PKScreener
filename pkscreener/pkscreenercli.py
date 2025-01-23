@@ -63,6 +63,11 @@ import pkscreener.classes.ConfigManager as ConfigManager
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
+    # fix to https://stackoverflow.com/q/62748654/9191338
+    # Python incorrectly tracks shared memory even if it is not
+    # created by the process. The following patch is a workaround.
+    from unittest.mock import patch
+    patch("multiprocessing.resource_tracker.register",lambda *args, **kwargs: None)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 

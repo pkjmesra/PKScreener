@@ -58,7 +58,7 @@ on:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
         type: string
-        default: '3.11'
+        default: '3.12'
 jobs:
   # Job for testing coverage
   Build:
@@ -145,6 +145,7 @@ jobs:
               brew install ta-lib
               arch -arm64 brew install ta-lib
               python3 -m pip install --upgrade pip
+              brew install python-setuptools
               pip3 uninstall -y PKNSETools
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt

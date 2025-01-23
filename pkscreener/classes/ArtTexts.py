@@ -198,4 +198,7 @@ def getArtText():
     artTexts = [artText_ansiRegular,artText_Merlin1,artText_dos_rebel,artText_Puffy,artText_Rounded,artText_Standard,artText_Varsity,artText_Collosol,artText_Roman,artText_Electronic,artText_Epic,artText_Isometric3,artText_FlowerPower,artText_Impossible]
     artTexts.extend(artTexts)
     random.shuffle(artTexts)
-    return random.choice(artTexts)
+    from PKDevTools.classes.System import PKSystem
+    from pkscreener.classes import VERSION
+    sysName,_,_,_,_ = PKSystem.get_platform()
+    return f"{random.choice(artTexts)}{sysName} | v{VERSION}"

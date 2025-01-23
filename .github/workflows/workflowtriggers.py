@@ -600,7 +600,7 @@ def triggerScanWorkflowActions(launchLocal=False, scanDaysInPast=0):
         if not shouldRunWorkflow():
             return
         for scanIndex in PREDEFINED_SCAN_ALERT_MENU_KEYS:
-            triggerRemoteScanAlertWorkflow(f"P:1:{scanIndex}:", branch)
+            triggerRemoteScanAlertWorkflow(f"P:1:{scanIndex}:12:", branch)
 
     # runIntradayAnalysisScans(branch="main")
 

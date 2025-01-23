@@ -48,11 +48,16 @@ except:
 
 __USERNAME__ = "pkjmesra"
 __PACKAGENAME__ = "pkscreener"
+install_requires=[]
 if os.path.exists("README.md") and os.path.isfile("README.md"):
     with open("README.md", "r") as fh:
         long_description = fh.read()
-if os.path.isfile("requirements.txt") and os.path.isfile("requirements.txt"):
+if os.path.exists("requirements.txt") and os.path.isfile("requirements.txt"):
     with open("requirements.txt", "r") as fh:
+        install_requires = fh.read().splitlines()
+        install_requires.append("advanced_ta")
+elif os.path.exists(os.path.join(__PACKAGENAME__,"requirements.txt")) and os.path.isfile(os.path.join(__PACKAGENAME__,"requirements.txt")):
+    with open(os.path.join(__PACKAGENAME__,"requirements.txt"), "r") as fh:
         install_requires = fh.read().splitlines()
         install_requires.append("advanced_ta")
 
@@ -64,7 +69,7 @@ elif "Linux" in platform.system() and os.path.isfile(talibLinuxFile) and os.path
     subprocess.Popen(["chmod", "+x", talibLinuxFile])
     subprocess.Popen(talibLinuxFile, shell=True)
 elif "Darwin" in platform.system():
-    subprocess.Popen("brew install ta-lib", shell=True)
+    subprocess.Popen("brew install ta-lib && brew upgrade ta-lib", shell=True)
 # For Darwin, brew install ta-lib will work
 
 SYS_MAJOR_VERSION = str(sys.version_info.major)
@@ -85,15 +90,7 @@ DIST_DIR = "dist/"
 # 				os.rename(DIST_DIR + filename, DIST_DIR + filename.replace(__PACKAGENAME__+'-', __PACKAGENAME__+'_'+__USERNAME__+'-'))
 
 # atexit.register(_post_build)
-PYTHON_VERSION = (3, 11)
-
-WHEEL_NAME = (
-    __PACKAGENAME__ + "-" + VERSION + "-py" + SYS_MAJOR_VERSION + "-none-any.whl"
-)
-TAR_FILE = __PACKAGENAME__ + "-" + VERSION + ".tar.gz"
-EGG_FILE = __PACKAGENAME__ + "-" + VERSION + "-py" + SYS_VERSION + ".egg"
-DIST_FILES = [WHEEL_NAME, TAR_FILE, EGG_FILE]
-DIST_DIR = "dist/"
+PYTHON_VERSION = (3, 12)
 
 # def _post_build():
 # 	if "bdist_wheel" in sys.argv:

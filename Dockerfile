@@ -45,6 +45,8 @@ RUN pip3 install --upgrade pip && \
     mv /pkscreenercli.py /PKScreener-main/pkscreener/pkscreenercli.py
 
 ENV TERM=xterm
+COPY cve-fixes.txt .
+RUN pip3 install -r cve-fixes.txt
 ENV PKSCREENER_DOCKER=1
 ENTRYPOINT ["python3","pkscreener/pkscreenercli.py"]
 # Run with 

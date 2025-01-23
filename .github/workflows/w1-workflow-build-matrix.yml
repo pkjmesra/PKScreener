@@ -206,6 +206,7 @@ jobs:
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
             DEP_BUILD: |
               brew install ta-lib
+              brew upgrade ta-lib
               arch -arm64 brew install ta-lib
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools
@@ -218,7 +219,7 @@ jobs:
               python3 -m pip install --no-cache-dir ta-lib
               pip3 install .
             TEST_BUILD: |
-              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run --testbuild
+              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run -e -a Y -o H
               exit $?
             OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
             FILE_NAME: pkscreenercli_arm64.run
@@ -231,6 +232,7 @@ jobs:
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
             DEP_BUILD: |
               brew install ta-lib
+              brew upgrade ta-lib
               arch -x86_64 brew install ta-lib
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools

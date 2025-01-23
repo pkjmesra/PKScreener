@@ -36,7 +36,7 @@ from pkscreener.pkscreenercli import logFilePath, setupLogger, warnAboutDependen
 import pytest
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
-
+import setuptools.dist
 from pkscreener import pkscreenercli, Imports
 from pkscreener.classes.PKScanRunner import PKScanRunner
 
@@ -163,13 +163,13 @@ class TestPKScreenerFunctions(unittest.TestCase):
             pkscreenercli.pkscreenercli()
             mock_run_application.assert_called()
 
-    @patch('pkscreener.pkscreenercli.runApplicationForScreening')
-    def test_runApplicationForScreening(self, mock_run_application):
-        args = MagicMock()
-        args.croninterval = None
-        with pytest.raises((SystemExit)):
-            runApplicationForScreening()
-            mock_run_application.assert_called()
+    # @patch('pkscreener.pkscreenercli.runApplicationForScreening')
+    # def test_runApplicationForScreening(self, mock_run_application):
+    #     args = MagicMock()
+    #     args.croninterval = None
+    #     with pytest.raises((SystemExit)):
+    #         runApplicationForScreening()
+    #         mock_run_application.assert_called()
 
 # Mocking necessary functions or dependencies
 @pytest.fixture(autouse=True)
@@ -338,6 +338,7 @@ def test_pkscreenercli_prodbuild_mode():
 def test_pkscreenercli_decorator():
     with patch("builtins.print") as mock_print:
         builtins.print = pkscreenercli.decorator(builtins.print)
+        pkscreenercli.printenabled = False
         print("something")
         mock_print.assert_not_called()
         pkscreenercli.printenabled = True

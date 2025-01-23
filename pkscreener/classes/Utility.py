@@ -88,7 +88,7 @@ nseFetcher = nseStockDataFetcher()
 fetcher = Fetcher.screenerStockDataFetcher()
 
 
-artText = f"{getArtText()}\nv{VERSION}"
+artText = f"{getArtText()}\n"
 
 STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
 
@@ -111,7 +111,7 @@ def marketStatus():
         lngStatus = f"{lngStatus} | Next Bell: {colorText.WARN}{next_bell.replace('T',' ').split('+')[0]}{colorText.END}"
     return (lngStatus +"\n") if lngStatus is not None else "\n"
 
-art = colorText.GREEN + f"{getArtText()}\nv{VERSION}" + colorText.END + f" | {marketStatus()}"
+art = colorText.GREEN + f"{getArtText()}\n" + colorText.END + f"{marketStatus()}"
 
 lastScreened = os.path.join(
     Archiver.get_user_data_dir(), "last_screened_results.pkl"
@@ -154,7 +154,7 @@ class tools:
                 OutputControls().moveCursorToStartPosition()
                 
             if clearAlways or OutputControls().enableMultipleLineOutput:
-                art = colorText.GREEN + f"{getArtText()}\nv{VERSION}" + colorText.END + f" | {marketStatus()}"
+                art = colorText.GREEN + f"{getArtText()}\n" + colorText.END + f"{marketStatus()}"
                 OutputControls().printOutput(art.encode('utf-8').decode(STD_ENCODING), enableMultipleLineOutput=True)
         except Exception as e:# pragma: no cover
             default_logger().debug(e, exc_info=True)
@@ -349,14 +349,14 @@ class tools:
 
         # watermark 1
         opacity = int(256 * .6)
-        mark_width, mark_height = font.getsize(watermarkText)
+        _,_,mark_width, mark_height = font.getbbox(watermarkText)
         watermark = Image.new('RGBA', (mark_width, mark_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(watermark)
         draw.text((0, 0), text=watermarkText, font=font, fill=(128, 128, 128, opacity))
         angle = math.degrees(math.atan(height/width))
         watermark_diag = watermark.rotate(angle, expand=1)
         
-        mark_width_ver, mark_height_ver = font_vertical.getsize(watermarkText)
+        _,_,mark_width_ver, mark_height_ver = font_vertical.getbbox(watermarkText)
         watermark_ver = Image.new('RGBA', (mark_width_ver, mark_height_ver), (0, 0, 0, 0))
         draw = ImageDraw.Draw(watermark_ver)
         draw.text((0, 0), text=watermarkText, font=font_vertical, fill=(128, 128, 128, opacity))
@@ -370,7 +370,7 @@ class tools:
                 with open(logo_wm_path,"wb",) as f:
                     f.write(resp.content)
             logo_img = Image.open(logo_wm_path,formats=["PNG"]).convert('LA')
-            # logo_img = logo_img.resize((min(width,height),min(width,height)), Image.ANTIALIAS, reducing_gap=2)
+            # logo_img = logo_img.resize((min(width,height),min(width,height)), Image.LANCZOS, reducing_gap=2)
             lx, ly = logo_img.size
             plx = int((width - lx)/4)
             ply = int((height - ly)/3)
@@ -548,7 +548,7 @@ class tools:
                 detailLabel if detailLabel is not None else "  [+] 1 to 30 period gain/loss % for matching stocks on respective date from earlier predictions:[Example, 5% under 1-Pd, means the stock price actually gained 5% the next day from given date.]",
             ]
 
-            artfont_arttext_width, artfont_arttext_height = tools.getsize_multiline(font=artfont,srcText=artText+ f" | {marketStatus()}")
+            artfont_arttext_width, artfont_arttext_height = tools.getsize_multiline(font=artfont,srcText=artText+ f"{marketStatus()}")
             stdFont_oneLinelabel_width, stdFont_oneLinelabel_height = tools.getsize_multiline(font=stdfont,srcText=label)
             stdFont_scanResulttext_width, stdFont_scanResulttext_height = tools.getsize_multiline(font=stdfont,srcText=table) if len(table) > 0 else (0,0)
             unstyled_backtestsummary = tools.removeAllColorStyles(backtestSummary)
@@ -601,7 +601,7 @@ class tools:
             im = Image.new("RGB",(im_width,im_height),bgColor)
             draw = ImageDraw.Draw(im)
             # artwork
-            draw.text((startColValue, rowPixelRunValue), artText+ f" | {tools.removeAllColorStyles(marketStatus())}", font=artfont, fill=artColor)
+            draw.text((startColValue, rowPixelRunValue), artText+ f"{tools.removeAllColorStyles(marketStatus())}", font=artfont, fill=artColor)
             rowPixelRunValue += artfont_arttext_height + 1
             # Report title
             # reportTitle = tools.wrapFitLegendText(table,backtestSummary, reportTitle)
@@ -754,7 +754,7 @@ class tools:
                 # Let's go to the next line
                 rowPixelRunValue += artfont_line_height + 1
 
-            im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.ANTIALIAS, reducing_gap=2)
+            im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.LANCZOS, reducing_gap=2)
             im = tools.addQuickWatermark(im,xVertical,dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",dataSrcFontSize=ART_FONT_SIZE)
             im.save(filename, format=configManager.telegramImageFormat, bitmap_format=configManager.telegramImageFormat, optimize=True, quality=int(configManager.telegramImageQualityPercentage))
         except Exception as e:

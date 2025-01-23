@@ -25,7 +25,7 @@
 from multiprocessing import Event
 from queue import Queue
 from unittest.mock import Mock, patch
-
+import setuptools.dist
 import pytest
 from PKDevTools.classes.PKMultiProcessorClient import PKMultiProcessorClient
 from PKDevTools.classes.log import default_logger

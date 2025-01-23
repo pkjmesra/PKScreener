@@ -62,6 +62,8 @@ RUN pip3 install .
 RUN wget https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/courbd.ttf && \
   cp courbd.ttf /usr/local/share/fonts/courbd.ttf
 RUN export TERM=xterm
+COPY cve-fixes.txt .
+RUN pip3 install -r cve-fixes.txt
 ENV PKSCREENER_DOCKER=1
 
 # Clean up APT when done.

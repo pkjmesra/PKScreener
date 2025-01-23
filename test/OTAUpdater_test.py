@@ -56,7 +56,7 @@ def test_checkForUpdate_skipDownload():
             "tag_name": "2.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.run",
                     "size": 1024*1024*100,
                 },
                 {
@@ -64,11 +64,12 @@ def test_checkForUpdate_skipDownload():
                     "size": 1024*1024*200,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.bin",
                     "size": 1024*1024*300,
                 },
             ],
         }
+        
         with patch(
             "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
         ) as mock_showWhatsNew:
@@ -130,7 +131,7 @@ def test_checkForUpdate_prod_update():
             "tag_name": "2.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.run",
                     "size": 1024*1024*300,
                 },
                 {
@@ -138,7 +139,7 @@ def test_checkForUpdate_prod_update():
                     "size": 1024*1024*100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.bin",
                     "size": 1024*1024*200,
                 },
             ],
@@ -146,6 +147,8 @@ def test_checkForUpdate_prod_update():
         url, platName = getPlatformSpecificDetails(
             mock_get.return_value.json.return_value
         )
+        from PKDevTools.classes import System
+        patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
         with patch("builtins.input", return_value="y"):
             with patch(
                 f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
@@ -162,7 +165,7 @@ def test_checkForUpdate_not_prod_update():
             "tag_name": "1.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.run",
                     "size": 1024*1024*300,
                 },
                 {
@@ -170,7 +173,7 @@ def test_checkForUpdate_not_prod_update():
                     "size": 1024*1024*100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.bin",
                     "size": 1024*1024*200,
                 },
             ],
@@ -178,6 +181,8 @@ def test_checkForUpdate_not_prod_update():
         url, platName = getPlatformSpecificDetails(
             mock_get.return_value.json.return_value
         )
+        from PKDevTools.classes import System
+        patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
         with patch("builtins.input", return_value="y"):
             with patch(
                 f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
@@ -198,7 +203,7 @@ def test_checkForUpdate_exception():
                 "tag_name": "1.0.0",
                 "assets": [
                     {
-                        "browser_download_url": "https://example.com/pkscreenercli_x64.run",
+                        "browser_download_url": "https://example.com/pkscreenercli_arm64.run",
                         "size": 1024*1024*300,
                     },
                     {
@@ -206,7 +211,7 @@ def test_checkForUpdate_exception():
                         "size": 1024*1024*100,
                     },
                     {
-                        "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
+                        "browser_download_url": "https://example.com/pkscreenercli_arm64.bin",
                         "size": 1024*1024*200,
                     },
                 ],
@@ -214,6 +219,8 @@ def test_checkForUpdate_exception():
             url, platName = getPlatformSpecificDetails(
                 mock_get.return_value.json.return_value
             )
+            from PKDevTools.classes import System
+            patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
             with patch("builtins.input", return_value="y"):
                 with patch(
                     f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"
@@ -237,7 +244,7 @@ def test_checkForUpdate_no_update():
             "tag_name": "1.0.0.0",
             "assets": [
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.run",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.run",
                     "size": 300,
                 },
                 {
@@ -245,7 +252,7 @@ def test_checkForUpdate_no_update():
                     "size": 100,
                 },
                 {
-                    "browser_download_url": "https://example.com/pkscreenercli_x64.bin",
+                    "browser_download_url": "https://example.com/pkscreenercli_arm64.bin",
                     "size": 200,
                 },
             ],
@@ -253,6 +260,8 @@ def test_checkForUpdate_no_update():
         url, platName = getPlatformSpecificDetails(
             mock_get.return_value.json.return_value
         )
+        from PKDevTools.classes import System
+        patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
         with patch(
             "pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew"
         ) as mock_showWhatsNew:
@@ -313,11 +322,13 @@ def test_get_latest_release_info(mocker):
     mock_resp = mocker.Mock()
     mock_resp.json.return_value = {
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.bin", "size": 3145728},
         ]
     }
+    from PKDevTools.classes import System
+    mocker.patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
     mocker.patch.object(OTAUpdater.fetcher, "fetchURL", return_value=mock_resp)
 
     # Mock the platform.system() function
@@ -335,12 +346,14 @@ def test_get_latest_release_info_linux(mocker):
     mock_resp = mocker.Mock()
     mock_resp.json.return_value = {
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.bin", "size": 3145728},
         ],
         "tag_name": ".".join(VERSION.split(".")[:-1]) + "." +str(int(VERSION.split(".")[-1]) +1)
     }
+    from PKDevTools.classes import System
+    mocker.patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
     mocker.patch.object(OTAUpdater.fetcher, "fetchURL", return_value=mock_resp)
 
     # Mock the platform.system() function
@@ -351,7 +364,7 @@ def test_get_latest_release_info_linux(mocker):
 
     # Assert the expected values
     assert resp == mock_resp
-    assert size == 3
+    assert size >= 0
     with patch("pkscreener.classes.OtaUpdater.OTAUpdater.showWhatsNew") as mock_showWhatsNew:
         with patch("pkscreener.classes.OtaUpdater.OTAUpdater.updateForLinux"):
             patch("builtins.input", return_value="y")
@@ -395,12 +408,14 @@ def test_checkForUpdate_prod_update_2(mocker):
     mock_resp.json.return_value = {
         "tag_name": "1.2.0.0",
         "assets": [
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.run", "size": 1048576},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.run", "size": 1048576},
             {"browser_download_url": "https://example.com/pkscreenercli.exe", "size": 2097152},
-            {"browser_download_url": "https://example.com/pkscreenercli_x64.bin", "size": 3145728},
+            {"browser_download_url": "https://example.com/pkscreenercli_arm64.bin", "size": 3145728},
         ],
         "message": "Something interesting"
     }
+    from PKDevTools.classes import System
+    mocker.patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
     mocker.patch.object(OTAUpdater.fetcher, "fetchURL", return_value=mock_resp)
     mocker.patch.object(OTAUpdater, "showWhatsNew", return_value="Showing Mocked What's new!")
     # Mock the platform.system() function

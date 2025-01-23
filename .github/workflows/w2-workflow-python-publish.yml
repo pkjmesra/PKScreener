@@ -301,6 +301,18 @@ jobs:
           # auditwheel -v repair dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp${{ matrix.python }}-cp${{ matrix.python }}-linux_x86_64.whl --plat manylinux2014_x86_64
           # rm -rf dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp${{ matrix.python }}-cp${{ matrix.python }}-linux_x86_64.whl
 
+      # - name: Create macOS x64 wheels from compatible versions
+      #   shell: bash
+      #   if: ${{ matrix.platform_id == 'macosx_x86_64' }}
+      #   run: |
+      #     cp dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp310-cp310-macosx_10_9_x86_64.whl dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp${{ matrix.python }}-cp${{ matrix.python }}-macosx_10_9_x86_64.whl
+
+      # - name: Create macOS arm64 wheels from compatible versions
+      #   shell: bash
+      #   if: ${{ matrix.platform_id == 'macosx_arm64' }}
+      #   run: |
+      #     cp dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp310-cp310-macosx_13_0_arm64.whl dist/pkscreener-${{ steps.vars.outputs.THIS_VERSION }}-cp${{ matrix.python }}-cp${{ matrix.python }}-macosx_13_0_arm64.whl 
+    
       - name: Build and publish distribution 📦 to Test PyPI
         env:
           TWINE_USERNAME: ${{ secrets.TESTPYPI_USERNAME }}

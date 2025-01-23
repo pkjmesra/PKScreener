@@ -27,6 +27,7 @@ import os
 import platform
 import warnings
 from unittest.mock import ANY, Mock, patch
+import setuptools.dist
 
 import pkscreener.classes
 import pkscreener.classes.OtaUpdater
