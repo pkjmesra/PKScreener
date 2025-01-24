@@ -50,17 +50,17 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           ref: gh-pages
 
       - name: Set up Python 
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12
 
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
 
       - name: Cleanup before deployment
         timeout-minutes: 5
@@ -83,14 +83,14 @@ jobs:
           rm -rf Backtest-Reports/*_OneLine_Summary.html
 
       - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           # upload entire directory
           path: '.'
           
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4.0.5
 
       # - name: Configure .env.dev file
       #   shell: bash
