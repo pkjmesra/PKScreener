@@ -184,3 +184,36 @@ def test_toggleConfig_intraday(config_parser):
     assert tool.duration == '1h'
     assert tool.daysToLookback <= 50
     assert tool.cacheEnabled == True
+
+    tool.toggleConfig('35d', clearCache=True)
+    assert tool.duration == '35d'
+    assert tool.period == '1y'
+    tool.toggleConfig('35m', clearCache=True)
+    assert tool.duration == '35m'
+    assert tool.period == '1d'
+
+def test_CandleDurationInt(config_parser):
+    tool = tools()
+    tool.duration = '1d'
+    assert tool.candleDurationInt == 1
+    tool.duration = '320m'
+    assert tool.candleDurationInt == 320
+    tool.duration = '2y'
+    assert tool.candleDurationInt == 2
+    tool.duration = '50w'
+    assert tool.candleDurationInt == 50
+    tool.duration = 'max'
+    assert tool.candleDurationInt == "max"
+
+def test_CandlePeriodInt(config_parser):
+    tool = tools()
+    tool.period = '1d'
+    assert tool.candlePeriodInt == 1
+    tool.period = '320m'
+    assert tool.candlePeriodInt == 320
+    tool.period = '2y'
+    assert tool.candlePeriodInt == 2
+    tool.period = '50w'
+    assert tool.candlePeriodInt == 50
+    tool.period = 'max'
+    assert tool.candlePeriodInt == "max"

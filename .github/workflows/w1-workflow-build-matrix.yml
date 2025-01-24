@@ -150,11 +150,7 @@ jobs:
             DEP_BUILD: |
               cd .github/dependencies/
               pwd
-              tar -xzf ta-lib-0.6.4-src.tar.gz
-              cd ta-lib-0.6.4/
-              ./configure --prefix=/usr
-              make
-              sudo make install
+              sudo dpkg -i ta-lib_0.6.4_amd64.deb
               cd /home/runner/work/PKScreener/PKScreener/
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools
@@ -179,11 +175,7 @@ jobs:
             DEP_BUILD: |
               cd .github/dependencies/
               pwd
-              tar -xzf ta-lib-0.6.4-src.tar.gz
-              cd ta-lib-0.6.4/
-              ./configure --prefix=/usr --build=aarch64-unknown-linux-gnu
-              make
-              sudo make install
+              sudo dpkg -i ta-lib_0.6.4_arm64.deb
               cd /home/runner/work/PKScreener/PKScreener/
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools

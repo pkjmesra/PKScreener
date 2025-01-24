@@ -28,6 +28,7 @@ from unittest.mock import patch
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
+import numpy as np
 import pytest
 
 from pkscreener.classes import Pktalib
@@ -73,6 +74,7 @@ def prepPatch(keyCandle):
         "CDLDRAGONFLYDOJI",
         "CDLGRAVESTONEDOJI",
         "CDLENGULFING",
+        "CDLCUPANDHANDLE",
     ]
     cdl_obj = None
     for cdl in cdls:
@@ -124,6 +126,23 @@ def test_findPattern_morning_star(candle_patterns):
     assert dict["Pattern"] == "\033[32mMorning Star\033[0m"
     assert saveDict["Pattern"] == "Morning Star"
 
+def test_findPattern_cupNhandle(candle_patterns):
+    dict = {}
+    saveDict = {}
+    df = pd.DataFrame({
+            'Open': np.random.rand(1000) * 100,
+            'High': np.random.rand(1000) * 100,
+            'Low': np.random.rand(1000) * 100,
+            'Close': np.random.rand(1000) * 100,
+            'Volume': np.random.randint(1, 1000, size=1000),
+            'Date': pd.date_range(start='2023-01-01', periods=1000)
+        })
+    df.set_index('Date', inplace=True)
+    with prepPatch("CDLCUPANDHANDLE") as cdl_obj:
+        cdl_obj.return_value = True
+        assert candle_patterns.findPattern(df, dict, saveDict) is True
+    assert dict["Pattern"] == "\033[32mCup and Handle\033[0m"
+    assert saveDict["Pattern"] == "Cup and Handle"
 
 def test_findPattern_morning_dojistar(candle_patterns):
     dict = {}

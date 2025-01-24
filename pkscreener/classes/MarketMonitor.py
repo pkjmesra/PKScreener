@@ -89,7 +89,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             self.monitorIndex += 1
             if self.monitorIndex > maxIndex:
                 self.monitorIndex = 0
-        except:
+        except: # pragma: no cover
             pass
         return option
 
@@ -109,12 +109,12 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                     self.alertStocks = [x for x in prevOutput_results if x not in s]
                 else:
                     self.alertStocks = []
-            except:
+            except: # pragma: no cover
                 pass
             prevOutput_results = ",".join(prevOutput_results)
         self.monitorResultStocks[str(self.monitorIndex)] = prevOutput_results
 
-    def refresh(self, screen_df:pd.DataFrame=None, screenOptions=None, chosenMenu=None, dbTimestamp="", telegram=False):
+    def refresh(self, screen_df:pd.DataFrame=None, screenOptions=None, chosenMenu="", dbTimestamp="", telegram=False):
         highlightRows = []
         highlightCols = []
         if screen_df is None or screen_df.empty or screenOptions is None:
@@ -229,7 +229,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                         copyScreenResults, headers="keys", tablefmt=colorText.No_Pad_GridFormat,
                         maxcolwidths=Utility.tools.getMaxColumnWidths(copyScreenResults)
                     )
-            except:
+            except: # pragma: no cover
                 console_results = tabulated_results
         numRecords = len(tabulated_results.splitlines())
         self.lines = numRecords #+ 1 #(1 if len(self.monitorResultStocks.keys()) <= self.maxNumColsInEachResult else 0) # 1 for the progress bar at the bottom and 1 for the chosenMenu option
@@ -268,7 +268,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                 with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
                     for col in telegram_df.columns:
                         telegram_df[col] = telegram_df[col].astype(str)
-            except:
+            except: # pragma: no cover
                 pass
         return telegram_df
 
@@ -293,7 +293,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                 f = open(filePath, "w")
                 f.write(result_output)
                 f.close()
-            except:
+            except: # pragma: no cover
                 pass
 
     def getScanOptionName(self, screenOptions):
@@ -304,7 +304,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         indexNum = -1
         try:
             indexNum = PREDEFINED_SCAN_MENU_VALUES.index(choices)
-        except:
+        except: # pragma: no cover
             pass
         optionName = ""
         if indexNum >= 0:

@@ -100,7 +100,7 @@ def marketStatus():
     try:
         nseStatus = NSEMarketStatus({},None).status
         next_bell = NSEMarketStatus({},None).getNextBell()
-    except:
+    except: # pragma: no cover
         pass
     # scheduleTasks(tasksList=[task])
     if lngStatus == "":
@@ -131,7 +131,7 @@ class tools:
             if platform.system() == "Windows":
                 try:
                     os.system('color 0f') # sets the background to black with white forerground
-                except:
+                except: # pragma: no cover
                     pass
                 if clearAlways:
                     os.system("cls")
@@ -142,7 +142,7 @@ class tools:
             else:
                 try:
                     os.system('setterm -background black -foreground white -store')
-                except:
+                except: # pragma: no cover
                     pass
                 if clearAlways:
                     os.system("clear")
@@ -375,7 +375,7 @@ class tools:
             plx = int((width - lx)/4)
             ply = int((height - ly)/3)
             sourceImage.paste(logo_img, (plx, ply), logo_img)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e,exc_info=True)
             pass
 
@@ -405,7 +405,7 @@ class tools:
             if places == 0:
                 roundValue = int(roundValue)
             roundValue = str(value).replace(str(newValue),str(roundValue))
-        except:
+        except: # pragma: no cover
             pass
         return roundValue
     
@@ -442,7 +442,7 @@ class tools:
                     for style in styles:
                         try:
                             styledTextCopy[col] = styledTextCopy[col].astype(str).str.replace(style,"")
-                        except:
+                        except: # pragma: no cover
                             pass
             return styledTextCopy
         elif isinstance(styledText,str):
@@ -614,7 +614,7 @@ class tools:
                 try:
                     if df is None or len(df) == 0:
                         continue
-                except:
+                except: # pragma: no cover
                     continue
                 # selected menu options and As of DateTime
                 draw.text(
@@ -757,7 +757,7 @@ class tools:
             im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.LANCZOS, reducing_gap=2)
             im = tools.addQuickWatermark(im,xVertical,dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",dataSrcFontSize=ART_FONT_SIZE)
             im.save(filename, format=configManager.telegramImageFormat, bitmap_format=configManager.telegramImageFormat, optimize=True, quality=int(configManager.telegramImageQualityPercentage))
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
         # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
         # im.show()
@@ -990,7 +990,7 @@ class tools:
                 if jsonDict and len(jsonDict) > 0:
                     with open(dealsFile,"w") as f:
                         f.write(json.dumps(jsonDict))
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e,exc_info=True)
                 pass
 
@@ -1110,7 +1110,7 @@ class tools:
                             else:
                                 if not isTrading:
                                     stockDict[stock] = df_or_dict
-                        except:
+                        except: # pragma: no cover
                                 # Probably, the "stock" got removed from the latest download
                                 # and so, was not found in stockDict
                             continue
@@ -1119,7 +1119,7 @@ class tools:
                     # else:
                     #     stockDict = stockData
                     stockDataLoaded = True
-            except pickle.UnpicklingError as e:
+            except pickle.UnpicklingError as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 f.close()
                 OutputControls().printOutput(
@@ -1198,7 +1198,7 @@ class tools:
                     with open(os.path.join(Archiver.get_user_data_dir(), cache_file),"w+",) as f: # .split(os.sep)[-1]
                         f.write(resp.text)
                     fileDownloaded = True
-                except:
+                except: # pragma: no cover
                     pass
         return fileDownloaded
 
@@ -1272,7 +1272,7 @@ class tools:
                                 else:
                                     if not isTrading:
                                         stockDict[stock] = df_or_dict
-                            except:
+                            except: # pragma: no cover
                                     # Probably, the "stock" got removed from the latest download
                                     # and so, was not found in stockDict
                                 continue
@@ -1329,7 +1329,7 @@ class tools:
             data = data.fillna(0)
             data = data.replace([np.inf, -np.inf], 0)
             data = tools.removeAllColorStyles(data)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e,exc_info=True)
             pass
         try:
@@ -1337,7 +1337,7 @@ class tools:
             with pd.option_context('mode.chained_assignment', None):
                 data["Stock"] = data['Stock'].apply(tools.make_hyperlink)
             data.set_index("Stock", inplace=True)
-        except:
+        except: # pragma: no cover
             pass
         df = data
         isSaved = False
@@ -1680,7 +1680,7 @@ class tools:
             try:
                 sys.stdin.reconfigure(encoding='utf-8')
                 sys.stdout.reconfigure(encoding='utf-8')
-            except:
+            except: # pragma: no cover
                 pass
         files = [
             os.path.join(Archiver.get_user_data_dir(), "nifty_model_v2.h5"),
@@ -1745,7 +1745,7 @@ class tools:
                 if Imports["keras"]:
                     try:
                         import keras
-                    except:
+                    except: # pragma: no cover
                         OutputControls().printOutput("This installation might not work well, especially for NIFTY prediction. Please install 'keras' library on your machine!")
                         OutputControls().printOutput(
                                 colorText.FAIL

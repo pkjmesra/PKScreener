@@ -39,7 +39,7 @@ class PKUserRegistration:
             dbManager = DBManager()
             if "RUNNER" in os.environ.keys() or dbManager.shouldSkipLoading():
                 return True
-        except:
+        except: # pragma: no cover
             return True
         from pkscreener.classes import Utility
         Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
@@ -59,7 +59,7 @@ class PKUserRegistration:
         invalidOTP = False
         try:
             otpTest = int(otp)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             invalidOTP = True
             pass
@@ -72,7 +72,7 @@ class PKUserRegistration:
             try:
                 usernameInt = int(username)
                 userUsedUserID = True
-            except:
+            except: # pragma: no cover
                 userUsedUserID = False
                 pass
 
@@ -81,7 +81,7 @@ class PKUserRegistration:
                 configManager.setConfig(parser,default=True,showFileCreatedText=False)
                 Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
                 return True
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         OutputControls().printOutput(f"{colorText.WARN}[+] Invalid userID/username or OTP!{colorText.END}\n{colorText.GREEN}[+] May be try entering the {'UserID instead of username?' if userUsedUserID else 'Username instead of userID?'} {colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")

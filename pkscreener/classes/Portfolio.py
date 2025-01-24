@@ -131,7 +131,7 @@ class Portfolio(PKScheduledTaskProgress):
                             security.quantity = -1
                             security.growth = priceRise * abs(security.quantity)
                             self.removeSecurity(security=security)
-                except:
+                except: # pragma: no cover
                     pass
                     continue
         task.progress = task.total

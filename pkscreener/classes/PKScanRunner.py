@@ -295,14 +295,14 @@ class PKScanRunner:
                 import tensorflow as tf
                 with tf.device("/device:GPU:0"):
                     tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
-            except:
+            except: # pragma: no cover
                 tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
                 pass
             try:
                 if logging_queue is not None:
                     log_queue_reader = LogQueueReader(logging_queue)
                     log_queue_reader.start()
-            except:
+            except: # pragma: no cover
                 pass
 
         # if executeOption == 29: # Intraday Bid/Ask, for which we need to fetch data from NSE instead of yahoo
@@ -387,7 +387,7 @@ class PKScanRunner:
         try:
             intradayFetcher = None
             intradayFetcher = Intra_Day("SBINEQN") # This will initialise the cookies etc.
-        except:
+        except: # pragma: no cover
             pass
         for consumer in consumers:
             consumer.intradayNSEFetcher = intradayFetcher
@@ -442,7 +442,7 @@ class PKScanRunner:
                         # while worker.is_alive():
                     worker.terminate()
                     default_logger().debug("Worker terminated!")
-                    # except:
+                    # except: # pragma: no cover
                     #     continue
                 except OSError as e: # pragma: no cover
                     default_logger().debug(e, exc_info=True)

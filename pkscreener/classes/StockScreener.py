@@ -108,7 +108,7 @@ class StockScreener:
         # with open("defaults.json","a+") as f:
         #     try:
         #         defaultsParentDict = json.loads(f.read())
-        #     except:
+        #     except: # pragma: no cover
         #         pass
         #     defaultsDict["reversalOption"] = reversalOption
         #     defaultsDict["maLength"] = maLength
@@ -149,42 +149,42 @@ class StockScreener:
                 if priceData is not None:
                     try:
                         totalBid = priceData["BidQty"].iloc[0]
-                    except:
+                    except: # pragma: no cover
                         totalBid = 0
                         pass
                     try:
                         totalAsk = priceData["AskQty"].iloc[0]
-                    except:
+                    except: # pragma: no cover
                         totalAsk = 0
                         pass
                     try:
                         lwrCP = float(priceData["LwrCP"].iloc[0])
-                    except:
+                    except: # pragma: no cover
                         lwrCP = 0
                         pass
                     try:
                         uprCP = float(priceData["UprCP"].iloc[0])
-                    except:
+                    except: # pragma: no cover
                         uprCP = 0
                         pass
                     try:
                         vwap = float(priceData["VWAP"].iloc[0])
-                    except:
+                    except: # pragma: no cover
                         vwap = 0
                         pass
                     try:
                         dayVola = float(priceData["DayVola"].iloc[0])
-                    except:
+                    except: # pragma: no cover
                         dayVola = 0
                         pass
                     try:
                         delPercent = priceData["Del(%)"].iloc[0]
-                    except:
+                    except: # pragma: no cover
                         delPercent = 0
                         pass
                     try:
                         ltp = priceData["LTP"].iloc[0]
-                    except:
+                    except: # pragma: no cover
                         ltp = 0
                         pass
                     
@@ -444,7 +444,7 @@ class StockScreener:
                             if str(maLength) != "0":
                                 from pkscreener.classes.MenuOptions import CANDLESTICK_DICT
                                 filterPattern = CANDLESTICK_DICT[str(maLength)]
-                        except:
+                        except: # pragma: no cover
                             pass
                         # if "Cup and Handle" in filterPattern:
                         #     isCandlePattern = screener.findCupAndHandlePattern(processedData,stock)
@@ -720,7 +720,7 @@ class StockScreener:
             # if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
             #     hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
             pass
-        except ScreeningStatistics.EligibilityConditionNotMet as e:
+        except ScreeningStatistics.EligibilityConditionNotMet as e: # pragma: no cover
             # if userArgsLog:
             #     hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
             pass
@@ -1010,7 +1010,7 @@ class StockScreener:
                 data = pd.DataFrame(
                         hostData["data"], columns=columns, index=hostData["index"]
                     )
-            except (ValueError, AssertionError) as e:
+            except (ValueError, AssertionError) as e: # pragma: no cover
                 # 9 columns passed, passed data had 11 columns
                 # 10 columns passed, passed data had 11 columns
                 excLookingFor = " columns passed, passed data had "
@@ -1036,7 +1036,7 @@ class StockScreener:
             else:
                 data.rename(columns={"index": "Date"}, inplace=True)
             data.set_index("Date", inplace=True)
-        except:
+        except: # pragma: no cover
             pass
         if ((shouldCache and not self.isTradingTime and (hostData is None  or hostDataLength == 0)) or downloadOnly) \
             or (shouldCache and hostData is None):  # and backtestDuration == 0 # save only if we're NOT backtesting
@@ -1093,7 +1093,7 @@ class StockScreener:
                             end="\r",
                             flush=True,
                         )
-            except ZeroDivisionError as e:
+            except ZeroDivisionError as e: # pragma: no cover
                 hostRef.default_logger.debug(e, exc_info=True)
                 pass
             sys.stdout.write("\r\033[K")

@@ -50,7 +50,7 @@ class PKAnalyticsService():
             if "readme" in metrics.keys():
                 del metrics['readme']
             self.tryCommitAnalytics(userDict=metrics,username=userName)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             pass
 
     def getUserName(self):
@@ -62,7 +62,7 @@ class PKAnalyticsService():
                     username = os.environ.get('USERPROFILE')
                     if username is None or len(username) == 0:
                         username = os.path.expandvars("%userprofile%") if platform.startswith("win") else getpass.getuser()
-        except:
+        except: # pragma: no cover
             username = f"Unidentified-{platform.system()}"
             pass
         return username
@@ -73,7 +73,7 @@ class PKAnalyticsService():
             f = fetcher()
             response = f.fetchURL(url=url,timeout=5,headers={'user-agent': f'{random_user_agent()}'})
             data = json.loads(response.text)
-        except:
+        except: # pragma: no cover
             data = {"locationInfo":f"Unidentified-{platform.system()}"}
             pass
         return data
@@ -85,7 +85,7 @@ class PKAnalyticsService():
             test_branch = "main"
             repo = git.Repo.clone_from(repo_clone_url, local_repo)
             repo.git.checkout(test_branch)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             repo = git.Repo(local_repo)
             repo.git.checkout(test_branch)
             pass

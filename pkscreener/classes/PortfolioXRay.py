@@ -833,7 +833,7 @@ def formatGridOutput(df,replacenan=True):
     for col in df.columns:
         try:
             df[col] = df[col].astype(float).fillna(0)
-        except ValueError as e:
+        except ValueError as e: # pragma: no cover
             if len(str(e).split("-")) < 2:
                 # We want to allow value "-" in column values
                 # We don't want to allow '2024-12-03' or 'RSI >=50' or "Trends-50-to-60"

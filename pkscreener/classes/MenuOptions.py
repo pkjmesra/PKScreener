@@ -595,6 +595,8 @@ class menus:
     
     @staticmethod
     def allMenus(topLevel="X",index=12):
+        if index > MAX_MENU_OPTION:
+            return [], {}
         menuOptions = [topLevel]
         indexOptions =[index]
         # Ignore the option "0" and the last 3 menu keys because 
@@ -670,7 +672,11 @@ class menus:
                                                         for level5ChildMenu in level5ChildMenus:
                                                             if level5ChildMenu.menuText in ["Any/All","Cancel"]:
                                                                 continue
-                                                            level6ChildMenus  = menuItems.renderForMenu(level5ChildMenu,asList=True)
+                                                            try:
+                                                                level6ChildMenus  = menuItems.renderForMenu(level5ChildMenu,asList=True)
+                                                            except: # pragma: no cover
+                                                                level6ChildMenus = None
+                                                                pass
                                                             if level6ChildMenus is None:
                                                                 runOption = f"{menuOption}:{indexOption}:{childMenu.menuKey}:{level1ChildMenu.menuKey}:{level2ChildMenu.menuKey}:{level3ChildMenu.menuKey}:{level4ChildMenu.menuKey}:{level5ChildMenu.menuKey}:D:D:D:D:D"
                                                                 runOptions.append(runOption)
@@ -1098,7 +1104,7 @@ class menus:
                 if checkUpdate:
                     try:
                         OTAUpdater.checkForUpdate(VERSION, skipDownload=True)
-                    except:
+                    except: # pragma: no cover
                         pass
             return menuText
         

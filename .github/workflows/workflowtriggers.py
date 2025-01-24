@@ -233,7 +233,7 @@ try:
             marketStatusFromNSE = NSEMarketStatus({},None).status
             willTradeOnDate = PKDateUtilities.willNextTradeOnDate()
             wasTradedToday = PKDateUtilities.wasTradedOn()
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             print(e)
             pass
         aset_output("MARKET_STATUS", marketStatus)

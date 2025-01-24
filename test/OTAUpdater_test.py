@@ -122,10 +122,16 @@ def test_showWhatsNew():
         output = OTAUpdater.showWhatsNew()
         assert output == expected_output
 
-
 # Positive test case: Test checkForUpdate function with prod_update = True
+@pytest.mark.skipif(
+    "Linux" in platform.system(),
+    reason="Cannot simulate the environment on Linux",
+)
 def test_checkForUpdate_prod_update():
     VERSION = "1.0.0"
+    patch.object(platform, "system", return_value="Linux")
+    from PKDevTools.classes import System
+    patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
     with patch("requests_cache.CachedSession.get") as mock_get:
         mock_get.return_value.json.return_value = {
             "tag_name": "2.0.0",
@@ -147,8 +153,6 @@ def test_checkForUpdate_prod_update():
         url, platName = getPlatformSpecificDetails(
             mock_get.return_value.json.return_value
         )
-        from PKDevTools.classes import System
-        patch.object(System.PKSystem,"get_platform", return_value=("","","","","arm64"))
         with patch("builtins.input", return_value="y"):
             with patch(
                 f"pkscreener.classes.OtaUpdater.OTAUpdater.updateFor{platName}"

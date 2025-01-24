@@ -22,21 +22,21 @@
 #     SOFTWARE.
 
 # """
-name: 11. pkscreener Test Coverage
+name: 11.1 pkscreener Test Coverage on Ubuntu Only
 
 on:
   # schedule:
   #   #   # Nightly at 1:32 A.M. UTC
   #   - cron: "32 1 */1 * *"
-  # push:
-  #   branches:
-  #     - main
-  #     # Release branches of the format 0.45.20240910.554 
-  #     - "[0-9]+.[0-9]+.[0-9]+.[0-9]"
-  pull_request:
+  push:
     branches:
       - main
-      - "[0-9]+.[0-9]+.[0-9]+.[0-9]"
+      # Release branches of the format 0.45.20240910.554 
+      # - "[0-9]+.[0-9]+.[0-9]+.[0-9]"
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - "[0-9]+.[0-9]+.[0-9]+.[0-9]"
   workflow_dispatch:
     inputs:
       branch-name:
@@ -103,58 +103,58 @@ jobs:
               coveralls --service=github
               # coverage run --source=${package_name} --branch -m pytest --cov=pkscreener test/
               # coveralls --service=github
-          - os: windows-latest
-            TARGET: Windows
-            CMD_BUILD: |
-              echo Building
-            DEP_BUILD: |
-              python3 -m pip install --upgrade pip
-              echo Installing TA-lib...
-              cd .github/dependencies/
-              if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-                pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-              elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-                pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-              elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-                pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-              elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-                pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-              fi
-              cd ..
-              cd ..
-              python3 -m pip install --upgrade pip
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              pip3 install .
-            TEST_BUILD: |
-              python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --disable-warnings --durations=0
-          - os: macos-latest
-            TARGET: MacOS
-            CMD_BUILD: |
-              rm -rf .pytest_cache
-              rm -rf pkscreener/__pycache__
-              rm -rf test/__pycache__
-              rm -rf test/.coverage
-              rm -rf .coverage
-              find . -name "*.pyc" -exec rm -rf {} \;
-              find . -name ".coverage.*" -exec rm -rf {} \;
-            DEP_BUILD: |
-              brew install ta-lib
-              arch -arm64 brew install ta-lib
-              python3 -m pip install --upgrade pip
-              brew install python-setuptools
-              pip3 uninstall -y PKNSETools
-              pip3 uninstall -y PKDevTools
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
-              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
-              python3 -m pip install --no-cache-dir ta-lib
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              pip3 install .
-            TEST_BUILD: |
-              python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --disable-warnings --durations=0
+          # - os: windows-latest
+          #   TARGET: Windows
+          #   CMD_BUILD: |
+          #     echo Building
+          #   DEP_BUILD: |
+          #     python3 -m pip install --upgrade pip
+          #     echo Installing TA-lib...
+          #     cd .github/dependencies/
+          #     if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
+          #       pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+          #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+          #       pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+          #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+          #       pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+          #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+          #       pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+          #     fi
+          #     cd ..
+          #     cd ..
+          #     python3 -m pip install --upgrade pip
+          #     pip3 install -r requirements.txt
+          #     pip3 install -r requirements-dev.txt
+          #     pip3 install .
+          #   TEST_BUILD: |
+          #     python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --disable-warnings --durations=0
+          # - os: macos-latest
+          #   TARGET: MacOS
+          #   CMD_BUILD: |
+          #     rm -rf .pytest_cache
+          #     rm -rf pkscreener/__pycache__
+          #     rm -rf test/__pycache__
+          #     rm -rf test/.coverage
+          #     rm -rf .coverage
+          #     find . -name "*.pyc" -exec rm -rf {} \;
+          #     find . -name ".coverage.*" -exec rm -rf {} \;
+          #   DEP_BUILD: |
+          #     brew install ta-lib
+          #     arch -arm64 brew install ta-lib
+          #     python3 -m pip install --upgrade pip
+          #     brew install python-setuptools
+          #     pip3 uninstall -y PKNSETools
+          #     pip3 uninstall -y PKDevTools
+          #     pip3 install -r requirements.txt
+          #     pip3 install -r requirements-dev.txt
+          #     export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+          #     export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+          #     python3 -m pip install --no-cache-dir ta-lib
+          #     pip3 install -r requirements.txt
+          #     pip3 install -r requirements-dev.txt
+          #     pip3 install .
+          #   TEST_BUILD: |
+          #     python3 -m pytest -vv --durations-min=0.005 --cov-config=.coveragerc --disable-warnings --durations=0
 
     steps:
       - uses: actions/checkout@v4
@@ -185,16 +185,14 @@ jobs:
         with:
           python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
-      - name: Load Cache for Linux Dependencies
+      - name: Restore Dependencies from Cache
         uses: actions/cache@v4
-        if: startsWith(runner.os, 'Linux')
+        continue-on-error: True
         with:
-          path: |
-            /usr/include/ta-lib
-            /usr/bin/ta-lib-config
-          key: ${{ runner.os }}-talib
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-talib
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies for ${{ matrix.TARGET }}
         shell: bash

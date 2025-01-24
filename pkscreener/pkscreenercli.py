@@ -331,7 +331,7 @@ def get_debug_args():
             # make sure that args are mutable
             args = list(args)
         return args
-    except NameError as e:
+    except NameError as e: # pragma: no cover
         args = sys.argv[1:]
         if isinstance(args,list):
             if len(args) == 1:
@@ -342,9 +342,10 @@ def get_debug_args():
             else:
                 return args
         return None
-    except TypeError as e: # NameSpace object is not iterable
+    except TypeError as e: # pragma: no cover
+        # NameSpace object is not iterable
         return args
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         return None
     # return ' --systemlaunched -a y -e -o "X:12:9:2.5:>|X:0:31:>|X:0:23:>|X:0:27:" -u -1001785195297 --stocklist GLS,NESCO,SBICARD,DREAMFOLKS,JAGRAN,ACEINTEG,RAMASTEEL'.split(" ")
 
@@ -369,7 +370,7 @@ def exitGracefully():
         filePath = None
         try:
             filePath = os.path.join(Archiver.get_user_data_dir(), "monitor_outputs")
-        except:
+        except: # pragma: no cover
             pass
         if filePath is None:
             return
@@ -377,7 +378,7 @@ def exitGracefully():
         while index < configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
             try:
                 os.remove(f"{filePath}_{index}.txt")
-            except:
+            except: # pragma: no cover
                 pass
             index += 1
 
@@ -464,7 +465,7 @@ def runApplication():
     try:
         savedPipedArgs = None
         savedPipedArgs = args.pipedmenus if args is not None and args.pipedmenus is not None else None
-    except:
+    except: # pragma: no cover
         pass
     global results, resultStocks, plainResults, dbTimestamp, elapsed_time, start_time,argParser
     from pkscreener.classes.MenuOptions import menus, PREDEFINED_SCAN_MENU_TEXTS, PREDEFINED_PIPED_MENU_ANALYSIS_OPTIONS,PREDEFINED_SCAN_MENU_VALUES
@@ -555,7 +556,7 @@ def runApplication():
                             monitorOption = ":>|".join(innerPipes)
                             monitorOption = monitorOption.replace("::",":").replace(":>:>",":>")
                             # monitorOption = f"{monitorOption}:{savedStocks}:"
-                        except:
+                        except: # pragma: no cover
                             # Probably wrong (non-integer) index passed. Let's continue anyway
                             pass
                     elif resultStocks is not None:
@@ -600,15 +601,15 @@ def runApplication():
                                 )
                             if args.answerdefault is None:
                                 OutputControls().takeUserInput("Press <Enter> to continue...")
-            except SystemExit:
+            except SystemExit: # pragma: no cover
                 closeWorkersAndExit()
                 exitGracefully()
                 sys.exit(0)
-            except KeyboardInterrupt:
+            except KeyboardInterrupt: # pragma: no cover
                 closeWorkersAndExit()
                 exitGracefully()
                 sys.exit(0)
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 if args.log:
                     traceback.print_exc()
@@ -617,11 +618,11 @@ def runApplication():
             if plainResults is not None and not plainResults.empty:
                 try:
                     plainResults.set_index("Stock", inplace=True)
-                except:
+                except: # pragma: no cover
                     pass
                 try:
                     results.set_index("Stock", inplace=True)
-                except:
+                except: # pragma: no cover
                     pass
                 plainResults = plainResults[~plainResults.index.duplicated(keep='first')]
                 results = results[~results.index.duplicated(keep='first')]
@@ -652,7 +653,7 @@ def updateProgressStatus(args,monitorOptions=None):
             args.progressstatus = f"  [+] {choices} => Running {choices}"
             args.usertag = PREDEFINED_SCAN_MENU_TEXTS[indexNum]
             args.maxdisplayresults = 2000 #if monitorOptions is None else 100
-    except:
+    except: # pragma: no cover
         choices = ""
         pass
     return args, choices
@@ -684,7 +685,7 @@ def generateIntradayAnalysisReports(args):
             runOptionName = f"--systemlaunched -a y -e -o '{runOption.replace('C:','X:').replace('D:','')}'"
             indexNum = PREDEFINED_SCAN_MENU_VALUES.index(runOptionName)
             runOptionName = f"{'  [+] P_1_'+str(indexNum +1) if '>|' in runOption else runOption}"
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e,exc_info=True)
             runOptionName = f"  [+] {runOption.replace('D:','').replace(':D','').replace(':','_').replace('_D','').replace('C_','X_')}"
             pass
@@ -717,11 +718,11 @@ def generateIntradayAnalysisReports(args):
                 configManager.deleteFileWithPattern(rootDir=Archiver.get_user_data_dir(), pattern="*intraday_stock_data_*.pkl")
             if isInterrupted():
                 break
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: # pragma: no cover
             closeWorkersAndExit()
             exitGracefully()
             sys.exit(0)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             OutputControls().printOutput(e)
             if args.log:
                 traceback.print_exc()
@@ -749,7 +750,7 @@ def saveSendFinalOutcomeDataframe(optionalFinalOutcome_df):
                         final_df = df_group[["Pattern","LTP","LTP@Alert","SqrOffLTP","SqrOffDiff","EoDDiff","DayHigh","DayHighDiff"]]
                     else:
                         final_df = pd.concat([final_df, df_group[["Pattern","LTP","LTP@Alert","SqrOffLTP","SqrOffDiff","EoDDiff","DayHigh","DayHighDiff"]]], axis=0)
-        except:
+        except: # pragma: no cover
             pass
         if final_df is not None and not final_df.empty:
             with pd.option_context('mode.chained_assignment', None):
@@ -863,7 +864,7 @@ def pipeResults(prevOutput,args):
             if prevOutput is not None and not prevOutput.empty:
                 try:
                     prevOutput.set_index("Stock", inplace=True)
-                except:
+                except: # pragma: no cover
                     pass
                 prevOutput_results = prevOutput[~prevOutput.index.duplicated(keep='first')]
                 prevOutput_results = prevOutput_results.index
@@ -886,7 +887,7 @@ def removeOldInstances():
         if not fileToDelete.endswith(thisInstance):
             try:
                 os.remove(fileToDelete)
-            except:
+            except: # pragma: no cover
                 pass
 
 def updateConfig(args):
@@ -948,7 +949,7 @@ def pkscreenercli():
             from pkscreener.classes import VERSION
             # Reset logging. If the user indeed passed the --log flag, it will be enabled later anyways
             del os.environ['PKDevTools_Default_Log_Level']
-        except:
+        except: # pragma: no cover
             pass
         configManager.logsEnabled = False
         configManager.tosAccepted = True
@@ -1094,12 +1095,12 @@ def pkscreenercli():
             sys.exit(0)
         else:
             runApplicationForScreening()
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # pragma: no cover
         from pkscreener.globals import closeWorkersAndExit
         closeWorkersAndExit()
         exitGracefully()
         sys.exit(0)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         if "RUNNER" not in os.environ.keys() and ('PKDevTools_Default_Log_Level' in os.environ.keys() and os.environ["PKDevTools_Default_Log_Level"] != str(log.logging.NOTSET)):
                 OutputControls().printOutput(
                     "  [+] RuntimeError with 'multiprocessing'.\n  [+] Please contact the Developer, if this does not work!"

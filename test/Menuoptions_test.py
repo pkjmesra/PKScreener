@@ -22,8 +22,10 @@
     SOFTWARE.
 
 """
-import pytest
-from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict
+import unittest
+from unittest.mock import patch, MagicMock
+
+from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict, Pin_MenuDict, CANDLESTICK_DICT, MenuRenderStyle
 
 class TestMenu:
     def test_create(self):
@@ -166,3 +168,135 @@ class TestMenus:
         assert m.renderForMenu(selectedMenu=menu(parent=menu(menuKey="7"),level=3,menuKey="9")) is not None
         assert m.renderForMenu(selectedMenu=menu(parent=menu(menuKey="40"),level=3,menuKey="1")) is not None
         assert m.renderForMenu(selectedMenu=menu(parent=menu(menuKey="40"),level=3,menuKey="2")) is not None
+
+class TestAllMenus(unittest.TestCase):
+
+    @patch('PKDevTools.classes.PKDateUtilities')
+    @patch('pkscreener.classes.MenuOptions.menus')
+    def test_all_menus_positive(self, mock_menus, mock_PKDateUtilities):
+        # Setup mock data
+        mock_PKDateUtilities.isTradingTime.return_value = True
+        mock_menu_instance = MagicMock()
+        mock_menus.return_value = mock_menu_instance
+        
+        # Mocking the behavior of renderForMenu
+        mock_menu_instance.renderForMenu.side_effect = [
+            [menu(), menu()],  # First call
+            None,                  # Second call (indicating no child menus)
+            [menu()],     # Third call
+            None,                  # Fourth call
+            [menu()],     # Fifth call
+            None,                  # Sixth call
+            [menu()],     # Seventh call
+            None                   # Eighth call
+        ]
+        
+        runOptions, runKeyOptions = menus.allMenus()
+        
+        # Assertions to validate the output
+        self.assertIsInstance(runOptions, list)
+        self.assertIsInstance(runKeyOptions, dict)
+        self.assertGreater(len(runOptions), 0)
+        self.assertGreater(len(runKeyOptions), 0)
+
+    @patch('PKDevTools.classes.PKDateUtilities')
+    @patch('pkscreener.classes.MenuOptions.menus')
+    def test_all_menus_negative(self, mock_menus, mock_PKDateUtilities):
+        # Setup mock data
+        mock_PKDateUtilities.isTradingTime.return_value = False
+        mock_menu_instance = MagicMock()
+        mock_menus.return_value = mock_menu_instance
+        
+        # Mocking the behavior of renderForMenu to return empty lists
+        mock_menu_instance.renderForMenu.return_value = []
+        
+        runOptions, runKeyOptions = menus.allMenus()
+        
+        # Assertions to validate the output
+        self.assertEqual(runOptions, [])
+        self.assertEqual(runKeyOptions, {})
+
+    @patch('PKDevTools.classes.PKDateUtilities')
+    def test_all_menus_edge_case(self, mock_PKDateUtilities):
+        # Edge case: No options available
+        mock_PKDateUtilities.isTradingTime.return_value = False
+        
+        runOptions, runKeyOptions = menus.allMenus(topLevel="NonExistent", index=99)
+        
+        # Assertions to validate the output
+        self.assertEqual(runOptions, [])
+        self.assertEqual(runKeyOptions, {})
+
+class TestMenuRendering(unittest.TestCase):
+    # @patch('pkscreener.classes.MenuOptions.Pin_MenuDict') 
+    @patch('pkscreener.classes.MenuOptions.menus.renderMenuFromDictionary')  # Mocking the renderMenuFromDictionary method
+    def test_renderPinnedMenu_positive(self, mock_render):
+        m = menus()
+        # Arrange
+        mock_render.return_value = "Rendered Menu"
+        substitutes = ["Sub1", "Sub2"]
+        skip = ["Skip1"]
+
+        # Act
+        result = m.renderPinnedMenu(substitutes=substitutes, skip=skip)
+
+        # Assert
+        self.assertEqual(result, "Rendered Menu")
+        mock_render.assert_called_once_with(
+            dict=Pin_MenuDict,
+            exceptionKeys=["M"],
+            coloredValues=(["M"]),
+            defaultMenu="M",
+            substitutes=substitutes,
+            skip=skip
+        )
+
+    # @patch('pkscreener.classes.MenuOptions.Pin_MenuDict')
+    @patch('pkscreener.classes.MenuOptions.menus.renderMenuFromDictionary')
+    def test_renderPinnedMenu_negative(self, mock_render):
+        m = menus()
+        # Arrange
+        mock_render.side_effect = Exception("Error rendering menu")
+        substitutes = []
+        skip = []
+
+        # Act & Assert
+        with self.assertRaises(Exception) as context:
+            m.renderPinnedMenu(substitutes=substitutes, skip=skip)
+        self.assertEqual(str(context.exception), "Error rendering menu")
+
+    # @patch('pkscreener.classes.MenuOptions.CANDLESTICK_DICT')
+    @patch('pkscreener.classes.MenuOptions.menus.renderMenuFromDictionary')
+    def test_renderCandleStickPatterns_positive(self, mock_render):
+        m = menus()
+        # Arrange
+        mock_render.return_value = "Rendered Candlestick Patterns"
+        skip = ["SkipPattern"]
+
+        # Act
+        result = m.renderCandleStickPatterns(skip=skip)
+
+        # Assert
+        self.assertEqual(result, "Rendered Candlestick Patterns")
+        mock_render.assert_called_once_with(
+            dict=CANDLESTICK_DICT,
+            exceptionKeys=["0", "M"],
+            coloredValues=(["0"]),
+            defaultMenu="0",
+            renderStyle=MenuRenderStyle.TWO_PER_ROW,
+            optionText="  [+] Would you like to filter by a specific Candlestick pattern? Select filter:",
+            skip=skip
+        )
+
+    # @patch('pkscreener.classes.MenuOptions.CANDLESTICK_DICT')
+    @patch('pkscreener.classes.MenuOptions.menus.renderMenuFromDictionary')
+    def test_renderCandleStickPatterns_negative(self, mock_render):
+        m = menus()
+        # Arrange
+        mock_render.side_effect = Exception("Error rendering candlestick patterns")
+        skip = []
+
+        # Act & Assert
+        with self.assertRaises(Exception) as context:
+            m.renderCandleStickPatterns(skip=skip)
+        self.assertEqual(str(context.exception), "Error rendering candlestick patterns")

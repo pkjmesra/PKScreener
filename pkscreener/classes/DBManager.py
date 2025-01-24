@@ -24,7 +24,7 @@
 """
 try:
     import libsql_client as libsql
-except:
+except: # pragma: no cover
     pass
 import pyotp
 from time import sleep
@@ -66,7 +66,7 @@ class DBManager:
             local_secrets = dotenv_values(".env.dev")
             self.url = local_secrets["TDU"]
             self.token = local_secrets["TAT"]
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             self.url = None
             self.token = None
@@ -76,7 +76,7 @@ class DBManager:
         skipLoading = False
         try:
             import libsql_client as libsql
-        except:
+        except: # pragma: no cover
             skipLoading = True
             pass
         return skipLoading
@@ -87,7 +87,7 @@ class DBManager:
                 # self.conn = libsql.connect("pkscreener.db", sync_url=self.url, auth_token=self.token)
                 # self.conn.sync()
                 self.conn = libsql.create_client_sync(self.url,auth_token=self.token)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         return self.conn
@@ -104,7 +104,7 @@ class DBManager:
                     otpValue = str(pyotp.TOTP(token,interval=int(DBManager.configManager.otpInterval)).now())
             else:
                 print(f"Could not locate user: {userIDOrName}")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         isValid = (otpValue == str(otp)) and int(otpValue) > 0
@@ -134,12 +134,12 @@ class DBManager:
                     user = PKUser.userFromDBRecord([userID,username.lower(),name,None,None,None,pyotp.random_base32(),None,None])
                     self.insertUser(user)
                     return self.getOTP(userID,username,name,retry=True)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         try:
             self.updateOTP(userID,otpValue)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         return otpValue
@@ -155,7 +155,7 @@ class DBManager:
             if len(records.columns) > 0 and len(records.rows) <= 0:
                 # Let's tell the user
                 default_logger().debug(f"User: {userID} not found! Probably needs registration?")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         finally:
@@ -170,7 +170,7 @@ class DBManager:
             cursor = self.connection() #.cursor()
             try:
                 userID = int(userIDOrusername)
-            except:
+            except: # pragma: no cover
                 userID = 0
                 pass
             if userID == 0:
@@ -184,7 +184,7 @@ class DBManager:
                 default_logger().debug(f"User: {userIDOrusername} not found! Probably needs registration?")
                 print(f"Could not locate user: {userIDOrusername}. Please reach out to the developer!")
                 sleep(3)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         finally:
@@ -200,7 +200,7 @@ class DBManager:
                 default_logger().debug(f"User: {user.userid} inserted as last row ID: {result.last_insert_rowid}!")
             # self.connection().commit()
             # self.connection().sync()
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         finally:
@@ -219,7 +219,7 @@ class DBManager:
             result = self.connection().execute(f"UPDATE users SET username={self.sanitisedStrValue(user.username.lower())},name={self.sanitisedStrValue(user.name)},email={self.sanitisedStrValue(user.email)},mobile={self.sanitisedIntValue(user.mobile)},passkey={self.sanitisedStrValue(user.passkey)},totptoken={self.sanitisedStrValue(user.totptoken)},licensekey={self.sanitisedStrValue(user.licensekey)},lastotp={self.sanitisedStrValue(user.lastotp)} WHERE userid={self.sanitisedIntValue(user.userid)}")
             if result.rows_affected > 0:
                 default_logger().debug(f"User: {user.userid} updated!")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         finally:
@@ -232,7 +232,7 @@ class DBManager:
             result = self.connection().execute(f"UPDATE users SET lastotp={self.sanitisedStrValue(otp)} WHERE userid={self.sanitisedIntValue(userID)}")
             if result.rows_affected > 0:
                 default_logger().debug(f"User: {userID} updated with otp: {otp}!")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         finally:

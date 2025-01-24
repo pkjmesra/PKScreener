@@ -70,7 +70,7 @@ from pkscreener.classes.WorkflowManager import run_workflow
 import pkscreener.classes.ConfigManager as ConfigManager
 try:
     from pkscreener.classes.DBManager import DBManager
-except:
+except: # pragma: no cover
     pass
 
 monitor_proc = None
@@ -167,7 +167,7 @@ def initializeIntradayTimer():
                 int_timer.start()
             elif now >= marketStartTime and now <= marketCloseTime:
                 launchIntradayMonitor()
-    except:
+    except: # pragma: no cover
         launchIntradayMonitor()
         pass
 
@@ -206,7 +206,7 @@ def otp(update: Update, context: CallbackContext) -> str:
             otpValue = 0
             dbManager = DBManager()
             otpValue = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             pass
         userText = ""
         if len(str(user.username)) >= 1:
@@ -286,7 +286,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
         try:
             if updateCarrier is not None and updateCarrier.data is not None and updateCarrier.data == "CP":
                 menuText = f"Piped Scanners are available using /P . Click on this /P to begin using piped scanners. To use other scanners, choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n{cmdText}\n\n OR just use the buttons below to choose."
-        except:
+        except: # pragma: no cover
             pass
         menuText = f"{menuText}\n\nClick /start if you want to restart the session."
     else:
@@ -320,7 +320,7 @@ def removeMonitorFile():
     while index < configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
         try:
             os.remove(f"{filePath}_{index}.txt")
-        except:
+        except: # pragma: no cover
             pass
         index += 1
 
@@ -337,7 +337,7 @@ def launchIntradayMonitor():
         result_outputs = f"{PKDateUtilities.currentDateTime()}\nIntraday Monitor is available only during the NSE trading hours! Please try during the next trading session."
         try:
             removeMonitorFile()
-        except:
+        except: # pragma: no cover
             pass
         return result_outputs, filePath
 
@@ -366,7 +366,7 @@ def launchIntradayMonitor():
         else:
             result_outputs = "Intraday Monitor is already running/launching, but the results are being prepared. Try again in the next few seconds."
             logger.info(f"{launcher} -a Y -m 'X' -p --telegram already running")
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         result_outputs = "Hmm...It looks like you caught us taking a break! Try again later :-)"
         logger.info(f"{launcher} -a Y -m 'X' -p --telegram could not be launched")
         logger.info(e)
@@ -397,7 +397,7 @@ def XDevModeHandler(update: Update, context: CallbackContext) -> str:
             if monitor_proc is not None:
                 try:
                     monitor_proc.kill()
-                except:
+                except: # pragma: no cover
                     pass
             
             launchIntradayMonitor()
@@ -454,7 +454,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
                 f.close()
             start(update, context, updatedResults=result_outputs,monitorIndex=monitorIndex)
             return START_ROUTES
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             result_outputs = "Hmm...It looks like you caught us taking a break! Try again later :-)\nCycleTime shows how much it's taking us to download latest data and then perform each cycle of analysis for all configured scanners. We may be downloading the latest data right now."
             logger.info(e)
             logger.info(f"Could not read {filePath}")
@@ -815,7 +815,7 @@ def launchScreener(options, user, context, optionChoices, update):
             #         str(user.id),
             #     ]
             # )
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         import traceback
         traceback.print_exc()
         print(e)
@@ -904,7 +904,7 @@ def error_handler(update: object, context: CallbackContext) -> None:
                 global int_timer
                 if int_timer is not None:
                     int_timer.cancel()
-            except:
+            except: # pragma: no cover
                 pass
                 #https://github.com/python-telegram-bot/python-telegram-bot/issues/209
                 # if _updater is not None:

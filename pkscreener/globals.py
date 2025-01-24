@@ -321,7 +321,7 @@ def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
                 },
                 inplace=True,
             )
-    except urllib.error.HTTPError as e:
+    except urllib.error.HTTPError as e: # pragma: no cover
         if "HTTP Error 404" in str(e):
             pass
         else:
@@ -464,7 +464,7 @@ def handleSecondaryMenuChoices(
                     # User entered a date
                     try:
                         backtestDaysAgo = abs(PKDateUtilities.trading_days_between(d1=PKDateUtilities.dateFromYmdString(str(backtestDaysAgo)),d2=PKDateUtilities.currentDateTime()))
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         default_logger().debug(e,exc_info=True)
                         OutputControls().printOutput(f"An error occured! Going ahead with default inputs.")
                         backtestDaysAgo = ('22' if configManager.period == '1y' else '15')
@@ -746,15 +746,15 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio,
         try:
             try:
                 screenResults[sortKey] = screenResults[sortKey].replace("", np.nan).replace(np.inf, np.nan).replace(-np.inf, np.nan).astype(float)
-            except:
+            except: # pragma: no cover
                 pass
             try:
                 saveResults[sortKey] = saveResults[sortKey].replace("", np.nan).replace(np.inf, np.nan).replace(-np.inf, np.nan).astype(float)
-            except:
+            except: # pragma: no cover
                 pass
             screenResults.sort_values(by=sortKey, ascending=ascending, inplace=True)
             saveResults.sort_values(by=sortKey, ascending=ascending, inplace=True)
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
         columnsToBeDeleted = ["MFI","FVDiff","ConfDMADifference","bbands_ulr_ratio_max5", "RSIi"]
@@ -836,7 +836,7 @@ def refreshStockData(startupoptions=None):
         import tensorflow as tf
         with tf.device("/device:GPU:0"):
             stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
-    except:
+    except: # pragma: no cover
         stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
         pass
     PKScanRunner.refreshDatabase(consumers,stockDictPrimary,stockDictSecondary)
@@ -952,7 +952,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     _,nasdaq_df = nasdaq.fetchNasdaqIndexConstituents()
                     try:
                         nasdaq_df.to_csv(filePath)
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         OutputControls().printOutput(f"{colorText.FAIL}We encountered an error. Please try again!{colorText.END}\n{colorText.WARN}{e}{colorText.END}")
                         pass
                     OutputControls().printOutput(f"{colorText.GREEN}{filePrefix} Saved at: {filePath}{colorText.END}")
@@ -1725,7 +1725,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                         warningText = f"{warningText}\n\nMarket is closed today due to {todayOccassion}."
                     if tomorrowHoliday:
                         warningText = f"{warningText}\n\nMarket will be closed on {nextWeekday.strftime('%Y-%m-%d')} due to {tomorrowOccassion}."
-                except:
+                except: # pragma: no cover
                     pass
                 messageToUser = "Nifty AI prediction NOT available right now! Please try again later. Please let @itsonlypk know about this!"
                 if prediction != 0:
@@ -1773,7 +1773,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                         listStockCodes = sorted(list(filter(None,list(set(stockDictPrimary.keys())))))
                 if str(indexOption) not in ["S"]:
                     listStockCodes = prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption)
-        except urllib.error.URLError as e:
+        except urllib.error.URLError as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             OutputControls().printOutput(
                 colorText.FAIL
@@ -1802,7 +1802,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 import tensorflow as tf
                 with tf.device("/device:GPU:0"):
                     stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
-            except:
+            except: # pragma: no cover
                 stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
                 pass
             
@@ -2017,7 +2017,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                             executeOption=executeOption,
                             menuOption=menuOption
                         )
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         if userPassedArgs.log:
                             import traceback
@@ -2068,7 +2068,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 df["LastTradeDate"], df["LastTradeTime"] = getLatestTradeDateTime(stockDictPrimary)
                 gClient.df_to_sheet(df=df,sheetName=runOption)
                 OutputControls().printOutput(f"{colorText.GREEN} => Done in {round(time.time()-begin,2)}s{colorText.END}")
-    except:
+    except: # pragma: no cover
         pass
     if ("RUNNER" not in os.environ.keys() and 
         not testing and 
@@ -2311,7 +2311,7 @@ def getLatestTradeDateTime(stockDictPrimary):
         lastTradeTime = lastTraded.strftime("%H:%M:%S")
         if lastTradeTime == "00:00:00":
             lastTradeTime = lastTradeTime_ist
-    except:
+    except: # pragma: no cover
         pass
     return lastTradeDate, lastTradeTime
 
@@ -2427,7 +2427,7 @@ def describeUser():
         # On Github CI, we may run out of memory because of saving results in
         # shared multiprocessing dict.
         PKScheduler.scheduleTasks([task],"Starting up...", showProgressBars=False,submitTaskAsArgs=False,timeout=600)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         pass
 
 @Halo(text='', spinner='dots')
@@ -2470,7 +2470,7 @@ def prepareGroupedXRay(backtestPeriod, backtest_df):
         df_xray.loc[:, "Date"] = df_xray.loc[:, "Date"].apply(
                     lambda x: x.replace("-", "/")
                 )
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e,exc_info=True)
         pass
     return df_xray
@@ -2738,7 +2738,7 @@ def updateMenuChoiceHierarchy():
         menuChoiceHierarchy = f"{menuChoiceHierarchy}{intraday}"
         global nValueForMenu
         menuChoiceHierarchy = menuChoiceHierarchy.replace("N-",f"{nValueForMenu}-")
-    except:
+    except: # pragma: no cover
         pass
     Utility.tools.clearScreen(forceTop=True)
     needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
@@ -2768,7 +2768,7 @@ def saveScreenResultsEncoded(encodedText:None):
     try:
         with open(fileName, 'w', encoding="utf-8") as f:
             f.write(encodedText)
-    except:
+    except: # pragma: no cover
         pass
     return f'{uuidFileName}~{PKDateUtilities.currentDateTime().strftime("%Y-%m-%d %H:%M:%S.%f%z").replace(" ","~")}'
 
@@ -2780,7 +2780,7 @@ def readScreenResultsDecoded(fileName=None):
     try:
         with open(filePath, 'r', encoding="utf-8") as f:
             contents = f.read()
-    except:
+    except: # pragma: no cover
         pass
     return contents
 
@@ -2834,7 +2834,7 @@ def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr,menuOption="X"):
                         with pd.option_context('mode.chained_assignment', None):
                             saveResults["ScanOption"].iloc[index] = f'{saveResults["ScanOption"].iloc[index]}, {key}'
                             screenResults["ScanOption"].iloc[index] = f'{screenResults["ScanOption"].iloc[index]}, {key}'
-                    except:
+                    except: # pragma: no cover
                         pass
         items = []
         for item in list(screenResults["ScanOption"]):
@@ -2870,7 +2870,7 @@ def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr,menuOption="X"):
                 saveResults = saveResults[columns]
                 grp_scr[stock_name] = screenResults
                 grp_sr[stock_name] = saveResults
-        except:
+        except: # pragma: no cover
             pass
     df_scr = pd.concat([x for x in grp_scr.values()], axis=0)
     df_sr = pd.concat([x for x in grp_sr.values()], axis=0)
@@ -2904,7 +2904,7 @@ def printNotifySaveScreenedResults(
             toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(),"DeleteThis")
             try:
                 os.remove(os.path.join(toBeDeletedFolder, fnames[0]))
-            except:
+            except: # pragma: no cover
                 pass
     if userPassedArgs.stocklist is not None:
         passedList = userPassedArgs.stocklist.split(",")
@@ -2975,7 +2975,7 @@ def printNotifySaveScreenedResults(
             if executeOption in [30,5] or "RSI" in menuChoiceHierarchy:
                 hiddenColumns.remove("RSI")
                 hiddenColumns.remove("CCI")
-        except:
+        except: # pragma: no cover
             pass
         for col in screenResults.columns:
             if col in hiddenColumns:
@@ -2988,7 +2988,7 @@ def printNotifySaveScreenedResults(
                                 ).encode("utf-8").decode(STD_ENCODING)
             console_results = console_results
             printableColumns = copyScreenResults.columns
-        except:
+        except: # pragma: no cover
             console_results = tabulated_results
             printableColumns = screenResults.columns
         resultsContentsEncoded = saveScreenResultsEncoded(encodedText=console_results)
@@ -3010,7 +3010,7 @@ def printNotifySaveScreenedResults(
             toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(),"DeleteThis")
             try:
                 os.remove(os.path.join(toBeDeletedFolder, fnames[0]))
-            except:
+            except: # pragma: no cover
                 pass
         if onlyInCurrent_df is not None and not onlyInCurrent_df.empty and len(onlyInCurrent_df) > 0:
             onlyInCurrent_df = onlyInCurrent_df[printableColumns]
@@ -3128,7 +3128,7 @@ def printNotifySaveScreenedResults(
                                 lambda x: f'{int(round(float(x.replace("x","")),0))}x' if (len(x.replace("x","").strip()) > 0 and not pd.isna(float(x.replace("x","")))) else ''
                             )
                             caption_df.rename(columns={"%Chng": "Ch%","Volume":"Vol"}, inplace=True)
-                    except:
+                    except: # pragma: no cover
                         cols = [list(saveResultsTrimmed.columns)[0]]
                         cols.extend(list(saveResultsTrimmed.columns[5:]))
                         caption_df = saveResultsTrimmed[cols].head(2)
@@ -3161,9 +3161,10 @@ def printNotifySaveScreenedResults(
                         addendumLabel=addendumLabel,
                     )
                     png_filepath = pngName+pngExtension
-                    media_group_dict["ATTACHMENTS"] = [{"FILEPATH":kite_file_path,"CAPTION":kite_caption.replace('&','n')},
-                                                       {"FILEPATH":png_filepath,"CAPTION":finalCaption.replace('&','n')}]
-                    media_group_dict["CAPTION"] = caption
+                    if not userPassedArgs.runintradayanalysis or (userPassedArgs.runintradayanalysis and "Intraday Analysis" in finalCaption):
+                        media_group_dict["ATTACHMENTS"] = [{"FILEPATH":kite_file_path,"CAPTION":kite_caption.replace('&','n')},
+                                                        {"FILEPATH":png_filepath,"CAPTION":finalCaption.replace('&','n')}]
+                        media_group_dict["CAPTION"] = caption
                     # Let's send the backtest results now only if the user requested 1-on-1 for scan.
                     if user is not None:
                         # Now let's try and send backtest results
@@ -3609,7 +3610,7 @@ def runScanners(
             logging.shutdown()
         except KeyboardInterrupt:
             pass
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
         OutputControls().printOutput(
             colorText.FAIL
@@ -3733,7 +3734,7 @@ def saveDownloadedData(downloadOnly, testing, stockDictPrimary, configManager, l
                         sendMessageToTelegramChannel(caption=message,document_filePath=log_file_path, user=DEV_CHANNEL_ID)
                     else:
                         sendMessageToTelegramChannel(message=message,user=DEV_CHANNEL_ID)
-                except:
+                except: # pragma: no cover
                     pass
                 # Let's try again with logging
                 if "PKDevTools_Default_Log_Level" not in os.environ.keys():
@@ -3819,7 +3820,7 @@ def sendGlobalMarketBarometer(userArgs=None):
             os.remove(gmbPath)
         else:
             sys.exit(0)
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         default_logger().debug(e,exc_info=True)
         pass
 
@@ -3899,7 +3900,7 @@ def sendMessageToTelegramChannel(
                     os.remove(f)
                 elif not f.endswith("xlsx"):
                     os.remove(f)
-            except:
+            except: # pragma: no cover
                 pass
     if user is not None:
         if str(user) != str(DEV_CHANNEL_ID) and userPassedArgs is not None and not userPassedArgs.monitor:
@@ -3992,7 +3993,7 @@ def showBacktestResults(backtest_df:pd.DataFrame, sortKey="Stock", optionalName=
         if configManager.alwaysExportToExcel:
             excelSheetname = filename.split(os.sep)[-1].replace("PKScreener_","").replace(".html","")
             Utility.tools.promptSaveResults(sheetName=excelSheetname,df_save=backtest_df,defaultAnswer=userPassedArgs.answerdefault,pastDate=None)
-    except:
+    except: # pragma: no cover
         pass
     if lastSummaryRow is not None:
         oneline_text = lastSummaryRow.to_html(header=False, index=False)

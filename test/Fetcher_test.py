@@ -24,6 +24,8 @@
 """
 import os
 import warnings
+import unittest
+
 from unittest import mock
 from unittest.mock import ANY, MagicMock, patch
 
@@ -598,3 +600,84 @@ def test_postURL_retry_enable_cache_uninstall(tools_instance, configManager):
 #                         mock_restart_cache.assert_not_called()
 #                         mock_uninstall_cache.assert_not_called()
 #                         mock_clear_cache.assert_not_called()
+
+
+class TestStockDataFetcher(unittest.TestCase):
+
+    @patch('yfinance.Tickers')
+    def test_get_stats_valid_ticker(self, mock_tickers):
+        # Arrange
+        ticker = "AAPL"
+        mock_fast_info = MagicMock()
+        mock_fast_info.market_cap = 2000000000
+        mock_tickers.return_value.tickers[ticker].fast_info = mock_fast_info
+        
+        # Act
+        fetcher = screenerStockDataFetcher()
+        fetcher.get_stats(ticker)
+
+        # Assert
+        self.assertEqual(screenerStockDataFetcher._tickersInfoDict[ticker]["marketCap"], 2000000000)
+
+    @patch('yfinance.Tickers')
+    def test_get_stats_invalid_ticker(self, mock_tickers):
+        # Arrange
+        ticker = "INVALID_TICKER"
+        mock_tickers.return_value.tickers[ticker].fast_info = None
+        
+        # Act
+        fetcher = screenerStockDataFetcher()
+        fetcher.get_stats(ticker)
+
+        # Assert
+        self.assertIn(ticker, screenerStockDataFetcher._tickersInfoDict)
+
+    def test_fetchAdditionalTickerInfo_valid_list(self):
+        # Arrange
+        ticker_list = ["AAPL", "MSFT"]
+        fetcher = screenerStockDataFetcher()
+        
+        # Act
+        with patch.object(fetcher, 'get_stats') as mock_get_stats:
+            mock_get_stats.side_effect = lambda x: screenerStockDataFetcher._tickersInfoDict.update({x: {"marketCap": 2000000000}})
+            result = fetcher.fetchAdditionalTickerInfo(ticker_list)
+
+        # Assert
+        self.assertEqual(len(result), 2)
+        self.assertIn("AAPL.NS", result)
+        self.assertIn("MSFT.NS", result)
+
+    def test_fetchAdditionalTickerInfo_invalid_input(self):
+        # Arrange
+        invalid_ticker = "AAPL"
+        fetcher = screenerStockDataFetcher()
+
+        # Act & Assert
+        with self.assertRaises(TypeError):
+            fetcher.fetchAdditionalTickerInfo(invalid_ticker)
+
+    def test_fetchAdditionalTickerInfo_empty_list(self):
+        # Arrange
+        ticker_list = []
+        fetcher = screenerStockDataFetcher()
+
+        # Act
+        result = fetcher.fetchAdditionalTickerInfo(ticker_list)
+
+        # Assert
+        self.assertEqual(result, {})
+
+    def test_fetchAdditionalTickerInfo_with_exchange_suffix(self):
+        # Arrange
+        ticker_list = ["AAPL", "MSFT"]
+        exchangeSuffix = ".NS"
+        fetcher = screenerStockDataFetcher()
+
+        # Act
+        with patch.object(fetcher, 'get_stats') as mock_get_stats:
+            mock_get_stats.side_effect = lambda x: screenerStockDataFetcher._tickersInfoDict.update({x: {"marketCap": 2000000000}})
+            result = fetcher.fetchAdditionalTickerInfo(ticker_list, exchangeSuffix)
+
+        # Assert
+        self.assertIn("AAPL.NS", result)
+        self.assertIn("MSFT.NS", result)

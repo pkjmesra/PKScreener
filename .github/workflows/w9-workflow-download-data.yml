@@ -137,11 +137,7 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.6.4-src.tar.gz
-        cd ta-lib-0.6.4/
-        ./configure --prefix=/usr
-        make
-        sudo make install
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
         cd /home/runner/work/PKScreener/PKScreener/
         pip3 install ta-lib
 
@@ -318,11 +314,7 @@ jobs:
       run: |
         cd .github/dependencies/
         pwd
-        tar -xzf ta-lib-0.6.4-src.tar.gz
-        cd ta-lib-0.6.4/
-        ./configure --prefix=/usr
-        make
-        sudo make install
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
         cd /home/runner/work/PKScreener/PKScreener/
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
