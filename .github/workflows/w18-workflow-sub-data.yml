@@ -80,16 +80,16 @@ jobs:
       shell: bash
       run: |
         cd .github/dependencies/
-              pwd
-              sudo dpkg -i ta-lib_0.6.4_amd64.deb
-              cd /home/runner/work/PKScreener/PKScreener/
-              python3 -m pip install --upgrade pip
-              pip3 uninstall -y PKNSETools
-              pip3 uninstall -y PKDevTools
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              pip3 install ta-lib
-              pip3 install .
+        pwd
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
+        cd /home/runner/work/PKScreener/PKScreener/
+        python3 -m pip install --upgrade pip
+        pip3 uninstall -y PKNSETools
+        pip3 uninstall -y PKDevTools
+        pip3 install -r requirements.txt
+        pip3 install -r requirements-dev.txt
+        pip3 install ta-lib
+        pip3 install .
 
     - name: Configure env.dev file
       run: |
