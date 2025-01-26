@@ -1142,7 +1142,7 @@ class tools:
         return stockDict, stockDataLoaded
 
     @Halo(text='', spinner='dots')
-    def tryFetchFromServer(cache_file,repoOwner="pkjmesra",repoName="PKScreener",directory="actions-data-download",hideOutput=False):
+    def tryFetchFromServer(cache_file,repoOwner="pkjmesra",repoName="PKScreener",directory="actions-data-download",hideOutput=False,branchName="actions-data-download"):
         if not hideOutput:
             OutputControls().printOutput(
                         colorText.FAIL
@@ -1155,7 +1155,7 @@ class tools:
                     + colorText.END
                 )
         cache_url = (
-                f"https://raw.githubusercontent.com/{repoOwner}/{repoName}/actions-data-download/{directory}/"
+                f"https://raw.githubusercontent.com/{repoOwner}/{repoName}/{branchName}/{directory}/"
                 + cache_file  # .split(os.sep)[-1]
             )
         headers = {

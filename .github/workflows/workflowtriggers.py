@@ -174,7 +174,6 @@ argParser.add_argument(
 )
 argParser.add_argument(
     "--userid",
-    action="store_true",
     help="Telegram userID for a user",
     required=required,
 )
