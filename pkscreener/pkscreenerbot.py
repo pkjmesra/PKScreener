@@ -716,7 +716,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
         expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
-        menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener is free and will always remain so for everyone. Consider donating to help cover the basic server costs:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
+        menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
 
         reply_markup = default_markup(inlineMenus)
         options = ":".join(selection)

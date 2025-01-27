@@ -171,7 +171,7 @@ class tools:
         )
         communityInfo = "[📢] Join Community Discussions: https://github.com/pkjmesra/PKScreener/discussions"
         latestInfo = "[⏰] Download latest software from https://github.com/pkjmesra/PKScreener/releases/latest"
-        donationInfo = "[💰] PKScreener is and will always remain free for everyone. Hosting servers and running services costs money.\n[💸] Please donate whatever you can: PKScreener@APL using UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
+        donationInfo = "[💰] PKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium.\n[💸] Please donate whatever you can: PKScreener@APL using UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
         totalDownloads = "200k+"
         respPepyTech = fetcher.fetchURL(url="https://static.pepy.tech/badge/pkscreener",headers={'user-agent': f'{random_user_agent()}'},timeout=2)
         if respPepyTech is not None and respPepyTech.status_code == 200:
