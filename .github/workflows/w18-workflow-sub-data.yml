@@ -111,7 +111,7 @@ jobs:
       continue-on-error: true
       if: ${{ inputs.subtype == 'update' || inputs.subtype == ''}}
       run: |
-        python3 .github/workflows/workflowtriggers.py --branchname SubData --updatesubscriptions
+        python3 .github/workflows/subworkflows.py --branchname SubData --updatesubscriptions
         ls -l results/Data
         git status
 
@@ -121,7 +121,7 @@ jobs:
       continue-on-error: true
       if: ${{ inputs.subtype == 'add' }}
       run: |
-        python3 .github/workflows/workflowtriggers.py --branchname SubData --addsubscription --subscriptionvalue ${{ inputs.subvalue }} --userid ${{ inputs.userid }}
+        python3 .github/workflows/subworkflows.py --branchname SubData --addsubscription --subscriptionvalue ${{ inputs.subvalue }} --userid ${{ inputs.userid }}
         ls -l results/Data
         git status
   
@@ -131,7 +131,7 @@ jobs:
       continue-on-error: true
       if: ${{ inputs.subtype == 'remove' }}
       run: |
-        python3 .github/workflows/workflowtriggers.py --branchname SubData --removesubscription --userid ${{ inputs.userid }}
+        python3 .github/workflows/subworkflows.py --branchname SubData --removesubscription --userid ${{ inputs.userid }}
         ls -l results/Data
         git status
 
