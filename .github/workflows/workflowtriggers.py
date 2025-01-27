@@ -943,11 +943,14 @@ def triggerAddSubscription():
     PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel(int(args.subscriptionvalue)))
     pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
     tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
+    print("Added Sub Data")
 
 def triggerRemoveSubscription():
+    print("Removing Sub data now")
     PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel.No_Subscription)
     pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
     tryCommitOutcomes(options=f"RemoveSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=True)
+    print("Removed Sub Data")
 
 if __name__ == '__main__':
     if args.barometer:
