@@ -144,8 +144,9 @@ jobs:
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git config --global http.postBuffer 150000000
-        git remote update
-        git fetch
+        # git remote update
+        # git fetch
+        git pull -v origin +SubData
         git add results/Data/*.pdf --force
         git add results/Data/*.pdf -u
         git commit -m "GitHub-Action-Workflow-SubData-(Default-Config)"
@@ -161,7 +162,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config --global http.postBuffer 150000000
-        git fetch
+        git pull -v origin +SubData
         python3 .github/workflows/squash.py --b SubData -- "GitHub-Action-Workflow-SubData-(Default-Config)"
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
