@@ -110,7 +110,7 @@ if __name__ == '__main__':
                 scanResultFilesPath = f"-A {scanResultFilesPath}"
 
         if args.branchname is not None:
-            Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname)
+            Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname, showStatus=True)
 
     def triggerSubscriptionsUpdate():
         PKUserSusbscriptions.updateSubscriptions()
