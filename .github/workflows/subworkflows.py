@@ -37,6 +37,11 @@ argParser = argparse.ArgumentParser()
 required = False
 
 argParser.add_argument(
+    "--branchname",
+    help="branch name for check-in, check-out",
+    required=required,
+)
+argParser.add_argument(
     "--updatesubscriptions",
     action="store_true",
     help="Triggers subscription update",
@@ -78,7 +83,6 @@ if __name__ == '__main__':
         return outputFolder
 
     def getFormattedChoices(options):
-        isIntraday = args.intraday
         selectedChoice = options.split(":")
         choices = ""
         for choice in selectedChoice:
@@ -88,7 +92,6 @@ if __name__ == '__main__':
                 choices = f"{choices}{choice}"
         if choices.endswith("_"):
             choices = choices[:-1]
-        choices = f"{choices}{'_i' if isIntraday else ''}"
         return choices
 
     def scanChoices(options, backtest=False):
