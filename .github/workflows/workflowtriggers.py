@@ -229,6 +229,32 @@ original__stdout = sys.__stdout__
 # args.subscriptionvalue = 22000
 # args.userid = 6186237493
 
+if __name__ == '__main__':
+    def triggerSubscriptionsUpdate():
+        PKUserSusbscriptions.updateSubscriptions()
+        pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
+        tryCommitOutcomes(options="UpdateSubscriptions",pathSpec=pathSpec,delete=True)
+
+    def triggerAddSubscription():
+        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel(int(args.subscriptionvalue)))
+        pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
+        tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
+        print("Added Sub Data")
+
+    def triggerRemoveSubscription():
+        print("Removing Sub data now")
+        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel.No_Subscription)
+        pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
+        tryCommitOutcomes(options=f"RemoveSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=True)
+        print("Removed Sub Data")
+
+    if args.updatesubscriptions:
+        triggerSubscriptionsUpdate()
+    if args.addsubscription:
+        triggerAddSubscription()
+    if args.removesubscription:
+        triggerRemoveSubscription()
+
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menus, PREDEFINED_SCAN_ALERT_MENU_KEYS
 
 m0 = menus()
@@ -934,24 +960,6 @@ def triggerMiscellaneousTasks():
             if resp.status_code == 204:
                 sleep(5)
 
-def triggerSubscriptionsUpdate():
-    PKUserSusbscriptions.updateSubscriptions()
-    pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
-    tryCommitOutcomes(options="UpdateSubscriptions",pathSpec=pathSpec,delete=True)
-
-def triggerAddSubscription():
-    PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel(int(args.subscriptionvalue)))
-    pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
-    tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
-    print("Added Sub Data")
-
-def triggerRemoveSubscription():
-    print("Removing Sub data now")
-    PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel.No_Subscription)
-    pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
-    tryCommitOutcomes(options=f"RemoveSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=True)
-    print("Removed Sub Data")
-
 if __name__ == '__main__':
     if args.barometer:
         if args.force or (PKDateUtilities.currentDateTime() <= PKDateUtilities.currentDateTime(simulate=True,hour=MORNING_ALERT_HOUR+1,minute=MORNING_ALERT_MINUTE)):
@@ -982,13 +990,6 @@ if __name__ == '__main__':
         updateHolidays()
     if args.runintradayanalysis:
         triggerRemoteScanAlertWorkflow("C:12: --runintradayanalysis -u -1001785195297", branch="main")
-    if args.updatesubscriptions:
-        triggerSubscriptionsUpdate()
-    if args.addsubscription:
-        triggerAddSubscription()
-    if args.removesubscription:
-        triggerRemoveSubscription()
-
 
     print(f"{datetime.datetime.now(pytz.timezone('Asia/Kolkata'))}: All done!")
     sys.exit(0)
