@@ -230,6 +230,47 @@ original__stdout = sys.__stdout__
 # args.userid = 6186237493
 
 if __name__ == '__main__':
+    def scanOutputDirectory(backtest=False):
+        dirName = 'actions-data-scan' if not backtest else "Backtest-Reports"
+        outputFolder = os.path.join(os.getcwd(),dirName)
+        if not os.path.isdir(outputFolder):
+            print("This must be run with actions-data-download or gh-pages branch checked-out")
+            print("Creating actions-data-scan directory now...")
+            os.makedirs(os.path.dirname(os.path.join(os.getcwd(),f"{dirName}{os.sep}")), exist_ok=True)
+        return outputFolder
+
+    def getFormattedChoices(options):
+        isIntraday = args.intraday
+        selectedChoice = options.split(":")
+        choices = ""
+        for choice in selectedChoice:
+            if len(choice) > 0 and choice != 'D':
+                if len(choices) > 0:
+                    choices = f"{choices}_"
+                choices = f"{choices}{choice}"
+        if choices.endswith("_"):
+            choices = choices[:-1]
+        choices = f"{choices}{'_i' if isIntraday else ''}"
+        return choices
+
+    def scanChoices(options, backtest=False):
+        choices = getFormattedChoices(options).replace("B:30","X").replace("B_30","X").replace("B","X").replace("G","X")
+        return choices if not backtest else choices.replace("X","B")
+
+    def tryCommitOutcomes(options,pathSpec=None,delete=False):
+        choices = scanChoices(options)
+        if delete:
+            choices =f"Cleanup-{choices}"
+        if pathSpec is None:
+            scanResultFilesPath = f"{os.path.join(scanOutputDirectory(),choices)}_*.txt"
+        else:
+            scanResultFilesPath = pathSpec
+            if delete:
+                scanResultFilesPath = f"-A {scanResultFilesPath}"
+
+        if args.branchname is not None:
+            Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname)
+
     def triggerSubscriptionsUpdate():
         PKUserSusbscriptions.updateSubscriptions()
         pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
@@ -762,34 +803,6 @@ def triggerHistoricalScanWorkflowActions(scanDaysInPast=0):
         + '}'
         )
     resp = run_workflow("w9-workflow-download-data.yml", postdata, "X_Cleanup")
-    
-    
-def tryCommitOutcomes(options,pathSpec=None,delete=False):
-    choices = scanChoices(options)
-    if delete:
-        choices =f"Cleanup-{choices}"
-    if pathSpec is None:
-        scanResultFilesPath = f"{os.path.join(scanOutputDirectory(),choices)}_*.txt"
-    else:
-        scanResultFilesPath = pathSpec
-        if delete:
-            scanResultFilesPath = f"-A {scanResultFilesPath}"
-
-    if args.branchname is not None:
-        Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname)
-
-def scanOutputDirectory(backtest=False):
-    dirName = 'actions-data-scan' if not backtest else "Backtest-Reports"
-    outputFolder = os.path.join(os.getcwd(),dirName)
-    if not os.path.isdir(outputFolder):
-        print("This must be run with actions-data-download or gh-pages branch checked-out")
-        print("Creating actions-data-scan directory now...")
-        os.makedirs(os.path.dirname(os.path.join(os.getcwd(),f"{dirName}{os.sep}")), exist_ok=True)
-    return outputFolder
-
-def scanChoices(options, backtest=False):
-    choices = getFormattedChoices(options).replace("B:30","X").replace("B_30","X").replace("B","X").replace("G","X")
-    return choices if not backtest else choices.replace("X","B")
 
 def scanResultExists(options, nthDay=0,returnFalseIfSizeZero=True):
     choices = scanChoices(options)
@@ -918,20 +931,6 @@ def shouldRunBacktests(backtestName="",df=None):
                 print(f"Error for {backtestName}\n{e}")
                 pass
     return shouldRun
-
-def getFormattedChoices(options):
-    isIntraday = args.intraday
-    selectedChoice = options.split(":")
-    choices = ""
-    for choice in selectedChoice:
-        if len(choice) > 0 and choice != 'D':
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{choice}"
-    if choices.endswith("_"):
-        choices = choices[:-1]
-    choices = f"{choices}{'_i' if isIntraday else ''}"
-    return choices
 
 def updateHolidays():
     _, raw = nse.updatedHolidays()
