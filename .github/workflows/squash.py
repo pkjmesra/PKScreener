@@ -42,7 +42,7 @@ args = argParser.parse_args()
 
 c_msg = args.message  # "GitHub Action Workflow - Market Data Download (Default Config)"
 
-print("[+] === SQUASHING COMMITS : actions-data-download branch ===")
+print(f"[+] === SQUASHING COMMITS : {args.branch} branch ===")
 print("[+] Saving Commit messages log..")
 os.system("git log --pretty=oneline > msg.log")
 
