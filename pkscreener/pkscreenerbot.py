@@ -209,11 +209,7 @@ def otp(update: Update, context: CallbackContext) -> str:
             otpValue, subsModel,subsValidity = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
         except Exception as e: # pragma: no cover
             pass
-        userText = ""
-        if len(str(user.username)) >= 1:
-            userText = f"\nusername: <b>{user.username}</b> or \nuserID: <b>{user.id}</b>"
-        else:
-            userText = f"\nuserID: <b>{user.id}</b>"
+        userText = f"\nUserID: <b>{user.id}</b>"
         try:
             subscriptionModelNames = "\n<pre>Following basic and premium subscription models are available. Premium subscription allows for unlimited premium scans:\n"
             for name,value in PKUserSusbscriptions().subscriptionKeyValuePairs.items():

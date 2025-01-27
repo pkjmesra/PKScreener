@@ -163,7 +163,7 @@ jobs:
         git config user.email github-actions@github.com
         git config --global http.postBuffer 150000000
         git pull -v origin +SubData
-        python3 .github/workflows/squash.py --b SubData -- "GitHub-Action-Workflow-SubData-(Default-Config)"
+        python3 .github/workflows/squash.py --b SubData -m "GitHub-Action-Workflow-SubData-(Default-Config)"
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 

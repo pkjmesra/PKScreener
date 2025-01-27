@@ -30,6 +30,8 @@ from pkscreener.classes.ConfigManager import tools, parser
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.DBManager import DBManager
+from PKDevTools.classes.Pikey import PKPikey
+from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
 
 class PKUserRegistration:
@@ -48,9 +50,9 @@ class PKUserRegistration:
         OutputControls().printOutput(f"[+] {colorText.GREEN}PKScreener will always remain free and open source!{colorText.END}\n[+] {colorText.FAIL}PKScreener does offer certain premium/paid features!{colorText.END}\n[+] {colorText.GREEN}Please use {colorText.END}{colorText.WARN}@nse_pkscreener_bot{colorText.END}{colorText.GREEN} in telegram app on \n    your mobile phone to request your {colorText.END}{colorText.WARN}userID{colorText.END}{colorText.GREEN} and {colorText.END}{colorText.WARN}OTP{colorText.END}{colorText.GREEN} to login:\n{colorText.END}")
         username = None
         if configManager.userID is not None and len(configManager.userID) >= 1:
-            username = input(f"[+] Your Username or UserID from telegram: (Default: {colorText.GREEN}{configManager.userID}{colorText.END}): ") or configManager.userID
+            username = input(f"[+] Your UserID from telegram: (Default: {colorText.GREEN}{configManager.userID}{colorText.END}): ") or configManager.userID
         else:
-            username = input(f"[+] {colorText.GREEN}Your Username or UserID from telegram: {colorText.END}")
+            username = input(f"[+] {colorText.GREEN}Your UserID from telegram: {colorText.END}")
         if username is None or len(username) <= 0:
             OutputControls().printOutput(f"{colorText.WARN}[+] You MUST register or login to use PKScreener!{colorText.END}\n[+] {colorText.FAIL}Exiting now!{colorText.END}")
             sleep(5)
@@ -78,6 +80,18 @@ class PKUserRegistration:
             if userUsedUserID:
                 OutputControls().printOutput(f"{colorText.GREEN}[+] Please wait!{colorText.END}\n[+] {colorText.WARN}Validating the OTP. You can press Ctrl+C to exit!{colorText.END}")
                 resp = Utility.tools.tryFetchFromServer(cache_file=f"{usernameInt}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
+                if resp.status_code != 200:
+                    OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.GREEN}[+] May be try entering the UserID instead of username?{colorText.END}\n[+] {colorText.GREEN}If you have purchased a subscription and are still not able to login, plesae reach out to @ItsOnlyPK on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
+                    sleep(5)
+                    return PKUserRegistration.login()
+                with open(os.path.join(Archiver.get_user_data_dir(),f"{usernameInt}.pdf"),"wb",) as f:
+                    f.write(resp.content)
+                if not PKPikey.openFile(f"{usernameInt}.pdf",otp):
+                    OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid OTP!{colorText.END}\n[+] {colorText.GREEN}If you have purchased a subscription and are still not able to login, plesae reach out to @ItsOnlyPK on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
+                else:
+                    print("OTP Accepted!")
+                    sleep(3)
+                    return True
                 # if dbManager.validateOTP(username,str(otp),validityIntervalInSeconds=configManager.otpInterval):
                 #     configManager.userID = username
                 #     configManager.setConfig(parser,default=True,showFileCreatedText=False)
@@ -86,6 +100,6 @@ class PKUserRegistration:
         except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
-        OutputControls().printOutput(f"{colorText.WARN}[+] Invalid userID/username or OTP!{colorText.END}\n{colorText.GREEN}[+] May be try entering the {'UserID instead of username?' if userUsedUserID else 'Username instead of userID?'} {colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
+        OutputControls().printOutput(f"{colorText.WARN}[+] Invalid userID or OTP!{colorText.END}\n{colorText.GREEN}[+] May be try entering the {'UserID instead of username?' if userUsedUserID else 'Username instead of userID?'} {colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
         sleep(3)
         return PKUserRegistration.login()

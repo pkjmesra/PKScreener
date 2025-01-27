@@ -19,7 +19,7 @@ pandas_ta #>=0.3.14b0
 # and https://github.com/pyinstaller/pyinstaller/issues/7269
 pefile>=2023.2.7,<2024.8.26
 Pillow #>=9.5.0,<=9.5.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
-PKDevTools>=0.13.20250126.204
+PKDevTools>=0.13.20250126.207
 PKNSETools>=0.1.20250122.135
 Pyarrow #>=17.0.0
 pyppeteer #>=2.0.0
