@@ -1169,7 +1169,7 @@ class tools:
                     'sec-fetch-mode': 'cors',
                     'sec-fetch-site': 'cross-site',                  
                     'origin': 'https://github.com',
-                    'referer': f'https://github.com/{repoOwner}/{repoName}/blob/actions-data-download/{directory}/{cache_file}',
+                    'referer': f'https://github.com/{repoOwner}/{repoName}/blob/{branchName}/{directory}/{cache_file}',
                     'user-agent': f'{random_user_agent()}' 
                     #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36
             }

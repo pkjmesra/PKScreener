@@ -75,12 +75,14 @@ class PKUserRegistration:
             except: # pragma: no cover
                 userUsedUserID = False
                 pass
-
-            if dbManager.validateOTP(username,str(otp),validityIntervalInSeconds=configManager.otpInterval):
-                configManager.userID = username
-                configManager.setConfig(parser,default=True,showFileCreatedText=False)
-                Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
-                return True
+            if userUsedUserID:
+                OutputControls().printOutput(f"{colorText.GREEN}[+] Please wait!{colorText.END}\n[+] {colorText.WARN}Validating the OTP. You can press Ctrl+C to exit!{colorText.END}")
+                resp = Utility.tools.tryFetchFromServer(cache_file=f"{usernameInt}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
+                # if dbManager.validateOTP(username,str(otp),validityIntervalInSeconds=configManager.otpInterval):
+                #     configManager.userID = username
+                #     configManager.setConfig(parser,default=True,showFileCreatedText=False)
+                #     Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
+                #     return True
         except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
