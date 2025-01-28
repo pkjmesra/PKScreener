@@ -315,6 +315,10 @@ After you have finished the run, go to that copied path, zip the contents of the
 * Please feel free to Suggest improvements bugs by creating an issue.
 * Please follow the [Guidelines for Contributing](https://github.com/pkjmesra/PKScreener/blob/main/CONTRIBUTING.md) while making a Pull Request.
 
+## Inspiration:
+* PKScreener is Inspired from and built on top of an open-source project [Screeni-py](https://github.com/pranjal-joshi/Screeni-py)
+* You can visit the [Screeni-py](https://github.com/pranjal-joshi/Screeni-py) repository here if you are interested in checking out what different features it offers.
+  
 ## Disclaimer:
 * DO NOT use the results provided by the software 'solely' to make your trading decisions.
 * Always backtest and analyze the stocks manually before you trade.
