@@ -1174,7 +1174,7 @@ class tools:
                     #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36
             }
         resp = fetcher.fetchURL(cache_url, headers=headers, stream=True)
-        if resp is None or (resp is not None and resp.status_code != 200 and repoOwner=="pkjmesra"):
+        if (resp is None or (resp is not None and resp.status_code != 200)) and (repoOwner=="pkjmesra" and directory=="actions-data-download"):
             return tools.tryFetchFromServer(cache_file,repoOwner=repoName)
         return resp
 

@@ -25,7 +25,9 @@
 import sys
 import os
 from time import sleep
+from enum import Enum
 
+from PKDevTools.classes.Singleton import SingletonType, SingletonMixin
 from pkscreener.classes.ConfigManager import tools, parser
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.ColorText import colorText
@@ -33,18 +35,63 @@ from PKDevTools.classes.DBManager import DBManager
 from PKDevTools.classes.Pikey import PKPikey
 from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
+from pkscreener.classes import Utility
+from pkscreener.classes.MenuOptions import menus
 
-class PKUserRegistration:
-    def login():
-        # return True
+class ValidationResult(Enum):
+    Success = 0
+    BadUserID = 1
+    BadOTP = 2
+    Trial = 3
+
+class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
+    def __init__(self):
+        super(tools, self).__init__()
+        self._userID = 0
+        self._otp = 0
+
+    @property
+    def userID(self):
+        return self._userID
+
+    @userID.setter
+    def userID(self, newuserID):
+        self._userID = newuserID
+
+    @property
+    def otp(self):
+        return self._otp
+    
+    @otp.setter
+    def otp(self, newotp):
+        self._otp = newotp
+
+    @classmethod
+    def validateToken(self):
+        try:
+            PKPikey.removeSavedFile(f"{PKUserRegistration.userID}")
+            resp = Utility.tools.tryFetchFromServer(cache_file=f"{PKUserRegistration.userID}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
+            if resp is None or resp.status_code != 200:
+                return False, ValidationResult.BadUserID
+            with open(os.path.join(Archiver.get_user_data_dir(),f"{PKUserRegistration.userID}.pdf"),"wb",) as f:
+                f.write(resp.content)
+            if not PKPikey.openFile(f"{PKUserRegistration.userID}.pdf",PKUserRegistration.otp):
+                return False, ValidationResult.BadOTP
+            return True, ValidationResult.Success
+        except: # pragma: no cover
+            return False, ValidationResult.BadOTP
+
+    @classmethod
+    def login(self, trialCount=0):
         try:
             dbManager = DBManager()
             if "RUNNER" in os.environ.keys() or dbManager.shouldSkipLoading():
-                return True
+                return ValidationResult.Success
         except: # pragma: no cover
             return True
-        from pkscreener.classes import Utility
         Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
+        if trialCount >= 1:
+            return PKUserRegistration.presentTrialOptions()
         configManager = tools()
         configManager.getConfig(parser)
         OutputControls().printOutput(f"[+] {colorText.GREEN}PKScreener will always remain free and open source!{colorText.END}\n[+] {colorText.FAIL}PKScreener does offer certain premium/paid features!{colorText.END}\n[+] {colorText.GREEN}Please use {colorText.END}{colorText.WARN}@nse_pkscreener_bot{colorText.END}{colorText.GREEN} in telegram app on \n    your mobile phone to request your {colorText.END}{colorText.WARN}userID{colorText.END}{colorText.GREEN} and {colorText.END}{colorText.WARN}OTP{colorText.END}{colorText.GREEN} to login:\n{colorText.END}")
@@ -79,27 +126,39 @@ class PKUserRegistration:
                 pass
             if userUsedUserID:
                 OutputControls().printOutput(f"{colorText.GREEN}[+] Please wait!{colorText.END}\n[+] {colorText.WARN}Validating the OTP. You can press Ctrl+C to exit!{colorText.END}")
-                resp = Utility.tools.tryFetchFromServer(cache_file=f"{usernameInt}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
-                if resp.status_code != 200:
-                    OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.GREEN}[+] May be try entering the UserID instead of username?{colorText.END}\n[+] {colorText.GREEN}If you have purchased a subscription and are still not able to login, plesae reach out to @ItsOnlyPK on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
+                PKUserRegistration.userID = usernameInt
+                PKUserRegistration.otp = otp
+
+                validationResult,validationReason = PKUserRegistration.validateToken()
+                if not validationResult and validationReason == ValidationResult.BadUserID:
+                    OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.WARN}[+] May be try entering the UserID instead of username?{colorText.END}\n[+] {colorText.WARN}If you have purchased a subscription and are still not able to login, plesae reach out to {colorText.END}{colorText.GREEN}@ItsOnlyPK{colorText.END} {colorText.WARN}on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
                     sleep(5)
-                    return PKUserRegistration.login()
-                with open(os.path.join(Archiver.get_user_data_dir(),f"{usernameInt}.pdf"),"wb",) as f:
-                    f.write(resp.content)
-                if not PKPikey.openFile(f"{usernameInt}.pdf",otp):
+                    return PKUserRegistration.presentTrialOptions()
+                if not validationResult and validationReason == ValidationResult.BadOTP:
                     OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid OTP!{colorText.END}\n[+] {colorText.GREEN}If you have purchased a subscription and are still not able to login, plesae reach out to @ItsOnlyPK on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
-                else:
-                    print("OTP Accepted!")
-                    sleep(3)
-                    return True
-                # if dbManager.validateOTP(username,str(otp),validityIntervalInSeconds=configManager.otpInterval):
-                #     configManager.userID = username
-                #     configManager.setConfig(parser,default=True,showFileCreatedText=False)
-                #     Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
-                #     return True
-        except Exception as e: # pragma: no cover
+                    sleep(5)
+                    return PKUserRegistration.login(trialCount=trialCount+1)
+                if validationResult and validationReason == ValidationResult.Success:
+                    # Remember the userID for future login
+                    configManager.userID = str(PKUserRegistration.userID)
+                    configManager.setConfig(parser,default=True,showFileCreatedText=False)
+                    Utility.tools.clearScreen(userArgs=None, clearAlways=True, forceTop=True)
+                    return validationReason
+        except Exception as e: # pragma: n`o cover
             default_logger().debug(e, exc_info=True)
             pass
         OutputControls().printOutput(f"{colorText.WARN}[+] Invalid userID or OTP!{colorText.END}\n{colorText.GREEN}[+] May be try entering the {'UserID instead of username?' if userUsedUserID else 'Username instead of userID?'} {colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
         sleep(3)
-        return PKUserRegistration.login()
+        return PKUserRegistration.login(trialCount=trialCount+1)
+
+    @classmethod
+    def presentTrialOptions(self):
+        m = menus()
+        m.renderUserType()
+        userTypeOption = input(colorText.FAIL + "  [+] Select option: ") or "1"
+        if str(userTypeOption).upper() in ["1"]:
+            return PKUserRegistration.login(trialCount=0)
+        elif str(userTypeOption).upper() in ["2"]:
+            return ValidationResult.Trial
+        sys.exit(0)
+    

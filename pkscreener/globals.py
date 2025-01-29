@@ -105,6 +105,7 @@ from pkscreener.classes.PKTask import PKTask
 from pkscreener.classes.PKScheduler import PKScheduler
 from pkscreener.classes.PKScanRunner import PKScanRunner
 from pkscreener.classes.PKMarketOpenCloseAnalyser import PKMarketOpenCloseAnalyser
+from pkscreener.classes.PKPremiumHandler import PKPremiumHandler
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -910,6 +911,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
+    if menuOption in ["F", "M", "S", "B", "G", "C", "P", "D"] or selectedMenu.isPremium:
+        if not PKPremiumHandler.hasPremium(selectedMenu):
+            sys.exit(0)
     if menuOption in ["M", "D", "I", "L", "F"]:
         launcher = f'"{sys.argv[0]}"' if " " in sys.argv[0] else sys.argv[0]
         launcher = f"python3.12 {launcher}" if (launcher.endswith(".py\"") or launcher.endswith(".py")) else launcher
