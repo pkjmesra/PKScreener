@@ -55,7 +55,6 @@ userDemoMenuDict = {
 }
 
 level0MenuDict = {
-    "X": "Scanners",
     "F": "Find a stock in scanners",
     "M": "Monitor Intraday",
     "S": "Strategies",
@@ -63,8 +62,9 @@ level0MenuDict = {
     "G": "Growth of 10k",
     "C": "Analyse morning vs close outcomes",
     "P": "Piped Scanners",
-    "T": "~",
     "D": "Data Downloads",
+    "X": "Scanners",
+    "T": "~",
     "E": "Edit user configuration",
     "Y": "View your user configuration",
     "U": "Check for software update",
@@ -290,12 +290,12 @@ level1_S_MenuDict = {
 INDICES_MAP = {}
 
 level1_X_MenuDict = {
-    "W": "Screen stocks from my own Watchlist",
-    "N": "Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)",
-    "E": "Live Index Scan : 5 EMA for Intraday",
-    "S": "Sectoral Indices",
     "0": "Screen stocks by the stock names",
     "1": "Nifty 50          ",
+    "N": "Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)",
+    "S": "Sectoral Indices",
+    "E": "Live Index Scan : 5 EMA for Intraday",
+    "W": "Screen stocks from my own Watchlist",
     "2": "Nifty Next 50     ",
     "3": "Nifty 100         ",
     "4": "Nifty 200         ",
@@ -742,7 +742,7 @@ class menus:
                 menuText = menuText.format(f"{colorText.WARN}{substitutes[substituteIndex]}{colorText.END}")
                 substituteIndex += 1
             menuText = f"{menuText if str(key) not in subOnly else f'{menuText}(₹/$)'}"
-            menuText = menuText.ljust(maxLengthOfItem+5) if key in dictToRender.keys() else menuText
+            menuText = menuText.ljust(maxLengthOfItem+7) if key in dictToRender.keys() else menuText
             m.create(
                 str(key).upper(), menuText, level=self.level, parent=parent
             )
@@ -826,8 +826,8 @@ class menus:
         if selectedMenu is None and self.level == 0:
             # Top level Application Main menu
             return self.renderMenuFromDictionary(dict=level0MenuDict,
-                                                 exceptionKeys=["T", "E", "U", "Z", "L", "D", "M", "P"],
-                                                 coloredValues=(["P","F","X"] if not asList else []),
+                                                 exceptionKeys=["X","T", "E", "U", "Z", "L", "D", "P"],
+                                                 coloredValues=(["P","X"] if not asList else []),
                                                  defaultMenu="P",
                                                  skip=skip, 
                                                  asList=asList, 
@@ -891,8 +891,8 @@ class menus:
                 else:
                     # sub-menu of the top level main selected menu
                     return self.renderMenuFromDictionary(dict=level1_X_MenuDict,
-                                                         exceptionKeys=["W", "0", "M", "S", "15"],
-                                                         coloredValues=(["0", "15",str(configManager.defaultIndex)] if not asList else []),
+                                                         exceptionKeys=["E", "M", "S", "15"],
+                                                         coloredValues=(["15",str(configManager.defaultIndex)] if not asList else []),
                                                          defaultMenu=str(configManager.defaultIndex),
                                                          skip=skip, 
                                                          asList=asList, 
@@ -977,7 +977,8 @@ class menus:
                                                             if renderStyle is not None
                                                             else MenuRenderStyle.TWO_PER_ROW, 
                                                          parent=selectedMenu,
-                                                         checkUpdate=False)
+                                                         checkUpdate=False,
+                                                         subOnly=[] if selectedMenu.menuKey in ["1"] else [x for x in level2_X_MenuDict.keys() if x not in ["M", "Z",str(MAX_MENU_OPTION)]])
             elif selectedMenu.level == 2:
                 self.level = 3
                 # next levelsub-menu of the selected sub-menu
