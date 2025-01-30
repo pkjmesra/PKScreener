@@ -51,6 +51,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
         super(tools, self).__init__()
         self.appVersion = None
         self.userID = None
+        self.otp = None
         self.alwaysHiddenDisplayColumns = ",52Wk-L,RSI,22-Pd,Consol.,Pattern,CCI"
         self.consolidationPercentage = 10
         self.otpInterval = 120
@@ -262,6 +263,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
             parser.set("config", "morninganalysiscandleduration", self.morninganalysiscandleduration)
             parser.set("config", "myMonitorOptions", str(self.myMonitorOptions))
             parser.set("config", "onlyStageTwoStocks", "y" if self.stageTwo else "n")
+            parser.set("config", "otp", str(self.otp) if self.otp is not None and len(self.otp) >=1 else "")
             parser.set("config", "otpInterval", str(self.otpInterval))
             parser.set("config", "period", self.period)
             parser.set("config", "pinnedMonitorSleepIntervalSeconds", str(self.pinnedMonitorSleepIntervalSeconds))
@@ -545,6 +547,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 parser.set("config", "morninganalysiscandlenumber", str(self.morninganalysiscandlenumber))
                 parser.set("config", "myMonitorOptions", str(self.myMonitorOptions))
                 parser.set("config", "onlyStageTwoStocks", str(self.stageTwoPrompt))
+                parser.set("config", "otp", str(self.otp) if self.otp is not None and len(self.otp) >=1 else "")
                 parser.set("config", "otpInterval", str(self.otpInterval))
                 if self.period:
                     endPeriod = str(self.period)[-1].lower()
@@ -624,6 +627,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
                     pass
                 self.tosAccepted = self.appVersion == VERSION
                 self.userID = parser.get("config", "userID")
+                self.otp = parser.get("config", "otp")
                 self.alwaysHiddenDisplayColumns = parser.get("config", "alwaysHiddenDisplayColumns")
                 self.duration = parser.get("config", "duration")
                 self.period = parser.get("config", "period")

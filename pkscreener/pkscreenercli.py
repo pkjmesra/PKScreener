@@ -392,7 +392,7 @@ def exitGracefully():
                 del os.environ['PKDevTools_Default_Log_Level']
         configManager.logsEnabled = False
         configManager.setConfig(ConfigManager.parser,default=True,showFileCreatedText=False)
-    except RuntimeError:
+    except RuntimeError: # pragma: no cover
         OutputControls().printOutput(f"{colorText.WARN}If you're running from within docker, please run like this:{colorText.END}\n{colorText.FAIL}docker run -it pkjmesra/pkscreener:latest\n{colorText.END}")
         pass
 
@@ -444,16 +444,20 @@ def warnAboutDependencies():
             )
         sleep(1)
         if Imports["pandas_ta"]:
+            issueLink = "https://github.com/pkjmesra/PKScreener"
+            issueLink = f"\x1b[97m\x1b]8;;{issueLink}\x1b\\{issueLink}\x1b]8;;\x1b\\\x1b[0m"
+            taLink = "https://github.com/ta-lib/ta-lib-python"
+            taLink = f"\x1b[97m\x1b]8;;{taLink}\x1b\\{taLink}\x1b]8;;\x1b\\\x1b[0m"
             OutputControls().printOutput(
                 colorText.GREEN
-                + "  [+] Found and falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to read the README file in PKScreener repo : https://github.com/pkjmesra/PKScreener \n  [+] or follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+                + f"  [+] Found and falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to read the README file in PKScreener repo :  {issueLink}\n  [+] or follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
             sleep(1)
         else:
             OutputControls().printOutput(
                 colorText.FAIL
-                + "  [+] Neither ta-lib nor pandas_ta was located. You need at least one of them to continue! \n  [+] Please follow instructions from README file under PKScreener repo: https://github.com/pkjmesra/PKScreener"
+                + f"  [+] Neither ta-lib nor pandas_ta was located. You need at least one of them to continue! \n  [+] Please follow instructions from README file under PKScreener repo: {issueLink}"
                 + colorText.END
             )
             OutputControls().takeUserInput("Press any key to try anyway...")
@@ -471,7 +475,7 @@ def runApplication():
     from pkscreener.classes.MenuOptions import menus, PREDEFINED_SCAN_MENU_TEXTS, PREDEFINED_PIPED_MENU_ANALYSIS_OPTIONS,PREDEFINED_SCAN_MENU_VALUES
     args = get_debug_args()
     monitorOption = None
-    if not isinstance(args,argparse.Namespace):
+    if not isinstance(args,argparse.Namespace) and not hasattr(args, "side_effect"):
         argsv = argParser.parse_known_args(args=args)
         # argsv = argParser.parse_known_args()
         args = argsv[0]
@@ -482,8 +486,8 @@ def runApplication():
         args = argsv[0]
     # args.slicewindow = "2024-09-06 10:55:12.481253+05:30"
     if args.user is None:
-        from PKDevTools.classes.Telegram import get_secrets
-        Channel_Id, _, _, _ = get_secrets()
+        from PKDevTools.classes.Environment import PKEnvironment
+        Channel_Id, _, _, _ = PKEnvironment().secrets
         if Channel_Id is not None and len(str(Channel_Id)) > 0:
             args.user = int(f"-{Channel_Id}")
     if args.triggertimestamp is None:
@@ -775,8 +779,8 @@ def saveSendFinalOutcomeDataframe(optionalFinalOutcome_df):
                                 ).encode("utf-8").decode(Utility.STD_ENCODING)
             showBacktestResults(final_df,optionalName="Intraday_Backtest_Result_Summary",choices="Summary")
             OutputControls().printOutput(mark_down)
-            from PKDevTools.classes.Telegram import get_secrets
-            Channel_Id, _, _, _ = get_secrets()
+            from PKDevTools.classes.Environment import PKEnvironment
+            Channel_Id, _, _, _ = PKEnvironment().secrets
             if Channel_Id is not None and len(str(Channel_Id)) > 0:
                 sendQuickScanResult(menuChoiceHierarchy="IntradayAnalysis",
                                         user=int(f"-{Channel_Id}"),
@@ -984,7 +988,7 @@ def pkscreenercli():
             if not args.prodbuild and args.answerdefault is None:
                 try:
                     OutputControls().takeUserInput("Press <Enter> to continue...")
-                except EOFError:
+                except EOFError: # pragma: no cover
                     OutputControls().printOutput(f"{colorText.WARN}If you're running from within docker, please run like this:{colorText.END}\n{colorText.FAIL}docker run -it pkjmesra/pkscreener:latest\n{colorText.END}")
                     pass
         else:
@@ -1028,6 +1032,14 @@ def pkscreenercli():
             configManager.setConfig(
                 ConfigManager.parser, default=True, showFileCreatedText=False
             )
+        from pkscreener.classes.PKUserRegistration import PKUserRegistration, ValidationResult
+        if args.systemlaunched and not PKUserRegistration.validateToken()[0]:
+            result = PKUserRegistration.login()
+            if result != ValidationResult.Success:
+                OutputControls().printOutput(f"\n[+] {colorText.FAIL}You MUST be a premium/paid user to use this feature!{colorText.END}\n")
+                input("Press any key to exit...")
+                sys.exit(0)
+
         if args.systemlaunched and args.options is not None:
             args.systemlaunched = args.options
             
@@ -1131,7 +1143,7 @@ def runApplicationForScreening():
         closeWorkersAndExit()
         exitGracefully()
         sys.exit(0)
-    except SystemExit:
+    except SystemExit: # pragma: no cover
         closeWorkersAndExit()
         exitGracefully()
         sys.exit(0)
@@ -1195,7 +1207,7 @@ def scheduleNextRun():
 if __name__ == "__main__":
     try:
         pkscreenercli()
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # pragma: no cover
         from pkscreener.globals import closeWorkersAndExit
         closeWorkersAndExit()
         exitGracefully()

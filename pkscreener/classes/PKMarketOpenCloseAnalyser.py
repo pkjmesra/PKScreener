@@ -287,6 +287,8 @@ class PKMarketOpenCloseAnalyser:
                     timestamp = datetime.datetime.strptime(tradingDate.strftime("%Y-%m-%d %H:%M:%S"),"%Y-%m-%d %H:%M:%S")
                     df = pd.DataFrame([combinedCandle], columns=df.columns, index=[timestamp])
                     morningIntradayCandle[stock] = df.to_dict("split")
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 OutputControls().printOutput(f"{stock}:    {e}")
                 continue
@@ -295,13 +297,13 @@ class PKMarketOpenCloseAnalyser:
     def getMorningOpen(df):
         try:
             open = df["Open"][0]
-        except KeyError:
+        except KeyError: # pragma: no cover
             open = df["Open"][df.index.values[0]]
         index = 0
         while np.isnan(open) and index < len(df):
             try:
                 open = df["Open"][index + 1]
-            except KeyError:
+            except KeyError: # pragma: no cover
                 open = df["Open"][df.index.values[index + 1]]
             index += 1
         return open
@@ -309,13 +311,13 @@ class PKMarketOpenCloseAnalyser:
     def getMorningClose(df):
         try:
             close = df["Close"][-1]
-        except KeyError:
+        except KeyError: # pragma: no cover
             close = df["Close"][df.index.values[-1]]
         index = len(df)
         while np.isnan(close) and index >= 0:
             try:
                 close = df["Close"][index - 1]
-            except KeyError:
+            except KeyError: # pragma: no cover
                 close = df["Close"][df.index.values[index - 1]]
             index -= 1
         return close

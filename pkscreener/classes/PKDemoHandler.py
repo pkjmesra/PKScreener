@@ -1,5 +1,6 @@
+#!/usr/bin/python3
 """
-The MIT License (MIT)
+    The MIT License (MIT)
 
     Copyright (c) 2023 pkjmesra
 
@@ -22,11 +23,25 @@ The MIT License (MIT)
     SOFTWARE.
 
 """
-# This version must never be changed in full other than the first two components
-# if at all required. The last two components of the version are assigned by the
-# CI/CD pipeline. Only, ever update major.minor. Don't update other parts ever.
-# The pipeline will invoke updateVersion.py which will update the versions as
-# required for the package as well as this file, ReadMe.txt file as well as
-# commit the changes into the main/checked-out branch.
-# major.minor.dateOfRelease.pipelineJobNumber
-VERSION = '0.46.20250130.672'
+import sys
+from PKDevTools.classes.OutputControls import OutputControls
+from PKDevTools.classes.ColorText import colorText
+
+class PKDemoHandler:
+
+    @classmethod
+    def demoForMenu(self,menu):
+        # Default: View Various PKScreener Subscription Options
+        asciinemaLink = "https://asciinema.org/a/EHYIQBbCP8CAJIAFjWaFGkEEX"
+        match menu.menuKey:
+            case "F":
+                # F > Find a stock in scanners
+                asciinemaLink = "https://asciinema.org/a/7TA8H8pq94YmTqsrVvtLCpPel"
+            case "M":
+                asciinemaLink = "https://asciinema.org/a/NKBXhxc2iWbpxcll35JqwfpuQ"
+            case _: # P_1_1
+                asciinemaLink = "https://asciinema.org/a/b31Tp78QLSzZcxcxCzH7Rljog"
+        
+        OutputControls().printOutput(f"\n[+] {colorText.GREEN}Please check this out in your browser:{colorText.END}\n\n[+] {colorText.FAIL}\x1b[97m\x1b]8;;{asciinemaLink}\x1b\\{asciinemaLink}\x1b]8;;\x1b\\\x1b[0m{colorText.END}\n")
+        input("Press any key to exit...")
+        sys.exit(0)

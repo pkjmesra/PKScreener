@@ -28,7 +28,6 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from PKDevTools.classes.Telegram import (
-    get_secrets,
     initTelegram,
     is_token_telegram_configured,
     send_document,
@@ -36,7 +35,7 @@ from PKDevTools.classes.Telegram import (
     send_message,
     send_photo,
 )
-
+from PKDevTools.classes.Environment import PKEnvironment
 
 # Positive test case: Check if the function returns the correct secrets
 def test_get_secrets():
@@ -47,7 +46,7 @@ def test_get_secrets():
             "chat_idADMIN": "987654321",
             "GITHUB_TOKEN": "abcdefgh",
         }
-        (s1, s2, s3, s4) = get_secrets()
+        (s1, s2, s3, s4) = PKEnvironment().secrets
         assert s1 is not None
         assert s2 is not None
         assert s3 is not None

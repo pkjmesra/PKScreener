@@ -92,5 +92,7 @@ def readEmails():
                                 msg  = service.users().messages().modify(userId='me', id=message['id'], body={'removeLabelIds': ['UNREAD']}).execute()                                                       
                             except BaseException as error:
                                 pass                            
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
     except Exception as error:
         print(f'An error occurred: {error}')

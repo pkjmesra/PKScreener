@@ -488,6 +488,8 @@ class StockScreener:
                         isCandlePattern = candlePatterns.findPattern(
                             processedData, screeningDictionary, saveDictionary
                         )
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as e:  # pragma: no cover
                     hostRef.default_logger.debug(e, exc_info=True)
                     screeningDictionary["Pattern"] = ""
@@ -745,12 +747,16 @@ class StockScreener:
                     data = pd.DataFrame(data["data"], columns=data["columns"], index=data["index"])
                     screener.getMutualFundStatus(stock, hostData=data, force=True, exchangeName=exchangeName)
                     hostRef.objectDictionaryPrimary[stock] = data.to_dict("split")
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as ex:
                 # hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
                 pass
             try:
                 screener.getFairValue(stock,hostData=data, force=True,exchangeName=exchangeName)
                 hostRef.objectDictionaryPrimary[stock] = data.to_dict("split")
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as ex:
                 # hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
                 pass

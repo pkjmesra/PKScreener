@@ -72,6 +72,7 @@ from pkscreener.classes import VERSION, PortfolioXRay
 from pkscreener.classes.Backtest import backtest, backtestSummary
 from pkscreener.classes.PKSpreadsheets import PKSpreadsheets
 from PKDevTools.classes.OutputControls import OutputControls
+from PKDevTools.classes.Environment import PKEnvironment
 from pkscreener.classes.MenuOptions import (
     level0MenuDict,
     level1_X_MenuDict,
@@ -104,6 +105,7 @@ from pkscreener.classes.PKTask import PKTask
 from pkscreener.classes.PKScheduler import PKScheduler
 from pkscreener.classes.PKScanRunner import PKScanRunner
 from pkscreener.classes.PKMarketOpenCloseAnalyser import PKMarketOpenCloseAnalyser
+from pkscreener.classes.PKPremiumHandler import PKPremiumHandler
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -509,11 +511,28 @@ def showSendConfigInfo(defaultAnswer=None, user=None):
     configData = configManager.showConfigFile(defaultAnswer=('Y' if user is not None else defaultAnswer))
     if user is not None:
         sendMessageToTelegramChannel(message=Utility.tools.removeAllColorStyles(configData), user=user)
+    if defaultAnswer is None:
+        input("Press any key to continue...")
 
 def showSendHelpInfo(defaultAnswer=None, user=None):
     helpData = Utility.tools.showDevInfo(defaultAnswer=('Y' if user is not None else defaultAnswer))
     if user is not None:
         sendMessageToTelegramChannel(message=Utility.tools.removeAllColorStyles(helpData), user=user)
+    if defaultAnswer is None:
+        input("Press any key to continue...")
+
+def ensureMenusLoaded(menuOption=None,indexOption=None,executeOption=None):
+    try:
+        if len(m0.menuDict.keys()) == 0:
+            m0.renderForMenu(asList=True)
+        if len(m1.menuDict.keys()) == 0:
+            m1.renderForMenu(selectedMenu=m0.find(menuOption),asList=True)
+        if len(m2.menuDict.keys()) == 0:
+            m2.renderForMenu(selectedMenu=m1.find(indexOption),asList=True)
+        if len(m3.menuDict.keys()) == 0:
+            m3.renderForMenu(selectedMenu=m2.find(executeOption),asList=True)
+    except:
+        pass
 
 def initExecution(menuOption=None):
     global selectedChoice, userPassedArgs
@@ -593,6 +612,11 @@ def initPostLevel0Execution(
                 colorText.FAIL + f"{pastDate}  [+] Select option: "
             )
             OutputControls().printOutput(colorText.END, end="")
+        if (str(indexOption).isnumeric() and int(indexOption) > 1 and str(executeOption).isnumeric() and int(str(executeOption)) <= MAX_SUPPORTED_MENU_OPTION) or \
+            str(indexOption).upper() in ["S", "E", "W"]:
+            ensureMenusLoaded(menuOption,indexOption,executeOption)
+            if not PKPremiumHandler.hasPremium(m1.find(str(indexOption).upper())):
+                return None, None
         if indexOption == "" or indexOption is None:
             indexOption = int(configManager.defaultIndex)
         # elif indexOption == 'W' or indexOption == 'w' or indexOption == 'N' or indexOption == 'n' or indexOption == 'E' or indexOption == 'e':
@@ -648,6 +672,9 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
             m2.renderForMenu(selectedMenu=selectedMenu, skip=skip)
             stockIndexCode = "18"
             if indexOption == "S":
+                ensureMenusLoaded("X",indexOption,executeOption)
+                if not PKPremiumHandler.hasPremium(selectedMenu):
+                    sys.exit(0)
                 indexKeys = level1_index_options_sectoral.keys()
                 stockIndexCode = input(
                     colorText.FAIL + "  [+] Select option: "
@@ -672,13 +699,16 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                     colorText.FAIL + f"{pastDate}  [+] Select option: "
                 ) or "9"
                 OutputControls().printOutput(colorText.END, end="")
+            ensureMenusLoaded("X",indexOption,executeOption)
+            if not PKPremiumHandler.hasPremium(m2.find(str(executeOption))):
+                return None, None
             if executeOption == "":
                 executeOption = 1
             if not str(executeOption).isnumeric():
                 executeOption = executeOption.upper()
             else:
                 executeOption = int(executeOption)
-                if executeOption < 0 or executeOption > 44:
+                if executeOption < 0 or executeOption > MAX_MENU_OPTION: # or (executeOption > MAX_SUPPORTED_MENU_OPTION and executeOption < MAX_MENU_OPTION):
                     raise ValueError
         else:
             executeOption = 0
@@ -909,6 +939,10 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     # Print Level 1 menu options
     selectedMenu = initExecution(menuOption=menuOption)
     menuOption = selectedMenu.menuKey
+    if menuOption in ["F", "M", "S", "B", "G", "C", "P", "D"] or selectedMenu.isPremium:
+        ensureMenusLoaded(menuOption,indexOption,executeOption)
+        if not PKPremiumHandler.hasPremium(selectedMenu):
+            sys.exit(0)
     if menuOption in ["M", "D", "I", "L", "F"]:
         launcher = f'"{sys.argv[0]}"' if " " in sys.argv[0] else sys.argv[0]
         launcher = f"python3.12 {launcher}" if (launcher.endswith(".py\"") or launcher.endswith(".py")) else launcher
@@ -1142,7 +1176,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             defaultAnswer=defaultAnswer,
             user=user,
         )
-
+        if indexOption is None:
+            return None, None
+        
         if menuOption in ["H", "U", "T", "E", "Y"]:
             Utility.tools.clearScreen(forceTop=True)
             return None, None
@@ -1683,7 +1719,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         selectedChoice["4"] = str(priceDirection)
         reversalOption = (priceDirection == "2")
 
-    if executeOption == 42:
+    if executeOption == MAX_MENU_OPTION:
         Utility.tools.getLastScreenedResults(defaultAnswer)
         return None, None
     if executeOption > MAX_SUPPORTED_MENU_OPTION and executeOption < MAX_MENU_OPTION:
@@ -1694,6 +1730,11 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         )
         OutputControls().takeUserInput("Press <Enter> to continue...")
         return None, None
+    
+    if str(indexOption).isnumeric() and int(indexOption) > 1 and executeOption <= MAX_SUPPORTED_MENU_OPTION:
+        ensureMenusLoaded(menuOption,indexOption,executeOption)
+        if not PKPremiumHandler.hasPremium(m2.find(str(executeOption).upper())):
+            sys.exit(0)
     if (
         not str(indexOption).isnumeric() and str(indexOption).upper() in ["W", "E", "M", "N", "Z", "S"]
     ) or (
@@ -1702,6 +1743,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     ):
         configManager.getConfig(ConfigManager.parser)
         try:
+            if str(indexOption).upper() in ["W", "E", "S"]:
+                if not PKPremiumHandler.hasPremium(m1.find(str(indexOption).upper())):
+                    sys.exit(0)
             if indexOption == "W":
                 listStockCodes = fetcher.fetchWatchlist()
                 if listStockCodes is None:
@@ -2093,6 +2137,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     colorText.FAIL + "  [+] Select option: "
                 ) or 'M'
             OutputControls().printOutput(colorText.END, end="")
+            ensureMenusLoaded(menuOption,indexOption,executeOption)
+            if not PKPremiumHandler.hasPremium(m0.find(str(pinOption).upper())):
+                sys.exit(0)
             if pinOption in ["1","2"]:
                 if pinOption in ["2"]:
                     monitorOption = "X:0:0"
@@ -2325,6 +2372,7 @@ def FinishBacktestDataCleanup(backtest_df, df_xray):
     showBacktestResults(backtest_df)
     showBacktestResults(summary_df, optionalName="Summary")
     sorting = False if defaultAnswer is not None else True
+    tasksList = []
     sortKeys = {
                 "S": "Stock",
                 "D": "Date",
@@ -3806,8 +3854,7 @@ def sendGlobalMarketBarometer(userArgs=None):
     gmbPath = Barometer.getGlobalMarketBarometerValuation()
     try:
         if gmbPath is not None:
-            from PKDevTools.classes.Telegram import get_secrets
-            Channel_Id, _, _, _ = get_secrets()
+            Channel_Id, _, _, _ = PKEnvironment().secrets
             user = userArgs.user if userArgs is not None else (int(f"-{Channel_Id}") if Channel_Id is not None and len(str(Channel_Id)) > 0 else None)
             gmbFileSize = os.stat(gmbPath).st_size if os.path.exists(gmbPath) else 0
             OutputControls().printOutput(f"Barometer report created with size {gmbFileSize} @ {gmbPath}")

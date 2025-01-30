@@ -453,6 +453,8 @@ class PKScanRunner:
             while True:
                 try:
                     _ = tasks_queue.get(False)
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as e:  # pragma: no cover
                     # default_logger().debug(e, exc_info=True)
                     break

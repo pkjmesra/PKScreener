@@ -176,6 +176,8 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             except ZeroDivisionError as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 pass
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 pass

@@ -9,7 +9,6 @@ Halo #>=0.0.31
 joblib #>=1.4.2
 keras # #>=3.6.0
 # libsql-experimental
-libsql_client #>=0.3.1
 lxml==4.9.4 # 5.0.0 or above causes problems.
 numpy #>=1.26.4
 openpyxl #>=3.1.5
@@ -20,10 +19,9 @@ pandas_ta #>=0.3.14b0
 # and https://github.com/pyinstaller/pyinstaller/issues/7269
 pefile>=2023.2.7,<2024.8.26
 Pillow #>=9.5.0,<=9.5.0 # Keep at this version because getsize_multiline is deprecated/removed in higher versions
-PKDevTools>=0.13.20250121.173
-PKNSETools>=0.1.20241222.132
+PKDevTools>=0.13.20250126.210
+PKNSETools>=0.1.20250122.135
 Pyarrow #>=17.0.0
-pyotp #>=2.9.0
 pyppeteer #>=2.0.0
 pytz #>=2024.2
 python-telegram-bot>=13.4,<20.0

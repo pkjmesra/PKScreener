@@ -45,3 +45,6 @@ results/*.csv
 *.whl
 results
 pkscreener/*.txt
+*ta-lib*
+*.sh
+.github/

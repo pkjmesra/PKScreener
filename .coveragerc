@@ -9,6 +9,8 @@ omit =
     pkscreener/classes/Committer.py
     pkscreener/classes/WorkflowManager.py
     pkscreener/pkscreenerbot.py
+    pkscreener/classes/PKSpreadsheets.py
+    pkscreener/classes/Portfolio.py
 
 [report]
 show_missing = True

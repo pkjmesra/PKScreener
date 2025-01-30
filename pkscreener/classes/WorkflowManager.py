@@ -23,7 +23,7 @@
 
 """
 import os
-from PKDevTools.classes.Telegram import get_secrets
+from PKDevTools.classes.Environment import PKEnvironment
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 
@@ -82,7 +82,7 @@ def run_workflow(command, user, options, workflowType="B"):
                 + branch
                 + '","inputs":{"branch-name":"main","cliOptions":""}}'
             )
-    _, _, _, ghp_token = get_secrets()
+    _, _, _, ghp_token = PKEnvironment().secrets
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
 
     headers = {

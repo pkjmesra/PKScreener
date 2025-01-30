@@ -165,6 +165,5 @@ setup(
     ],
     install_requires=install_requires,
     keywords=["NSE", "Technical Indicators", "Scanning", "Stock Scanners"],
-    test_suite="test",
 ),
 python_requires = (">=3.12",)

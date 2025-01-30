@@ -39,22 +39,26 @@ if Imports["talib"]:
     try:
         import talib
     except Exception as e: # pragma: no cover
+        issueLink = "https://github.com/pkjmesra/PKScreener"
+        issueLink = f"\x1b[97m\x1b]8;;{issueLink}\x1b\\{issueLink}\x1b]8;;\x1b\\\x1b[0m"
+        taLink = "https://github.com/ta-lib/ta-lib-python"
+        taLink = f"\x1b[97m\x1b]8;;{taLink}\x1b\\{taLink}\x1b]8;;\x1b\\\x1b[0m"
         OutputControls().printOutput(
                 colorText.FAIL
-                + "  [+] 'TA-Lib' library is not installed. For best results, please install 'TA-Lib'! You may wish to follow instructions from\n  [+] https://github.com/pkjmesra/PKScreener/"
+                + f"  [+] 'TA-Lib' library is not installed. For best results, please install 'TA-Lib'! You may wish to follow instructions from\n  [+] {issueLink}"
                 + colorText.END
             )
         try:
             import pandas_ta as talib
             OutputControls().printOutput(
                 colorText.FAIL
-                + "  [+] TA-Lib is not installed. Falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+                + f"  [+] TA-Lib is not installed. Falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
         except: # pragma: no cover
             OutputControls().printOutput(
                 colorText.FAIL
-                + "  [+] pandas_ta is not installed. Falling back on pandas_ta also failed.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+                + f"  [+] pandas_ta is not installed. Falling back on pandas_ta also failed.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
             pass

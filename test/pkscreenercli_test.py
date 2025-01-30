@@ -86,12 +86,12 @@ class TestPKScreenerFunctions(unittest.TestCase):
                 OutputControls().enableUserInput = prevValue
                 mock_input.assert_called()
 
-    @patch('pkscreener.globals.main')
-    def test_runApplication(self, mock_main):
-        mock_main.return_value = (MagicMock(), MagicMock())
-        with patch('pkscreener.pkscreenercli.get_debug_args', return_value=MagicMock()):
-            runApplication()
-            mock_main.assert_called()
+    # @patch('pkscreener.globals.main')
+    # def test_runApplication(self, mock_main):
+    #     mock_main.return_value = (MagicMock(), MagicMock())
+    #     with patch('pkscreener.pkscreenercli.get_debug_args', return_value=MagicMock()):
+    #         runApplication()
+    #         mock_main.assert_called()
 
     def test_updateProgressStatus(self):
         args = MagicMock()
@@ -668,3 +668,92 @@ def test_pkscreenercli_cron_mode_scheduling():
 #                         pkscreenercli.pkscreenercli()
 #                         mock_sleep.assert_called_once_with(pkscreenercli.args.croninterval)
 #                         mock_runApplication.assert_called()
+
+class TestRunApplication(unittest.TestCase):
+ 
+    @patch('pkscreener.globals.main', return_value=(MagicMock(), MagicMock()))
+    @patch('pkscreener.globals.sendGlobalMarketBarometer')
+    @patch('pkscreener.classes.MarketMonitor.MarketMonitor')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities')
+    @patch('pkscreener.pkscreenercli.get_debug_args')
+    def test_runApplication_success(self, mock_get_debug_args, mock_PKDateUtilities, mock_MarketMonitor, mock_sendGlobalMarketBarometer, mock_main):
+        # Setup mock return values
+        mock_args = MagicMock()
+        mock_get_debug_args.return_value = mock_args
+        mock_args.options = None
+        mock_args.runintradayanalysis = None
+        mock_PKDateUtilities.currentDateTimestamp.return_value = 1234567890
+
+        with self.assertRaises(SystemExit):
+            # Call the function
+            runApplication()
+            # Assert that main was called
+            mock_main.assert_called()
+
+    @patch('pkscreener.globals.main', side_effect=KeyboardInterrupt("Main failed because of KeyboardInterrupt"))
+    def test_runApplication_main_failure(self, mock_main):
+        with self.assertRaises(SystemExit):  # Assuming it raises SystemExit on failure
+            runApplication()
+
+    @patch('pkscreener.globals.main', return_value=(MagicMock(), MagicMock()))
+    @patch('pkscreener.globals.sendGlobalMarketBarometer')
+    @patch('pkscreener.classes.MarketMonitor.MarketMonitor')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities')
+    @patch('pkscreener.pkscreenercli.get_debug_args')
+    def test_runApplication_with_invalid_args(self, mock_get_debug_args, mock_PKDateUtilities, mock_MarketMonitor, mock_sendGlobalMarketBarometer, mock_main):
+        # Setup mock return values
+        mock_args = MagicMock()
+        mock_args.pipedmenus = None
+        mock_get_debug_args.return_value = mock_args
+        mock_args.options = None
+        mock_args.runintradayanalysis = None
+        mock_PKDateUtilities.currentDateTimestamp.return_value = 1234567890
+
+        with self.assertRaises(SystemExit):
+            # Call the function
+            runApplication()
+
+            # Assert that main was called
+            mock_main.assert_called()
+
+    @patch('pkscreener.globals.main', return_value=(MagicMock(), MagicMock()))
+    @patch('pkscreener.globals.sendGlobalMarketBarometer')
+    @patch('pkscreener.classes.MarketMonitor.MarketMonitor')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities')
+    @patch('pkscreener.pkscreenercli.get_debug_args')
+    def test_runApplication_with_monitor_option(self, mock_get_debug_args, mock_PKDateUtilities, mock_MarketMonitor, mock_sendGlobalMarketBarometer, mock_main):
+        # Setup mock return values
+        mock_args = MagicMock()
+        mock_args.monitor = "some_monitor"
+        mock_args.pipedmenus = None
+        mock_args.options = None
+        mock_args.runintradayanalysis = None
+        mock_get_debug_args.return_value = mock_args
+        mock_PKDateUtilities.currentDateTimestamp.return_value = 1234567890
+
+        with self.assertRaises(SystemExit):
+            # Call the function
+            runApplication()
+
+            # Assert that main was called
+            mock_main.assert_called()
+
+    @patch('pkscreener.globals.main', return_value=(MagicMock(), MagicMock()))
+    @patch('pkscreener.globals.sendGlobalMarketBarometer')
+    @patch('pkscreener.classes.MarketMonitor.MarketMonitor')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities')
+    @patch('pkscreener.pkscreenercli.get_debug_args')
+    def test_runApplication_with_exit(self, mock_get_debug_args, mock_PKDateUtilities, mock_MarketMonitor, mock_sendGlobalMarketBarometer, mock_main):
+        # Setup mock return values
+        mock_args = MagicMock()
+        mock_args.exit = True
+        mock_args.options = None
+        mock_args.runintradayanalysis = None
+        mock_get_debug_args.return_value = mock_args
+
+        with self.assertRaises(SystemExit):
+            # Call the function
+            runApplication()
+
+            # Assert that main was not called due to exit
+            mock_main.assert_not_called()

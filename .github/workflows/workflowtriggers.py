@@ -34,6 +34,8 @@ import requests
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.Committer import Committer
 from PKDevTools.classes.MarketHours import MarketHours
+from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions,PKSubscriptionModel
+from PKDevTools.classes import Archiver
 from PKNSETools.PKNSEStockDataFetcher import nseStockDataFetcher
 
 MORNING_ALERT_HOUR = 9
@@ -194,6 +196,10 @@ original__stdout = sys.__stdout__
 # args.skiplistlevel3 = "0"
 # args.skiplistlevel4 = "0"
 # args.branchname = "actions-data-download"
+# args.addsubscription = True
+# args.removesubscription = True
+# args.subscriptionvalue = 22000
+# args.userid = 6186237493
 
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menus, PREDEFINED_SCAN_ALERT_MENU_KEYS
 
@@ -207,8 +213,8 @@ nse = nseStockDataFetcher()
 
 if args.user is None and "ALERT_TRIGGER" in os.environ.keys():
     try:
-        from PKDevTools.classes.Telegram import get_secrets
-        Channel_Id, _, _, _ = get_secrets()
+        from PKDevTools.classes.Environment import PKEnvironment
+        Channel_Id, _, _, _ = PKEnvironment().secrets
         if Channel_Id is not None and len(str(Channel_Id)) > 0:
             args.user = int(f"-{Channel_Id}")
     except:
@@ -497,13 +503,53 @@ def generateBacktestReportMainPage():
     f.write(HTMLFOOTER_TEXT)
     f.close()
 
+def scanOutputDirectory(backtest=False):
+    dirName = 'actions-data-scan' if not backtest else "Backtest-Reports"
+    outputFolder = os.path.join(os.getcwd(),dirName)
+    if not os.path.isdir(outputFolder):
+        print("This must be run with actions-data-download or gh-pages branch checked-out")
+        print("Creating actions-data-scan directory now...")
+        os.makedirs(os.path.dirname(os.path.join(os.getcwd(),f"{dirName}{os.sep}")), exist_ok=True)
+    return outputFolder
+
+def getFormattedChoices(options):
+    isIntraday = args.intraday
+    selectedChoice = options.split(":")
+    choices = ""
+    for choice in selectedChoice:
+        if len(choice) > 0 and choice != 'D':
+            if len(choices) > 0:
+                choices = f"{choices}_"
+            choices = f"{choices}{choice}"
+    if choices.endswith("_"):
+        choices = choices[:-1]
+    choices = f"{choices}{'_i' if isIntraday else ''}"
+    return choices
+
+def scanChoices(options, backtest=False):
+    choices = getFormattedChoices(options).replace("B:30","X").replace("B_30","X").replace("B","X").replace("G","X")
+    return choices if not backtest else choices.replace("X","B")
+
+def tryCommitOutcomes(options,pathSpec=None,delete=False):
+    choices = scanChoices(options)
+    if delete:
+        choices =f"Cleanup-{choices}"
+    if pathSpec is None:
+        scanResultFilesPath = f"{os.path.join(scanOutputDirectory(),choices)}_*.txt"
+    else:
+        scanResultFilesPath = pathSpec
+        if delete:
+            scanResultFilesPath = f"-A {scanResultFilesPath}"
+
+    if args.branchname is not None:
+        Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname)
 
 def run_workflow(workflow_name, postdata, option=""):
     owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n","")
     repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
     ghp_token = ""
-    # from PKDevTools.classes.Telegram import get_secrets
-    # _, _, _, ghp_token = get_secrets()
+    # from PKDevTools.classes.Environment import PKEnvironment
+    # _, _, _, ghp_token = PKEnvironment().secrets
     
     if "GITHUB_TOKEN" in os.environ.keys():
         ghp_token = os.environ["GITHUB_TOKEN"]
@@ -699,34 +745,6 @@ def triggerHistoricalScanWorkflowActions(scanDaysInPast=0):
         + '}'
         )
     resp = run_workflow("w9-workflow-download-data.yml", postdata, "X_Cleanup")
-    
-    
-def tryCommitOutcomes(options,pathSpec=None,delete=False):
-    choices = scanChoices(options)
-    if delete:
-        choices =f"Cleanup-{choices}"
-    if pathSpec is None:
-        scanResultFilesPath = f"{os.path.join(scanOutputDirectory(),choices)}_*.txt"
-    else:
-        scanResultFilesPath = pathSpec
-        if delete:
-            scanResultFilesPath = f"-A {scanResultFilesPath}"
-
-    if args.branchname is not None:
-        Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname)
-
-def scanOutputDirectory(backtest=False):
-    dirName = 'actions-data-scan' if not backtest else "Backtest-Reports"
-    outputFolder = os.path.join(os.getcwd(),dirName)
-    if not os.path.isdir(outputFolder):
-        print("This must be run with actions-data-download or gh-pages branch checked-out")
-        print("Creating actions-data-scan directory now...")
-        os.makedirs(os.path.dirname(os.path.join(os.getcwd(),f"{dirName}{os.sep}")), exist_ok=True)
-    return outputFolder
-
-def scanChoices(options, backtest=False):
-    choices = getFormattedChoices(options).replace("B:30","X").replace("B_30","X").replace("B","X").replace("G","X")
-    return choices if not backtest else choices.replace("X","B")
 
 def scanResultExists(options, nthDay=0,returnFalseIfSizeZero=True):
     choices = scanChoices(options)
@@ -856,20 +874,6 @@ def shouldRunBacktests(backtestName="",df=None):
                 pass
     return shouldRun
 
-def getFormattedChoices(options):
-    isIntraday = args.intraday
-    selectedChoice = options.split(":")
-    choices = ""
-    for choice in selectedChoice:
-        if len(choice) > 0 and choice != 'D':
-            if len(choices) > 0:
-                choices = f"{choices}_"
-            choices = f"{choices}{choice}"
-    if choices.endswith("_"):
-        choices = choices[:-1]
-    choices = f"{choices}{'_i' if isIntraday else ''}"
-    return choices
-
 def updateHolidays():
     _, raw = nse.updatedHolidays()
     if raw is None or len(raw) == 0:
@@ -927,7 +931,6 @@ if __name__ == '__main__':
         updateHolidays()
     if args.runintradayanalysis:
         triggerRemoteScanAlertWorkflow("C:12: --runintradayanalysis -u -1001785195297", branch="main")
-
 
     print(f"{datetime.datetime.now(pytz.timezone('Asia/Kolkata'))}: All done!")
     sys.exit(0)

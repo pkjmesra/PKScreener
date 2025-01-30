@@ -23,6 +23,7 @@
     SOFTWARE.
 
 """
+import platform
 import pytest 
 import argparse
 import pandas as pd
@@ -307,7 +308,7 @@ def test_cleanFormattingForStatsData_no_df():
     
     assert result is None
 
-
+@pytest.mark.skipif("Darwin" in platform.system(),reason="Cannot simulate the environment on MacOS",)
 def test_getBacktestDataFromCleanedData_no_df(args):
     saveResults = pd.DataFrame({"LTP": [11, 22, 33], "LTP1": [10, 20, 30], "Growth1": [0.1, 0.2, 0.3], "Pattern": ["A", "B", "C"]})
     period = 1
@@ -333,6 +334,7 @@ def test_getBacktestDataFromCleanedData_no_df(args):
         assert "ScanType" in result.columns
         assert result["ScanType"].tolist()[:4] == ["[P]A", "[P]B", "[P]C", "NoFilter"]
 
+@pytest.mark.skipif("Darwin" in platform.system(),reason="Cannot simulate the environment on MacOS",)
 def test_getBacktestDataFromCleanedData_with_df(args):
     saveResults = pd.DataFrame({"LTP": [11, 22, 33], "LTP1": [10, 20, 30], "Growth1": [0.1, 0.2, 0.3], "Pattern": ["A", "B", "C"]})
     period = 1
@@ -358,6 +360,7 @@ def test_getBacktestDataFromCleanedData_with_df(args):
         assert "ScanType" not in result.columns
         assert result["Pattern"].tolist()[:3] == ["D", "E", "F"]
 
+@pytest.mark.skipif("Darwin" in platform.system(),reason="Cannot simulate the environment on MacOS",)
 def test_getBacktestDataFromCleanedData_no_pattern(args):
     saveResults = pd.DataFrame({"LTP": [11, 22, 33], "LTP1": [10, 20, 30], "Growth1": [0.1, 0.2, 0.3], "Pattern": [None, "", "C"]})
     period = 1

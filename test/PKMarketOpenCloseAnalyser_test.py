@@ -125,3 +125,175 @@ class TestPKMarketOpenCloseAnalyser(unittest.TestCase):
         save_df, screen_df = PKMarketOpenCloseAnalyser.diffMorningCandleDataWithLatestDailyCandleData(screen_df, save_df, updatedCandleData, allDailyCandles,"RunOptionName",['AAPL'])
         self.assertIn('LTP@Alert', screen_df.columns)
         self.assertIn('EoDDiff', screen_df.columns)
+
+class TestCombineDailyStockDataWithMorningSimulation(unittest.TestCase):
+
+    def setUp(self):
+        self.allDailyCandles = {
+            'AAPL': {
+                'data': [[1, 2, 3, 150], [1, 2, 3, 155]],
+                'index': ['2023-10-01', '2023-10-02']
+            },
+            'MSFT': {
+                'data': [[1, 2, 3, 250], [1, 2, 3, 255]],
+                'index': ['2023-10-01', '2023-10-02']
+            },
+        }
+        
+        self.morningIntradayCandle = {
+            'AAPL': {
+                'data': [[1, 2, 3, 152]],
+                'index': ['2023-10-02 09:30']
+            }
+        }
+
+    def test_combine_data_success(self):
+        expected_output = {
+            'AAPL': {'data': [[1, 2, 3, 150], [1, 2, 3, 152]],
+                    'index': ['2023-10-01', '2023-10-02 09:30']
+                    }
+                }
+        
+        result = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(self.allDailyCandles, self.morningIntradayCandle)
+        self.assertEqual(result, expected_output)
+
+    def test_missing_intraday_stock(self):
+        # Test when there are stocks in allDailyCandles that are not in morningIntradayCandle
+        morning_candle = {
+            'AAPL': {
+                'data': [[1, 2, 3, 152]],
+                'index': ['2023-10-02 09:30']
+            }
+        }
+        expected_output = {
+            'AAPL': {'data': [[1, 2, 3, 150], [1, 2, 3, 152]],
+                    'index': ['2023-10-01', '2023-10-02 09:30']
+                    }
+                }
+        result = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(self.allDailyCandles, morning_candle)
+        self.assertEqual(result, expected_output)
+
+    def test_no_daily_data(self):
+        # Test when allDailyCandles is empty
+        empty_all_daily_candles = {}
+        expected_output = {}
+        
+        result = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(empty_all_daily_candles, self.morningIntradayCandle)
+        self.assertEqual(result, expected_output)
+
+    def test_no_intraday_data(self):
+        # Test when morningIntradayCandle is empty
+        expected_output = {
+            'AAPL': {
+                'data': [[1, 2, 3, 150], [1, 2, 3, 155]],
+                'index': ['2023-10-01', '2023-10-02']
+            },
+            'MSFT': {
+                'data': [[1, 2, 3, 250], [1, 2, 3, 255]],
+                'index': ['2023-10-01', '2023-10-02']
+            },
+        }
+        
+        result = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(self.allDailyCandles, {})
+        self.assertEqual(result, {})
+
+    def test_invalid_data_format(self):
+        # Test when the input data format is incorrect
+        malformed_daily_candles = {
+            'AAPL': {
+                'data': 'not a list',
+                'index': ['2023-10-01']
+            }
+        }
+        
+        result = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(malformed_daily_candles, self.morningIntradayCandle)
+        self.assertEqual(result, {})
+
+    def test_error_logging(self):
+        # Test logging when encountering an error
+        with patch('os.environ', {'PKDevTools_Default_Log_Level': 'DEBUG'}):
+            result =PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(self.allDailyCandles, self.morningIntradayCandle)
+            self.assertIn('AAPL', result)
+
+class TestGetIntradayCandleFromMorning(unittest.TestCase):
+
+    @patch('pkscreener.classes.ConfigManager.tools')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKIntradayStockDataDB')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKMarketOpenCloseAnalyser.getMorningOpen')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKMarketOpenCloseAnalyser.getMorningClose')
+    def test_positive_case_with_stock_dict(self, mock_get_morning_close, mock_get_morning_open, mock_intraday_db, mock_config_manager):
+        # Setup mock data
+        mock_config_manager.morninganalysiscandlenumber = 5
+        mock_config_manager.morninganalysiscandleduration = "1m"
+        
+        mock_data = {
+            'AAPL': {
+                "data": [
+                    {"Open": 150, "High": 155, "Low": 149, "Close": 154, "Adj Close": 154, "Volume": 1000},
+                    {"Open": 154, "High": 156, "Low": 153, "Close": 155, "Adj Close": 155, "Volume": 1100}
+                ],
+                "columns": ["Open", "High", "Low", "Close", "Adj Close", "Volume"],
+                "index": pd.date_range(start='2023-10-01 09:15', periods=2, freq='T')
+            }
+        }
+        
+        mock_get_morning_open.return_value = 150
+        mock_get_morning_close.return_value = 155
+        
+        # Call the function
+        result = PKMarketOpenCloseAnalyser.getIntradayCandleFromMorning(stockDictInt=mock_data)
+        
+        # Assertions
+        self.assertIn('AAPL', result)
+        self.assertEqual(result['AAPL']['data'][0][0], 150)
+        self.assertEqual(result['AAPL']['data'][0][1], 156)
+        self.assertEqual(result['AAPL']['data'][0][2], 149)
+        self.assertEqual(result['AAPL']['data'][0][3], 155)
+
+    @patch('pkscreener.classes.ConfigManager.tools')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKIntradayStockDataDB')
+    def test_negative_case_with_invalid_data(self, mock_intraday_db, mock_config_manager):
+        # Setup mock data
+        mock_config_manager.morninganalysiscandlenumber = 5
+        mock_data = {
+            'AAPL': {
+                "data": [],
+                "columns": ["Open", "High", "Low", "Close", "Adj Close", "Volume"],
+                "index": []
+            }
+        }
+
+        # Call the function
+        result = PKMarketOpenCloseAnalyser.getIntradayCandleFromMorning(stockDictInt=mock_data)
+
+        # Assertions
+        self.assertEqual(result, {})
+
+    @patch('pkscreener.classes.ConfigManager.tools')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKIntradayStockDataDB')
+    def test_exception_handling(self, mock_intraday_db, mock_config_manager):
+        # Setup mock data
+        mock_config_manager.morninganalysiscandlenumber = 5
+        mock_data = {
+            'AAPL': {
+                "data": [
+                    {"Open": 150, "High": 155, "Low": 149, "Close": 154, "Adj Close": 154, "Volume": 1000},
+                ],
+                "columns": ["Open", "High", "Low", "Close", "Adj Close", "Volume"],
+                "index": pd.date_range(start='2023-10-01 09:15', periods=1, freq='T')
+            }
+        }
+
+        # Simulate an exception in getMorningOpen
+        with patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKMarketOpenCloseAnalyser.getMorningOpen', side_effect=Exception("Test Exception")):
+            result = PKMarketOpenCloseAnalyser.getIntradayCandleFromMorning(stockDictInt=mock_data)
+            self.assertEqual(result, {})
+
+    @patch('pkscreener.classes.ConfigManager.tools')
+    @patch('pkscreener.classes.PKMarketOpenCloseAnalyser.PKIntradayStockDataDB')
+    def test_no_stocks_case(self, mock_intraday_db, mock_config_manager):
+        # Call the function with no stocks
+        result = PKMarketOpenCloseAnalyser.getIntradayCandleFromMorning(stockDictInt={})
+
+        # Assertions
+        self.assertEqual(result, {})
