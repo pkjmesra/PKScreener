@@ -444,16 +444,20 @@ def warnAboutDependencies():
             )
         sleep(1)
         if Imports["pandas_ta"]:
+            issueLink = "https://github.com/pkjmesra/PKScreener"
+            issueLink = f"\x1b[97m\x1b]8;;{issueLink}\x1b\\{issueLink}\x1b]8;;\x1b\\\x1b[0m"
+            taLink = "https://github.com/ta-lib/ta-lib-python"
+            taLink = f"\x1b[97m\x1b]8;;{taLink}\x1b\\{taLink}\x1b]8;;\x1b\\\x1b[0m"
             OutputControls().printOutput(
                 colorText.GREEN
-                + "  [+] Found and falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to read the README file in PKScreener repo : https://github.com/pkjmesra/PKScreener \n  [+] or follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+                + f"  [+] Found and falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to read the README file in PKScreener repo :  {issueLink}\n  [+] or follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
             sleep(1)
         else:
             OutputControls().printOutput(
                 colorText.FAIL
-                + "  [+] Neither ta-lib nor pandas_ta was located. You need at least one of them to continue! \n  [+] Please follow instructions from README file under PKScreener repo: https://github.com/pkjmesra/PKScreener"
+                + f"  [+] Neither ta-lib nor pandas_ta was located. You need at least one of them to continue! \n  [+] Please follow instructions from README file under PKScreener repo: {issueLink}"
                 + colorText.END
             )
             OutputControls().takeUserInput("Press any key to try anyway...")
@@ -1028,6 +1032,14 @@ def pkscreenercli():
             configManager.setConfig(
                 ConfigManager.parser, default=True, showFileCreatedText=False
             )
+        from pkscreener.classes.PKUserRegistration import PKUserRegistration, ValidationResult
+        if args.systemlaunched and not PKUserRegistration.validateToken()[0]:
+            result = PKUserRegistration.login()
+            if result != ValidationResult.Success:
+                OutputControls().printOutput(f"\n[+] {colorText.FAIL}You MUST be a premium/paid user to use this feature!{colorText.END}\n")
+                input("Press any key to exit...")
+                sys.exit(0)
+
         if args.systemlaunched and args.options is not None:
             args.systemlaunched = args.options
             

@@ -71,6 +71,7 @@ from pkscreener.classes.WorkflowManager import run_workflow
 import pkscreener.classes.ConfigManager as ConfigManager
 try:
     from PKDevTools.classes.DBManager import DBManager
+    from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions
 except: # pragma: no cover
     pass
 
@@ -135,7 +136,7 @@ _updater = None
 
 TOP_LEVEL_SCANNER_MENUS = ["X", "B", "MI","DV", "P"]
 TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"] # Last item will be skipped.
-INDEX_SKIP_MENUS = ["W","E","M","Z","0","2","3","4","6","7","9","10","S"]
+INDEX_SKIP_MENUS = ["W","E","M","Z","0","2","3","4","6","7","8","9","10","S","15"]
 SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
@@ -217,7 +218,7 @@ def otp(update: Update, context: CallbackContext) -> str:
                     subscriptionModelNames = f"{subscriptionModelNames}\n{name} : ₹ {value} (Only Basic Scans are free)\n"
                 else:
                     subscriptionModelNames = f"{subscriptionModelNames}\n{name.ljust(15)} : ₹ {value}"
-            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n\n1. Using UPI(India) to <b>PKScreener@APL</b> \nor\n2. Proudly <b>sponsor</b>: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra\n\nPlease drop a message to @ItsOnlyPK after paying to enable subscription!"
+            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n\n1. Using UPI(India) to <b>PKScreener@APL</b> \nor\n2. Proudly <b>sponsor</b>: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra\n\nPlease drop a message to @ItsOnlyPK on Telegram after paying to enable subscription!"
 
             subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
             if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
@@ -473,7 +474,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
             start(update, context, updatedResults=result_outputs,monitorIndex=monitorIndex)
             return START_ROUTES
 
-    midSkip = "1" if data == "X" else "N"
+    midSkip = "13" if data == "X" else "N"
     skipMenus = [midSkip]
     skipMenus.extend(INDEX_SKIP_MENUS)
     menuText = (
@@ -486,7 +487,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
         .replace("    ", "")
         .replace("  ", "")
         .replace("\t", "")
-        .replace(colorText.FAIL,"").replace(colorText.END,"")
+        .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
     )
     menuText = menuText + "\n\nH > Home"
     mns = m1.renderForMenu(
@@ -519,6 +520,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
     menuText = "Hmm...It looks like you caught us taking a break! Try again later :-)"
     mns = []
     updateCarrier = None
+    shouldSendUpdate = False
     if update is None:
         return
     else:
@@ -716,17 +718,20 @@ def Level2(update: Update, context: CallbackContext) -> str:
             f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
         )
         expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
-        menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
+        menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
 
         reply_markup = default_markup(inlineMenus)
         options = ":".join(selection)
-        launchScreener(
+        shouldSendUpdate = launchScreener(
             options=options,
             user=query.from_user,
             context=context,
             optionChoices=optionChoices,
             update=update,
         )
+        if not shouldSendUpdate:
+            DBManager().getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
+            return START_ROUTES
     try:
         if optionChoices != "" and Channel_Id is not None and len(str(Channel_Id)) > 0:
             context.bot.send_message(
@@ -736,7 +741,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
             )
     except Exception:# pragma: no cover
         start(update, context)
-    menuText =  menuText.replace("\n     ","\n").replace("\n    ","\n").replace(colorText.FAIL,"").replace(colorText.END,"")
+    menuText =  menuText.replace("\n     ","\n").replace("\n    ","\n").replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
     if not str(optionChoices.upper()).startswith("B"):
         sendUpdatedMenu(
             menuText=menuText, update=update, context=context, reply_markup=reply_markup
@@ -761,7 +766,7 @@ def default_markup(inlineMenus):
 
 def sendUpdatedMenu(menuText, update: Update, context, reply_markup, replaceWhiteSpaces=True):
     try:
-        menuText.replace("     ", "").replace("    ", "").replace("\t", "").replace(colorText.FAIL,"").replace(colorText.END,"") if replaceWhiteSpaces else menuText
+        menuText.replace("     ", "").replace("    ", "").replace("\t", "").replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"") if replaceWhiteSpaces else menuText
         menuText = f"{menuText}\n\nClick /start if you want to restart the session." if "/start" not in menuText else menuText
         if update.callback_query.message.text == menuText:
             menuText = f"{PKDateUtilities.currentDateTime()}:\n{menuText}"
@@ -774,9 +779,34 @@ def sendUpdatedMenu(menuText, update: Update, context, reply_markup, replaceWhit
         logger.log(e)
         start(update, context)
 
+def isUserSubscribed(user):
+    if user is not None:
+        return PKUserSusbscriptions.userSubscribed(userID=str(user.id))
+    return False
 
 def launchScreener(options, user, context, optionChoices, update):
     try:
+        if not isUserSubscribed(user):
+            basicSubscriptions = ["X_0","X_N","X_1"]
+            scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
+            isBasicScanRequest = False
+            for basicSub in basicSubscriptions:
+                if basicSub in scanRequest:
+                    isBasicScanRequest = True
+                    break
+            if not isBasicScanRequest:
+                responseText = f"Thank you for choosing {scanRequest}!\n\nThis scan request is,however,protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n\n/OTP\n\nFor basic/unpaid users, you can try out the following:\n /X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
+                if update is not None and update.message is not None:
+                    update.message.reply_text(sanitiseTexts(responseText))
+                else:
+                    responseText = f"{responseText}\n\nClick /start if you want to restart the session."
+                    update.callback_query.edit_message_text(
+                        text=responseText,
+                        reply_markup=default_markup([]),
+                    )
+                shareUpdateWithChannel(update=update, context=context, optionChoices=optionChoices)
+                return False
+
         if str(optionChoices.upper()).startswith("B"):
             optionChoices = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","")
             while optionChoices.endswith("_"):
@@ -798,6 +828,7 @@ def launchScreener(options, user, context, optionChoices, update):
             shareUpdateWithChannel(
                 update=update, context=context, optionChoices=optionChoices
             )
+            return True
             # run_workflow(optionChoices, str(user.id), str(options.upper()))
         elif str(optionChoices.upper()).startswith("G"):
             optionChoices = optionChoices.replace(" ", "").replace(">", "_")
@@ -807,6 +838,7 @@ def launchScreener(options, user, context, optionChoices, update):
             run_workflow(
                 optionChoices, str(user.id), str(options.upper()), workflowType="G"
             )
+            return True
         else: #str(optionChoices.upper()).startswith("X") or str(optionChoices.upper()).startswith("P"):
             optionChoices = optionChoices.replace(" ", "").replace(">", "_")
             while optionChoices.endswith("_"):
@@ -814,6 +846,7 @@ def launchScreener(options, user, context, optionChoices, update):
             run_workflow(
                 optionChoices, str(user.id), str(options.upper().replace(":7:3:4",":7:3:0.008:4")), workflowType="X"
             )
+            return True
             # Popen(
             #     [
             #         "pkscreener",
@@ -1040,14 +1073,15 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             ]
         if shouldScan:
             options = ":".join(selection)
-            launchScreener(
+            result = launchScreener(
                 options=options,
                 user=update.message.from_user,
                 context=context,
                 optionChoices=cmd.upper(),
                 update=update,
             )
-            sendRequestSubmitted(cmd.upper(), update=update, context=context)
+            if result:
+                sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         else:
             if cmd in ["x"]:
@@ -1105,14 +1139,15 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             return START_ROUTES
         elif len(selection) == 4:
             options = ":".join(selection)
-            launchScreener(
+            result = launchScreener(
                 options=options.upper(),
                 user=update.message.from_user,
                 context=context,
                 optionChoices=cmd.upper(),
                 update=update,
             )
-            sendRequestSubmitted(cmd.upper(), update=update, context=context)
+            if result:
+                sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
         
     if "x_" in cmd or "b_" in cmd or "g_" in cmd:
@@ -1139,14 +1174,15 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             selectedMenu = m1.find(selection[1].upper())
             if "x_" in cmd and selectedMenu.menuKey == "N":  # Nifty prediction
                 options = ":".join(selection)
-                launchScreener(
+                result = launchScreener(
                     options=options,
                     user=update.message.from_user,
                     context=context,
                     optionChoices=cmd.upper(),
                     update=update,
                 )
-                sendRequestSubmitted(cmd.upper(), update=update, context=context)
+                if result:
+                    sendRequestSubmitted(cmd.upper(), update=update, context=context)
                 return START_ROUTES
             elif (
                 "x_" in cmd and selectedMenu.menuKey == "0"
@@ -1267,14 +1303,15 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                         return START_ROUTES
 
             options = ":".join(selection)
-            launchScreener(
+            result = launchScreener(
                 options=options,
                 user=update.message.from_user,
                 context=context,
                 optionChoices=cmd.upper(),
                 update=update,
             )
-            sendRequestSubmitted(cmd.upper(), update=update, context=context)
+            if result:
+                sendRequestSubmitted(cmd.upper(), update=update, context=context)
             return START_ROUTES
     if cmd == "y" or cmd == "h":
         shareUpdateWithChannel(update=update, context=context)
@@ -1283,7 +1320,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             showSendConfigInfo(defaultAnswer='Y',user=str(update.message.from_user.id))
         elif cmd == "h":
             showSendHelpInfo(defaultAnswer='Y',user=str(update.message.from_user.id))
-        # launchScreener(
+        # result = launchScreener(
         #     options=f"{cmd.upper()}:",
         #     user=update.message.from_user,
         #     context=context,

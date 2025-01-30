@@ -135,8 +135,12 @@ class ScreeningStatistics:
                 outputFolder = None
                 try:
                     outputFolder = os.sep.join(e.filename.split(os.sep)[:-1])
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as e: # pragma: no cover
                     outputFolder = os.sep.join(str(e).split("\n")[0].split(": ")[1].replace("'","").split(os.sep)[:-1])
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 pass
             self.downloadSaveTemplateJsons(outputFolder)
@@ -149,6 +153,8 @@ class ScreeningStatistics:
                 ema = pktalib.EMA(df["Close"], ema_period) if ema_period > 1 else df["Close"]#short_name='EMA', ewm=True)        
                 df["Above"] = ema > df["ATRTrailingStop"]
                 df["Below"] = ema < df["ATRTrailingStop"]
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             pass
                 
@@ -201,6 +207,8 @@ class ScreeningStatistics:
                 # else:
                 #     if self.shouldLog:
                 #         self.default_logger.debug(f"Already exists: {path}")
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 # if self.shouldLog:
                 #     self.default_logger.debug(e, exc_info=True)
@@ -1686,6 +1694,8 @@ class ScreeningStatistics:
                 maRev = pktalib.MA(dataCopy["Close"], timeperiod=maLength)
             try:
                 dataCopy.drop("maRev", axis=1, inplace=True, errors="ignore")
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception:# pragma: no cover
                 pass
             dataCopy.insert(len(dataCopy.columns), "maRev", maRev)
@@ -1839,6 +1849,8 @@ class ScreeningStatistics:
                 )
                 saveDict["Trend"] = saved[1] + "Unknown"
                 return saveDict["Trend"]
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 slope, _ = 0, 0
@@ -1905,6 +1917,8 @@ class ScreeningStatistics:
                 slope, intercept, r_value, p_value, std_err = linregress(
                     x=data_low["Number"], y=data_low["Low"]
                 )
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 continue
@@ -1984,6 +1998,8 @@ class ScreeningStatistics:
                 isDowntrend = (today_lma < lma_minus20) and (today_lma < lma_minus80) and (today_lma < lma_minus100)
                 is50DMAUptrend = (today_sma > sma_minus9) or (today_sma > sma_minus14) or (today_sma > sma_minus20)
                 is50DMADowntrend = (today_sma < sma_minus9) and (today_sma < sma_minus14) and (today_sma < sma_minus20)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception:  # pragma: no cover
                 # self.default_logger.debug(e, exc_info=True)
                 pass
@@ -2004,6 +2020,8 @@ class ScreeningStatistics:
                     roundOff +=1
                     millions = round(mf_inst_ownershipChange/1000000,roundOff)
                 change_millions = f"({millions}M)"
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
@@ -2017,6 +2035,8 @@ class ScreeningStatistics:
                     saveDict["FVDiff"] = fairValueDiff
                     screenDict["FVDiff"] = fairValueDiff
                     screenDict["FairValue"] = (colorText.GREEN if fairValue >= ltp else colorText.FAIL) + saveDict["FairValue"] + colorText.END
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
@@ -2100,6 +2120,8 @@ class ScreeningStatistics:
                 except (TimeoutError, ConnectionError) as e:
                     self.default_logger.debug(e, exc_info=True)
                     pass
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as e: # pragma: no cover
                     self.default_logger.debug(e, exc_info=True)
                     pass
@@ -2138,6 +2160,8 @@ class ScreeningStatistics:
         except (TimeoutError, ConnectionError) as e:
             self.default_logger.debug(e, exc_info=True)
             pass
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             pass
@@ -2148,6 +2172,8 @@ class ScreeningStatistics:
                     changeStatusRowsInst = security.institutionOwnership(top=5)
                     changeStatusDataMF = security.mutualFundFIIChangeData(changeStatusRowsMF)
                     changeStatusDataInst = security.mutualFundFIIChangeData(changeStatusRowsInst)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 # TypeError or ConnectionError because we could not find the stock or MFI data isn't available?
@@ -2460,6 +2486,8 @@ class ScreeningStatistics:
                             axis=0,
                         )
                         result_df.reset_index(drop=True, inplace=True)
+                    except KeyboardInterrupt:
+                        raise KeyboardInterrupt
                     except Exception as e:  # pragma: no cover
                         self.default_logger.debug(e, exc_info=True)
                         pass
@@ -2609,9 +2637,13 @@ class ScreeningStatistics:
                 )
                 data.insert(len(data.columns), "FASTK", fastk)
                 data.insert(len(data.columns), "FASTD", fastd)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
@@ -3263,6 +3295,8 @@ class ScreeningStatistics:
                 saveDict["Pattern"] = saved[1] + "Lorentzian-Sell"
                 if lookFor != 1: # Not Buy
                     return True
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             # ValueError: operands could not be broadcast together with shapes (20,) (26,)
             # File "/opt/homebrew/lib/python3.11/site-packages/advanced_ta/LorentzianClassification/Classifier.py", line 186, in __init__
@@ -3378,6 +3412,8 @@ class ScreeningStatistics:
                     dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
                     screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
                     saveDict["Time"] = str(dayDate)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
                 pass
@@ -3507,6 +3543,8 @@ class ScreeningStatistics:
                 # self.default_logger.debug(data)
                 pass
             return False
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False
@@ -3807,6 +3845,8 @@ class ScreeningStatistics:
             df_new = df_new.head(1)
             df_new["cloud_green"] = df_new["ISA_9"].iloc[0] > df_new["ISB_26"].iloc[0]
             df_new["cloud_red"] = df_new["ISB_26"].iloc[0] > df_new["ISA_9"].iloc[0]
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             pass
@@ -3914,6 +3954,8 @@ class ScreeningStatistics:
                         saveDict["deviationScore"] = deviationScore
                         return True
                     return False
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
         return False
@@ -4066,10 +4108,14 @@ class ScreeningStatistics:
                         )
                         saveDict["Pattern"] = saved[1] + "Demand Rise"
                         return True
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except IndexError as e: # pragma: no cover
                 # self.default_logger.debug(e, exc_info=True)
                 pass
             return False
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             self.default_logger.debug(e, exc_info=True)
             return False

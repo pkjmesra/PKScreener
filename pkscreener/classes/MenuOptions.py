@@ -473,6 +473,7 @@ Pin_MenuDict = {
 
     "M": "Back to the Top/Main menu",
 }
+Pin_MenuDict_Keys = [x for x in Pin_MenuDict.keys() if str(x).isnumeric()]
 
 PRICE_CROSS_SMA_EMA_TYPE_MENUDICT = {
     "1": "SMA",
@@ -511,6 +512,8 @@ for candlestickPattern in CandlePatterns.reversalPatternsBearish:
     candleStickMenuIndex += 1
 CANDLESTICK_DICT["0"] = "No Filter"
 CANDLESTICK_DICT["M"] = "Cancel"
+
+CANDLESTICK_DICT_Keys = [x for x in CANDLESTICK_DICT.keys() if str(x).isnumeric() and int(x) > 0]
 
 class MenuRenderStyle(Enum):
     STANDALONE = 1
@@ -786,7 +789,8 @@ class menus:
                                                  coloredValues=(["M"]),
                                                  defaultMenu="M",
                                                  substitutes = substitutes,
-                                                 skip=skip)
+                                                 skip=skip,
+                                                 subOnly=Pin_MenuDict_Keys)
     
     def renderCandleStickPatterns(self,skip=[]):
         return self.renderMenuFromDictionary(dict=CANDLESTICK_DICT,
@@ -944,12 +948,13 @@ class menus:
                                                          defaultMenu="1",
                                                          skip=skip, 
                                                          asList=asList,
-                                                         optionText="  [+] Select a scanner:",
+                                                         optionText="  [+] Options with (₹/$) are paid/premium. Select a scanner:",
                                                          renderStyle=renderStyle
                                                             if renderStyle is not None
                                                             else MenuRenderStyle.TWO_PER_ROW, 
                                                          parent=selectedMenu,
-                                                         checkUpdate=False)
+                                                         checkUpdate=False,
+                                                         subOnly=PREDEFINED_SCAN_MENU_KEYS)
                 elif selectedMenu.menuKey == "S":
                     indexKeys = level1_index_options_sectoral.keys()
                     return self.renderMenuFromDictionary(dict=level1_index_options_sectoral,
@@ -958,7 +963,7 @@ class menus:
                                                          defaultMenu=str(len(indexKeys)),
                                                          skip=skip, 
                                                          asList=asList,
-                                                         optionText="  [+] Select a sectoral index:",
+                                                         optionText="  [+] Options with (₹/$) are paid/premium. Select a sectoral index:",
                                                          renderStyle=renderStyle
                                                             if renderStyle is not None
                                                             else MenuRenderStyle.TWO_PER_ROW, 
@@ -972,7 +977,7 @@ class menus:
                                                          defaultMenu="9",
                                                          skip=skip, 
                                                          asList=asList,
-                                                         optionText="  [+] Select a Criterion for Stock Screening: ",
+                                                         optionText="  [+] Options with (₹/$) are paid/premium. Select a Criterion for Stock Screening: ",
                                                          renderStyle=renderStyle
                                                             if renderStyle is not None
                                                             else MenuRenderStyle.TWO_PER_ROW, 
@@ -989,7 +994,7 @@ class menus:
                                                          defaultMenu="3",
                                                          skip=skip, 
                                                          asList=asList,
-                                                         optionText="  [+] Select an option: ",
+                                                         optionText="  [+] Options with (₹/$) are paid/premium. Select an option: ",
                                                          renderStyle=renderStyle
                                                             if renderStyle is not None
                                                             else MenuRenderStyle.STANDALONE, 
@@ -1115,12 +1120,14 @@ class menus:
         if key is not None:
             try:
                 return self.menuDict[str(key).upper()]
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 return None
         return None
 
-    def renderMenuFromDictionary(self, dict={},exceptionKeys=[],coloredValues=[], optionText="  [+] Select a menu option:", defaultMenu="0", asList=False, renderStyle=None, parent=None, skip=None, substitutes=[],checkUpdate=False,subOnly=[]):
+    def renderMenuFromDictionary(self, dict={},exceptionKeys=[],coloredValues=[], optionText="  [+] Options with (₹/$) are paid/premium. Select a menu option:", defaultMenu="0", asList=False, renderStyle=None, parent=None, skip=None, substitutes=[],checkUpdate=False,subOnly=[]):
         menuText = self.fromDictionary(
             dict,
             renderExceptionKeys=exceptionKeys,

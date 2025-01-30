@@ -33,15 +33,14 @@ class PKDemoHandler:
     def demoForMenu(self,menu):
         # Default: View Various PKScreener Subscription Options
         asciinemaLink = "https://asciinema.org/a/EHYIQBbCP8CAJIAFjWaFGkEEX"
-        if menu.level == 0:
-            match menu.menuKey:
-                case "F":
-                    # F > Find a stock in scanners
-                    asciinemaLink = "https://asciinema.org/a/cKaIACRRWpYUfJbKgnGbsoIrx"
-                case "M":
-                    asciinemaLink = "https://asciinema.org/a/nENc2ieUdt3ENHLCS5Arqi4Cr"
-        elif menu.level == 1:
-            asciinemaLink = "https://asciinema.org/a/EHYIQBbCP8CAJIAFjWaFGkEEX"
+        match menu.menuKey:
+            case "F":
+                # F > Find a stock in scanners
+                asciinemaLink = "https://asciinema.org/a/7TA8H8pq94YmTqsrVvtLCpPel"
+            case "M":
+                asciinemaLink = "https://asciinema.org/a/NKBXhxc2iWbpxcll35JqwfpuQ"
+            case _: # P_1_1
+                asciinemaLink = "https://asciinema.org/a/b31Tp78QLSzZcxcxCzH7Rljog"
         
         OutputControls().printOutput(f"\n[+] {colorText.GREEN}Please check this out in your browser:{colorText.END}\n\n[+] {colorText.FAIL}\x1b[97m\x1b]8;;{asciinemaLink}\x1b\\{asciinemaLink}\x1b]8;;\x1b\\\x1b[0m{colorText.END}\n")
         input("Press any key to exit...")

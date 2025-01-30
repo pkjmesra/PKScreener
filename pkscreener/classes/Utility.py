@@ -156,6 +156,8 @@ class tools:
             if clearAlways or OutputControls().enableMultipleLineOutput:
                 art = colorText.GREEN + f"{getArtText()}\n" + colorText.END + f"{marketStatus()}"
                 OutputControls().printOutput(art.encode('utf-8').decode(STD_ENCODING), enableMultipleLineOutput=True)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:# pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
@@ -171,7 +173,8 @@ class tools:
         )
         communityInfo = "[📢] Join Community Discussions: https://github.com/pkjmesra/PKScreener/discussions"
         latestInfo = "[⏰] Download latest software from https://github.com/pkjmesra/PKScreener/releases/latest"
-        donationInfo = "[💰] PKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium.\n[💸] Please donate whatever you can: PKScreener@APL using UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
+        freeInfo = "[💰] PKScreener had been free for a long time"
+        donationInfo = ", but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium.\n[💸] Please donate whatever you can: PKScreener@APL using UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
         totalDownloads = "200k+"
         respPepyTech = fetcher.fetchURL(url="https://static.pepy.tech/badge/pkscreener",headers={'user-agent': f'{random_user_agent()}'},timeout=2)
         if respPepyTech is not None and respPepyTech.status_code == 200:
@@ -184,7 +187,7 @@ class tools:
         OutputControls().printOutput(colorText.FAIL + issuesInfo + colorText.END)
         OutputControls().printOutput(colorText.GREEN + communityInfo + colorText.END)
         OutputControls().printOutput(colorText.BLUE + latestInfo + colorText.END)
-        OutputControls().printOutput(colorText.FAIL + donationInfo + colorText.END)
+        OutputControls().printOutput(colorText.GREEN + freeInfo + colorText.END + colorText.FAIL + donationInfo + colorText.END)
         if defaultAnswer is None:
             OutputControls().takeUserInput(
                 colorText.FAIL
@@ -235,6 +238,8 @@ class tools:
                 + f"{e}\n  [+] Failed to save recently screened result table on disk! Skipping.."
                 + colorText.END
             )
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:# pragma: no cover
             default_logger().debug(e, exc_info=True)
             pass
@@ -375,6 +380,8 @@ class tools:
             plx = int((width - lx)/4)
             ply = int((height - ly)/3)
             sourceImage.paste(logo_img, (plx, ply), logo_img)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             default_logger().debug(e,exc_info=True)
             pass
@@ -645,6 +652,8 @@ class tools:
                         try:
                             del valueScreenCols[0] # Remove the empty column header at the first position
                             del valueScreenCols[-1] # Remove the empty column header at the last position
+                        except KeyboardInterrupt:
+                            raise KeyboardInterrupt
                         except Exception as e:# pragma: no cover
                             default_logger().debug(e, exc_info=True)
                             draw.text(
@@ -757,6 +766,8 @@ class tools:
             im = im.resize((int(im.size[0]*configManager.telegramImageCompressionRatio),int(im.size[1]*configManager.telegramImageCompressionRatio)), Image.LANCZOS, reducing_gap=2)
             im = tools.addQuickWatermark(im,xVertical,dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",dataSrcFontSize=ART_FONT_SIZE)
             im.save(filename, format=configManager.telegramImageFormat, bitmap_format=configManager.telegramImageFormat, optimize=True, quality=int(configManager.telegramImageQualityPercentage))
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             default_logger().debug(e, exc_info=True)
         # if 'RUNNER' not in os.environ.keys() and 'PKDevTools_Default_Log_Level' in os.environ.keys():
@@ -922,6 +933,8 @@ class tools:
                     + "=> Error while Caching Stock Data."
                     + colorText.END
                 )
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
         else:
@@ -990,6 +1003,8 @@ class tools:
                 if jsonDict and len(jsonDict) > 0:
                     with open(dealsFile,"w") as f:
                         f.write(json.dumps(jsonDict))
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 default_logger().debug(e,exc_info=True)
                 pass
@@ -1110,6 +1125,8 @@ class tools:
                             else:
                                 if not isTrading:
                                     stockDict[stock] = df_or_dict
+                        except KeyboardInterrupt:
+                            raise KeyboardInterrupt
                         except: # pragma: no cover
                                 # Probably, the "stock" got removed from the latest download
                                 # and so, was not found in stockDict
@@ -1119,6 +1136,8 @@ class tools:
                     # else:
                     #     stockDict = stockData
                     stockDataLoaded = True
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except pickle.UnpicklingError as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 f.close()
@@ -1285,6 +1304,8 @@ class tools:
                             shutil.copy(srcFilePath,copyFilePath)
                         # Remove the progress bar now!
                         OutputControls().moveCursorUpLines(1)
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as e:  # pragma: no cover
                     default_logger().debug(e, exc_info=True)
                     f.close()
@@ -1329,6 +1350,8 @@ class tools:
             data = data.fillna(0)
             data = data.replace([np.inf, -np.inf], 0)
             data = tools.removeAllColorStyles(data)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             default_logger().debug(e,exc_info=True)
             pass
@@ -1386,6 +1409,8 @@ class tools:
                 # Close the Pandas Excel writer and output the Excel file.
                 writer.close()
                 isSaved = True
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 OutputControls().printOutput(
@@ -1405,6 +1430,8 @@ class tools:
                     # Close the Pandas Excel writer and output the Excel file.
                     writer.close()
                     isSaved = True
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
                 except Exception as ex:  # pragma: no cover
                     default_logger().debug(ex, exc_info=True)
                     OutputControls().printOutput(
@@ -1735,6 +1762,8 @@ class tools:
                                 # if dl >= filesize:
                                 #     progressbar(1.0)
                         f.close()
+                    except KeyboardInterrupt:
+                        raise KeyboardInterrupt
                     except Exception as e:  # pragma: no cover
                         default_logger().debug(e, exc_info=True)
                         OutputControls().printOutput("[!] Download Error - " + str(e))
@@ -1754,6 +1783,8 @@ class tools:
                             )
                         pass
                 model = keras.models.load_model(files[0]) if Imports["keras"] else None
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             os.remove(files[0])
