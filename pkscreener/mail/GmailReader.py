@@ -22,77 +22,56 @@
     SOFTWARE.
 
 """
+import datetime
+import imaplib
+import email
 
-import os.path
-import base64
-import json
-import re
-import time
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-import logging
-import requests
-
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify']
-
-# You need to create credential file in Google account.
-# How to create credential file : https://cloud.google.com/docs/authentication/getting-started
-# https://towardsdatascience.com/how-to-easily-automate-emails-with-python-8b476045c151
-
-
-def readEmails():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
-    """
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(               
-                # your creds file here. Please create json file as here https://cloud.google.com/docs/authentication/getting-started
-                'application_default_credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+def connect_to_gmail_imap(user=None, password=None, label=None,senderEmail=None):
+    imap_url = 'imap.gmail.com'
     try:
-        # Call the Gmail API
-        service = build('gmail', 'v1', credentials=creds)
-        results = service.users().messages().list(userId='me', labelIds=['INBOX'], q="is:unread").execute()
-        messages = results.get('messages',[])
-        if not messages:
-            print('No new messages.')
-        else:
-            message_count = 0
-            for message in messages:
-                msg = service.users().messages().get(userId='me', id=message['id']).execute()                
-                email_data = msg['payload']['headers']
-                for values in email_data:
-                    name = values['name']
-                    if name == 'From':
-                        from_name= values['value']                
-                        for part in msg['payload']['parts']:
-                            try:
-                                data = part['body']["data"]
-                                byte_code = base64.urlsafe_b64decode(data)
+        mail = imaplib.IMAP4_SSL(imap_url)
+        mail.login(user, password)
+        mail.select(label,readonly=True)  # Connect to the labeled inbox.
+        today = datetime.date.today()
+        yesterday = (today - datetime.timedelta(1))
+        date = today.strftime("%d-%b-%Y")
 
-                                text = byte_code.decode("utf-8")
-                                print ("This is the message: "+ str(text))
+        # result, data  = mail.search(None,f'FROM "{senderEmail}"',"UNSEEN")
+        # result, data = mail.uid('search', None, "UNSEEN") # (ALL/UNSEEN)
+        result, data = mail.uid('search', None, f'FROM "{senderEmail}" (SENTON %s)' % date)
 
-                                # mark the message as read (optional)
-                                msg  = service.users().messages().modify(userId='me', id=message['id'], body={'removeLabelIds': ['UNREAD']}).execute()                                                       
-                            except BaseException as error:
-                                pass                            
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
-    except Exception as error:
-        print(f'An error occurred: {error}')
+        i = len(data[0].split())
+
+        for x in range(i):
+            latest_email_uid = data[0].split()[x]
+            result, email_data = mail.uid('fetch', latest_email_uid, '(RFC822)')
+            # result, email_data = conn.store(num,'-FLAGS','\\Seen') 
+            # this might work to set flag to seen, if it doesn't already
+            raw_email = email_data[0][1]
+            raw_email_string = raw_email.decode('utf-8')
+            email_message = email.message_from_string(raw_email_string)
+
+            # Header Details
+            date_tuple = email.utils.parsedate_tz(email_message['Date'])
+            if date_tuple:
+                local_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(date_tuple))
+                local_message_date = "%s" %(str(local_date.strftime("%a, %d %b %Y %H:%M:%S")))
+            email_from = str(email.header.make_header(email.header.decode_header(email_message['From'])))
+            email_to = str(email.header.make_header(email.header.decode_header(email_message['To'])))
+            subject = str(email.header.make_header(email.header.decode_header(email_message['Subject'])))
+
+            # Body details
+            for part in email_message.walk():
+                if part.get_content_type() == "text/plain":
+                    body = part.get_payload(decode=True)
+                    file_name = "email_" + str(x) + ".txt"
+                    output_file = open(file_name, 'w')
+                    output_file.write("From: %s\nTo: %s\nDate: %s\nSubject: %s\n\nBody: \n\n%s" %(email_from, email_to,local_message_date, subject, body.decode('utf-8',errors="ignore").replace("\r\n","").replace("  ","")))
+                    output_file.close()
+                else:
+                    continue
+
+    except Exception as e:
+        print("Connection failed: {}".format(e))
+        raise
+# connect_to_gmail_imap()
