@@ -37,7 +37,7 @@ import requests
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify']
 
-#You need to create credential file in Google account.
+# You need to create credential file in Google account.
 # How to create credential file : https://cloud.google.com/docs/authentication/getting-started
 # https://towardsdatascience.com/how-to-easily-automate-emails-with-python-8b476045c151
 
@@ -59,7 +59,7 @@ def readEmails():
         else:
             flow = InstalledAppFlow.from_client_secrets_file(               
                 # your creds file here. Please create json file as here https://cloud.google.com/docs/authentication/getting-started
-                'my_cred_file.json', SCOPES)
+                'application_default_credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
@@ -68,7 +68,7 @@ def readEmails():
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
         results = service.users().messages().list(userId='me', labelIds=['INBOX'], q="is:unread").execute()
-        messages = results.get('messages',[]);
+        messages = results.get('messages',[])
         if not messages:
             print('No new messages.')
         else:
