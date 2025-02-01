@@ -201,6 +201,9 @@ jobs:
         cp results/Data/*.pkl actions-data-download
         ls -l actions-data-download
         git status
+      env:
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        RUNNER : "GitHub_Actions"
 
     - name: Download 52 week Stock Data on Windows
       continue-on-error: true
@@ -215,6 +218,7 @@ jobs:
         pkscreenercli.exe -d -a Y
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        RUNNER : "GitHub_Actions"
             
     - name: Download Intraday Stock Data on Windows
       continue-on-error: true
@@ -225,6 +229,7 @@ jobs:
         pkscreenercli.exe -d -a Y -i 1m
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        RUNNER : "GitHub_Actions"
 
     - name: Copy Stock Data Pickles on Windows
       continue-on-error: true
@@ -295,6 +300,7 @@ jobs:
         python3 .github/workflows/workflowtriggers.py -f --misc
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        RUNNER : "GitHub_Actions"
 
     - name: Clean up old historical scan results
       shell: bash
