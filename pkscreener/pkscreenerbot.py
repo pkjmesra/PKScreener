@@ -66,6 +66,7 @@ from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.MarketHours import MarketHours
 from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions, PKSubscriptionModel
+from PKDevTools.classes.GmailReader import PKGmailReader
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus,MAX_MENU_OPTION
 from pkscreener.classes.WorkflowManager import run_workflow
 import pkscreener.classes.ConfigManager as ConfigManager
@@ -179,6 +180,46 @@ def sanitiseTexts(text):
         return text[:MAX_MSG_LENGTH]
     return text
 
+def matchUTR(update: Update, context: CallbackContext) -> str:
+    global bot_available
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    logger.info("User %s started the conversation.", user.first_name)
+    if not bot_available:
+        # Sometimes, either the payment does not go through or 
+        # it takes time to process the last month's payment if
+        # done in the past 24 hours while the last date was today.
+        # If that happens, we won't be able to run bots or scanners
+        # without incurring heavy charges. Let's run in the 
+        # unavailable mode instead until this gets fixed.
+        updatedResults = APOLOGY_TEXT
+    
+    if bot_available:
+        msg = update.effective_message
+        m = re.match("\s*/([0-9a-zA-Z-]+)\s*(.*)", msg.text)
+        cmd = m.group(1).lower()
+        args = [arg for arg in re.split("\s+", m.group(2)) if len(arg)]
+        if len(args) > 0: # UTR
+            matchedTran = PKGmailReader.matchUTR(utr=args[0])
+            if matchedTran is not None:
+                updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\n\nYour subscription is being enabled soon!"
+            else:
+                updatedResults = "We could not find any transaction details with the provided UTR.\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\n\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
+
+    update.message.reply_text(sanitiseTexts(updatedResults), parse_mode="HTML")
+    shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
+    return START_ROUTES
+
 def otp(update: Update, context: CallbackContext) -> str:
     global bot_available
     updateCarrier = None
@@ -218,7 +259,7 @@ def otp(update: Update, context: CallbackContext) -> str:
                     subscriptionModelNames = f"{subscriptionModelNames}\n{name} : ₹ {value} (Only Basic Scans are free)\n"
                 else:
                     subscriptionModelNames = f"{subscriptionModelNames}\n{name.ljust(15)} : ₹ {value}"
-            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n\n1. Using UPI(India) to <b>PKScreener@APL</b> \nor\n2. Proudly <b>sponsor</b>: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra\n\nPlease drop a message to @ItsOnlyPK on Telegram after paying to enable subscription!"
+            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n\n1. Using UPI(India) to <b>PKScreener@APL</b> \nor\n2. Proudly <b>sponsor</b>: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra\n\nPlease drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually or use \n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n!"
 
             subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
             if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
@@ -294,6 +335,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
         cmdText = "\n/otp to generate an OTP to login to PKScreener desktop console"
         for cmd in cmds:
             cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+        cmdText = "\n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n"
         tosDisclaimerText = "By using this Software, you agree to\n[+] having read through the Disclaimer (https://pkjmesra.github.io/PKScreener/Disclaimer.txt)\n[+] and accept Terms Of Service (https://pkjmesra.github.io/PKScreener/tos.txt) of PKScreener.\n\n[+] If that is not the case, you MUST immediately terminate using PKScreener and exit now!\n\n"
         menuText = f"Welcome {user.first_name}, {(user.username)}!\n\n{tosDisclaimerText}Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n{cmdText}\n\n OR just use the buttons below to choose."
         try:
@@ -303,6 +345,9 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
             pass
         menuText = f"{menuText}\n\nClick /start if you want to restart the session."
     else:
+        if not isUserSubscribed(user):
+            updatedResults = f"Thank you for choosing Intraday Monitor!\n\nThis scan request is, however ,protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n\n/OTP\n\nFor basic/unpaid users, you can try out the following:\n /X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
+            updatedResults = f"{updatedResults}\n\nClick /start if you want to restart the session."
         chosenBotMenuOption = f"{chosenBotMenuOption}\nInt. Monitor. MonitorIndex:{monitorIndex}\n{updatedResults}"
         menuText = updatedResults
     # Send message with text and appended InlineKeyboard
@@ -787,7 +832,7 @@ def isUserSubscribed(user):
 def launchScreener(options, user, context, optionChoices, update):
     try:
         if not isUserSubscribed(user):
-            basicSubscriptions = ["X_0","X_N","X_1"]
+            basicSubscriptions = ["X_0","X_N","X_1_"]
             scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
             isBasicScanRequest = False
             for basicSub in basicSubscriptions:
@@ -804,7 +849,7 @@ def launchScreener(options, user, context, optionChoices, update):
                         text=responseText,
                         reply_markup=default_markup([]),
                     )
-                shareUpdateWithChannel(update=update, context=context, optionChoices=optionChoices)
+                shareUpdateWithChannel(update=update, context=context, optionChoices=responseText)
                 return False
 
         if str(optionChoices.upper()).startswith("B"):
@@ -1572,7 +1617,9 @@ def runpkscreenerbot(availability=True) -> None:
     # $ means "end of line/string"
     # So ^ABC$ will only allow 'ABC'
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start),CommandHandler("otp", otp)],
+        entry_points=[CommandHandler("start", start),
+                      CommandHandler("otp", otp),
+                      CommandHandler("check", matchUTR)],
         states={
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
@@ -1592,6 +1639,7 @@ def runpkscreenerbot(availability=True) -> None:
         fallbacks=[CommandHandler("start", start)],
     )
     dispatcher.add_handler(CommandHandler("otp", otp))
+    dispatcher.add_handler(CommandHandler("check", matchUTR))
     dispatcher.add_handler(CommandHandler("help", help_command))
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, help_command)
