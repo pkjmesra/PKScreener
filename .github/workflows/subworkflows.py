@@ -118,7 +118,7 @@ if __name__ == '__main__':
         tryCommitOutcomes(options="UpdateSubscriptions",pathSpec=pathSpec,delete=True)
 
     def triggerAddSubscription():
-        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKSubscriptionModel.subscriptionModelFromValue(int(args.subscriptionvalue)))
+        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKUserSusbscriptions.subscriptionModelFromValue(int(args.subscriptionvalue)))
         pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
         tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
         print("Added Sub Data")

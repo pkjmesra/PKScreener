@@ -3916,7 +3916,8 @@ def sendGlobalMarketBarometer(userArgs=None):
 def sendMessageToTelegramChannel(
     message=None, photo_filePath=None, document_filePath=None, caption=None, user=None, mediagroup=False
 ):
-    global userPassedArgs, test_messages_queue, media_group_dict
+    global userPassedArgs, test_messages_queue, media_group_dict, menuChoiceHierarchy
+    default_logger().debug(f"Received message:{message}, caption:{caption}, for user : {user} with mediagroup:{mediagroup}")
     if ("RUNNER" not in os.environ.keys() and (userPassedArgs is not None and not userPassedArgs.log)) or (userPassedArgs is not None and userPassedArgs.telegram):
         return
     
@@ -3983,6 +3984,9 @@ def sendMessageToTelegramChannel(
                     default_logger().debug(resp.text, exc_info=True)
             caption = f"{str(len(file_captions))} files sent!"
             message = media_group_dict["CAPTION"].replace('&','n').replace("<","*")[:1024] if "CAPTION" in media_group_dict.keys() else "-"
+            default_logger().debug(f"Received updated message:{message}, caption:{caption}, for user : {user} with mediagroup:{mediagroup}")
+        else:
+            default_logger().debug(f"No ATTACHMENTS in media_group_dict: {media_group_dict.keys(),}\nReceived updated message:{message}, caption:{caption}, for user : {user} with mediagroup:{mediagroup}")
         for f in file_paths:
             try:
                 if "RUNNER" in os.environ.keys():
@@ -3991,6 +3995,9 @@ def sendMessageToTelegramChannel(
                     os.remove(f)
             except: # pragma: no cover
                 pass
+        if message is None and mediagroup:
+            sendMessageToTelegramChannel(message=f"No scan results found for {menuChoiceHierarchy}", user=user)
+            return
         handleAlertSubscriptions(user,message)
     if user is not None:
         if str(user) != str(DEV_CHANNEL_ID) and userPassedArgs is not None and not userPassedArgs.monitor:
@@ -4007,7 +4014,7 @@ def handleAlertSubscriptions(user,message):
     # Case 2
     If user is already subscribed, user is informed about the same along with all other subscriptions he may have.
     """
-    if user is not None and "|" in message:
+    if user is not None and message is not None and "|" in str(message):
         if int(user) > 0:
             # Individual user
             scanId = message.split("|")[0].replace("*b>","").strip()

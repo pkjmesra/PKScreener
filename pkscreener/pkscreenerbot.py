@@ -1957,30 +1957,6 @@ def runpkscreenerbot(availability=True) -> None:
     # ^ means "start of line/string"
     # $ means "end of line/string"
     # So ^ABC$ will only allow 'ABC'
-    # conv_handler = ConversationHandler(
-    #     entry_points=[CommandHandler("start", start),
-    #                   CommandHandler("otp", otp),
-    #                   CommandHandler("check", matchUTR)],
-    #     states={
-    #         START_ROUTES: [
-    #             CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
-    #             CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
-    #             CallbackQueryHandler(PScanners, pattern="^" + str("CP") + "$"),
-    #             CallbackQueryHandler(XScanners, pattern="^" + str("CMI_")),
-    #             CallbackQueryHandler(XDevModeHandler, pattern="^" + str("CDV_")),
-    #             # CallbackQueryHandler(XScanners, pattern="^" + str("CG") + "$"),
-    #             CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
-    #             CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
-    #             CallbackQueryHandler(Level2, pattern="^" + str("CP_")),
-    #             CallbackQueryHandler(subscribeToScannerAlerts, pattern="^" + str("SUB_")),
-    #             # CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
-    #             CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
-    #             CallbackQueryHandler(start, pattern="^"),
-    #         ],
-    #         END_ROUTES: [],
-    #     },
-    #     fallbacks=[CommandHandler("start", start)],
-    # )
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start),
                       CommandHandler("otp", otp),
