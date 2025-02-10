@@ -45,9 +45,11 @@ from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes.ConfigManager import parser, tools
 from PKDevTools.classes.OutputControls import OutputControls
 from PKNSETools.PKIntraDay import Intra_Day
+
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.classes.ScreeningStatistics as ScreeningStatistics
 import pkscreener.classes.Utility as Utility
+from pkscreener.classes import AssetsManager
 
 class PKScanRunner:
     configManager = tools()
@@ -137,7 +139,7 @@ class PKScanRunner:
         defaultOptionsDict = {}
         filePath = os.path.join(Archiver.get_user_data_dir(),"defaults.json")
         if not os.path.exists(filePath):
-            fileDownloaded = Utility.tools.downloadSavedDefaultsFromServer("defaults.json")
+            fileDownloaded = AssetsManager.PKAssetsManager.downloadSavedDefaultsFromServer("defaults.json")
         if not os.path.exists(filePath):
             return items
         with open(filePath,"r") as f:
@@ -347,7 +349,7 @@ class PKScanRunner:
     def prepareToRunScan(menuOption,keyboardInterruptEvent, screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items, executeOption,userPassedArgs):
         tasks_queue, results_queue, totalConsumers, logging_queue = PKScanRunner.initQueues(len(items),userPassedArgs)
         scr = ScreeningStatistics.ScreeningStatistics(PKScanRunner.configManager, default_logger())
-        exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday=PKScanRunner.configManager.isIntradayConfig())
+        exists, cache_file = AssetsManager.PKAssetsManager.afterMarketStockDataExists(intraday=PKScanRunner.configManager.isIntradayConfig())
         sec_cache_file = cache_file if "intraday_" in cache_file else f"intraday_{cache_file}"
         # Get RS rating stock value of the index
         from pkscreener.classes.Fetcher import screenerStockDataFetcher
@@ -453,7 +455,7 @@ class PKScanRunner:
             while True:
                 try:
                     _ = tasks_queue.get(False)
-                except KeyboardInterrupt:
+                except KeyboardInterrupt: # pragma: no cover
                     raise KeyboardInterrupt
                 except Exception as e:  # pragma: no cover
                     # default_logger().debug(e, exc_info=True)

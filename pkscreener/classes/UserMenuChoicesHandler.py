@@ -28,6 +28,7 @@ from PKDevTools.classes.OutputControls import OutputControls
 
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Utility as Utility
+from pkscreener.classes import AssetsManager
 
 class UserMenuChoicesHandler:
     configManager = ConfigManager.tools()
@@ -38,9 +39,9 @@ class UserMenuChoicesHandler:
         argsIntraday = userPassedArgs is not None and userPassedArgs.intraday is not None
         intradayConfig = UserMenuChoicesHandler.configManager.isIntradayConfig()
         intraday = intradayConfig or argsIntraday
-        exists, cache_file = Utility.tools.afterMarketStockDataExists(intraday)
+        exists, cache_file = AssetsManager.PKAssetsManager.afterMarketStockDataExists(intraday)
         if exists:
-            shouldReplace = Utility.tools.promptFileExists(
+            shouldReplace = AssetsManager.PKAssetsManager.promptFileExists(
                 cache_file=cache_file, defaultAnswer=defaultAnswer
             )
             if shouldReplace == "N":
@@ -78,7 +79,7 @@ class UserMenuChoicesHandler:
             )
             intraday = userPassedArgs.intraday or UserMenuChoicesHandler.configManager.isIntradayConfig()
             filePrefix = "INTRADAY_" if intraday else ""
-            _, cache_file_name = Utility.tools.afterMarketStockDataExists(intraday)
+            _, cache_file_name = AssetsManager.PKAssetsManager.afterMarketStockDataExists(intraday)
             Utility.tools.set_github_output(f"{filePrefix}DOWNLOAD_CACHE_FILE_NAME",cache_file_name)
         return options, menuOption, indexOption, executeOption
     

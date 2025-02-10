@@ -32,14 +32,17 @@ from pkscreener.classes.Fetcher import screenerStockDataFetcher
 
 configManager = ConfigManager.tools()
 
-
-def run_workflow(command, user, options, workflowType="B"):
-    owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n","")
-    repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
-    branch = "main"
+def run_workflow(command=None, user=None, options=None, workflowType="B",repo=None,owner=None,branch=None,ghp_token=None,workflow_name=None,workflow_postData=None):
+    if owner is None:
+        owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n","")
+    if repo is None:
+        repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
+    if branch is None:
+        branch = "main"
     timestamp = int(PKDateUtilities.currentDateTimestamp())
     if workflowType == "B":
-        workflow_name = "w13-workflow-backtest_generic.yml"
+        if workflow_name is None:
+            workflow_name = "w13-workflow-backtest_generic.yml"
         options = f'{options.replace("B:","")}:D:D:D:D:D'.replace("::",":")
         data = (
             '{"ref":"'
@@ -53,7 +56,8 @@ def run_workflow(command, user, options, workflowType="B"):
             + '"}}'
         )
     elif workflowType == "X" or workflowType == "G" or workflowType == "P":
-        workflow_name = "w8-workflow-alert-scan_generic.yml"
+        if workflow_name is None:
+            workflow_name = "w8-workflow-alert-scan_generic.yml"
         if user is None or len(user) == 0:
             user = ""
             data = (
@@ -76,13 +80,20 @@ def run_workflow(command, user, options, workflowType="B"):
                 + '","ref":"main"}}'
             )
     elif workflowType == "R": #Restart bot
-        workflow_name = "w3-workflow-bot.yml"
+        if workflow_name is None:
+            workflow_name = "w3-workflow-bot.yml"
         data = (
                 '{"ref":"'
                 + branch
                 + '","inputs":{"branch-name":"main","cliOptions":""}}'
             )
-    _, _, _, ghp_token = PKEnvironment().secrets
+    elif workflowType == "O": #Others
+        if workflow_name is None or workflow_postData is None or ghp_token is None:
+            raise Exception("workflow_name, workflow_postData, and ghp_token must NOT be blank!")
+        data = workflow_postData
+
+    if ghp_token is None:
+        _, _, _, ghp_token = PKEnvironment().secrets
     url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_name}/dispatches"
 
     headers = {

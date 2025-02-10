@@ -25,7 +25,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict, Pin_MenuDict, CANDLESTICK_DICT, MenuRenderStyle
+from pkscreener.classes.MenuOptions import menu, menus, level0MenuDict, Pin_MenuDict, Pin_MenuDict_Keys, CANDLESTICK_DICT, MenuRenderStyle
 
 class TestMenu:
     def test_create(self):
@@ -248,7 +248,8 @@ class TestMenuRendering(unittest.TestCase):
             coloredValues=(["M"]),
             defaultMenu="M",
             substitutes=substitutes,
-            skip=skip
+            skip=skip,
+            subOnly=Pin_MenuDict_Keys
         )
 
     # @patch('pkscreener.classes.MenuOptions.Pin_MenuDict')

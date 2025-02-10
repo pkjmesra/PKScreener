@@ -8,23 +8,23 @@ from pkscreener.classes.PKMarketOpenCloseAnalyser import PKMarketOpenCloseAnalys
 
 class TestPKMarketOpenCloseAnalyser(unittest.TestCase):
 
-    @patch('pkscreener.classes.Utility.tools.loadStockData')
+    @patch('pkscreener.classes.AssetsManager.PKAssetsManager.loadStockData')
     def test_ensureIntradayStockDataExists_failure(self, mock_load):
         mock_load.return_value = {'AAPL': {'data': [], 'columns': [], 'index': []}}  # Mocked return value
         with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime') as mock_PKDateUtilities:
             mock_PKDateUtilities.return_value = True
-            with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            with patch("pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists") as mock_data:
                 mock_data.return_value = False, "stock_data_1.pkl"
                 exists, cache_file, stockDict = PKMarketOpenCloseAnalyser.ensureIntradayStockDataExists(listStockCodes=['AAPL'])
                 self.assertFalse(exists)
                 self.assertIsInstance(stockDict, dict)
 
-    @patch('pkscreener.classes.Utility.tools.loadStockData')
+    @patch('pkscreener.classes.AssetsManager.PKAssetsManager.loadStockData')
     def test_ensureIntradayStockDataExists_success(self, mock_load,):
         mock_load.return_value = {'AAPL': {'data': [], 'columns': [], 'index': []}}  # Mocked return value
         with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime') as mock_PKDateUtilities:
             mock_PKDateUtilities.return_value = False
-            with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            with patch("pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists") as mock_data:
                 mock_data.return_value = False, "stock_data_1.pkl"
                 with patch("os.path.exists") as mock_path:
                     mock_path.return_value = True
@@ -37,12 +37,12 @@ class TestPKMarketOpenCloseAnalyser(unittest.TestCase):
                                 exists, cache_file, stockDict = PKMarketOpenCloseAnalyser.ensureIntradayStockDataExists(listStockCodes=['AAPL'])
                                 self.assertTrue(exists)
 
-    @patch('pkscreener.classes.Utility.tools.loadStockData')
+    @patch('pkscreener.classes.AssetsManager.PKAssetsManager.loadStockData')
     def test_ensureDailyStockDataExists_success(self, mock_load):
         mock_load.return_value = {'AAPL': {'data': [], 'columns': [], 'index': []}}  # Mocked return value
         with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime') as mock_PKDateUtilities:
             mock_PKDateUtilities.return_value = False
-            with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            with patch("pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists") as mock_data:
                 mock_data.return_value = False, "stock_data_1.pkl"
                 with patch("os.path.exists") as mock_path:
                     mock_path.return_value = True
@@ -55,12 +55,12 @@ class TestPKMarketOpenCloseAnalyser(unittest.TestCase):
                                 exists, cache_file, stockDict = PKMarketOpenCloseAnalyser.ensureDailyStockDataExists(listStockCodes=['AAPL'])
                                 self.assertTrue(exists)
 
-    @patch('pkscreener.classes.Utility.tools.loadStockData')
+    @patch('pkscreener.classes.AssetsManager.PKAssetsManager.loadStockData')
     def test_ensureDailyStockDataExists_failure(self, mock_load):
         mock_load.return_value = {'AAPL': {'data': [], 'columns': [], 'index': []}}  # Mocked return value
         with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime') as mock_PKDateUtilities:
             mock_PKDateUtilities.return_value = True
-            with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
+            with patch("pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists") as mock_data:
                 mock_data.return_value = False, "stock_data_1.pkl"
                 exists, cache_file, stockDict = PKMarketOpenCloseAnalyser.ensureDailyStockDataExists(listStockCodes=['AAPL'])
                 self.assertFalse(exists)

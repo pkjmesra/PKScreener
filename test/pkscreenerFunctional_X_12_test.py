@@ -25,18 +25,13 @@
 # pytest --cov --cov-report=html:coverage_re
 
 import os
-import io
-import json
 import shutil
 import sys
 import warnings
-import datetime
-from datetime import timezone, timedelta
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
-import yfinance
 from unittest.mock import ANY, MagicMock, patch
 
 try:
@@ -52,16 +47,14 @@ from requests_cache import CachedSession
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
-from pkscreener.classes import VERSION, Changelog
+from pkscreener.classes import VERSION
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menus, MAX_SUPPORTED_MENU_OPTION
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
 from RequestsMocker import RequestsMocker as PRM
 from sharedmock import SharedMock
-from pkscreener.classes import Utility
 from PKDevTools.classes import Telegram
-from pkscreener import pkscreenercli
 
 session = CachedSession(
     cache_name=f"{Archiver.get_user_data_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
@@ -86,7 +79,7 @@ def mock_dependencies():
     sm_yf = SharedMock()
     sm_yf.return_value=PRM().patched_yf()
     patch("multiprocessing.resource_tracker.register",lambda *args, **kwargs: None)
-    with patch("pkscreener.classes.Utility.tools.clearScreen"):
+    with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.clearScreen"):
         with patch("yfinance.download",new=PRM().patched_yf):
             with patch("pkscreener.classes.Fetcher.yf.download",new=PRM().patched_yf):
                 with patch("PKDevTools.classes.Fetcher.fetcher.fetchURL",new=PRM().patched_fetchURL):

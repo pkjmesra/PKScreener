@@ -30,7 +30,7 @@ import pandas as pd
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.log import default_logger
-from pkscreener.classes import Utility
+from pkscreener.classes import Utility, ConsoleUtility
 from pkscreener.classes.ConfigManager import parser, tools
 
 configManager = tools()
@@ -217,7 +217,7 @@ def backtestSummary(df):
                 else:
                     summary[
                         col
-                    ] = f"{Utility.tools.formattedBacktestOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})"
+                    ] = f"{ConsoleUtility.PKConsoleTools.formattedBacktestOutput(overAllPeriodPrediction)} of ({col_positives+col_negatives})"
         overAllRowPrediction = (
             group_positives * 100 / (group_positives + group_negatives)
         )
@@ -226,7 +226,7 @@ def backtestSummary(df):
         else:
             summary[
                 "Overall"
-            ] = f"{Utility.tools.formattedBacktestOutput(overAllRowPrediction)} of ({group_positives+group_negatives})"
+            ] = f"{ConsoleUtility.PKConsoleTools.formattedBacktestOutput(overAllRowPrediction)} of ({group_positives+group_negatives})"
         summaryList.append(summary)
         summary = {}
         net_positives += group_positives
@@ -242,13 +242,13 @@ def backtestSummary(df):
         else:
             summary[
                 col
-            ] = f"{Utility.tools.formattedBacktestOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})"
+            ] = f"{ConsoleUtility.PKConsoleTools.formattedBacktestOutput((col_positives*100/(col_positives+col_negatives)))} of ({col_positives+col_negatives})"
     if net_positives + net_negatives == 0:
         summary["Overall"] = "-"
     else:
         summary[
             "Overall"
-        ] = f"{Utility.tools.formattedBacktestOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})"
+        ] = f"{ConsoleUtility.PKConsoleTools.formattedBacktestOutput(net_positives*100/(net_positives+net_negatives))} of ({net_positives+net_negatives})"
     summaryList.append(summary)
     summary_df = pd.DataFrame(summaryList, columns=summary.keys())
     return summary_df

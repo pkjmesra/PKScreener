@@ -30,7 +30,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 import pytest
 
-from pkscreener.classes import Utility
+from pkscreener.classes import Utility, ConsoleUtility
 from pkscreener.classes.Backtest import backtest, backtestSummary
 
 @pytest.fixture
@@ -107,17 +107,17 @@ def test_backtest_summary_with_data():
 
 
 def test_formatted_output_high_outcome():
-    result = Utility.tools.formattedBacktestOutput(85)
+    result = ConsoleUtility.PKConsoleTools.formattedBacktestOutput(85)
     assert result == "\x1b[32m85.00%\x1b[0m"
 
 
 def test_formatted_output_medium_outcome():
-    result = Utility.tools.formattedBacktestOutput(65)
+    result = ConsoleUtility.PKConsoleTools.formattedBacktestOutput(65)
     assert result == "\x1b[33m65.00%\x1b[0m"
 
 
 def test_formatted_output_low_outcome():
-    result = Utility.tools.formattedBacktestOutput(45)
+    result = ConsoleUtility.PKConsoleTools.formattedBacktestOutput(45)
     assert result == "\x1b[31m45.00%\x1b[0m"
 
 
@@ -300,9 +300,9 @@ def test_backtestSummary_no_data():
 
 
 def test_formattedOutput():
-    assert Utility.tools.formattedBacktestOutput(85) == "\x1b[32m85.00%\x1b[0m"
-    assert Utility.tools.formattedBacktestOutput(70) == "\x1b[33m70.00%\x1b[0m"
-    assert Utility.tools.formattedBacktestOutput(40) == "\x1b[31m40.00%\x1b[0m"
+    assert ConsoleUtility.PKConsoleTools.formattedBacktestOutput(85) == "\x1b[32m85.00%\x1b[0m"
+    assert ConsoleUtility.PKConsoleTools.formattedBacktestOutput(70) == "\x1b[33m70.00%\x1b[0m"
+    assert ConsoleUtility.PKConsoleTools.formattedBacktestOutput(40) == "\x1b[31m40.00%\x1b[0m"
 
 
 def test_backtest(sample_data):

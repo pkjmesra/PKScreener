@@ -50,7 +50,7 @@ class PKAnalyticsService():
             if "readme" in metrics.keys():
                 del metrics['readme']
             self.tryCommitAnalytics(userDict=metrics,username=userName)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
             pass
@@ -64,7 +64,7 @@ class PKAnalyticsService():
                     username = os.environ.get('USERPROFILE')
                     if username is None or len(username) == 0:
                         username = os.path.expandvars("%userprofile%") if platform.startswith("win") else getpass.getuser()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except: # pragma: no cover
             username = f"Unidentified-{platform.system()}"

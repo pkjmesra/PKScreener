@@ -249,7 +249,7 @@ def test_xRaySummary_empty_savedResults():
 def test_xRaySummary_with_savedResults(args):
     savedResults = pd.DataFrame({"ScanType": ["Scan A", "Scan B"], "Date": ["2022-01-01", "2022-01-02"],"1Pd-%":["1","2"],"1Pd-10k":["10000","20000"]})
     with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.currentDateTime') as mock_currentDateTime, \
-         patch('pkscreener.classes.Utility.tools.removeAllColorStyles') as mock_removeAllColorStyles:
+         patch('pkscreener.classes.ImageUtility.PKImageTools.removeAllColorStyles') as mock_removeAllColorStyles:
         mock_currentDateTime.return_value.strftime.return_value = "2022-01-03"
         mock_removeAllColorStyles.return_value = "10.0"
         result = xRaySummary(savedResults=savedResults)

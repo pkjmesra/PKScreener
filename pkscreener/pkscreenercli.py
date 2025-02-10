@@ -443,9 +443,9 @@ def warnAboutDependencies():
                 + colorText.END
             )
         sleep(1)
+        issueLink = "https://github.com/pkjmesra/PKScreener"
+        issueLink = f"\x1b[97m\x1b]8;;{issueLink}\x1b\\{issueLink}\x1b]8;;\x1b\\\x1b[0m"
         if Imports["pandas_ta"]:
-            issueLink = "https://github.com/pkjmesra/PKScreener"
-            issueLink = f"\x1b[97m\x1b]8;;{issueLink}\x1b\\{issueLink}\x1b]8;;\x1b\\\x1b[0m"
             taLink = "https://github.com/ta-lib/ta-lib-python"
             taLink = f"\x1b[97m\x1b]8;;{taLink}\x1b\\{taLink}\x1b]8;;\x1b\\\x1b[0m"
             OutputControls().printOutput(
@@ -680,7 +680,7 @@ def generateIntradayAnalysisReports(args):
             runOptions.extend(otherMenus)
     import pandas as pd
     optionalFinalOutcome_df = pd.DataFrame()
-    import pkscreener.classes.Utility as Utility
+    from pkscreener.classes import Utility, ConsoleUtility
     # Delete any existing data from the previous run.
     configManager.deleteFileWithPattern(rootDir=Archiver.get_user_data_dir(),pattern="stock_data_*.pkl")
     analysis_index = 1
@@ -740,7 +740,7 @@ def generateIntradayAnalysisReports(args):
 
 def saveSendFinalOutcomeDataframe(optionalFinalOutcome_df):
     import pandas as pd
-    from pkscreener.classes import Utility
+    from pkscreener.classes import Utility, ConsoleUtility
     from pkscreener.globals import sendQuickScanResult,showBacktestResults
 
     if optionalFinalOutcome_df is not None and not optionalFinalOutcome_df.empty:
@@ -758,13 +758,13 @@ def saveSendFinalOutcomeDataframe(optionalFinalOutcome_df):
             pass
         if final_df is not None and not final_df.empty:
             with pd.option_context('mode.chained_assignment', None):
-                final_df = final_df[["Pattern","LTP@Alert","LTP","EoDDiff","SqrOffLTP","SqrOffDiff","DayHigh","DayHighDiff"]]
+                final_df = final_df[["Pattern","LTP@Alert","LTP","EoDDiff","DayHigh","DayHighDiff"]] # "SqrOffLTP","SqrOffDiff"
                 final_df.rename(
                         columns={
                             "Pattern": "Scan Name",
                             "LTP@Alert": "Basket Value@Alert",
                             "LTP": "Basket Value@EOD",
-                            "SqrOffLTP": "Basket Value@SqrOff",
+                            # "SqrOffLTP": "Basket Value@SqrOff",
                             "DayHigh": "Basket Value@DayHigh",
                             },
                             inplace=True,
@@ -782,7 +782,7 @@ def saveSendFinalOutcomeDataframe(optionalFinalOutcome_df):
             from PKDevTools.classes.Environment import PKEnvironment
             Channel_Id, _, _, _ = PKEnvironment().secrets
             if Channel_Id is not None and len(str(Channel_Id)) > 0:
-                sendQuickScanResult(menuChoiceHierarchy="IntradayAnalysis",
+                sendQuickScanResult(menuChoiceHierarchy="IntradayAnalysis (If you would have bought at alert time and sold at end of day or day high)",
                                         user=int(f"-{Channel_Id}"),
                                         tabulated_results=mark_down,
                                         markdown_results=mark_down,
@@ -1001,13 +1001,13 @@ def pkscreenercli():
             del os.environ['simulation']
         # Import other dependency here because if we import them at the top
         # multiprocessing behaves in unpredictable ways
-        import pkscreener.classes.Utility as Utility
+        from pkscreener.classes import Utility, ConsoleUtility
 
         configManager.default_logger = default_logger()
         if originalStdOut is None:
             # Clear only if this is the first time it's being called from some
             # loop within workflowtriggers.
-            Utility.tools.clearScreen(userArgs=args, clearAlways=True)
+            ConsoleUtility.PKConsoleTools.clearScreen(userArgs=args, clearAlways=True)
         warnAboutDependencies()
         if args.prodbuild:
             if args.options and len(args.options.split(":")) > 0:

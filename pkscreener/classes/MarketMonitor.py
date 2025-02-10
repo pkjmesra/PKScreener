@@ -122,7 +122,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         screen_monitor_df = screen_df.copy()
         monitorPosition = self.monitorPositions.get(screenOptions)
 
-        from pkscreener.classes import Utility
+        from pkscreener.classes import Utility, ImageUtility
 
         if self.isPinnedSingleMonitorMode:
             screen_monitor_df = screen_monitor_df[screen_monitor_df.columns[:14]]
@@ -133,13 +133,13 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
             # multiprocessing, which behaves erratically if imported at the top.
             screen_monitor_df.loc[:, "%Chng"] = screen_monitor_df.loc[:, "%Chng"].astype(str).apply(
-                        lambda x: Utility.tools.roundOff(str(x).split("% (")[0] + colorText.END,0)
+                        lambda x: ImageUtility.PKImageTools.roundOff(str(x).split("% (")[0] + colorText.END,0)
                     )
             screen_monitor_df.loc[:, "52Wk-H"] = screen_monitor_df.loc[:, "52Wk-H"].astype(str).apply(
-                lambda x: Utility.tools.roundOff(x,0)
+                lambda x: ImageUtility.PKImageTools.roundOff(x,0)
             )
             screen_monitor_df.loc[:, "Volume"] = screen_monitor_df.loc[:, "Volume"].astype(str).apply(
-                lambda x: Utility.tools.roundOff(x,0)
+                lambda x: ImageUtility.PKImageTools.roundOff(x,0)
             )
             screen_monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
             telegram_df = self.updateDataFrameForTelegramMode(telegram, screen_monitor_df)
@@ -177,7 +177,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                         else:
                             if colIndex == 0:
                                 stockNameDecorated = screen_monitor_df.iloc[rowIndex-1,colIndex]
-                                stockName = Utility.tools.stockNameFromDecoratedName(stockNameDecorated)
+                                stockName = ImageUtility.PKImageTools.stockNameFromDecoratedName(stockNameDecorated)
                                 stockName = (f"{colorText.BOLD}{colorText.WHITE_FG_BRED_BG}{stockNameDecorated}{colorText.END}") if stockName in self.alertStocks else stockNameDecorated
                                 self.monitor_df.loc[startRowIndex, [f"A{startColIndex+1}"]] = stockName
                             else:
@@ -193,7 +193,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                 stocks = list(self.monitor_df.index)
                 updatedStocks = []
                 for stock in stocks:
-                    stockName = Utility.tools.stockNameFromDecoratedName(stock)
+                    stockName = ImageUtility.PKImageTools.stockNameFromDecoratedName(stock)
                     stockName = (f"{colorText.BOLD}{colorText.WHITE_FG_BRED_BG}{stock}{colorText.END}") if stockName in self.alertStocks else stock
                     updatedStocks.append(stockName)
                 self.monitor_df.reset_index(inplace=True)

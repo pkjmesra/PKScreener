@@ -33,9 +33,10 @@ except: # pragma: no cover
     pass
 from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
-from pkscreener.classes import Utility
+from pkscreener.classes import Utility, ImageUtility
 from pkscreener.classes.MarketStatus import MarketStatus
 from pkscreener.classes import ConfigManager
+
 configManager = ConfigManager.tools()
 
 QUERY_SELECTOR_TIMEOUT = 1000
@@ -135,7 +136,7 @@ def getGlobalMarketBarometerValuation():
         asyncio.get_event_loop().run_until_complete(getScreenshotsForGlobalMarketBarometer())
     except (asyncio.exceptions.IncompleteReadError,asyncio.exceptions.InvalidStateError): # pragma: no cover
         return gmbPath
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # pragma: no cover
         raise KeyboardInterrupt
     except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)
@@ -145,14 +146,14 @@ def getGlobalMarketBarometerValuation():
     try:
         gapHeight = 65
         bgColor = (0,0,0)
-        fontPath = Utility.tools.setupReportFont()
+        fontPath = ImageUtility.PKImageTools.setupReportFont()
         artfont = ImageFont.truetype(fontPath, 12)
         gmbPerformance = Image.open(os.path.join(folderPath,'gmbstat.png')) # 710 x 460
         gmbValuation = Image.open(os.path.join(folderPath,'gmbvaluation.png')) # 710 x 450
         gmbPerf_size = gmbPerformance.size
         gmbValue_size = gmbValuation.size
-        gmbPerformance = Utility.tools.addQuickWatermark(gmbPerformance, dataSrc="Morningstar, Inc")
-        gmbValuation = Utility.tools.addQuickWatermark(gmbValuation, dataSrc="Morningstar, Inc")
+        gmbPerformance = ImageUtility.PKImageTools.addQuickWatermark(gmbPerformance, dataSrc="Morningstar, Inc")
+        gmbValuation = ImageUtility.PKImageTools.addQuickWatermark(gmbValuation, dataSrc="Morningstar, Inc")
         gmbCombined = Image.new('RGB',(gmbPerf_size[0], gmbPerf_size[1]+gmbValue_size[1]+gapHeight), bgColor)
         gmbCombined.paste(gmbPerformance,(0,0))
         draw = ImageDraw.Draw(gmbCombined)
@@ -161,13 +162,13 @@ def getGlobalMarketBarometerValuation():
         bseMarketStatus = MarketStatus().getMarketStatus(exchangeSymbol="^BSESN",namedOnly=True)
         nasdaqMarketStatus = MarketStatus().getMarketStatus(exchangeSymbol="^IXIC")
         repoText = f'https://GitHub.com/pkjmesra/pkscreener/ | © {datetime.date.today().year} pkjmesra | https://t.me/PKScreener\n{nseMarketStatus}\n{bseMarketStatus}\n{nasdaqMarketStatus}'
-        draw.text((5, gmbPerf_size[1]+5), Utility.tools.removeAllColorStyles(repoText), font=artfont, fill="lightgreen")
+        draw.text((5, gmbPerf_size[1]+5), ImageUtility.PKImageTools.removeAllColorStyles(repoText), font=artfont, fill="lightgreen")
         gmbCombined.paste(gmbValuation,(0,gmbPerf_size[1]+gapHeight))
         gmbCombined.save(os.path.join(folderPath,"gmb.png"),"PNG")
         gmbPath = os.path.join(folderPath,"gmb.png")
         srcFileSize = os.stat(gmbPath).st_size if os.path.exists(gmbPath) else 0
         default_logger().debug(f"gmb.png saved at {gmbPath} with size {srcFileSize} bytes")
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # pragma: no cover
         raise KeyboardInterrupt
     except Exception as e: # pragma: no cover
         default_logger().debug(e, exc_info=True)

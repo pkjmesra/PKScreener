@@ -135,8 +135,7 @@ LEVEL_1_DATA_DOWNLOADS = {
     "S": "NSE Symbols with Sector/Industry Details",
     "M": "Back to the Top/Main menu",
 }
-PREDEFINED_SCAN_ALERT_MENU_KEYS = ["1","5","6","8","18","22","25","27","28","29","30","31","32","33"]
-PREDEFINED_SCAN_MENU_KEYS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20", "21", "22", "23", "24", "25","26","27","28","29","30","31","32","33"]
+PREDEFINED_SCAN_ALERT_MENU_KEYS = ["2","5","6","18","25","27","29","30","31","32","33","34"]
 PREDEFINED_SCAN_MENU_TEXTS = [
     "Volume Scanners | High Momentum | Breaking Out Now | ATR Cross     ",  # 1
     "Volume Scanners | High Momentum | ATR Cross",                          # 2
@@ -170,8 +169,12 @@ PREDEFINED_SCAN_MENU_TEXTS = [
     "VCP | Super-Confluence                                             ",  # 30
     "Bullish Today x PDO/PDC | VCP                                      ",  # 31
     "Intraday(15m) VCP | Breaking out now                               ",  # 32
-    "ATR Cross | Low RSI (<=40)                                         ",  # 33
+    "ATR Cross | Low RSI (40 or lower)                                  ",  # 33
+    "Bullish Today x PDO/PDC | High Momentum | ATR Cross                ",  # 34
+    "Bullish Today x PDO/PDC | Breaking out now                         ",  # 35
+    "High Momentum | ATR Cross | Super Gainers                          ",  # 36
 ]
+PREDEFINED_SCAN_MENU_KEYS = [str(x) for x in range(1,len(PREDEFINED_SCAN_MENU_TEXTS)+1,1)]
 level2_P_MenuDict = {}
 for key in PREDEFINED_SCAN_MENU_KEYS:
     level2_P_MenuDict[key] = PREDEFINED_SCAN_MENU_TEXTS[int(key)-1]
@@ -213,6 +216,9 @@ PREDEFINED_SCAN_MENU_VALUES =[
     "--systemlaunched -a y -e -o 'X:12:33:2:>|X:0:7:4:'",                   # 31
     "--systemlaunched -a y -e -o 'X:14:7:4:i 15m:>|X:0:23:'",               # 32
     "--systemlaunched -a y -e -o 'X:12:27:>|X:0:5:0:40:i 1m:'",             # 33
+    "--systemlaunched -a y -e -o 'X:12:33:2:>|X:0:31:>|X:0:27:'",           # 34
+    "--systemlaunched -a y -e -o 'X:12:33:2:>|X:0:23:'",                    # 35
+    "--systemlaunched -a y -e -o 'X:12:31:>|X:0:27:>|X:0:42:'",             # 36
 ]
 PREDEFINED_PIPED_MENU_ANALYSIS_OPTIONS = []
 PREDEFINED_PIPED_MENU_OPTIONS = {}
@@ -361,12 +367,14 @@ level2_X_MenuDict = {
     "39": "IPO-Lifetime First day bullish break     ",
     "40": "Price Action                             ",
     "41": "Pivot Points                             ",
+    "42": "Super Gainers                            ",
+    "43": "Super Losers                             ",
     "50": "Show Last Screened Results               ",
 
     "M": "Back to the Top/Main menu                 ",
     "Z": "Exit (Ctrl + C)                           ",
 }
-MAX_SUPPORTED_MENU_OPTION = 41
+MAX_SUPPORTED_MENU_OPTION = 43
 MAX_MENU_OPTION = 50
 
 level3_X_Reversal_MenuDict = {
@@ -792,12 +800,15 @@ class menus:
                                                  skip=skip,
                                                  subOnly=Pin_MenuDict_Keys)
     
-    def renderCandleStickPatterns(self,skip=[]):
+    def renderCandleStickPatterns(self,skip=[],asList=False,renderStyle=None):
         return self.renderMenuFromDictionary(dict=CANDLESTICK_DICT,
                                                  exceptionKeys=["0","M"],
                                                  coloredValues=(["0"]),
                                                  defaultMenu="0",
-                                                 renderStyle=MenuRenderStyle.TWO_PER_ROW,
+                                                 asList=asList,
+                                                 renderStyle=renderStyle
+                                                    if renderStyle is not None
+                                                    else MenuRenderStyle.TWO_PER_ROW,
                                                  optionText="  [+] Would you like to filter by a specific Candlestick pattern? Select filter:",
                                                  skip=skip)
     
@@ -1093,6 +1104,8 @@ class menus:
                                                          renderStyle=renderStyle,
                                                          skip=skip, 
                                                          parent=selectedMenu)
+                if selectedMenu.parent.menuKey == "7" and selectedMenu.menuKey == "7":
+                    return self.renderCandleStickPatterns(asList=asList,renderStyle=renderStyle,skip=skip)
                 if selectedMenu.parent.menuKey == "7" and selectedMenu.menuKey == "9":
                     return self.renderMenuFromDictionary(dict=level4_X_ChartPattern_MASignalMenuDict,
                                                          exceptionKeys=["0"],
@@ -1120,7 +1133,7 @@ class menus:
         if key is not None:
             try:
                 return self.menuDict[str(key).upper()]
-            except KeyboardInterrupt:
+            except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
