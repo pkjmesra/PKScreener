@@ -29,7 +29,7 @@ import pandas as pd
 from argparse import Namespace
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
-from pkscreener.classes import Utility
+from pkscreener.classes import Utility, ImageUtility
 from PKDevTools.classes.log import default_logger
 from pkscreener.classes.ConfigManager import parser, tools
 from pkscreener.classes.Portfolio import Portfolio, PortfolioCollection
@@ -232,7 +232,7 @@ def xRaySummary(savedResults=None):
                 continue
             prd_df = df_group[[f"{prd}Pd-%", f"{prd}Pd-10k"]]
             prd_df.loc[:, f"{prd}Pd-10k"] = prd_df.loc[:, f"{prd}Pd-10k"].apply(
-                lambda x: Utility.tools.removeAllColorStyles(x)
+                lambda x: ImageUtility.PKImageTools.removeAllColorStyles(x)
             )
             prd_df = prd_df.replace("-", np.nan, regex=True)
             prd_df = prd_df.replace("", np.nan, regex=True)
@@ -418,7 +418,7 @@ def cleanupData(savedResults):
     saveResults = ensureColumnsExist(saveResults)
     for col in saveResults.columns:
         saveResults.loc[:, col] = saveResults.loc[:, col].apply(
-                lambda x: Utility.tools.removeAllColorStyles(x)
+                lambda x: ImageUtility.PKImageTools.removeAllColorStyles(x)
             )
 
     saveResults["LTP"] = saveResults["LTP"].astype(float).fillna(0.0)

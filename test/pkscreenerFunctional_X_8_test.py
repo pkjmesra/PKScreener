@@ -86,7 +86,7 @@ def mock_dependencies():
     sm_yf = SharedMock()
     sm_yf.return_value=PRM().patched_yf()
     patch("multiprocessing.resource_tracker.register",lambda *args, **kwargs: None)
-    with patch("pkscreener.classes.Utility.tools.clearScreen"):
+    with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.clearScreen"):
         with patch("yfinance.download",new=PRM().patched_yf):
             with patch("pkscreener.classes.Fetcher.yf.download",new=PRM().patched_yf):
                 with patch("PKDevTools.classes.Fetcher.fetcher.fetchURL",new=PRM().patched_fetchURL):

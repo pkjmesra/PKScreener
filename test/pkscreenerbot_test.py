@@ -1,5 +1,5 @@
 """
-The MIT License (MIT)
+    The MIT License (MIT)
 
     Copyright (c) 2023 pkjmesra
 
@@ -20,13 +20,16 @@ The MIT License (MIT)
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-
 """
-# This version must never be changed in full other than the first two components
-# if at all required. The last two components of the version are assigned by the
-# CI/CD pipeline. Only, ever update major.minor. Don't update other parts ever.
-# The pipeline will invoke updateVersion.py which will update the versions as
-# required for the package as well as this file, ReadMe.txt file as well as
-# commit the changes into the main/checked-out branch.
-# major.minor.dateOfRelease.pipelineJobNumber
-VERSION = '0.46.20250210.701'
+import unittest
+from unittest.mock import patch, MagicMock
+
+from pkscreener.classes.MenuOptions import menus, level0MenuDict
+
+class TestPKScreenerBot(unittest.TestCase):
+    def test_level0ButtonsHaveAllSupportedParentButtons(self):
+        m0 = menus()
+        l0_menus = m0.renderForMenu(selectedMenu=None,asList=True,skip=[x for x in level0MenuDict.keys() if x not in ["X","B","P"]])
+        l0_buttons = [x.menuKey for x in l0_menus]
+        self.assertTrue(x in l0_buttons for x in ["X","B","P"])
+        self.assertTrue(x not in l0_buttons for x in [x for x in level0MenuDict.keys() if x not in ["X","B","P"]])

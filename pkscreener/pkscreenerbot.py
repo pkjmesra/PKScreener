@@ -135,25 +135,27 @@ m4 = menus()
 int_timer = None
 _updater = None
 
-TOP_LEVEL_SCANNER_MENUS = ["X", "B", "MI","DV", "P"]
+TOP_LEVEL_SCANNER_MENUS = ["X", "B", "MI","DV", "P"] # 
 TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"] # Last item will be skipped.
-INDEX_SKIP_MENUS = ["W","E","M","Z","0","2","3","4","6","7","8","9","10","S","15"]
+INDEX_SKIP_MENUS_1_To_4 = ["W","E","M","Z","0","5","6","7","8","9","10","11","12","13","14","S","15"]
+INDEX_SKIP_MENUS_5_TO_9 = ["W","E","M","Z","N","0","1","2","3","4","10","11","12","13","14","S","15"]
+INDEX_SKIP_MENUS_10_TO_15 = ["W","E","M","Z","N","0","1","2","3","4","5","6","7","8","9","S"]
 SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","22","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_26_TO_31 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_32_TO_37 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_38_TO_43 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","44","45","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_MENUS_WITH_NO_SUBMENUS = ["1","2","3","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45"]
-SCANNER_MENUS_WITH_SUBMENU_SUPPORT = ["6", "7", "21", "33"]
-SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT = {"6":[ "7","10"], "7":[ "3","6","9"],}
+SCANNER_MENUS_WITH_SUBMENU_SUPPORT = ["6", "7", "21","22","30","32","33","40"]
+SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT = {"6":[ "7","10"], "7":[ "3","6","7","9"],}
 
 INDEX_COMMANDS_SKIP_MENUS_SCANNER = ["W", "E", "M", "Z", "S"]
 INDEX_COMMANDS_SKIP_MENUS_BACKTEST = ["W", "E", "M", "Z", "S", "N", "0", "15"]
 PIPED_SCAN_SKIP_COMMAND_MENUS =["2", "3", "M", "0", "4"]
 PIPED_SCAN_SKIP_INDEX_MENUS =["W","N","E","S","0","Z","M","15"]
-UNSUPPORTED_COMMAND_MENUS =["22","42","M","Z","0",str(MAX_MENU_OPTION)]
+UNSUPPORTED_COMMAND_MENUS =["22","M","Z","0",str(MAX_MENU_OPTION)]
 SUPPORTED_COMMAND_MENUS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45"]
 
 def initializeIntradayTimer():
@@ -170,7 +172,8 @@ def initializeIntradayTimer():
                 int_timer.start()
             elif now >= marketStartTime and now <= marketCloseTime:
                 launchIntradayMonitor()
-    except: # pragma: no cover
+    except Exception as e: # pragma: no cover
+        logger.error(e)
         launchIntradayMonitor()
         pass
 
@@ -206,16 +209,46 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
     
     if bot_available:
         msg = update.effective_message
-        m = re.match("\s*/([0-9a-zA-Z-]+)\s*(.*)", msg.text)
-        cmd = m.group(1).lower()
-        args = [arg for arg in re.split("\s+", m.group(2)) if len(arg)]
+        try:
+            m = re.match(r"\s*/([0-9a-zA-Z-]+)\s*(.*)", msg.text)
+            cmd = m.group(1).lower()
+            args = [arg for arg in re.split(r"\s+", m.group(2)) if len(arg)]
+        except:
+            pass
+            return start(update,context)
         if len(args) > 0: # UTR
             matchedTran = PKGmailReader.matchUTR(utr=args[0])
             if matchedTran is not None:
-                updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\n\nYour subscription is being enabled soon!"
+                updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\n\nYour subscription is being enabled soon!\n\nPlease check with /OTP in the next couple of minutes!\n\nThank you for trusting PKScreener!"
+                workflow_name = "w18-workflow-sub-data.yml"
+                subtype = "add"
+                userid = user.id
+                branch = "main"
+                try:
+                    subvalue = int(float(matchedTran.get("amountPaid")))
+                    workflow_postData  = (
+                        '{"ref":"'
+                        + branch
+                        + '","inputs":{"userid":"'
+                        + f"{userid}"
+                        + '","subtype":"'
+                        + f"{subtype}"
+                        + '","subvalue":"'
+                        + f"{subvalue}"
+                        + '"}}'
+                    )
+                    ghp_token = PKEnvironment().allSecrets["PKG"]
+                    resp = run_workflow(workflowType="O",repo="PKScreener",owner="pkjmesra",branch=branch,ghp_token=ghp_token,workflow_name=workflow_name,workflow_postData=workflow_postData)
+                    if resp is not None and resp.status_code != 204:
+                        updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
+                except Exception as e:
+                    logger.error(e)
+                    updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
+                    pass
             else:
                 updatedResults = "We could not find any transaction details with the provided UTR.\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\n\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
-
+        else:
+            updatedResults = "Did you forget to include the UTR number with /Check ?\nYou should use it like this:\n\n/Check UTR_Here\n\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\n\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
     update.message.reply_text(sanitiseTexts(updatedResults), parse_mode="HTML")
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
@@ -250,6 +283,7 @@ def otp(update: Update, context: CallbackContext) -> str:
             dbManager = DBManager()
             otpValue, subsModel,subsValidity = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
         except Exception as e: # pragma: no cover
+            logger.error(e)
             pass
         userText = f"\nUserID: <b>{user.id}</b>"
         try:
@@ -264,7 +298,8 @@ def otp(update: Update, context: CallbackContext) -> str:
             subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
             if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
                 subscriptionModelName = f"{subscriptionModelName} (Expires on: {subsValidity})"
-        except:
+        except Exception as e:
+            logger.error(e)
             subscriptionModelName = PKSubscriptionModel.No_Subscription.name
             pass
         if otpValue == 0:
@@ -306,21 +341,29 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
     if bot_available:
         mns = m0.renderForMenu(asList=True)
         if (PKDateUtilities.isTradingTime() and not PKDateUtilities.isTodayHoliday()[0]) or ("PKDevTools_Default_Log_Level" in os.environ.keys()) or sys.argv[0].endswith(".py"):
-            mns.append(menu().create(f"MI_{monitorIndex}", "Int. Monitor", 2))
+            mns.append(menu().create(f"MI_{monitorIndex}", "👩‍💻 🚀 Intraday Monitor", 2))
         if user.username == OWNER_USER:
-            mns.append(menu().create(f"DV_0", ("✅" if not configManager.logsEnabled else "🚫"), 2))
-            mns.append(menu().create(f"DV_1", "🔄", 2))
+            mns.append(menu().create(f"DV_0", ("✅ Enable Logging" if not configManager.logsEnabled else "🚫 Disable Logging"), 2))
+            mns.append(menu().create(f"DV_1", "🔄 Restart Bot", 2))
 
         inlineMenus = []
+        keyboard = []
+        rowIndex = 0
+        iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":""}
         for mnu in mns:
             if mnu.menuKey[0:2] in TOP_LEVEL_SCANNER_MENUS:
+                rowIndex +=1
                 inlineMenus.append(
                     InlineKeyboardButton(
-                        mnu.menuText.split("(")[0],
+                        iconDict.get(str(mnu.menuKey[0:2])) + mnu.menuText.split("(")[0],
                         callback_data="C" + str(mnu.menuKey),
                     )
                 )
-        keyboard = [inlineMenus]
+                if rowIndex % 2 == 0:
+                    keyboard.append(inlineMenus)
+                    inlineMenus = []
+        if len(inlineMenus) > 0:
+            keyboard.append(inlineMenus)
         reply_markup = InlineKeyboardMarkup(keyboard)
         cmds = m0.renderForMenu(
             selectedMenu=None,
@@ -332,16 +375,16 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
         reply_markup = None
 
     if updatedResults is None:
-        cmdText = "\n/otp to generate an OTP to login to PKScreener desktop console"
+        cmdText = "\n/otp to generate an OTP to login to PKScreener desktop console\n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI"
         for cmd in cmds:
             cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
-        cmdText = "\n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n"
         tosDisclaimerText = "By using this Software, you agree to\n[+] having read through the Disclaimer (https://pkjmesra.github.io/PKScreener/Disclaimer.txt)\n[+] and accept Terms Of Service (https://pkjmesra.github.io/PKScreener/tos.txt) of PKScreener.\n\n[+] If that is not the case, you MUST immediately terminate using PKScreener and exit now!\n\n"
         menuText = f"Welcome {user.first_name}, {(user.username)}!\n\n{tosDisclaimerText}Please choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n{cmdText}\n\n OR just use the buttons below to choose."
         try:
-            if updateCarrier is not None and updateCarrier.data is not None and updateCarrier.data == "CP":
+            if updateCarrier is not None and hasattr(updateCarrier, "data") and updateCarrier.data is not None and updateCarrier.data == "CP":
                 menuText = f"Piped Scanners are available using /P . Click on this /P to begin using piped scanners. To use other scanners, choose a menu option by selecting a button from below.\n\nYou can also explore a wide variety of all other scanners by typing in \n{cmdText}\n\n OR just use the buttons below to choose."
-        except: # pragma: no cover
+        except Exception as e: # pragma: no cover
+            logger.error(e)
             pass
         menuText = f"{menuText}\n\nClick /start if you want to restart the session."
     else:
@@ -378,7 +421,8 @@ def removeMonitorFile():
     while index < configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
         try:
             os.remove(f"{filePath}_{index}.txt")
-        except: # pragma: no cover
+        except Exception as e: # pragma: no cover
+            logger.error(e)
             pass
         index += 1
 
@@ -395,7 +439,8 @@ def launchIntradayMonitor():
         result_outputs = f"{PKDateUtilities.currentDateTime()}\nIntraday Monitor is available only during the NSE trading hours! Please try during the next trading session."
         try:
             removeMonitorFile()
-        except: # pragma: no cover
+        except Exception as e: # pragma: no cover
+            logger.error(e)
             pass
         return result_outputs, filePath
 
@@ -427,7 +472,7 @@ def launchIntradayMonitor():
     except Exception as e: # pragma: no cover
         result_outputs = "Hmm...It looks like you caught us taking a break! Try again later :-)"
         logger.info(f"{launcher} -a Y -m 'X' -p --telegram could not be launched")
-        logger.info(e)
+        logger.error(e)
         pass
     return result_outputs, filePath
 
@@ -455,7 +500,8 @@ def XDevModeHandler(update: Update, context: CallbackContext) -> str:
             if monitor_proc is not None:
                 try:
                     monitor_proc.kill()
-                except: # pragma: no cover
+                except Exception as e: # pragma: no cover
+                    logger.error(e)
                     pass
             
             launchIntradayMonitor()
@@ -464,6 +510,158 @@ def XDevModeHandler(update: Update, context: CallbackContext) -> str:
             resp = run_workflow(None, None,None, workflowType="R")
             start(update, context,chosenBotMenuOption=f"{resp.status_code}: {resp.text}")
     return START_ROUTES
+
+def PScanners(update: Update, context: CallbackContext) -> str:
+    """Show new choice of buttons"""
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    query = update.callback_query
+    if query is None:
+        start(update, context)
+        return START_ROUTES
+    data = query.data.upper().replace("C", "")
+    if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
+        # Someone is trying to send commands we do not support
+        return start(update, context)
+    global bot_available
+    if not bot_available:
+        # Bot is running but is running in unavailable mode.
+        # Sometimes, either the payment does not go through or 
+        # it takes time to process the last month's payment if
+        # done in the past 24 hours while the last date was today.
+        # If that happens, we won't be able to run bots or scanners
+        # without incurring heavy charges. Let's run in the 
+        # unavailable mode instead until this gets fixed.
+        start(update, context)
+        return START_ROUTES
+    
+    ########################### Scanners ##############################
+    midSkip = "13" if data == "P" else "N"
+    skipMenus = [midSkip]
+    skipMenus.extend(PIPED_SCAN_SKIP_COMMAND_MENUS)
+    # Create the menu text labels
+    menuText = (
+        m1.renderForMenu(
+            m0.find(data),
+            skip=skipMenus,
+            renderStyle=MenuRenderStyle.STANDALONE,
+        )
+        .replace("     ", "")
+        .replace("    ", "")
+        .replace("  ", "")
+        .replace("\t", "")
+        .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+    )
+    menuText = f"{menuText}\n\nH > Home"
+    # menuText = f"{menuText}\n\nP2 > More Options"
+
+    # Create the menu buttons
+    mns = m1.renderForMenu(
+        m0.find(data),
+        skip=skipMenus,
+        asList=True,
+    )
+    mns.append(menu().create("H", "Home", 2))
+    # mns.append(menu().create("P2", "Next", 2))
+    inlineMenus = []
+    query.answer()
+    for mnu in mns:
+        inlineMenus.append(
+            InlineKeyboardButton(
+                mnu.menuKey, callback_data=str(f"{query.data}_{mnu.menuKey}")
+            )
+        )
+    keyboard = [inlineMenus]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    if query.message.text == menuText:
+        menuText = f"{PKDateUtilities.currentDateTime()}:\n{menuText}"
+    menuText = f"{menuText}\n\nClick /start if you want to restart the session."
+    query.edit_message_text(text=menuText, reply_markup=reply_markup)
+    DBManager().getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
+    return START_ROUTES
+
+def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
+    """Show Subscription options, check if user has paid or already subscribed"""
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    query = update.callback_query
+    if query is None:
+        start(update, context)
+        return START_ROUTES
+    scanId = query.data.upper().replace("SUB_", "").strip()
+    global bot_available
+    if not bot_available:
+        # Bot is running but is running in unavailable mode.
+        # Sometimes, either the payment does not go through or 
+        # it takes time to process the last month's payment if
+        # done in the past 24 hours while the last date was today.
+        # If that happens, we won't be able to run bots or scanners
+        # without incurring heavy charges. Let's run in the 
+        # unavailable mode instead until this gets fixed.
+        start(update, context)
+        return START_ROUTES
+    dbManager = DBManager()
+    alertUser = dbManager.alertsForUser(int(user.id))
+    inlineMenus = []
+    query.answer()
+    menuText = ""
+    requiredBalance = 40 if str(scanId).upper().startswith("P") else 31
+    payWall = "Please pay to subscribe:\n\n1. Using UPI(India) to PKScreener@APL \nor\n2. Proudly sponsor: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra\n\nPlease drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually or use \n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI\n! After that you can try re-subscribing!"
+    if alertUser is not None and alertUser.balance >= 0:
+        # User has some balance
+        if len(alertUser.scannerJobs) > 0:
+            # User is already subscribed to some alerts
+            if str(scanId) in alertUser.scannerJobs:
+                menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised."
+            else:
+                if  alertUser.balance < requiredBalance:
+                    # Insufficient balance
+                    menuText = f"You need at least ₹ {requiredBalance} to subscribe to {scanId} ! Your current balance ₹ {alertUser.balance} is insufficient. {payWall}"
+                else:
+                    # Sufficient balance to subscribe to scanId
+                    subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
+                    if subscribed:
+                        menuText = f"You have been added to receive the alerts for {scanId}. Please note that it is valid only for today during Market Hours and resets right after that. You will need to re-subscribe again if you need it on the next day. Thank you for trusting PKScreener!"
+                    else:
+                        menuText = "We encountered an error updating your subscription! Please reach out to @ItsOnlyPK on Telegram with your UTR and subscription scanner details."
+    
+    elif alertUser is None or alertUser.balance == 0:
+        # Either user is not subscribed or has 0 balance
+        menuText = f"You need at least ₹ {requiredBalance} to subscribe to {scanId} ! {payWall}"
+
+    inlineMenus.append(
+            InlineKeyboardButton(
+                "Start", callback_data="start"
+            )
+        )
+    keyboard = [inlineMenus]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    if query.message.text == menuText:
+        menuText = f"{PKDateUtilities.currentDateTime()}:\n{menuText}"
+    menuText = f"{menuText}\n\nClick /start if you want to restart the session."
+    query.edit_message_text(text=menuText, reply_markup=reply_markup)
+    return START_ROUTES
+        
 
 def XScanners(update: Update, context: CallbackContext) -> str:
     """Show new choice of buttons"""
@@ -483,7 +681,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
-    data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G").replace("CMI", "MI")
+    data = query.data.upper().replace("C", "")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         # Someone is trying to send commands we do not support
         return start(update, context)
@@ -498,6 +696,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
         # unavailable mode instead until this gets fixed.
         start(update, context)
         return START_ROUTES
+    ########################### Intraday Monitor ##############################
     if data.startswith("MI"): # Intraday monitor
         monitorIndex = int(data.split("_")[1])
         result_outputs, filePath = launchIntradayMonitor()
@@ -519,9 +718,11 @@ def XScanners(update: Update, context: CallbackContext) -> str:
             start(update, context, updatedResults=result_outputs,monitorIndex=monitorIndex)
             return START_ROUTES
 
+    ########################### Scanners ##############################
     midSkip = "13" if data == "X" else "N"
     skipMenus = [midSkip]
-    skipMenus.extend(INDEX_SKIP_MENUS)
+    skipMenus.extend(INDEX_SKIP_MENUS_1_To_4)
+    # Create the menu text labels
     menuText = (
         m1.renderForMenu(
             m0.find(data),
@@ -534,13 +735,17 @@ def XScanners(update: Update, context: CallbackContext) -> str:
         .replace("\t", "")
         .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
     )
-    menuText = menuText + "\n\nH > Home"
+    menuText = f"{menuText}\n\nH > Home"
+    menuText = f"{menuText}\n\nP2 > More Options"
+
+    # Create the menu buttons
     mns = m1.renderForMenu(
         m0.find(data),
         skip=skipMenus,
         asList=True,
     )
     mns.append(menu().create("H", "Home", 2))
+    mns.append(menu().create("P2", "Next", 2))
     inlineMenus = []
     query.answer()
     for mnu in mns:
@@ -558,10 +763,19 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     DBManager().getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
     return START_ROUTES
 
+def getinlineMenuListRow(keyboardRows=[]):
+    for list in keyboardRows:
+        if len(list) <= 7:
+            return list
 
 def Level2(update: Update, context: CallbackContext) -> str:
     """Show new choice of buttons"""
-    inlineMenus = []
+    keyboardRows = []
+    index = 0
+    while index <= 10:
+        keyboardRows.append([])
+        index += 1
+
     menuText = "Hmm...It looks like you caught us taking a break! Try again later :-)"
     mns = []
     updateCarrier = None
@@ -581,7 +795,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
     query = update.callback_query
     query.answer()
     preSelection = (
-        query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+        query.data.upper().replace("C", "")
     )
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
@@ -599,8 +813,57 @@ def Level2(update: Update, context: CallbackContext) -> str:
         # unavailable mode instead until this gets fixed.
         start(update, context)
         return START_ROUTES
-    if selection[len(selection)-1].upper() == "H":
+    if selection[len(selection)-1].upper() == "H": # Home button
         start(update, context)
+        return START_ROUTES
+    
+    if len(selection) == 2 and selection[0] in ["X","B"] and selection[1] in ["P1","P2","P3"]:
+        nextOption = ""
+        if selection[1] == "P2":
+            skipMenus = INDEX_SKIP_MENUS_5_TO_9
+            nextOption = "P3"
+        elif selection[1] == "P3":
+            skipMenus = INDEX_SKIP_MENUS_10_TO_15
+            nextOption = "P1"
+        elif selection[1] == "P1":
+            skipMenus = INDEX_SKIP_MENUS_1_To_4
+            nextOption = "P2"
+        # Create the menu text labels
+        menuText = (
+            m1.renderForMenu(
+                m0.find(selection[0]),
+                skip=skipMenus,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            .replace("     ", "")
+            .replace("    ", "")
+            .replace("  ", "")
+            .replace("\t", "")
+            .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+        )
+        menuText = f"{menuText}\n\nH > Home"
+        menuText = f"{menuText}\n\n{nextOption} > More Options"
+
+        # Create the menu buttons
+        mns = m1.renderForMenu(
+            m0.find(selection[0]),
+            skip=skipMenus,
+            asList=True,
+        )
+        mns.append(menu().create("H", "Home", 2))
+        mns.append(menu().create(f"{nextOption}", "More Options", 2))
+        query.answer()
+        for mnu in mns:
+            activeInlineRow = getinlineMenuListRow(keyboardRows)
+            activeInlineRow.append(
+                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{selection[0]}_{mnu.menuKey}")))
+
+        keyboard = keyboardRows
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        if query.message.text == menuText:
+            menuText = f"{PKDateUtilities.currentDateTime()}:\n{menuText}"
+        menuText = f"{menuText}\n\nClick /start if you want to restart the session."
+        query.edit_message_text(text=menuText, reply_markup=reply_markup)
         return START_ROUTES
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -656,16 +919,18 @@ def Level2(update: Update, context: CallbackContext) -> str:
             mns.append(menu().create("P3", "More Options", 2))
             mns.append(menu().create("H", "Home", 2))
         elif selection[2] == "P3":
+            skipMenusP3 = ["22" if selection[0] in ["X","B"] else 'M'] # #22 not in X, but should be available in P
+            skipMenusP3.extend(SCANNER_SKIP_MENUS_19_TO_25)
             menuText = m2.renderForMenu(
                 m1.find(selection[1]),
-                skip=SCANNER_SKIP_MENUS_19_TO_25,
+                skip=skipMenusP3,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             menuText = menuText + "\n\nP4 > More Options"
             menuText = menuText + "\nH > Home"
             mns = m2.renderForMenu(
                 m1.find(selection[1]),
-                skip=SCANNER_SKIP_MENUS_19_TO_25,
+                skip=skipMenusP3,
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -709,7 +974,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 skip=SCANNER_SKIP_MENUS_38_TO_43,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            menuText = menuText + "\n"
+            menuText = menuText + "\n\nP > More options"
             menuText = menuText + "\nH > Home"
             mns = m2.renderForMenu(
                 m1.find(selection[1]),
@@ -718,20 +983,24 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
             mns.append(menu().create("H", "Home", 2))
+            mns.append(menu().create("P", "More Options", 2))
         elif str(selection[2]).isnumeric():
             preSelection = f"{selection[0]}_{selection[1]}_{selection[2]}"
             if selection[2] in SCANNER_MENUS_WITH_SUBMENU_SUPPORT:
                 menuText = m3.renderForMenu(
                     m2.find(selection[2]),
                     renderStyle=MenuRenderStyle.STANDALONE,
-                    skip=["0"],
+                    skip=["0","M","Z"],
                 )
                 mns = m3.renderForMenu(
                     m2.find(selection[2]),
                     asList=True,
                     renderStyle=MenuRenderStyle.STANDALONE,
-                    skip=["0"],
+                    skip=["0","M","Z"],
                 )
+                menuText = f"{menuText}\n\nH > Home"
+                menuText = f"{menuText}\n\nClick /start if you want to restart the session."
+                mns.append(menu().create("H", "Home", 2))
             else:
                 if selection[2] == "4":  # Last N days
                     selection.extend(["D", ""])
@@ -745,47 +1014,114 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     selection.extend(["", ""])
     elif len(selection) == 4:
         preSelection = (
-            query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G")
+            query.data.upper().replace("C", "")
         )
     optionChoices = ""
     if len(selection) <= 3 and mns is not None:
         for mnu in mns:
-            inlineMenus.append(
+            activeInlineRow = getinlineMenuListRow(keyboardRows)
+            activeInlineRow.append(
                 InlineKeyboardButton(
                     mnu.menuKey,
                     callback_data="C" + str(f"{preSelection}_{mnu.menuKey}"),
                 )
             )
-        keyboard = [inlineMenus]
+        keyboard = keyboardRows
         reply_markup = InlineKeyboardMarkup(keyboard)
     elif len(selection) >= 4:
-        optionChoices = (
-            f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
-        )
-        expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
-        menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
+        if len(selection) == 4:
+            if selection[2] in SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT.keys() and selection[3] in SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT[selection[2]]:
+                m0.renderForMenu(
+                    selectedMenu=None,
+                    skip=TOP_LEVEL_SCANNER_SKIP_MENUS,
+                    asList=True,
+                    renderStyle=MenuRenderStyle.STANDALONE,
+                )
+                selectedMenu = m0.find(selection[0].upper())
+                m1.renderForMenu(
+                    selectedMenu=selectedMenu,
+                    skip=(
+                        INDEX_COMMANDS_SKIP_MENUS_SCANNER
+                        if ("x_" in preSelection.lower() or "p_" in preSelection.lower())
+                        else INDEX_COMMANDS_SKIP_MENUS_BACKTEST
+                    ),
+                    asList=True,
+                    renderStyle=MenuRenderStyle.STANDALONE,
+                )
+                selectedMenu = m1.find(selection[1].upper())
+                m2.renderForMenu(
+                    selectedMenu=selectedMenu,
+                    skip=UNSUPPORTED_COMMAND_MENUS,
+                    asList=True,
+                    renderStyle=MenuRenderStyle.STANDALONE,
+                )
+                if selection[2] in SCANNER_MENUS_WITH_SUBMENU_SUPPORT:
+                    selectedMenu = m2.find(selection[2].upper())
+                    m3.renderForMenu(
+                        selectedMenu=selectedMenu,
+                        skip=["0","M","Z"],
+                        asList=True,
+                        renderStyle=MenuRenderStyle.STANDALONE,
+                    )
+                    selectedMenu = m3.find(selection[3].upper())
+                    menuText = m4.renderForMenu(
+                        selectedMenu=selectedMenu,
+                        renderStyle=MenuRenderStyle.STANDALONE,
+                        skip=["0","M","Z"],
+                    )
+                    mns = m4.renderForMenu(
+                        selectedMenu=selectedMenu,
+                        asList=True,
+                        renderStyle=MenuRenderStyle.STANDALONE,
+                        skip=["0","M","Z"],
+                    )
+                    menuText = f"{menuText}\n\nH > Home"
+                    mns.append(menu().create("H", "Home", 3))
+                    menuText = f"{menuText}\n\nClick /start if you want to restart the session."
+            if mns is not None:
+                for mnu in mns:
+                    activeInlineRow = getinlineMenuListRow(keyboardRows)
+                    activeInlineRow.append(InlineKeyboardButton(mnu.menuKey,callback_data="C" + str(f"{preSelection}_{mnu.menuKey}"),))
+                keyboard = keyboardRows
+                reply_markup = InlineKeyboardMarkup(keyboard)
+            if len(mns) == 0:
+                menuText = ''
+        elif len(selection) > 4:
+            menuText = ''
 
-        reply_markup = default_markup(inlineMenus)
-        options = ":".join(selection)
-        shouldSendUpdate = launchScreener(
-            options=options,
-            user=query.from_user,
-            context=context,
-            optionChoices=optionChoices,
-            update=update,
-        )
-        if not shouldSendUpdate:
-            DBManager().getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
-            return START_ROUTES
-    try:
-        if optionChoices != "" and Channel_Id is not None and len(str(Channel_Id)) > 0:
-            context.bot.send_message(
-                chat_id=int(f"-{Channel_Id}"),
-                text=f"Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!",
-                parse_mode="HTML",
+        if selection[0] in 'P' and len(selection[3]) == 0:
+            selection[3] = '12' # All stocks
+        
+        if menuText is None or len(menuText) == 0:
+            optionChoices = (
+                f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
             )
-    except Exception:# pragma: no cover
-        start(update, context)
+            optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}"
+            expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
+            menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
+
+            reply_markup = default_markup([])
+            options = ":".join(selection)
+            shouldSendUpdate = launchScreener(
+                options=options,
+                user=query.from_user,
+                context=context,
+                optionChoices=optionChoices,
+                update=update,
+            )
+            if not shouldSendUpdate:
+                DBManager().getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
+                return START_ROUTES
+        try:
+            if optionChoices != "" and Channel_Id is not None and len(str(Channel_Id)) > 0:
+                context.bot.send_message(
+                    chat_id=int(f"-{Channel_Id}"),
+                    text=f"Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!",
+                    parse_mode="HTML",
+                )
+        except Exception as e:# pragma: no cover
+            logger.error(e)
+            start(update, context)
     menuText =  menuText.replace("\n     ","\n").replace("\n    ","\n").replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
     if not str(optionChoices.upper()).startswith("B"):
         sendUpdatedMenu(
@@ -1049,9 +1385,13 @@ def command_handler(update: Update, context: CallbackContext) -> None:
         start(update, context)
         return START_ROUTES
     msg = update.effective_message
-    m = re.match("\s*/([0-9a-zA-Z_-]+)\s*(.*)", msg.text)
-    cmd = m.group(1).lower()
-    args = [arg for arg in re.split("\s+", m.group(2)) if len(arg)]
+    try:
+        m = re.match(r"\s*/([0-9a-zA-Z_-]+)\s*(.*)", msg.text)
+        cmd = m.group(1).lower()
+        args = [arg for arg in re.split(r"\s+", m.group(2)) if len(arg)]
+    except:
+        pass
+        return start(update,context)
     if cmd.startswith("cx_") or cmd.startswith("cb_") or cmd.startswith("cg_"):
         Level2(update=update, context=context)
         return START_ROUTES
@@ -1281,7 +1621,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                     selectedMenu=selectedMenu,
                     asList=True,
                     renderStyle=MenuRenderStyle.STANDALONE,
-                    skip=["0"],
+                    skip=["0","M","Z"],
                 )
                 for cmd in cmds:
                     cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
@@ -1330,7 +1670,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                         selectedMenu = m2.find(selection[2].upper())
                         m3.renderForMenu(
                             selectedMenu=selectedMenu,
-                            skip=["0"],
+                            skip=["0","M","Z"],
                             asList=True,
                             renderStyle=MenuRenderStyle.STANDALONE,
                         )
@@ -1339,7 +1679,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                             selectedMenu=selectedMenu,
                             asList=True,
                             renderStyle=MenuRenderStyle.STANDALONE,
-                            skip=["0"],
+                            skip=["0","M","Z"],
                         )
                         for cmd in cmds:
                             cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
@@ -1422,7 +1762,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
-    cmdText = "\n/otp to generate an OTP to login to PKScreener desktop console"
+    cmdText = "\n/otp to generate an OTP to login to PKScreener desktop console\n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI"
     for cmd in cmds:
         cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
     reply_markup = default_markup([])
@@ -1530,7 +1870,7 @@ def addCommandsForMenuItems(application):
                         selectedMenu=selectedMenu,
                         asList=True,
                         renderStyle=MenuRenderStyle.STANDALONE,
-                        skip=["0"],
+                        skip=["0","M","Z"],
                     )
                     for mnu3 in cmds3:
                         p3 = mnu3.menuKey.upper()
@@ -1543,13 +1883,14 @@ def addCommandsForMenuItems(application):
                                 selectedMenu=selectedMenu,
                                 asList=True,
                                 renderStyle=MenuRenderStyle.STANDALONE,
-                                skip=["0"],
+                                skip=["0","M","Z"],
                             )
-                            for mnu4 in cmds4:
-                                p4 = mnu4.menuKey.upper()
-                                application.add_handler(
-                                    CommandHandler(f"{p0}_{p1}_{p2}_{p3}_{p4}", command_handler)
-                                )
+                            if cmds4 is not None and len(cmds4) > 0:
+                                for mnu4 in cmds4:
+                                    p4 = mnu4.menuKey.upper()
+                                    application.add_handler(
+                                        CommandHandler(f"{p0}_{p1}_{p2}_{p3}_{p4}", command_handler)
+                                    )
 
 # def send_stuff(context: CallbackContext):
 #   job = context.job
@@ -1616,6 +1957,30 @@ def runpkscreenerbot(availability=True) -> None:
     # ^ means "start of line/string"
     # $ means "end of line/string"
     # So ^ABC$ will only allow 'ABC'
+    # conv_handler = ConversationHandler(
+    #     entry_points=[CommandHandler("start", start),
+    #                   CommandHandler("otp", otp),
+    #                   CommandHandler("check", matchUTR)],
+    #     states={
+    #         START_ROUTES: [
+    #             CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
+    #             CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
+    #             CallbackQueryHandler(PScanners, pattern="^" + str("CP") + "$"),
+    #             CallbackQueryHandler(XScanners, pattern="^" + str("CMI_")),
+    #             CallbackQueryHandler(XDevModeHandler, pattern="^" + str("CDV_")),
+    #             # CallbackQueryHandler(XScanners, pattern="^" + str("CG") + "$"),
+    #             CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
+    #             CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
+    #             CallbackQueryHandler(Level2, pattern="^" + str("CP_")),
+    #             CallbackQueryHandler(subscribeToScannerAlerts, pattern="^" + str("SUB_")),
+    #             # CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
+    #             CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
+    #             CallbackQueryHandler(start, pattern="^"),
+    #         ],
+    #         END_ROUTES: [],
+    #     },
+    #     fallbacks=[CommandHandler("start", start)],
+    # )
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start),
                       CommandHandler("otp", otp),
@@ -1624,12 +1989,14 @@ def runpkscreenerbot(availability=True) -> None:
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
+                CallbackQueryHandler(PScanners, pattern="^" + str("CP") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CMI_")),
                 CallbackQueryHandler(XDevModeHandler, pattern="^" + str("CDV_")),
                 # CallbackQueryHandler(XScanners, pattern="^" + str("CG") + "$"),
                 CallbackQueryHandler(Level2, pattern="^" + str("CX_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CB_")),
                 CallbackQueryHandler(Level2, pattern="^" + str("CP_")),
+                CallbackQueryHandler(subscribeToScannerAlerts, pattern="^" + str("SUB_")),
                 # CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
                 CallbackQueryHandler(start, pattern="^"),
@@ -1638,8 +2005,12 @@ def runpkscreenerbot(availability=True) -> None:
         },
         fallbacks=[CommandHandler("start", start)],
     )
-    dispatcher.add_handler(CommandHandler("otp", otp))
-    dispatcher.add_handler(CommandHandler("check", matchUTR))
+    for handler in conv_handler.entry_points:
+        dispatcher.add_handler(handler)
+    for handler in conv_handler.states[START_ROUTES]:
+        dispatcher.add_handler(handler)
+    # dispatcher.add_handler(CommandHandler("otp", otp))
+    # dispatcher.add_handler(CommandHandler("check", matchUTR))
     dispatcher.add_handler(CommandHandler("help", help_command))
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, help_command)
@@ -1648,7 +2019,7 @@ def runpkscreenerbot(availability=True) -> None:
     # application.add_handler(MessageHandler(filters.COMMAND, command_handler))
     # Add ConversationHandler to application that will be used for handling updates
     addCommandsForMenuItems(dispatcher)
-    dispatcher.add_handler(conv_handler)
+    # dispatcher.add_handler(conv_handler)
     # ...and the error handler
     dispatcher.add_error_handler(error_handler)
     if bot_available:

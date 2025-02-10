@@ -12,4 +12,4 @@ wget https://raw.githubusercontent.com/pkjmesra/PKScreener/main/.github/dependen
   ./configure --prefix=/usr && \
   make && \
   make install
-pip3 install ta-lib
+pip3 install ta-lib=0.6.0

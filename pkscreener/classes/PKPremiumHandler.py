@@ -52,9 +52,9 @@ class PKPremiumHandler:
     
     @classmethod
     def showPremiumDemoOptions(self,mnu):
-        from pkscreener.classes import Utility
+        from pkscreener.classes import Utility, ConsoleUtility
         result, reason = PKUserRegistration.validateToken()
-        Utility.tools.clearScreen(forceTop=True)
+        ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         if result and reason == ValidationResult.Success:
             return reason
         elif not result and reason == ValidationResult.BadOTP:

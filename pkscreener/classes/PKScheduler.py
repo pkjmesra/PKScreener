@@ -24,7 +24,6 @@
 """
 import warnings
 import os
-import sys
 import time
 from PKDevTools.classes.OutputControls import OutputControls
 warnings.simplefilter("ignore", UserWarning,append=True)
@@ -111,7 +110,7 @@ class PKScheduler():
 
                     # monitor the progress:
                     start_time = time.time()
-                    while (((n_finished := sum([future.done() for future in futures])) < len(futures)) and ((time.time() - start_time) < timeout)):
+                    while (((n_finished := int(sum([future.done() for future in futures]))) < len(futures)) and ((time.time() - start_time) < timeout)):
                         if showProgressBars:
                             progress.update(
                                 overall_progress_task,

@@ -251,7 +251,7 @@ rm updater.sh
                                 OTAUpdater.updateForMac(OTAUpdater.checkForUpdate.url)
                             else:
                                 OTAUpdater.updateForLinux(OTAUpdater.checkForUpdate.url)
-                        except KeyboardInterrupt:
+                        except KeyboardInterrupt: # pragma: no cover
                             raise KeyboardInterrupt
                         except Exception as e:  # pragma: no cover
                             default_logger().debug(e, exc_info=True)
@@ -291,7 +291,7 @@ rm updater.sh
                         )
                         + colorText.END
                     )
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except Exception as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)

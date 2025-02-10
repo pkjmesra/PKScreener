@@ -86,7 +86,7 @@ def test_getDownloadChoices_positive():
 
 def test_handleSecondaryMenuChoices_positive():
     menuOption = "H"
-    with patch("pkscreener.classes.Utility.tools.showDevInfo") as mock_showDevInfo:
+    with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.showDevInfo") as mock_showDevInfo:
         handleSecondaryMenuChoices(menuOption, defaultAnswer="Y")
         mock_showDevInfo.assert_called_once_with(defaultAnswer="Y")
 
@@ -174,7 +174,7 @@ def test_getTestBuildChoices_negative():
 def test_getDownloadChoices_negative():
     with patch("builtins.input", return_value="N"):
         with patch(
-            "pkscreener.classes.Utility.tools.afterMarketStockDataExists"
+            "pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists"
         ) as mock_data:
             mock_data.return_value = True, "stock_data_1.pkl"
             with pytest.raises(SystemExit):

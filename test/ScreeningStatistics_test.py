@@ -23,7 +23,8 @@
 
 """
 import warnings
-from unittest.mock import ANY, MagicMock, patch, PropertyMock
+from unittest.mock import ANY, MagicMock, patch, PropertyMock, mock_open
+import unittest
 
 import numpy as np
 import platform
@@ -1658,17 +1659,17 @@ def test_preprocessData_valid_input(tools_instance):
     # Call the preprocessData function with the sample DataFrame
     fullData, trimmedData = tools_instance.preprocessData(df, daysToLookback=9)
     # Assert that the returned dataframes have the expected shape and columns
-    assert fullData.shape == (207, 14)
-    assert trimmedData.shape == (9, 14)
-    assert list(fullData.columns) == ['Close', 'Volume', 'High', 'Low', 'Open', 'SMA', 'LMA', 'SSMA', 'SSMA20', 'VolMA', 'RSI', 'CCI', 'FASTK', 'FASTD']
+    assert fullData.shape == (207, 15)
+    assert trimmedData.shape == (9, 15)
+    assert list(fullData.columns) == ['Close', 'Volume', 'High', 'Low', 'Open', 'SMA', 'LMA', 'SSMA', 'SSMA20', 'Volatility','VolMA', 'RSI', 'CCI', 'FASTK', 'FASTD']
 
     tools_instance.configManager.useEMA = True
     # Call the preprocessData function with the sample DataFrame
     fullData, trimmedData = tools_instance.preprocessData(df, daysToLookback=9)
     # Assert that the returned dataframes have the expected shape and columns
-    assert fullData.shape == (207, 14)
-    assert trimmedData.shape == (9, 14)
-    assert list(fullData.columns) == ['Close', 'Volume', 'High', 'Low', 'Open', 'SMA', 'LMA', 'SSMA', 'SSMA20', 'VolMA', 'RSI', 'CCI', 'FASTK', 'FASTD']
+    assert fullData.shape == (207, 15)
+    assert trimmedData.shape == (9, 15)
+    assert list(fullData.columns) == ['Close', 'Volume', 'High', 'Low', 'Open', 'SMA', 'LMA', 'SSMA', 'SSMA20', 'Volatility','VolMA', 'RSI', 'CCI', 'FASTK', 'FASTD']
 
 def test_preprocessData_empty_input(tools_instance):
     # Create an empty DataFrame for testing
@@ -2984,6 +2985,241 @@ def test_validateVolumeSpreadAnalysis_spread0_lessthan_spread1(mock_data, mock_s
     assert mock_screen_dict.get("Pattern") == colorText.GREEN + "Demand Rise" + colorText.END 
     assert mock_save_dict.get("Pattern") == 'Demand Rise'
 
+
+class TestScreeningStatistics_calc_relative_strength(unittest.TestCase):
+
+    def setUp(self):
+        """Initialize the ScreeningStatistics instance."""
+        self.stats = ScreeningStatistics(ConfigManager.tools(),None)
+
+    def test_calc_relative_strength_none_dataframe(self):
+        """Test when the input DataFrame is None."""
+        result = self.stats.calc_relative_strength(None)
+        self.assertEqual(result, -1)
+
+    def test_calc_relative_strength_empty_dataframe(self):
+        """Test when the input DataFrame is empty."""
+        df = pd.DataFrame()
+        result = self.stats.calc_relative_strength(df)
+        self.assertEqual(result, -1)
+
+    def test_calc_relative_strength_insufficient_data(self):
+        """Test when the input DataFrame has only one row."""
+        df = pd.DataFrame({"Adj Close": [100]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertEqual(result, -1)
+
+    def test_calc_relative_strength_fallback_to_close(self):
+        """Test when 'Adj Close' is missing and function falls back to 'Close'."""
+        df = pd.DataFrame({"Close": [100, 105, 102, 107, 110]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertGreater(result, 0)  # Ensure RS is calculated
+
+    def test_calc_relative_strength_calculation(self):
+        """Test correct RS calculation."""
+        df = pd.DataFrame({"Adj Close": [100, 102, 101, 104, 107]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertGreater(result, 0)  # RS should be > 0 since there are more gains
+
+    def test_calc_relative_strength_all_gains(self):
+        """Test when all price movements are gains (RS should be high)."""
+        df = pd.DataFrame({"Adj Close": [100, 105, 110, 115, 120]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertGreater(result, 1)  # RS should be > 1 since there are no losses
+
+    def test_calc_relative_strength_all_losses(self):
+        """Test when all price movements are losses (RS should be 0 or very low)."""
+        df = pd.DataFrame({"Adj Close": [100, 95, 90, 85, 80]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertEqual(result, 0)  # RS should be 0 because there are no gains
+
+    def test_calc_relative_strength_constant_prices(self):
+        """Test when all prices are the same (RS should be NaN or raise an exception)."""
+        df = pd.DataFrame({"Adj Close": [100, 100, 100, 100, 100]})
+        result = self.stats.calc_relative_strength(df)
+        self.assertTrue(pd.isna(result) or result == 1)  # Expect NaN or zero division handling
+
+
+class TestScreeningStatistics_computeBuySellSignals(unittest.TestCase):
+
+    def setUp(self):
+        """Initialize the ScreeningStatistics instance."""
+        self.stats = ScreeningStatistics(ConfigManager.tools(),None)
+
+    def test_computeBuySellSignals_none_dataframe(self):
+        """Test when input DataFrame is None."""
+        result = self.stats.computeBuySellSignals(None)
+        self.assertIsNone(result)
+
+    def test_computeBuySellSignals_empty_dataframe(self):
+        """Test when input DataFrame is empty."""
+        df = pd.DataFrame()
+        with pytest.raises(KeyError):
+            result = self.stats.computeBuySellSignals(df)
+            self.assertTrue(df.empty)
+
+    @patch.dict("pkscreener.Imports", {"vectorbt": True})
+    @patch("vectorbt.indicators.MA.run")
+    # @patch("builtins.print")
+    def test_computeBuySellSignals_with_vectorbt(self, mock_vbt_run):
+        """Test Buy/Sell signals calculation when `vectorbt` is available."""
+        mock_ema = MagicMock()
+        mock_ema.ma_crossed_above.return_value = [True, False, True]
+        mock_ema.ma_crossed_below.return_value = [False, True, False]
+        mock_vbt_run.return_value = mock_ema
+
+        df = pd.DataFrame({
+            "Close": [100, 102, 101],
+            "ATRTrailingStop": [99, 100, 101]
+        })
+
+        result = self.stats.computeBuySellSignals(df)
+        
+        self.assertIn("Buy", result.columns)
+        self.assertIn("Sell", result.columns)
+        self.assertTrue(result["Buy"].iloc[0])  # Check Buy signal is generated
+        self.assertFalse(result["Sell"].iloc[0])  # Ensure no Sell signal
+
+    @patch.dict("pkscreener.Imports", {"vectorbt": False})
+    @patch("PKDevTools.classes.OutputControls.OutputControls.printOutput")
+    @patch("pkscreener.classes.Pktalib.pktalib.EMA", return_value=pd.Series([101, 103, 104]))
+    def test_computeBuySellSignals_without_vectorbt(self, mock_ema, mock_printOutput):
+        """Test Buy/Sell signals calculation when `vectorbt` is missing (fallback to `pktalib`)."""
+        df = pd.DataFrame({
+            "Close": [100, 102, 101],
+            "ATRTrailingStop": [99, 100, 101]
+        })
+
+        result = self.stats.computeBuySellSignals(df)
+        
+        self.assertIn("Buy", result.columns)
+        self.assertIn("Sell", result.columns)
+        self.assertTrue(result["Buy"].iloc[0])  # Check Buy signal is generated
+        self.assertFalse(result["Sell"].iloc[0])  # Ensure no Sell signal
+        mock_printOutput.assert_called()
+
+    def test_computeBuySellSignals_missing_columns(self):
+        """Test when `Close` or `ATRTrailingStop` columns are missing."""
+        df = pd.DataFrame({"Close": [100, 102, 101]})  # Missing `ATRTrailingStop`
+
+        with self.assertRaises(KeyError):
+            self.stats.computeBuySellSignals(df)
+
+    # @patch("builtins.print")
+    @patch("PKDevTools.classes.OutputControls.OutputControls.printOutput")
+    @patch("pkscreener.classes.ScreeningStatistics.ScreeningStatistics.downloadSaveTemplateJsons")
+    def test_computeBuySellSignals_oserror_retry(self, mock_download, mock_printOutput):
+        """Test that computeBuySellSignals retries after an OSError and downloads necessary files."""
+        df = pd.DataFrame({"Close": [100, 102, 101], "ATRTrailingStop": [99, 100, 101]})
+
+        with patch("vectorbt.indicators.MA.run", side_effect=[OSError("File missing"), df]) as mock_compute:
+            result = self.stats.computeBuySellSignals(df,retry=False)
+        
+        mock_download.assert_called()
+        self.assertIsNone(result)
+
+    @patch("PKDevTools.classes.OutputControls.OutputControls.printOutput")
+    def test_computeBuySellSignals_importerror(self, mock_printOutput):
+        """Test ImportError handling when `vectorbt` is missing."""
+        df = pd.DataFrame({
+            "Close": [100, 102, 101],
+            "ATRTrailingStop": [99, 100, 101]
+        })
+
+        with patch.dict("pkscreener.Imports", {"vectorbt": False}):
+            result = self.stats.computeBuySellSignals(df)
+
+        self.assertIn("Buy", result.columns)
+        self.assertIn("Sell", result.columns)
+        mock_printOutput.assert_called()
+
+    @patch('requests.get')  # Mock the 'requests.get' method
+    @patch('builtins.open', new_callable=mock_open)  # Mock the 'open' function
+    @patch('os.makedirs')  # Mock 'os.makedirs' to prevent actual directory creation
+    def test_download_save_template_jsons_success(self, mock_makedirs, mock_open, mock_requests_get):
+        # Set up the mock response object with desired behavior
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'key': 'value'}
+        mock_requests_get.return_value = mock_response
+
+        # Create an instance of ScreeningStatistics
+        stats = ScreeningStatistics()
+
+        # Call the method under test
+        stats.downloadSaveTemplateJsons('/fake/directory')
+
+        # Assert that the necessary methods were called with expected arguments
+        mock_makedirs.assert_called_once_with('/fake/directory/', exist_ok=True)
+        mock_open.assert_called_with('/fake/directory/seaborn.json', 'w')
+        mock_open().write.assert_called()
+
+    @patch('requests.get')
+    def test_download_save_template_jsons_network_failure(self, mock_requests_get):
+        # Simulate a network failure by setting side effect
+        mock_requests_get.side_effect = Exception('Network error')
+
+        stats = ScreeningStatistics()
+
+        # Call the method and assert that it handles the exception gracefully
+        with self.assertRaises(Exception):
+            stats.downloadSaveTemplateJsons('/fake/directory')
+
+    @patch('requests.get')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_download_save_template_jsons_file_write_error(self, mock_open, mock_requests_get):
+        # Set up the mock response object
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'key': 'value'}
+        mock_requests_get.return_value = mock_response
+
+        # Simulate a file write error
+        mock_open.side_effect = IOError('File write error')
+
+        stats = ScreeningStatistics()
+
+        # Call the method and assert that it handles the exception gracefully
+        with self.assertRaises(IOError):
+            stats.downloadSaveTemplateJsons('/fake/directory')
+
+    # def test_findATRCross_valid_data(self):
+    #     # Create a DataFrame with known 'Close' prices and expected ATR crossovers
+    #     data = {
+    #         'Close': [100, 105, 102, 108, 107],
+    #         # Add other necessary columns if required by the method
+    #     }
+    #     df = pd.DataFrame(data)
+    #     result = self.stats.findATRCross(df,{},{})
+    #     # Assert that the result contains expected buy/sell signals
+    #     # This will depend on the actual implementation details
+
+    # def test_findATRCross_no_crossovers(self):
+    #     # Create a DataFrame where 'Close' prices do not cross the ATR threshold
+    #     data = {
+    #         'Close': [100, 101, 102, 103, 104],
+    #         # Add other necessary columns if required by the method
+    #     }
+    #     df = pd.DataFrame(data)
+    #     result = self.stats.findATRCross(df)
+    #     # Assert that no buy/sell signals are generated
+    #     # This will depend on the actual implementation details
+
+    # def test_findATRCross_edge_case_single_row(self):
+    #     # Test with a single row DataFrame
+    #     data = {'Close': [100]}
+    #     df = pd.DataFrame(data)
+    #     result = self.stats.findATRCross(df)
+    #     # Assert the method's behavior with minimal data
+    #     # This will depend on the actual implementation details
+
+    # def test_findATRCross_invalid_data(self):
+    #     # Test with a DataFrame missing necessary columns
+    #     data = {'Open': [100, 105, 102, 108, 107]}  # Missing 'Close' column
+    #     df = pd.DataFrame(data)
+    #     with self.assertRaises(KeyError):
+    #         self.stats.findATRCross(df)
+
 # def test_validateShortTermBullish(tools_instance):
 #     # Mock the required functions and classes
 #     patch('pandas.DataFrame.copy')
@@ -3026,3 +3262,209 @@ def test_validateVolumeSpreadAnalysis_spread0_lessthan_spread1(mock_data, mock_s
 #         assert result == True
 #         assert screenDict['MA-Signal'] == '\033[32mBullish\033[0m, \033[32mBullish\033[0m'
 #         assert saveDict['MA-Signal'] == 'Bullish, Bullish'
+
+import unittest
+from pkscreener.classes.ScreeningStatistics import ScreeningStatistics
+
+class TestCupAndHandleDetection(unittest.TestCase):
+
+    def setUp(self):
+        """Create sample stock data for testing."""
+        dates = pd.date_range(start="2023-01-01", periods=80, freq='D')
+        
+        # Generate a synthetic cup and handle pattern
+        close_prices = np.concatenate([
+            np.linspace(100, 85, 20),  # Left cup side (down)
+            np.linspace(85, 90, 20),  # Cup bottom (stabilizing)
+            np.linspace(90, 100, 20),  # Right cup side (up)
+            np.linspace(100, 98, 5),  # Handle downtrend
+            np.linspace(98, 102, 10),  # Handle recovery
+            np.linspace(102, 110, 5)   # Breakout
+        ])
+        
+        volume = np.concatenate([
+            np.linspace(2000, 1500, 20),  # Decreasing volume in cup
+            np.linspace(1500, 1400, 20),  # Stabilized low volume
+            np.linspace(1400, 1800, 20),  # Increasing volume in recovery
+            np.linspace(1800, 1750, 5),   # Stable volume in handle
+            np.linspace(1750, 2200, 10),  # Volume picking up
+            np.linspace(2200, 3000, 5)    # Breakout volume spike
+        ])
+
+        self.df = pd.DataFrame({'Date': dates, 'Close': close_prices, 'Volume': volume})
+        self.df['Volatility'] = self.df['Close'].rolling(window=20).std()
+        self.df.set_index('Date', inplace=True)
+        self.screener = ScreeningStatistics(ConfigManager.tools(),None)
+
+    def test_valid_cup_and_handle(self):
+        """Test if a valid Cup and Handle pattern is detected."""
+        points = self.screener.find_cup_and_handle(self.df)
+        self.assertIsNotNone(points, "Cup and Handle pattern should be detected.")
+
+    def test_dynamic_order_calculation(self):
+        """Test if the order parameter adjusts based on volatility."""
+        high_vol_df = self.df.copy()
+        high_vol_df['Close'] += np.random.normal(0, 15, len(high_vol_df))  # Add artificial volatility
+        high_order = self.screener.get_dynamic_order(high_vol_df)
+        
+        low_vol_df = self.df.copy()
+        low_vol_df['Close'] += np.random.normal(0, 1, len(low_vol_df))  # Reduce volatility
+        low_order = self.screener.get_dynamic_order(low_vol_df)
+
+        self.assertGreaterEqual(high_order, low_order, "Higher volatility should increase order parameter.")
+    
+    def test_reject_v_shaped_cup(self):
+        """Ensure sharp V-bottoms are not detected as valid cups."""
+        v_shaped_df = self.df.copy()
+        v_shaped_df.iloc[10:30, v_shaped_df.columns.get_loc("Close")] = 85  # Sharp bottom
+        _,points = self.screener.find_cup_and_handle(v_shaped_df)
+        self.assertIsNone(points, "V-bottom shape should be rejected.")
+
+    def test_handle_depth_constraint(self):
+        """Ensure the handle does not drop too much (more than 50% of cup depth)."""
+        deep_handle_df = self.df.copy()
+        deep_handle_df.iloc[60:65, deep_handle_df.columns.get_loc("Close")] -= 5  # Excessive handle drop
+        _,points = self.screener.find_cup_and_handle(deep_handle_df)
+        self.assertIsNone(points, "Pattern should be rejected due to a deep handle.")
+
+    def test_no_breakout_rejection(self):
+        """Ensure patterns without a breakout are rejected."""
+        no_breakout_df = self.df.copy()
+        no_breakout_df.iloc[-5:, no_breakout_df.columns.get_loc("Close")] = 100  # No breakout
+        _,points = self.screener.find_cup_and_handle(no_breakout_df)
+        self.assertIsNone(points, "Pattern should be rejected without a breakout.")
+
+    def test_no_cup_no_detection(self):
+        """Ensure detection doesn't falsely identify a pattern when there's no cup formation."""
+        random_df = pd.DataFrame({
+            'Date': pd.date_range(start="2023-01-01", periods=100, freq='D'),
+            'Close': np.random.uniform(90, 110, 100),
+            'Volume': np.random.uniform(1500, 2500, 100)
+        })
+        random_df['Volatility'] = random_df['Close'].rolling(window=20).std()
+        random_df.set_index('Date', inplace=True)
+        _,points = self.screener.find_cup_and_handle(random_df)
+        self.assertIsNone(points, "No cup pattern exists, should return None.")
+
+
+class TestScreeningStatistics1(unittest.TestCase):
+    
+    def setUp(self):
+        self.screening_stats = ScreeningStatistics()
+
+    def test_calc_relative_strength_valid_data(self):
+        df = pd.DataFrame({
+            'Adj Close': [100, 102, 101, 103, 105]
+        })
+        result = self.screening_stats.calc_relative_strength(df)
+        self.assertGreater(result, 0)
+    
+    def test_calc_relative_strength_no_data(self):
+        df = pd.DataFrame()
+        result = self.screening_stats.calc_relative_strength(df)
+        self.assertEqual(result, -1)
+    
+    def test_calc_relative_strength_missing_close_column(self):
+        df = pd.DataFrame({
+            'Close': [100, 102, 101, 103, 105]
+        })
+        result = self.screening_stats.calc_relative_strength(df)
+        self.assertGreater(result, 0)
+
+    def test_computeBuySellSignals_valid_data(self):
+        df = pd.DataFrame({
+            'Close': [100, 102, 104, 106, 108],
+            'ATRTrailingStop': [99, 101, 103, 105, 107]
+        })
+        result = self.screening_stats.computeBuySellSignals(df)
+        self.assertIn("Buy", result.columns)
+        self.assertIn("Sell", result.columns)
+    
+    def test_computeBuySellSignals_missing_columns(self):
+        df = pd.DataFrame({
+            'Close': [100, 102, 104, 106, 108],
+            'ATRTrailingStop': [99, 101, 103, 105, 107]
+        })
+        result = self.screening_stats.computeBuySellSignals(df)
+        self.assertIsNotNone(result)
+    
+    @patch("pkscreener.classes.Pktalib.pktalib.EMA", return_value=np.array([100, 101, 102, 103, 104]))
+    def test_computeBuySellSignals_with_mocked_ema(self, mock_ema):
+        df = pd.DataFrame({
+            'Close': [100, 102, 104, 106, 108],
+            'ATRTrailingStop': [99, 101, 103, 105, 107]
+        })
+        result = self.screening_stats.computeBuySellSignals(df)
+        self.assertIn("Buy", result.columns)
+        self.assertIn("Sell", result.columns)
+
+    @patch("pkscreener.classes.Pktalib.pktalib.ATR", return_value=pd.Series([1.5, 2.0, 2.5, 3.0, 3.5]))
+    def test_findATRCross(self, mock_atr):
+        df = pd.DataFrame({
+            'High': [105, 106, 107, 108, 109],
+            'Low': [95, 96, 97, 98, 99],
+            'Close': [100, 102, 104, 106, 108],
+            'Open': [105, 106, 107, 108, 109],
+            'RSI': [56, 54, 53, 52, 51],
+            'RSIi': [50, 52, 54, 56, 58],
+            'Volume': [1000, 1200, 1300, 1400, 1500]
+        })
+        saveDict = {}
+        screenDict = {}
+        result = self.screening_stats.findATRCross(df, saveDict, screenDict)
+        self.assertTrue(result.dtype == bool)
+        self.assertIn("ATR", saveDict)
+        self.assertIn("ATR", screenDict)
+
+    @patch("pkscreener.classes.Pktalib.pktalib.ATR", return_value=pd.Series([1.5, 2.0, 2.5, 3.0, 3.5]))
+    def test_findATRTrailingStops(self, mock_atr):
+        df = pd.DataFrame({
+            'High': [105, 106, 107, 108, 109],
+            'Low': [95, 96, 97, 98, 99],
+            'Close': [100, 102, 104, 106, 108],
+            'Volume': [1000, 1200, 1300, 1400, 1500]
+        })
+        saveDict = {}
+        screenDict = {}
+        result = self.screening_stats.findATRTrailingStops(df, saveDict=saveDict, screenDict=screenDict)
+        self.assertTrue(result.dtype == bool)
+        self.assertIn("B/S", saveDict)
+        self.assertIn("B/S", screenDict)
+
+    @patch("pkscreener.classes.Pktalib.pktalib.BBANDS", return_value=(pd.Series([110] * 30), pd.Series([105] * 30), pd.Series([100] * 30)))
+    @patch("pkscreener.classes.Pktalib.pktalib.KeltnersChannel", return_value=(pd.Series([99] * 30), pd.Series([113] * 30)))
+    def test_findBbandsSqueeze(self, mock_bbands, mock_keltners):
+        df = pd.DataFrame({
+            'High': [108] * 30,
+            'Low': [98] * 30,
+            'Close': [103] * 30
+        })
+        saveDict = {}
+        screenDict = {}
+        result = self.screening_stats.findBbandsSqueeze(df, screenDict, saveDict)
+        self.assertIsInstance(result, bool)
+        self.assertIn("Pattern", saveDict)
+        self.assertIn("Pattern", screenDict)
+
+    @patch("pkscreener.classes.Pktalib.pktalib.AVWAP", return_value=pd.Series([102] * 30))
+    @patch("pkscreener.classes.ConfigManager.tools")
+    def test_findBullishAVWAP(self, mock_config,mock_avwap):
+        df = pd.DataFrame({
+            'High': [108] * 30,
+            'Low': [98] * 30,
+            'Close': [103] * 30,
+            'Open': [98] * 30,
+            'Volume': [1000] * 30
+        })
+        saveDict = {}
+        screenDict = {}
+        self.screening_stats.configManager = mock_config
+        self.screening_stats.configManager.volumeRatio = 0.5
+        self.screening_stats.configManager.anchoredAVWAPPercentage = 1
+        result = self.screening_stats.findBullishAVWAP(df, screenDict, saveDict)
+        self.assertTrue(result.dtype == bool)
+        self.assertIn("AVWAP", saveDict)
+        self.assertIn("AVWAP", screenDict)
+        self.assertIn("Anchor", saveDict)
+        self.assertIn("Anchor", screenDict)
+

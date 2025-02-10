@@ -25,8 +25,6 @@
 # pytest --cov --cov-report=html:coverage_re
 
 import os
-import io
-import json
 import shutil
 import sys
 import warnings
@@ -34,9 +32,7 @@ import datetime
 from datetime import timezone, timedelta
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
-import pandas as pd
 import pytest
-import yfinance
 from unittest.mock import ANY, MagicMock, patch
 
 try:
@@ -52,16 +48,13 @@ from requests_cache import CachedSession
 import pkscreener.classes.ConfigManager as ConfigManager
 import pkscreener.classes.Fetcher as Fetcher
 import pkscreener.globals as globals
-from pkscreener.classes import VERSION, Changelog
-from pkscreener.classes.MenuOptions import MenuRenderStyle, menus, MAX_SUPPORTED_MENU_OPTION
+from pkscreener.classes import VERSION, Changelog, AssetsManager
 from pkscreener.classes.OtaUpdater import OTAUpdater
 from pkscreener.globals import main
 from pkscreener.pkscreenercli import argParser, disableSysOut
 from RequestsMocker import RequestsMocker as PRM
 from sharedmock import SharedMock
-from pkscreener.classes import Utility
 from PKDevTools.classes import Telegram
-from pkscreener import pkscreenercli
 
 session = CachedSession(
     cache_name=f"{Archiver.get_user_data_dir().split(os.sep)[-1]}{os.sep}PKDevTools_cache",
@@ -86,7 +79,7 @@ def mock_dependencies():
     sm_yf = SharedMock()
     sm_yf.return_value=PRM().patched_yf()
     patch("multiprocessing.resource_tracker.register",lambda *args, **kwargs: None)
-    with patch("pkscreener.classes.Utility.tools.clearScreen"):
+    with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.clearScreen"):
         with patch("yfinance.download",new=PRM().patched_yf):
             with patch("pkscreener.classes.Fetcher.yf.download",new=PRM().patched_yf):
                 with patch("PKDevTools.classes.Fetcher.fetcher.fetchURL",new=PRM().patched_fetchURL):
@@ -211,7 +204,7 @@ def test_option_D(mocker, capsys):
     main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
-    _ , cache_file = Utility.tools.afterMarketStockDataExists(False,False)
+    _ , cache_file = AssetsManager.PKAssetsManager.afterMarketStockDataExists(False,False)
     file1 = os.path.join(Archiver.get_user_data_dir().replace(f"results{os.sep}Data","actions-data-download"),cache_file)
     file2 = os.path.join(Archiver.get_user_data_dir().replace(f"results{os.sep}Data","actions-data-download"),f"intraday_{cache_file}")
     assert (os.path.isfile(file1) or os.path.isfile(file2))

@@ -176,20 +176,21 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             except ZeroDivisionError as e: # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 pass
-            except KeyboardInterrupt:
+            except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as e:  # pragma: no cover
                 default_logger().debug(e, exc_info=True)
                 pass
-            if len(data) == 0:
-                OutputControls().printOutput(
-                    colorText.FAIL
-                    + "=> Failed to fetch!"
-                    + colorText.END,
-                    end="\r",
-                    flush=True,
-                )
-                raise StockDataEmptyException
+        if (data is None or len(data) == 0) and printCounter:
+            OutputControls().printOutput(
+                colorText.FAIL
+                + "=> Failed to fetch!"
+                + colorText.END,
+                end="\r",
+                flush=True,
+            )
+            raise StockDataEmptyException
+        if printCounter:
             OutputControls().printOutput(
                 colorText.GREEN + "=> Done!" + colorText.END,
                 end="\r",

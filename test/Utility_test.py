@@ -40,13 +40,16 @@ from PKDevTools.classes import Archiver
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from pkscreener.classes.Utility import tools
-
+from pkscreener.classes.ConsoleUtility import PKConsoleTools
+from pkscreener.classes.ConsoleMenuUtility import PKConsoleMenuTools
+from pkscreener.classes.ImageUtility import PKImageTools
+from pkscreener.classes.AssetsManager import PKAssetsManager
 
 # Positive test case for clearScreen() function
 def test_clearScreen():
     # Mocking the os.system() function
     with patch("os.system") as mock_os_system:
-        tools.clearScreen(clearAlways=True)
+        PKConsoleTools.clearScreen(clearAlways=True)
         # Assert that os.system() is called with the correct argument
         if platform.system() == "Windows":
             # mock_os_system.assert_called_with("color 0f")
@@ -63,7 +66,7 @@ def test_showDevInfo():
             from PKDevTools.classes.OutputControls import OutputControls
             prevValue = OutputControls().enableUserInput
             OutputControls().enableUserInput = True
-            result = tools.showDevInfo()
+            result = PKConsoleTools.showDevInfo()
             OutputControls().enableUserInput = prevValue
             # Assert that input() is called with the correct argument
             mock_input.assert_called_once_with(
@@ -81,7 +84,7 @@ def test_setLastScreenedResults():
     mock_df = pd.DataFrame([{"Stock":"StockName"}])
     with patch("pandas.DataFrame.to_pickle") as mock_to_pickle:
         with patch("pandas.DataFrame.sort_values") as mock_sort_values:
-            tools.setLastScreenedResults(mock_df)
+            PKConsoleTools.setLastScreenedResults(mock_df)
             mock_sort_values.assert_called_once()
             # Assert that pd.DataFrame.to_pickle() is called with the correct argument
             mock_to_pickle.assert_called_once_with(
@@ -96,7 +99,7 @@ def test_getLastScreenedResults():
     # Mocking the pd.read_pickle() function
     with patch("pandas.read_pickle") as mock_read_pickle:
         with patch("builtins.input"):
-            tools.getLastScreenedResults()
+            PKConsoleTools.getLastScreenedResults()
             # Assert that pd.read_pickle() is called with the correct argument
             mock_read_pickle.assert_called_once_with(
                 os.path.join(
@@ -117,7 +120,7 @@ def test_formatRatio():
 # Positive test case for removeAllColorStyles() function
 def test_removeAllColorStyles():
     styledText = "\033[94mHello World!\033[0m"
-    result = tools.removeAllColorStyles(styledText)
+    result = PKImageTools.removeAllColorStyles(styledText)
     # Assert that the result is the original text without any color styles
     assert result == "Hello World!"
 
@@ -125,10 +128,10 @@ def test_removeAllColorStyles():
 # Positive test case for getCellColor() function
 def test_getCellColors():
     cellStyledValue = "\033[92mHello World!\033[0m"
-    result = tools.getCellColors(cellStyledValue)
+    result = PKImageTools.getCellColors(cellStyledValue)
     # Assert that the result is the correct cell fill color and cleaned up styled value
     assert result == (["darkgreen"], ["Hello World!"])
-    result = tools.getCellColors(cellStyledValue,defaultCellFillColor="white")
+    result = PKImageTools.getCellColors(cellStyledValue,defaultCellFillColor="white")
     assert result == (["darkgreen"], ["Hello World!"])
 
 
@@ -262,7 +265,7 @@ def test_afterMarketStockDataExists():
             cache_date = curr - datetime.timedelta(days=weekday - 4)
         cache_date = cache_date.strftime("%d%m%y")
         cache_file = "stock_data_" + str(cache_date) + ".pkl"
-        result = tools.afterMarketStockDataExists()
+        result = PKAssetsManager.afterMarketStockDataExists()
         # Assert that the result is True and the cache file name is correct
         assert result == (False, cache_file)
 
@@ -277,12 +280,12 @@ def test_saveStockData():
     except Exception:# pragma: no cover
         pass
     with patch(
-        "pkscreener.classes.Utility.tools.afterMarketStockDataExists"
+        "pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists"
     ) as mock_data:
         mock_data.return_value = False, "stock_data_1.pkl"
         mock_pickle = Mock()
         with patch("pickle.dump", mock_pickle) as mock_dump:
-            tools.saveStockData(stockDict, configManager, loadCount)
+            PKAssetsManager.saveStockData(stockDict, configManager, loadCount)
             # Assert that pickle.dump() is called with the correct arguments
             mock_dump.assert_called_once()
     os.remove(os.path.join(Archiver.get_user_data_dir(), "stock_data_1.pkl"))
@@ -297,8 +300,8 @@ def test_loadStockData():
     )
     with patch("pickle.load", mock_pickle) as mock_load:
         mock_load.return_value = []
-        with patch("pkscreener.classes.Utility.tools.afterMarketStockDataExists") as mock_data:
-            with patch("pkscreener.classes.Utility.tools.downloadLatestData") as mock_downloadmethod:
+        with patch("pkscreener.classes.AssetsManager.PKAssetsManager.afterMarketStockDataExists") as mock_data:
+            with patch("pkscreener.classes.AssetsManager.PKAssetsManager.downloadLatestData") as mock_downloadmethod:
                 with patch("PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime") as mock_trading:
                     mock_trading.return_value = False
                     mock_downloadmethod.return_value = {},[]
@@ -307,7 +310,7 @@ def test_loadStockData():
                     configManager = Mock()
                     downloadOnly = False
                     defaultAnswer = "Y"
-                    tools.loadStockData(stockDict, configManager, downloadOnly, defaultAnswer)
+                    PKAssetsManager.loadStockData(stockDict, configManager, downloadOnly, defaultAnswer)
                     # Assert that pickle.load() is called
                     mock_load.assert_called_once()
     os.remove(os.path.join(Archiver.get_user_data_dir(), "stock_data_2.pkl"))
@@ -318,7 +321,7 @@ def test_promptSaveResults():
     # Mocking the pd.DataFrame.to_excel() function
     mock_df = pd.DataFrame()
     with patch("pandas.DataFrame.to_excel") as mock_to_excel:
-        result = tools.promptSaveResults("testsheetname", mock_df, defaultAnswer="Y")
+        result = PKAssetsManager.promptSaveResults("testsheetname", mock_df, defaultAnswer="Y")
         # Assert that pd.DataFrame.to_excel() is called with the correct argument
         mock_to_excel.assert_called_once_with(ANY, sheet_name="testsheetname")
         # Assert that the result is not None
@@ -329,7 +332,7 @@ def test_promptSaveResults():
 def test_promptFileExists():
     # Mocking the input() function
     with patch("builtins.input", return_value="Y") as mock_input:
-        result = tools.promptFileExists()
+        result = PKAssetsManager.promptFileExists()
         # Assert input() is called correct argument
         mock_input.assert_called_once_with(
             colorText.WARN
@@ -343,7 +346,7 @@ def test_promptFileExists():
 def test_promptRSIValues():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["30", "70"]) as mock_input:
-        result = tools.promptRSIValues()
+        result = PKConsoleMenuTools.promptRSIValues()
         # Assert that input() is called twice with the correct arguments
         mock_input.assert_called_with(
             colorText.WARN
@@ -358,7 +361,7 @@ def test_promptRSIValues():
 def test_promptCCIValues():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["-100", "100"]) as mock_input:
-        result = tools.promptCCIValues()
+        result = PKConsoleMenuTools.promptCCIValues()
         # Assert that input() is called twice with the correct arguments
         mock_input.assert_called_with(
             colorText.WARN
@@ -373,7 +376,7 @@ def test_promptCCIValues():
 def test_promptVolumeMultiplier():
     # Mocking the input() function
     with patch("builtins.input", return_value="2") as mock_input:
-        result = tools.promptVolumeMultiplier()
+        result = PKConsoleMenuTools.promptVolumeMultiplier()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_once_with(
             colorText.WARN
@@ -391,7 +394,7 @@ def test_promptReversalScreening():
     defaultMALength = 9 if configManager.duration.endswith("m") else 50
     with patch("builtins.input", side_effect=["4", "50"]) as mock_input:
         # Assert that input() is called with the correct argument
-        result = tools.promptReversalScreening()
+        result = PKConsoleMenuTools.promptReversalScreening()
         mock_input.assert_called_with(
             colorText.WARN
             + f"\n  [+] Enter MA Length (E.g. 9,10,20,50 or 200) (Default={defaultMALength}): "
@@ -407,7 +410,7 @@ def test_promptReversalScreening_4x_Does_not_raise_value_error():
         from PKDevTools.classes.OutputControls import OutputControls
         prevValue = OutputControls().enableUserInput
         OutputControls().enableUserInput = True
-        result = tools.promptReversalScreening()
+        result = PKConsoleMenuTools.promptReversalScreening()
         OutputControls().enableUserInput = prevValue
         # Assert that input() is called with the correct argument
         mock_input.assert_called_with(
@@ -422,7 +425,7 @@ def test_promptReversalScreening_4x_Does_not_raise_value_error():
 def test_promptReversalScreening_Input6():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["6", "7"]) as mock_input:
-        result = tools.promptReversalScreening()
+        result = PKConsoleMenuTools.promptReversalScreening()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_with(
             colorText.WARN
@@ -436,7 +439,7 @@ def test_promptReversalScreening_Input6():
 def test_promptReversalScreening_Input1():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["1"]) as mock_input:
-        result = tools.promptReversalScreening()
+        result = PKConsoleMenuTools.promptReversalScreening()
         # Assert that input() is called with the correct argument
         mock_input.assert_called_with(
             colorText.WARN + """  [+] Select Option:""" + colorText.END
@@ -449,7 +452,7 @@ def test_promptReversalScreening_Input1():
 def test_promptChartPatterns():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["4"]) as mock_input:
-        result = tools.promptChartPatterns()
+        result = PKConsoleMenuTools.promptChartPatterns()
         # Assert that input() is called with the correct arguments
         mock_input.assert_called_with(
             colorText.WARN + "  [+] Select Option:" + colorText.END
@@ -461,7 +464,7 @@ def test_promptChartPatterns():
 def test_promptChartPatterns_Input1():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["1", "3"]) as mock_input:
-        result = tools.promptChartPatterns()
+        result = PKConsoleMenuTools.promptChartPatterns()
         # Assert that input() is called with the correct arguments
         mock_input.assert_called_with(
             colorText.WARN
@@ -475,7 +478,7 @@ def test_promptChartPatterns_Input1():
 def test_promptChartPatterns_Input3():
     # Mocking the input() function
     with patch("builtins.input", side_effect=["3", "2"]) as mock_input:
-        result = tools.promptChartPatterns()
+        result = PKConsoleMenuTools.promptChartPatterns()
         # Assert that input() is called with the correct arguments
         mock_input.assert_called_with(
             colorText.WARN

@@ -23,6 +23,7 @@
 
 """
 import os
+import sys
 from PKNSETools.PKNSEStockDataFetcher import nseStockDataFetcher
 from PKDevTools.classes.Singleton import SingletonType, SingletonMixin
 from PKDevTools.classes.log import default_logger
@@ -63,6 +64,7 @@ class MarketStatus(SingletonMixin, metaclass=SingletonType):
     def getMarketStatus(self, progress=None, task_id=0, exchangeSymbol="^NSEI",namedOnly=False):
         lngStatus = ""
         try:
+            # if not 'pytest' in sys.modules:
             suppressLogs = True
             if "PKDevTools_Default_Log_Level" in os.environ.keys():
                 suppressLogs = os.environ["PKDevTools_Default_Log_Level"] == str(log.logging.NOTSET)
@@ -75,7 +77,7 @@ class MarketStatus(SingletonMixin, metaclass=SingletonType):
                     lngStatus = f"{lngStatus} | {bseStatus}"
             if progress:
                 progress[task_id] = {"progress": 1, "total": 1}
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except Exception as e:# pragma: no cover
             default_logger().debug(e, exc_info=True)

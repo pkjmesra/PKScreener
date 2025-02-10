@@ -179,7 +179,7 @@ def mock_dependencies():
     pkscreenercli.args.answerdefault = "Y"
     pkscreenercli.args.testbuild = True
     with patch("pkscreener.globals.main"):
-        with patch("pkscreener.classes.Utility.tools.clearScreen"):
+        with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.clearScreen"):
             yield
 
 
@@ -408,7 +408,7 @@ def test_pkscreenercli_multiprocessing_patch():
                     mock_mp.assert_not_called()
 
 def test_pkscreenercli_clearscreen_is_called_whenstdOut_NotSet():
-    with patch("pkscreener.classes.Utility.tools.clearScreen") as mock_clearscreen:
+    with patch("pkscreener.classes.ConsoleUtility.PKConsoleTools.clearScreen") as mock_clearscreen:
         with pytest.raises((SystemExit)):
             pkscreenercli.pkscreenercli()
             mock_clearscreen.assert_called_once()
