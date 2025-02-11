@@ -817,21 +817,23 @@ def Level2(update: Update, context: CallbackContext) -> str:
         start(update, context)
         return START_ROUTES
     
-    if len(selection) == 2 and selection[0] in ["X","B"] and selection[1] in ["P1","P2","P3"]:
+    reply_markup = default_markup([])
+    if (len(selection) == 2 and selection[0] in ["X","B"] and selection[1] in ["P1","P2","P3"]) or \
+        (len(selection) == 4 and selection[0] in ["P"] and selection[3] in ["P1","P2","P3"]): # Piped scan index options
         nextOption = ""
-        if selection[1] == "P2":
+        if selection[1] == "P2" or (selection[0] in ["P"] and selection[3] == "P2"):
             skipMenus = INDEX_SKIP_MENUS_5_TO_9
             nextOption = "P3"
-        elif selection[1] == "P3":
+        elif selection[1] == "P3" or (selection[0] in ["P"] and selection[3] == "P3"):
             skipMenus = INDEX_SKIP_MENUS_10_TO_15
             nextOption = "P1"
-        elif selection[1] == "P1":
+        elif selection[1] == "P1" or (selection[0] in ["P"] and selection[3] == "P1"):
             skipMenus = INDEX_SKIP_MENUS_1_To_4
             nextOption = "P2"
         # Create the menu text labels
         menuText = (
             m1.renderForMenu(
-                m0.find(selection[0]),
+                m0.find(selection[0] if selection[0] not in ["P"] else "X"),
                 skip=skipMenus,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
@@ -846,7 +848,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
 
         # Create the menu buttons
         mns = m1.renderForMenu(
-            m0.find(selection[0]),
+            m0.find(selection[0] if selection[0] not in ["P"] else "X"),
             skip=skipMenus,
             asList=True,
         )
@@ -856,7 +858,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
         for mnu in mns:
             activeInlineRow = getinlineMenuListRow(keyboardRows)
             activeInlineRow.append(
-                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{selection[0]}_{mnu.menuKey}")))
+                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{(selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] in ["P"] else selection[0]}_{mnu.menuKey}")))
 
         keyboard = keyboardRows
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1087,16 +1089,51 @@ def Level2(update: Update, context: CallbackContext) -> str:
             if len(mns) == 0:
                 menuText = ''
         elif len(selection) > 4:
-            menuText = ''
+            if selection[0] in 'P' and len(selection[3]) == 0:
+                skipMenus = ["N"]
+                skipMenus.extend(INDEX_SKIP_MENUS_1_To_4)
+                # Create the menu text labels
+                menuText = (
+                    m1.renderForMenu(
+                        m0.find("X"),
+                        skip=skipMenus,
+                        renderStyle=MenuRenderStyle.STANDALONE,
+                    )
+                    .replace("     ", "")
+                    .replace("    ", "")
+                    .replace("  ", "")
+                    .replace("\t", "")
+                    .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+                )
+                menuText = f"{menuText}\n\nH > Home"
+                menuText = f"{menuText}\n\nP2 > More Options"
 
-        if selection[0] in 'P' and len(selection[3]) == 0:
-            selection[3] = '12' # All stocks
+                # Create the menu buttons
+                mns = m1.renderForMenu(
+                    m0.find("X"),
+                    skip=skipMenus,
+                    asList=True,
+                )
+                mns.append(menu().create("H", "Home", 2))
+                mns.append(menu().create("P2", "Next", 2))
+                inlineMenus = []
+                query.answer()
+                for mnu in mns:
+                    inlineMenus.append(
+                        InlineKeyboardButton(
+                            mnu.menuKey, callback_data=str(f"C{preSelection}_{mnu.menuKey}")
+                        )
+                    )
+                keyboard = [inlineMenus]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+            else:
+                menuText = ''
         
         if menuText is None or len(menuText) == 0:
             optionChoices = (
-                f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}"
+                f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}".replace(" > >","").strip()
             )
-            optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}"
+            optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}".replace(" > >","").strip()
             expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
             menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\n\nUPI (India): PKScreener@APL \n\nor\nhttps://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra"
 

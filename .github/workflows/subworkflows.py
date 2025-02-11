@@ -31,6 +31,7 @@ from time import sleep
 
 from PKDevTools.classes.Committer import Committer
 from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions,PKSubscriptionModel
+from PKDevTools.classes.DBManager import DBManager
 from PKDevTools.classes import Archiver
 
 argParser = argparse.ArgumentParser()
@@ -39,6 +40,12 @@ required = False
 argParser.add_argument(
     "--branchname",
     help="branch name for check-in, check-out",
+    required=required,
+)
+argParser.add_argument(
+    "--resetscanners",
+    action="store_true",
+    help="Triggers daily scanner jobs reset",
     required=required,
 )
 argParser.add_argument(
@@ -112,6 +119,10 @@ if __name__ == '__main__':
         if args.branchname is not None:
             Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname, showStatus=True)
 
+    def resetUserScannnerAlertJobs():
+        dbManager = DBManager()
+        dbManager.resetScannerJobs()
+
     def triggerSubscriptionsUpdate():
         PKUserSusbscriptions.updateSubscriptions()
         pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
@@ -136,6 +147,8 @@ if __name__ == '__main__':
         triggerAddSubscription()
     if args.removesubscription:
         triggerRemoveSubscription()
+    if args.resetscanners:
+        resetUserScannnerAlertJobs()
 
     print(f"{datetime.datetime.now(pytz.timezone('Asia/Kolkata'))}: All done!")
     sys.exit(0)

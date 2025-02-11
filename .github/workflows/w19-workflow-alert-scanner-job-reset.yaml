@@ -1,0 +1,99 @@
+# """
+#     The MIT License (MIT)
+
+#     Copyright (c) 2023 pkjmesra
+
+#     Permission is hereby granted, free of charge, to any person obtaining a copy
+#     of this software and associated documentation files (the "Software"), to deal
+#     in the Software without restriction, including without limitation the rights
+#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#     copies of the Software, and to permit persons to whom the Software is
+#     furnished to do so, subject to the following conditions:
+
+#     The above copyright notice and this permission notice shall be included in all
+#     copies or substantial portions of the Software.
+
+#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#     SOFTWARE.
+
+# """
+name: 19. Daily scanner alerts reset job
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Run Details'
+        required: false
+        default: 'Daily scanner alerts reset job'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.12'
+      runson:
+          description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
+          required: false
+          default: 'ubuntu-latest'
+
+  schedule:
+    - cron: '59 9 * * *' # Daily at 3:30PM IST
+
+run-name: ${{ inputs.name || 'Daily scanner alerts reset job'}}
+
+jobs:
+
+  Download_Sub_Data:
+
+    runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
+    permissions: write-all
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: SubData
+
+    - name: Set up Python 
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.targetPythonVersion  || 3.12 }}
+
+    - name: Environment setup 
+      shell: bash
+      run: |
+        pip3 uninstall -y PKDevTools
+        pip3 install PKDevTools
+
+    - name: Configure env.dev file
+      run: |
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
+        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
+      shell: bash
+      env:
+        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        TURSO_TOKEN : ${{secrets.TURSO_TOKEN}}
+        TDU : ${{secrets.TURSO_DATABASE_URL}}
+        TAT : ${{secrets.TURSO_AUTH_TOKEN}}
+  
+    - name: Reset/Remove daily alert subscribed users & Reset all scanner jobs for all users
+      shell: bash
+      timeout-minutes: 2
+      continue-on-error: true
+      run: |
+        python3 .github/workflows/subworkflows.py --resetscanners
+
+    - name: Delete this workflow run
+      continue-on-error: true
+      shell: bash
+      run: |
+        gh run list --status success --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+        gh run list --status cancelled --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+      env:
+        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

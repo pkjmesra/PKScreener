@@ -4,8 +4,8 @@
 | [![MADE-IN-INDIA][MADE-IN-INDIA-badge]][MADE-IN-INDIA] | [![GitHub release (latest by date)][GitHub release (latest by date)-badge]][GitHub release (latest by date)] | [![Downloads][Downloads-badge]][Downloads] | ![latest download][Latest-Downloads-badge]  | [![Docker Pulls][Docker Pulls-badge]][Docker Status] |
 | :-------------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: |
 | Platforms | [![Windows][Windows-badge]][Windows] | [![Linux(x64)][Linux-badge_x64]][Linux_x64] [![Linux(arm64)][Linux-badge_arm64]][Linux_arm64] | [![Mac OS(x64)][Mac OS-badge_x64]][Mac OS_x64] [![Mac OS(arm64)][Mac OS-badge_arm64]][Mac OS_arm64] | [![Docker Status][Docker Status-badge]][Docker Status] |
-| Package / Docs | [![Documentation][Documentation-badge]][Documentation] | [![PyPI][pypi-badge]][pypi] | [![is wheel][wheel-badge]][pypi] | ![github license][github-license] |
-| Tests | [![CodeFactor][Codefactor-badge]][Codefactor] | [![Coverage Status][Coverage-Status-badge]][Coverage-Status] | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
+| Package / Docs | [![Documentation][Documentation-badge]][Documentation] [![OpenSSF Best Practices][OpenSSF-Badge]][OpenSSF-pkscreener]  | [![PyPI][pypi-badge]][pypi] | [![is wheel][wheel-badge]][pypi] | ![github license][github-license] |
+| Tests/Code-Quality | [![CodeFactor][Codefactor-badge]][Codefactor] | [![Coverage Status][Coverage-Status-badge]][Coverage-Status] | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
 
 ## What is PKScreener?
 | Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k|
@@ -328,15 +328,15 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.702/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.703/pkscreenercli.exe
 [Linux-badge_x64]: https://img.shields.io/badge/Linux(x64)-FCC624?logo=linux&logoColor=black
-[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.702/pkscreenercli_x64.bin
+[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.703/pkscreenercli_x64.bin
 [Linux-badge_arm64]: https://img.shields.io/badge/Linux(arm64)-FCC624?logo=linux&logoColor=black
-[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.702/pkscreenercli_arm64.bin
+[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.703/pkscreenercli_arm64.bin
 [Mac OS-badge_x64]: https://img.shields.io/badge/mac%20os(x64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.702/pkscreenercli_x64.run
+[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.703/pkscreenercli_x64.run
 [Mac OS-badge_arm64]: https://img.shields.io/badge/mac%20os(arm64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.702/pkscreenercli_arm64.run
+[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250210.703/pkscreenercli_arm64.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square
@@ -372,6 +372,8 @@ After you have finished the run, go to that copied path, zip the contents of the
 [New Release]: https://github.com/pkjmesra/PKScreener/actions/workflows/w1-workflow-build-matrix.yml
 [Docker-Build-badge]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml/badge.svg
 [Docker-Build]: https://github.com/pkjmesra/PKScreener/actions/workflows/w15-docker-image.yml
+[OpenSSF-Badge]:https://www.bestpractices.dev/projects/10011/badge
+[OpenSSF-pkscreener]: https://www.bestpractices.dev/projects/10011
 
 <!-- [![Docker Build][Docker-Build-badge]][Docker-Build] [![PKScreener Test - New Features][New Features-badge]][New Features] [![w9. After-Market Data Gen][After Market-badge]][After Market] [![1. PKScreener Build - New Release][New Release-badge]][New Release] [![Documentation][Documentation-badge]][Documentation]
 
