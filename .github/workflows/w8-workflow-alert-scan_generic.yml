@@ -171,12 +171,16 @@ jobs:
 
     - name: Configure env.dev file
       run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        TURSO_TOKEN : ${{secrets.TURSO_TOKEN}}
+        TDU : ${{secrets.TURSO_DATABASE_URL}}
+        TAT : ${{secrets.TURSO_AUTH_TOKEN}}
   
     - name: Run Scan on Windows
       shell: cmd
@@ -187,11 +191,12 @@ jobs:
         GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
       run: |
         ${{ inputs.prerequisites }}
-        pkscreenercli.exe ${{ inputs.params }} --maxdisplayresults 100
+        pkscreenercli.exe ${{ inputs.params }}
         ${{ inputs.postrun }}
 
     - name: Run Scan on Ubuntu
       shell: bash
+      timeout-minutes: 360
       if: startsWith(runner.os, 'Linux')
       env:
         RUNNER : "GitHub_Actions"
@@ -200,7 +205,7 @@ jobs:
         ALERT_TRIGGER: ${{ inputs.alertTrigger || 'N' }}
       run: |
         ${{ inputs.prerequisites }}
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ inputs.params }} --maxdisplayresults 100
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ inputs.params }}
         ${{ inputs.postrun }}
 
   # Delete_Workflow_Run:

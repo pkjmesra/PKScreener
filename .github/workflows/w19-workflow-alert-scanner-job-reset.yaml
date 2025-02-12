@@ -22,14 +22,14 @@
 #     SOFTWARE.
 
 # """
-name: 18. Sub Data
+name: 19. Daily scanner alerts reset job
 on:
   workflow_dispatch:
     inputs:
       name:
         description: 'Run Details'
         required: false
-        default: 'Sub Data Gen'
+        default: 'Daily scanner alerts reset job'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
@@ -39,25 +39,11 @@ on:
           description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
           required: false
           default: 'ubuntu-latest'
-      subtype:
-          description: 'subtype: update or add or remove'
-          required: false
-          default: 'update'
-      userid:
-        description: 'sub user ID'
-        required: false
-        type: number
-        default: 0
-      subvalue:
-        description: 'sub value'
-        required: false
-        type: string
-        default: '0'
 
   schedule:
-  - cron: '29 * * * *'
+    - cron: '59 9 * * *' # Daily at 3:30PM IST
 
-run-name: ${{ inputs.name || 'Sub Data Gen'}}
+run-name: ${{ inputs.name || 'Daily scanner alerts reset job'}}
 
 jobs:
 
@@ -98,67 +84,12 @@ jobs:
         TDU : ${{secrets.TURSO_DATABASE_URL}}
         TAT : ${{secrets.TURSO_AUTH_TOKEN}}
   
-    - name: Update Sub Data
-      shell: bash
-      timeout-minutes: 5
-      continue-on-error: true
-      if: ${{ inputs.subtype == 'update' || inputs.subtype == ''}}
-      run: |
-        python3 .github/workflows/subworkflows.py --branchname SubData --updatesubscriptions
-        ls -l results/Data
-        git status
-
-    - name: Add Sub Data
+    - name: Reset/Remove daily alert subscribed users & Reset all scanner jobs for all users
       shell: bash
       timeout-minutes: 2
       continue-on-error: true
-      if: ${{ inputs.subtype == 'add' }}
       run: |
-        python3 .github/workflows/subworkflows.py --branchname SubData --addsubscription --subscriptionvalue ${{ inputs.subvalue }} --userid ${{ inputs.userid }}
-        ls -l results/Data
-        git status
-  
-    - name: Remove Sub Data
-      shell: bash
-      timeout-minutes: 2
-      continue-on-error: true
-      if: ${{ inputs.subtype == 'remove' }}
-      run: |
-        python3 .github/workflows/subworkflows.py --branchname SubData --removesubscription --userid ${{ inputs.userid }}
-        ls -l results/Data
-        git status
-
-    - name: Push Sub Data
-      continue-on-error: true
-      timeout-minutes: 5
-      shell: bash
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        git config --global http.postBuffer 150000000
-        # git remote update
-        # git fetch
-        git pull -v origin +SubData
-        git add results/Data/*.pdf --force
-        git add results/Data/*.pdf -u
-        git commit -m "GitHub-Action-Workflow-SubData-(Default-Config)"
-        git push -v -u origin +SubData
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-        
-    - name: Squash Commits (Python)
-      shell: bash
-      timeout-minutes: 5
-      continue-on-error: true
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config --global http.postBuffer 150000000
-        git pull -v origin +SubData
-        python3 .github/workflows/squash.py --b SubData -m "GitHub-Action-Workflow-SubData-(Default-Config)"
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        python3 .github/workflows/subworkflows.py --resetscanners
 
     - name: Delete this workflow run
       continue-on-error: true
