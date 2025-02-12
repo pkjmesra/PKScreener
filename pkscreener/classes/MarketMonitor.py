@@ -241,6 +241,14 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             if telegram:
                 self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df)
         else:
+            if ((screenOptions in self.alertOptions and numRecords > 1) or len(self.alertStocks) > 0): # Alert conditions met? Sound alert!
+                notify_df = telegram_df[telegram_df["Stock"].isin(self.alertStocks)]
+                notify_output = self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, False, notify_df)
+                if len(notify_output) > 0:
+                    from PKDevTools.classes.pubsub.publisher import PKUserService
+                    PKUserService().notify_user(scannerID=screenOptions.replace(":D","").replace(":","_"),notification=notify_output)
+                # notify_df = self.monitor_df.reindex(self.alertStocks)  # Includes missing stocks, if any. Returns NaN for such cases
+                Utility.tools.alertSound(beeps=5)
             sleep(self.pinnedIntervalWaitSeconds)
 
     def updateDataFrameForTelegramMode(self, telegram, screen_monitor_df):
@@ -273,7 +281,8 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         return telegram_df
 
     def updateIfRunningInTelegramBotMode(self, screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df):
-        if telegram and telegram_df is not None:
+        result_output = ""
+        if telegram_df is not None:
             STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
             
             telegram_df_tabulated = colorText.miniTabulator().tabulate(
@@ -289,12 +298,14 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             chosenMenu = f"{choiceSegments[-2]}>{choiceSegments[-1]}" if (len(choiceSegments)>=4 or len(choiceSegments[-1]) <= 10) else f"{choiceSegments[-1]}"
             result_output = f"Latest data as of:{dbTimestamp}\n<b>{optionName}{chosenMenu}</b> [{screenOptions}]\n<pre>{telegram_df_tabulated}</pre>"
             try:
-                filePath = os.path.join(Archiver.get_user_data_dir(), f"monitor_outputs_{self.monitorIndex}.txt")
-                f = open(filePath, "w")
-                f.write(result_output)
-                f.close()
+                if telegram:
+                    filePath = os.path.join(Archiver.get_user_data_dir(), f"monitor_outputs_{self.monitorIndex}.txt")
+                    f = open(filePath, "w")
+                    f.write(result_output)
+                    f.close()
             except: # pragma: no cover
                 pass
+        return result_output
 
     def getScanOptionName(self, screenOptions):
         from pkscreener.classes.MenuOptions import PREDEFINED_SCAN_MENU_VALUES

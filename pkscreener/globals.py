@@ -3995,9 +3995,9 @@ def sendMessageToTelegramChannel(
                     os.remove(f)
             except: # pragma: no cover
                 pass
-        if message is None and mediagroup:
-            sendMessageToTelegramChannel(message=f"No scan results found for {menuChoiceHierarchy}", user=user)
-            return
+        # if message is None and mediagroup:
+        #     sendMessageToTelegramChannel(message=f"No scan results found for {menuChoiceHierarchy}", user=user)
+        #     return
         handleAlertSubscriptions(user,message)
     if user is not None:
         if str(user) != str(DEV_CHANNEL_ID) and userPassedArgs is not None and not userPassedArgs.monitor:

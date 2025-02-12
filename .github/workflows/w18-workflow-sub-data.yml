@@ -79,8 +79,10 @@ jobs:
     - name: Environment setup 
       shell: bash
       run: |
+        pip3 uninstall -y PKNSETools
         pip3 uninstall -y PKDevTools
         pip3 install PKDevTools
+        pip3 install PKNSETools
 
     - name: Configure env.dev file
       run: |

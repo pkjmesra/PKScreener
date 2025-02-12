@@ -22,14 +22,14 @@
 #     SOFTWARE.
 
 # """
-name: 19. Daily scanner alerts reset job
+name: 20. Daily scanner alerts jobs trigger
 on:
   workflow_dispatch:
     inputs:
       name:
         description: 'Run Details'
         required: false
-        default: 'Daily scanner alerts reset job'
+        default: 'Daily scanner alerts jobs trigger'
       targetPythonVersion:
         description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
         required: false
@@ -41,9 +41,9 @@ on:
           default: 'ubuntu-latest'
 
   schedule:
-    - cron: '59 9 * * *' # Daily at 3:30PM IST
+    - cron: '16 3 * * *' # Daily at 8:46AM IST
 
-run-name: ${{ inputs.name || 'Daily scanner alerts reset job'}}
+run-name: ${{ inputs.name || 'Daily scanner alerts jobs trigger'}}
 
 jobs:
 
@@ -89,7 +89,10 @@ jobs:
       timeout-minutes: 2
       continue-on-error: true
       run: |
-        python3 .github/workflows/subworkflows.py --resetscanners
+        python3 .github/workflows/subworkflows.py --triggeralertscanners
+      env:
+        RUNNER : "GitHub_Actions"
+        ALERT_TRIGGER: "Y"
 
     - name: Delete this workflow run
       continue-on-error: true
