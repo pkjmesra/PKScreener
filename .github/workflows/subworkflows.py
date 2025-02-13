@@ -79,6 +79,7 @@ argParser.add_argument(
 )
 argParser.add_argument(
     "--triggeralertscanners",
+    action="store_true",
     help="Triggers alert scanner jobs for all users",
     required=required,
 )
