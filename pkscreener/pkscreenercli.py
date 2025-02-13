@@ -632,7 +632,8 @@ def runApplication():
                 results = results[~results.index.duplicated(keep='first')]
                 resultStocks = plainResults.index
             if args.monitor is not None:
-                MarketMonitor().saveMonitorResultStocks(plainResults)
+                if len(plainResults) > 0:
+                    MarketMonitor().saveMonitorResultStocks(plainResults)
                 if results is not None and len(monitorOption_org) > 0:
                     chosenMenu = args.pipedtitle if args.pipedtitle is not None else updateMenuChoiceHierarchy()
                     MarketMonitor().refresh(screen_df=results,screenOptions=monitorOption_org, chosenMenu=chosenMenu[:120],dbTimestamp=f"{dbTimestamp} | CycleTime:{elapsed_time}s",telegram=args.telegram)
