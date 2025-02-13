@@ -328,15 +328,15 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.706/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.708/pkscreenercli.exe
 [Linux-badge_x64]: https://img.shields.io/badge/Linux(x64)-FCC624?logo=linux&logoColor=black
-[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.706/pkscreenercli_x64.bin
+[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.708/pkscreenercli_x64.bin
 [Linux-badge_arm64]: https://img.shields.io/badge/Linux(arm64)-FCC624?logo=linux&logoColor=black
-[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.706/pkscreenercli_arm64.bin
+[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.708/pkscreenercli_arm64.bin
 [Mac OS-badge_x64]: https://img.shields.io/badge/mac%20os(x64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.706/pkscreenercli_x64.run
+[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.708/pkscreenercli_x64.run
 [Mac OS-badge_arm64]: https://img.shields.io/badge/mac%20os(arm64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.706/pkscreenercli_arm64.run
+[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.708/pkscreenercli_arm64.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square

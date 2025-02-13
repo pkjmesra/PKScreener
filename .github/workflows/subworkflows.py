@@ -198,7 +198,7 @@ if __name__ == '__main__':
                     '{"ref":"'
                     + branch
                     + '","inputs":{"user":"'
-                    + f"{args.user}"
+                    + f"{args.userid}"
                     + '","params":"'
                     + f'{cmd_options}'
                     + f'","ref":"{branch}","alertTrigger":"'
