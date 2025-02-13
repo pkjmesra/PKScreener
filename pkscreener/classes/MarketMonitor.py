@@ -113,6 +113,8 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             except: # pragma: no cover
                 pass
             prevOutput_results = ",".join(prevOutput_results)
+        if len(self.monitorResultStocks.keys()) > 0 and len(self.monitorResultStocks[str(self.monitorIndex)]) > 0 and prevOutput_results == "NONE":
+            prevOutput_results = self.monitorResultStocks[str(self.monitorIndex)]
         self.monitorResultStocks[str(self.monitorIndex)] = prevOutput_results
 
     def refresh(self, screen_df:pd.DataFrame=None, screenOptions=None, chosenMenu="", dbTimestamp="", telegram=False):
