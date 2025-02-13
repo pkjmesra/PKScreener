@@ -654,9 +654,16 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
                     menuText = f"You need at least <b>₹ {requiredBalance}</b> to subscribe to <b>{scanId} alerts for a day</b> ! Your current balance <b>₹ {alertUser.balance}</b> is <b>insufficient</b>. {payWall}"
                 else:
                     # Sufficient balance to subscribe to scanId
+                    needsNewJobKickedOff = False
+                    subscribedUsers = dbManager.usersForScannerJobId(scannerJobId=scanId)
+                    if subscribedUsers is None or len(subscribedUsers) == 0:
+                        # This is the first user who's requesting this scanner
+                        needsNewJobKickedOff = True
                     subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
                     if subscribed:
                         menuText = f"You have been added to receive the alerts for {scanId}. Please note that it is valid only for today during Market Hours and resets right after that. You will need to re-subscribe again if you need it on the next day. Thank you for trusting PKScreener!"
+                        if needsNewJobKickedOff:
+                            run_workflow(f"{scanId}_{user.id}", str(user.id), f'--systemlaunched -a y -m {str(scanId).upper().replace("_",":")}', workflowType="S")
                     else:
                         menuText = "We encountered an error updating your subscription! Please reach out to @ItsOnlyPK on Telegram with your UTR and subscription scanner details."
     

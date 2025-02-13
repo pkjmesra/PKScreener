@@ -95,31 +95,35 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         return option
 
     def saveMonitorResultStocks(self, results_df):
+        try:
+            self.alertStocks = []
+            lastSavedResults = self.monitorResultStocks[str(self.monitorIndex)]
+            lastSavedResults = lastSavedResults.split(",")
+        except:
+            lastSavedResults = []
+            pass
+        prevOutput_results = ""
         if results_df is None or results_df.empty:
             prevOutput_results = "NONE"
         else:
             prevOutput_results = results_df[~results_df.index.duplicated(keep='first')]
             prevOutput_results = prevOutput_results.index
-            # # Maybe the index is an int ?
-            # prevOutput_results = [str(stock) for stock in prevOutput_results]
-            try:
-                lastSavedResults = self.monitorResultStocks[str(self.monitorIndex)]
-                if lastSavedResults is not None and len(lastSavedResults) > 0:
-                    lastSavedResults = lastSavedResults.split(",")
-                    s = set(lastSavedResults)
-                    self.alertStocks = [x for x in prevOutput_results if x not in s]
-                else:
-                    self.alertStocks = []
-            except: # pragma: no cover
-                pass
             prevOutput_results = ",".join(prevOutput_results)
-        if len(self.monitorResultStocks.keys()) > 0 and len(self.monitorResultStocks[str(self.monitorIndex)]) > 0 and prevOutput_results == "NONE":
+        if len(self.monitorResultStocks.keys()) > self.monitorIndex and len(self.monitorResultStocks[str(self.monitorIndex)]) > 0 and prevOutput_results == "NONE":
             prevOutput_results = self.monitorResultStocks[str(self.monitorIndex)]
-        self.monitorResultStocks[str(self.monitorIndex)] = prevOutput_results
+        addedStocks = list(set(prevOutput_results.split(',')) - set(lastSavedResults))  # Elements in new df but not in the saved df
+        if len(self.alertStocks) != len(addedStocks) and len(addedStocks) > 0:
+            self.alertStocks = addedStocks
+        diffAlerts = list(set(self.alertStocks) - set(addedStocks))
+        if len(diffAlerts) > 0:
+            self.alertStocks = addedStocks
+        if len(addedStocks) > 0:
+            self.monitorResultStocks[str(self.monitorIndex)] = prevOutput_results
 
     def refresh(self, screen_df:pd.DataFrame=None, screenOptions=None, chosenMenu="", dbTimestamp="", telegram=False):
         highlightRows = []
         highlightCols = []
+        telegram_df = None
         if screen_df is None or screen_df.empty or screenOptions is None:
             return
         screen_monitor_df = screen_df.copy()

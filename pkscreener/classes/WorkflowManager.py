@@ -91,6 +91,29 @@ def run_workflow(command=None, user=None, options=None, workflowType="B",repo=No
         if workflow_name is None or workflow_postData is None or ghp_token is None:
             raise Exception("workflow_name, workflow_postData, and ghp_token must NOT be blank!")
         data = workflow_postData
+    elif workflowType == "S": # Scanner job kick off for 1-on-1 alerts
+        cmd_options = options.replace("_",":")
+        if workflow_name is None:
+            workflow_name = "w8-workflow-alert-scan_generic.yml"
+        if 'ALERT_TRIGGER' in os.environ.keys() and os.environ["ALERT_TRIGGER"] == 'Y':
+            alertTrigger = 'Y'
+        else:
+            alertTrigger = 'N'
+        if user is None or len(user) == 0:
+            user = ""
+        data = (
+                    '{"ref":"'
+                    + branch
+                    + '","inputs":{"user":"'
+                    + f"{user}"
+                    + '","params":"'
+                    + f'{cmd_options}'
+                    + f'","ref":"{branch}","alertTrigger":"'
+                    + f"{alertTrigger}"
+                    + '","name":"'
+                    + f"{command}"
+                    + '"}}'
+                )
 
     if ghp_token is None:
         _, _, _, ghp_token = PKEnvironment().secrets
