@@ -79,6 +79,7 @@ argParser.add_argument(
 )
 argParser.add_argument(
     "--triggeralertscanners",
+    action="store_true",
     help="Triggers alert scanner jobs for all users",
     required=required,
 )
@@ -191,11 +192,13 @@ if __name__ == '__main__':
             alertTrigger = 'Y'
         else:
             alertTrigger = 'N'
+        if args.userid is None or len(str(args.userid)) == 0:
+            args.userid = ""
         postdata = (
                     '{"ref":"'
                     + branch
                     + '","inputs":{"user":"'
-                    + f"{args.user}"
+                    + f"{args.userid}"
                     + '","params":"'
                     + f'{cmd_options}'
                     + f'","ref":"{branch}","alertTrigger":"'
@@ -225,7 +228,7 @@ if __name__ == '__main__':
         scannerJobs = dbManager.scannerJobsWithActiveUsers()
         for scannerJob in scannerJobs:
             print(f"Launching {scannerJob.scannerId}")
-            options = f'--systemlaunched -a Y -m {scannerJob.scannerId}'
+            options = f'--systemlaunched -a Y -m {scannerJob.scannerId.replace("_",":")}'
             resp = triggerRemoteScanAlertWorkflow(options, branch)
             if resp.status_code == 204:
                 sleep(5)
@@ -243,7 +246,7 @@ if __name__ == '__main__':
         tryCommitOutcomes(options="UpdateSubscriptions",pathSpec=pathSpec,delete=True)
 
     def triggerAddSubscription():
-        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKUserSusbscriptions.subscriptionModelFromValue(int(args.subscriptionvalue)))
+        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKUserSusbscriptions.subscriptionModelFromValue(int(args.subscriptionvalue)),subValue=int(args.subscriptionvalue))
         pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
         tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
         print("Added Sub Data")

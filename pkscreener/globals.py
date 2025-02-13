@@ -1145,6 +1145,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 stockListParam = f" --stocklist {userPassedArgs.stocklist}" if userPassedArgs.stocklist else ""
                 slicewindowParam = f" --slicewindow {userPassedArgs.slicewindow}" if userPassedArgs.slicewindow else ""
                 fnameParam = f" --fname {resultsContentsEncoded}" if resultsContentsEncoded else ""
+                if userPassedArgs.monitor and "-e -o" in scannerOptionQuoted:
+                    # We've been launched in monitor mode. Get rid of -e -o
+                    scannerOptionQuoted = scannerOptionQuoted.replace("-e -o","-m")
                 OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener with piped scanners. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} {scannerOptionQuoted}{requestingUser}{enableLog}{backtestParam}{enableTelegramMode}{stockListParam}{slicewindowParam}{fnameParam}{colorText.END}")
                 sleep(2)
                 os.system(f"{launcher} {scannerOptionQuoted}{requestingUser}{enableLog}{backtestParam}{enableTelegramMode}{stockListParam}{slicewindowParam}{fnameParam}")

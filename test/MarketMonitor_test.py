@@ -225,3 +225,48 @@ class TestMarketMonitor2(unittest.TestCase):
                 mock_open.return_value.close.return_value = None
                 self.monitor.updateIfRunningInTelegramBotMode(screenOptions='AAPL', chosenMenu='Test Menu > 1 > 2 > 3 > 4', dbTimestamp='2023-10-01', telegram=True, telegram_df=df)
                 mock_open.return_value.write.assert_called()
+
+class TestMarketMonitor3(unittest.TestCase):
+
+    def setUp(self):
+        # Setup a MarketMonitor instance for testing
+        self.monitor = MarketMonitor(monitors=['AAPL1', 'GOOGL1', 'MSFT1'])
+
+    def test_saveMonitorResultStocks_with_valid_dataframe_prev_saved(self):
+        indices = [0,1,2]        
+        for index in indices:
+            self.monitor.monitorIndex = index
+            df0Stocks = pd.DataFrame()
+            df2Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1'],columns=["Close"],data=[1,2])
+            df3Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1'],columns=["Close"],data=[1,2,3])
+            df4Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1','TSLA1'],columns=["Close"],data=[1,2,3,4])
+            df5Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1','TSLA1','OpenAI'],columns=["Close"],data=[1,2,3,4,5])
+            self.monitor.saveMonitorResultStocks(df2Stocks)
+            # Initially all stocks should be in alert
+            self.assertTrue(len(self.monitor.alertStocks) == 2)
+            self.monitor.saveMonitorResultStocks(df3Stocks)
+            # Only newly added stock should be in alert
+            self.assertTrue('GOOG1' in self.monitor.alertStocks)
+            self.assertTrue(len(self.monitor.alertStocks) == 1)
+            self.monitor.saveMonitorResultStocks(df0Stocks)
+            # Empty results should not cause any alert
+            self.assertTrue(len(self.monitor.alertStocks) == 0)
+            self.monitor.saveMonitorResultStocks(df2Stocks)
+            # Same stocks being added again should not cause alerts
+            self.assertTrue(len(self.monitor.alertStocks) == 0)
+            # Same stocks being added again should not cause alerts
+            self.monitor.saveMonitorResultStocks(df3Stocks)
+            self.assertTrue(len(self.monitor.alertStocks) == 0)
+            # Same stocks being added again should not cause alerts
+            self.monitor.saveMonitorResultStocks(df2Stocks)
+            self.assertTrue(len(self.monitor.alertStocks) == 0)
+            # Only newly added stock should be in alert
+            self.monitor.saveMonitorResultStocks(df4Stocks)
+            self.assertTrue('TSLA1' in self.monitor.alertStocks)
+            self.monitor.saveMonitorResultStocks(df0Stocks)
+            # Empty results should not cause any alert
+            self.assertTrue(len(self.monitor.alertStocks) == 0)
+            # Only newly added stock should be in alert
+            self.monitor.saveMonitorResultStocks(df5Stocks)
+            self.assertTrue('OpenAI' in self.monitor.alertStocks)
+            self.assertTrue(len(self.monitor.alertStocks) == 1)
