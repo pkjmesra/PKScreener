@@ -350,16 +350,16 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         if screenOptions is None:
             return ""
         baseIndex = 12
-        baseIndices = screenOptions.split(":")
+        baseIndices = str(screenOptions).split(":")
         if len(baseIndices) > 1:
             baseIndex = baseIndices[1]
-        choices = f"--systemlaunched -a y -e -o '{screenOptions.replace('C:','X:').replace('D:','')}'"
+        choices = f"--systemlaunched -a y -e -o '{str(screenOptions).replace('C:','X:').replace('D:','')}'"
         indexNum = -1
         try:
             indexNum = PREDEFINED_SCAN_MENU_VALUES.index(choices)
         except: # pragma: no cover
             pass
-        optionName = ""
+        optionName = str(screenOptions).replace(':D','').replace(':','_')
         if indexNum >= 0:
-            optionName = f"{('P_1_'+str(indexNum +1)+'_'+str(baseIndex)) if '>|' in choices else screenOptions.replace(':D','').replace(':','_')}"
+            optionName = f"{('P_1_'+str(indexNum +1)+'_'+str(baseIndex)) if '>|' in choices else str(screenOptions).replace(':D','').replace(':','_')}"
         return optionName
