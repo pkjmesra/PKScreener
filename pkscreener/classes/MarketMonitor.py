@@ -54,6 +54,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             self.alertOptions = alertOptions
             self.hiddenColumns = ""
             self.alertStocks = []
+            self.firstAlertTriggered = False
             self.pinnedIntervalWaitSeconds = pinnedIntervalWaitSeconds
             # self.monitorNames = {}
             # We are going to present the dataframes in a 3x3 matrix with limited set of columns
@@ -127,23 +128,42 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         if self.isPinnedSingleMonitorMode:
             screen_monitor_df = screen_monitor_df[screen_monitor_df.columns[:14]]
             self.monitor_df = screen_monitor_df
-        else:
-            screen_monitor_df.reset_index(inplace=True)
-            screen_monitor_df = screen_monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in screen_monitor_df.columns else "RSI","Volume"]].head(self.maxNumRowsInEachResult-1)
-            # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
-            # multiprocessing, which behaves erratically if imported at the top.
-            screen_monitor_df.loc[:, "%Chng"] = screen_monitor_df.loc[:, "%Chng"].astype(str).apply(
-                        lambda x: ImageUtility.PKImageTools.roundOff(str(x).split("% (")[0] + colorText.END,0)
+            if "RUNNER" in os.environ.keys():
+                self.monitor_df.reset_index(inplace=True)
+                with pd.option_context('mode.chained_assignment', None):
+                    self.monitor_df = self.monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in self.monitor_df.columns else "RSI","Volume"]]
+                    # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
+                    # multiprocessing, which behaves erratically if imported at the top.
+                    self.monitor_df.loc[:, "%Chng"] = self.monitor_df.loc[:, "%Chng"].astype(str).apply(
+                                lambda x: ImageUtility.PKImageTools.roundOff(str(x).split("% (")[0] + colorText.END,0)
+                            )
+                    self.monitor_df.loc[:, "52Wk-H"] = self.monitor_df.loc[:, "52Wk-H"].astype(str).apply(
+                        lambda x: ImageUtility.PKImageTools.roundOff(x,0)
                     )
-            screen_monitor_df.loc[:, "52Wk-H"] = screen_monitor_df.loc[:, "52Wk-H"].astype(str).apply(
-                lambda x: ImageUtility.PKImageTools.roundOff(x,0)
-            )
-            screen_monitor_df.loc[:, "Volume"] = screen_monitor_df.loc[:, "Volume"].astype(str).apply(
-                lambda x: ImageUtility.PKImageTools.roundOff(x,0)
-            )
-            screen_monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
-            telegram_df = self.updateDataFrameForTelegramMode(telegram, screen_monitor_df)
-        
+                    self.monitor_df.loc[:, "Volume"] = self.monitor_df.loc[:, "Volume"].astype(str).apply(
+                        lambda x: ImageUtility.PKImageTools.roundOff(x,0)
+                    )
+                    self.monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
+                    telegram_df = self.updateDataFrameForTelegramMode(telegram or "RUNNER" in os.environ.keys(), self.monitor_df)
+                    self.monitor_df.set_index("Stock",inplace=True)
+            
+        if not self.isPinnedSingleMonitorMode:
+            screen_monitor_df.reset_index(inplace=True)
+            with pd.option_context('mode.chained_assignment', None):
+                screen_monitor_df = screen_monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in screen_monitor_df.columns else "RSI","Volume"]].head(self.maxNumRowsInEachResult-1)
+                # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
+                # multiprocessing, which behaves erratically if imported at the top.
+                screen_monitor_df.loc[:, "%Chng"] = screen_monitor_df.loc[:, "%Chng"].astype(str).apply(
+                            lambda x: ImageUtility.PKImageTools.roundOff(str(x).split("% (")[0] + colorText.END,0)
+                        )
+                screen_monitor_df.loc[:, "52Wk-H"] = screen_monitor_df.loc[:, "52Wk-H"].astype(str).apply(
+                    lambda x: ImageUtility.PKImageTools.roundOff(x,0)
+                )
+                screen_monitor_df.loc[:, "Volume"] = screen_monitor_df.loc[:, "Volume"].astype(str).apply(
+                    lambda x: ImageUtility.PKImageTools.roundOff(x,0)
+                )
+                screen_monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
+            telegram_df = self.updateDataFrameForTelegramMode(telegram or "RUNNER" in os.environ.keys(), screen_monitor_df)
         
         if monitorPosition is not None:
             startRowIndex, startColIndex = monitorPosition
@@ -197,7 +217,8 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                     stockName = (f"{colorText.BOLD}{colorText.WHITE_FG_BRED_BG}{stock}{colorText.END}") if stockName in self.alertStocks else stock
                     updatedStocks.append(stockName)
                 self.monitor_df.reset_index(inplace=True)
-                self.monitor_df["Stock"] = updatedStocks
+                with pd.option_context('mode.chained_assignment', None):
+                    self.monitor_df["Stock"] = updatedStocks
                 self.monitor_df.set_index("Stock",inplace=True)
 
         self.monitor_df = self.monitor_df.replace(np.nan, "-", regex=True)
@@ -241,13 +262,20 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             if telegram:
                 self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df)
         else:
-            if ((screenOptions in self.alertOptions and numRecords > 1) or len(self.alertStocks) > 0): # Alert conditions met? Sound alert!
-                notify_df = telegram_df[telegram_df["Stock"].isin(self.alertStocks)]
-                notify_output = self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, False, notify_df)
-                if len(notify_output) > 0:
-                    from PKDevTools.classes.pubsub.publisher import PKUserService
-                    PKUserService().notify_user(scannerID=screenOptions.replace(":D","").replace(":","_"),notification=notify_output)
-                # notify_df = self.monitor_df.reindex(self.alertStocks)  # Includes missing stocks, if any. Returns NaN for such cases
+            if ((screenOptions in self.alertOptions and numRecords > 3) or len(self.alertStocks) > 0 or not self.firstAlertTriggered): # Alert conditions met? Sound alert!
+                # numRecords is actually new lines. Top 3 lines are only headers
+                if telegram_df is not None:
+                    telegram_df.reset_index(inplace=True)
+                    notify_df = telegram_df[telegram_df["Stock"].isin(self.alertStocks)] if self.firstAlertTriggered else telegram_df
+                    notify_df = notify_df[["Stock","LTP","Ch%","Vol"]].head(50)
+                    if len(notify_df) > 0:
+                        notify_output = self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, False, notify_df,maxcolwidths=None)
+                        if len(notify_output) > 0:
+                            from PKDevTools.classes.pubsub.publisher import PKUserService
+                            from PKDevTools.classes.pubsub.subscriber import notification_service
+                            PKUserService().notify_user(scannerID=self.getScanOptionName(screenOptions),notification=notify_output)
+                            self.firstAlertTriggered = True
+                    # notify_df = self.monitor_df.reindex(self.alertStocks)  # Includes missing stocks, if any. Returns NaN for such cases
                 Utility.tools.alertSound(beeps=5)
             sleep(self.pinnedIntervalWaitSeconds)
 
@@ -280,23 +308,27 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                 pass
         return telegram_df
 
-    def updateIfRunningInTelegramBotMode(self, screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df):
+    def updateIfRunningInTelegramBotMode(self, screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df,maxcolwidths=[None,None,4,3]):
         result_output = ""
+        telegram_df_tabulated = ""
         if telegram_df is not None:
             STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
-            
-            telegram_df_tabulated = colorText.miniTabulator().tabulate(
-                            telegram_df,
-                            headers="keys",
-                            tablefmt=colorText.No_Pad_GridFormat,
-                            showindex=False,
-                            maxcolwidths=[None,None,4,3]
-                        ).encode("utf-8").decode(STD_ENCODING).replace("-K-----S-----C-----R","-K-----S----C---R").replace("%  ","% ").replace("=K=====S=====C=====R","=K=====S====C===R").replace("Vol  |","Vol|").replace("x  ","x")
+            try:
+                telegram_df_tabulated = colorText.miniTabulator().tabulate(
+                                telegram_df,
+                                headers="keys",
+                                tablefmt=colorText.No_Pad_GridFormat,
+                                showindex=False,
+                                maxcolwidths=maxcolwidths if maxcolwidths is not None else None
+                            ).encode("utf-8").decode(STD_ENCODING).replace("-K-----S-----C-----R","-K-----S----C---R").replace("%  ","% ").replace("=K=====S=====C=====R","=K=====S====C===R").replace("Vol  |","Vol|").replace("x  ","x")
+            except Exception as e:
+                default_logger().debug(e,exc_info=True)
+                pass
             telegram_df_tabulated = telegram_df_tabulated.replace("-E-----N-----E-----R","-E-----N----E---R").replace("=E=====N=====E=====R","=E=====N====E===R")
             choiceSegments = chosenMenu.split(">")
             optionName = self.getScanOptionName(screenOptions)
             chosenMenu = f"{choiceSegments[-2]}>{choiceSegments[-1]}" if (len(choiceSegments)>=4 or len(choiceSegments[-1]) <= 10) else f"{choiceSegments[-1]}"
-            result_output = f"Latest data as of:{dbTimestamp}\n<b>{optionName}{chosenMenu}</b> [{screenOptions}]\n<pre>{telegram_df_tabulated}</pre>"
+            result_output = f"Latest data as of {dbTimestamp}\n<b>[{optionName}] {chosenMenu}</b> [{screenOptions}]\n<pre>{telegram_df_tabulated}</pre>"
             try:
                 if telegram:
                     filePath = os.path.join(Archiver.get_user_data_dir(), f"monitor_outputs_{self.monitorIndex}.txt")
@@ -311,6 +343,10 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         from pkscreener.classes.MenuOptions import PREDEFINED_SCAN_MENU_VALUES
         if screenOptions is None:
             return ""
+        baseIndex = 12
+        baseIndices = screenOptions.split(":")
+        if len(baseIndices) > 1:
+            baseIndex = baseIndices[1]
         choices = f"--systemlaunched -a y -e -o '{screenOptions.replace('C:','X:').replace('D:','')}'"
         indexNum = -1
         try:
@@ -319,5 +355,5 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             pass
         optionName = ""
         if indexNum >= 0:
-            optionName = f"{('P_1_'+str(indexNum +1)+':') if '>|' in choices else optionName}"
+            optionName = f"{('P_1_'+str(indexNum +1)+'_'+str(baseIndex)) if '>|' in choices else screenOptions.replace(':D','').replace(':','_')}"
         return optionName
