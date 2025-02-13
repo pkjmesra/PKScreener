@@ -192,6 +192,8 @@ if __name__ == '__main__':
             alertTrigger = 'Y'
         else:
             alertTrigger = 'N'
+        if args.userid is None or len(str(args.userid)) == 0:
+            args.userid = ""
         postdata = (
                     '{"ref":"'
                     + branch

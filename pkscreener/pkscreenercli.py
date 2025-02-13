@@ -632,7 +632,7 @@ def runApplication():
                 results = results[~results.index.duplicated(keep='first')]
                 resultStocks = plainResults.index
             if args.monitor is not None:
-                if len(plainResults) > 0:
+                if plainResults is not None and len(plainResults) > 0:
                     MarketMonitor().saveMonitorResultStocks(plainResults)
                 if results is not None and len(monitorOption_org) > 0:
                     chosenMenu = args.pipedtitle if args.pipedtitle is not None else updateMenuChoiceHierarchy()
