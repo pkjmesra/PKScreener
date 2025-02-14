@@ -54,7 +54,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             self.alertOptions = alertOptions
             self.hiddenColumns = ""
             self.alertStocks = []
-            self.firstAlertTriggered = False
+            self.alertedStocks = {}
             self.pinnedIntervalWaitSeconds = pinnedIntervalWaitSeconds
             # self.monitorNames = {}
             # We are going to present the dataframes in a 3x3 matrix with limited set of columns
@@ -66,7 +66,10 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             self.maxNumResultsPerRow = maxNumResultsPerRow
             maxColIndex = self.maxNumColsInEachResult * self.maxNumResultsPerRow - 1
             self.lines = 0
+            monIndex = 0
             for monitorKey in self.monitors:
+                self.alertedStocks[str(monIndex)] = []
+                monIndex += 1
                 self.monitorPositions[monitorKey] = [rowIndex,colIndex]
                 # self.monitorNames[monitorKey] = ""
                 colIndex += self.maxNumColsInEachResult
@@ -96,6 +99,8 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
 
     def saveMonitorResultStocks(self, results_df):
         try:
+            if len(self.alertedStocks.keys()) < self.monitorIndex+1: # for pytests
+                self.alertedStocks[str(self.monitorIndex)] = []
             self.alertStocks = []
             lastSavedResults = self.monitorResultStocks[str(self.monitorIndex)]
             lastSavedResults = lastSavedResults.split(",")
@@ -114,9 +119,12 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
         addedStocks = list(set(prevOutput_results.split(',')) - set(lastSavedResults))  # Elements in new df but not in the saved df
         if len(self.alertStocks) != len(addedStocks) and len(addedStocks) > 0:
             self.alertStocks = addedStocks
-        diffAlerts = list(set(self.alertStocks) - set(addedStocks))
+        diffAlerts = list(set(self.alertStocks) - set(self.alertedStocks[str(self.monitorIndex)]))
         if len(diffAlerts) > 0:
-            self.alertStocks = addedStocks
+            self.alertStocks = diffAlerts
+            self.alertedStocks[str(self.monitorIndex)].extend(diffAlerts)
+        else:
+            self.alertStocks = []
         if len(addedStocks) > 0:
             self.monitorResultStocks[str(self.monitorIndex)] = prevOutput_results
 
@@ -268,11 +276,11 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             if telegram:
                 self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, telegram, telegram_df)
         else:
-            if ((screenOptions in self.alertOptions and numRecords > 3) or len(self.alertStocks) > 0 or not self.firstAlertTriggered): # Alert conditions met? Sound alert!
+            if ((screenOptions in self.alertOptions and numRecords > 3) or len(self.alertStocks) > 0): # Alert conditions met? Sound alert!
                 # numRecords is actually new lines. Top 3 lines are only headers
                 if telegram_df is not None:
                     telegram_df.reset_index(inplace=True)
-                    notify_df = telegram_df[telegram_df["Stock"].isin(self.alertStocks)] if self.firstAlertTriggered else telegram_df
+                    notify_df = telegram_df[telegram_df["Stock"].isin(self.alertStocks)]
                     notify_df = notify_df[["Stock","LTP","Ch%","Vol"]].head(50)
                     if len(notify_df) > 0:
                         notify_output = self.updateIfRunningInTelegramBotMode(screenOptions, chosenMenu, dbTimestamp, False, notify_df,maxcolwidths=None)
@@ -280,7 +288,6 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                             from PKDevTools.classes.pubsub.publisher import PKUserService
                             from PKDevTools.classes.pubsub.subscriber import notification_service
                             PKUserService().notify_user(scannerID=self.getScanOptionName(screenOptions),notification=notify_output)
-                            self.firstAlertTriggered = True
                     # notify_df = self.monitor_df.reindex(self.alertStocks)  # Includes missing stocks, if any. Returns NaN for such cases
                 Utility.tools.alertSound(beeps=5)
             sleep(self.pinnedIntervalWaitSeconds)

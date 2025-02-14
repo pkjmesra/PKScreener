@@ -180,8 +180,11 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
     @classmethod
     def presentTrialOptions(self):
         m = menus()
+        multilineOutputEnabled = OutputControls().enableMultipleLineOutput
+        OutputControls().enableMultipleLineOutput = True
         m.renderUserType()
-        userTypeOption = input(colorText.FAIL + "  [+] Select option: ") or "1"
+        userTypeOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ",enableUserInput=True,defaultInput="1")
+        OutputControls().enableMultipleLineOutput = multilineOutputEnabled
         if str(userTypeOption).upper() in ["1"]:
             return PKUserRegistration.login(trialCount=0)
         elif str(userTypeOption).upper() in ["2"]:

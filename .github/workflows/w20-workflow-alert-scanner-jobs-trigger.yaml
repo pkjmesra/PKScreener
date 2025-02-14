@@ -93,6 +93,7 @@ jobs:
       env:
         RUNNER : "GitHub_Actions"
         ALERT_TRIGGER: "Y"
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
     - name: Delete this workflow run
       continue-on-error: true

@@ -181,6 +181,13 @@ def loadRegisteredUsers():
     userIDs = [user.userid for user in users]
     PKLocalCache().registeredIDs.extend(userIDs)
 
+def isInMarketHours():
+    now = PKDateUtilities.currentDateTime()
+    marketStartTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().openHour,minute=MarketHours().openMinute)
+    marketCloseTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().closeHour,minute=MarketHours().closeMinute)
+    # We are in between market open and close hours
+    return not PKDateUtilities.isTodayHoliday()[0] and now >= marketStartTime and now <= marketCloseTime
+
 def initializeIntradayTimer():
     try:
         if (not PKDateUtilities.isTodayHoliday()[0]):
@@ -540,6 +547,64 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     registerUser(user)
     return START_ROUTES
 
+def addNewButtonsToReplyMarkup(reply_markup, buttonKeyTextDict={}):
+    # Get the existing inline keyboard
+    keyboard = reply_markup.inline_keyboard if reply_markup else []
+    inlineMenus = []  # Temporary list to hold a row of buttons
+    for key, value in buttonKeyTextDict.items():
+        inlineMenus.append(InlineKeyboardButton(f"{value}", callback_data=f"{key}"))
+        # Add row of 2 buttons when full
+        if len(inlineMenus) == 2:
+            keyboard.append(inlineMenus)
+            inlineMenus = []  # Reset row
+    # Append any remaining buttons (if not forming a full row)
+    if inlineMenus:
+        keyboard.append(inlineMenus)
+    return InlineKeyboardMarkup(keyboard)
+
+def cancelAlertSubscription(update:Update,context:CallbackContext):
+    global bot_available
+    updatedResults= ""
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    scanId = updateCarrier.data.upper().replace("CAN_", "")
+    logger.info("User %s started the conversation.", user.first_name)
+    if not bot_available:
+        # Sometimes, either the payment does not go through or 
+        # it takes time to process the last month's payment if
+        # done in the past 24 hours while the last date was today.
+        # If that happens, we won't be able to run bots or scanners
+        # without incurring heavy charges. Let's run in the 
+        # unavailable mode instead until this gets fixed.
+        updatedResults = APOLOGY_TEXT
+    reply_markup=default_markup(user=user)
+    try:
+        dbManager = DBManager()
+        result = dbManager.removeScannerJob(user.id,scanId)
+        if result:
+            updatedResults = f"<b>{scanId}</b> has been successfully removed from your alert subscription(s). If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. For any feedback, please reach out to @ItsOnlyPK. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
+        else:
+            updatedResults = f"We encountered some <b>error</b> while trying to remove <b>{scanId}</b> from your alert subscription(s). Please try again or reach out to @ItsOnlyPK with feedback. If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
+        if hasattr(updateCarrier, "reply_text"):
+            updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
+        elif hasattr(updateCarrier, "edit_message_text"):
+            editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=f"/CAN_{scanId}_{user.id}\n{updatedResults}")
+    except Exception as e: # pragma: no cover
+        logger.error(e)
+        pass
+    return START_ROUTES
+
 def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False):
     global bot_available
     updateCarrier = None
@@ -565,6 +630,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         # unavailable mode instead until this gets fixed.
         updatedResults = APOLOGY_TEXT
     
+    reply_markup=default_markup(user=user)
     if bot_available:
         try:
             otpValue = 0
@@ -574,7 +640,8 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             scannerJobsSubscribed = ""
             if alertUser is not None and len(alertUser.scannerJobs) > 0:
                 scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
-                scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
+                if len(scannerJobsSubscribed) > 0:
+                    scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
         except Exception as e: # pragma: no cover
             logger.error(e)
             pass
@@ -602,10 +669,19 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
                 updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         else:
             updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
+        
+        #Add new buttons with alert subscription options to cancel
+        if alertUser is not None and len(alertUser.scannerJobs) > 0:
+            buttonDict = {}
+            for scannerJob in alertUser.scannerJobs:
+                if len(scannerJob) > 0:
+                    buttonDict[f"CAN_{scannerJob}"] = f"Stop {scannerJob} 🔔"
+            reply_markup = addNewButtonsToReplyMarkup(reply_markup,buttonDict)
+
     if hasattr(updateCarrier, "reply_text"):
-        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=default_markup(user=user),parse_mode="HTML")
+        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
     elif hasattr(updateCarrier, "edit_message_text"):
-        editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=default_markup(user=user))
+        editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
 
@@ -651,7 +727,7 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
         if len(alertUser.scannerJobs) > 0:
             # User is already subscribed to some alerts
             if str(scanId) in alertUser.scannerJobs:
-                menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised."
+                menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised during market hours on a market-open day. <b>You need to subscribe every morning for any spcific alert.</b>"
                 kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
             else:
                 if  alertUser.balance < requiredBalance:
@@ -674,13 +750,18 @@ def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertU
     menuText = ""
     subscribed = False
     subscribedUsers = dbManager.usersForScannerJobId(scannerJobId=scanId)
-    if subscribedUsers is None or len(subscribedUsers) == 0:
+    isMarketOpen = True
+    try:
+        isMarketOpen = isInMarketHours()
+    except:
+        pass
+    if subscribedUsers is None or len(subscribedUsers) == 0 and isMarketOpen:
         # This is the first user who's requesting this scanner
         needsNewJobKickedOff = True
     if alertUser is None or str(scanId) not in alertUser.scannerJobs:
         subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
     if subscribed:
-        menuText = f"You have been added to receive the alerts for {scanId}. Please note that it is valid only for today during Market Hours and resets right after that. You will need to re-subscribe again if you need it on the next day. Thank you for trusting PKScreener!"
+        menuText = f"You have been added to receive the alerts for <b>{scanId}</b>. Please note that it is valid only for today during Market Hours and resets right after that. <b>You will need to re-subscribe again if you need it on the next market open day</b>. Thank you for trusting PKScreener!"
         if needsNewJobKickedOff:
             run_workflow(f"{scanId}_{user.id}", str(user.id), f'--systemlaunched -a y -m {str(scanId).upper().replace("_",":")}', workflowType="S")
     else:
@@ -2102,6 +2183,7 @@ def runpkscreenerbot(availability=True) -> None:
                 CallbackQueryHandler(Level2, pattern="^" + str("CP_")),
                 CallbackQueryHandler(subscribeToScannerAlerts, pattern="^" + str("SUB_")),
                 CallbackQueryHandler(viewSubscriptionOptions, pattern="^" + str("VS_")),
+                CallbackQueryHandler(cancelAlertSubscription, pattern="^" + str("CAN_")),
                 # CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
                 CallbackQueryHandler(start, pattern="^"),

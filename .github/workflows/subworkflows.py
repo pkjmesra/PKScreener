@@ -237,7 +237,7 @@ if __name__ == '__main__':
         print(f"All scanner jobs launched!")
 
     def resetUserScannnerAlertJobs():
-        if (marketStatus == "Close" or marketStatusFromNSE == "Close") and (today in [tradeDate]):
+        if (marketStatus == "Closed" or marketStatusFromNSE == "Closed") and (today in [tradeDate]):
             dbManager = DBManager()
             dbManager.resetScannerJobs()
 
