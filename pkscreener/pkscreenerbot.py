@@ -172,7 +172,7 @@ def registerUser(user,forceFetch=False):
         dbManager = DBManager()
         otpValue, subsModel,subsValidity,alertUser = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
         if str(otpValue).strip() != '0' and user.id not in PKLocalCache().registeredIDs:
-            PKLocalCache().registeredIDs.append(alertUser.userid)
+            PKLocalCache().registeredIDs.append(user.id)
     return otpValue, subsModel,subsValidity,alertUser
 
 def loadRegisteredUsers():
@@ -571,6 +571,10 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             alertUser = None
             dbManager = DBManager()
             otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)
+            scannerJobsSubscribed = ""
+            if alertUser is not None and len(alertUser.scannerJobs) > 0:
+                scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
+                scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
         except Exception as e: # pragma: no cover
             logger.error(e)
             pass
@@ -595,9 +599,9 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             if otpValue == 0:
                 updatedResults = f"We are having difficulty generating OTP for your {userText}. Please try again later or reach out to @ItsOnlyPK."
             else:
-                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b>. {subscriptionModelNames}"
+                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         else:
-            updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b>. {subscriptionModelNames}"
+            updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
     if hasattr(updateCarrier, "reply_text"):
         updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=default_markup(user=user),parse_mode="HTML")
     elif hasattr(updateCarrier, "edit_message_text"):
@@ -648,13 +652,13 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
             # User is already subscribed to some alerts
             if str(scanId) in alertUser.scannerJobs:
                 menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised."
-                kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance)
+                kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
             else:
                 if  alertUser.balance < requiredBalance:
                     # Insufficient balance
                     menuText = f"You need at least <b>₹ {requiredBalance}</b> to subscribe to <b>{scanId} alerts for a day</b> ! Your current balance <b>₹ {alertUser.balance}</b> is <b>insufficient</b>. {payWall}"
                 else:
-                    menuText = kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance)
+                    menuText = kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
     
     elif alertUser is None or alertUser.balance == 0:
         # Either user is not subscribed or has 0 balance
@@ -664,15 +668,17 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=default_markup(user=user))
     return START_ROUTES
         
-def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance):
+def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser):
     # Sufficient balance to subscribe to scanId
     needsNewJobKickedOff = False
     menuText = ""
+    subscribed = False
     subscribedUsers = dbManager.usersForScannerJobId(scannerJobId=scanId)
     if subscribedUsers is None or len(subscribedUsers) == 0:
         # This is the first user who's requesting this scanner
         needsNewJobKickedOff = True
-    subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
+    if alertUser is None or str(scanId) not in alertUser.scannerJobs:
+        subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
     if subscribed:
         menuText = f"You have been added to receive the alerts for {scanId}. Please note that it is valid only for today during Market Hours and resets right after that. You will need to re-subscribe again if you need it on the next day. Thank you for trusting PKScreener!"
         if needsNewJobKickedOff:
