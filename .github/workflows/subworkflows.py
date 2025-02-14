@@ -237,8 +237,9 @@ if __name__ == '__main__':
         print(f"All scanner jobs launched!")
 
     def resetUserScannnerAlertJobs():
-        dbManager = DBManager()
-        dbManager.resetScannerJobs()
+        if (marketStatus == "Close" or marketStatusFromNSE == "Close") and (today in [tradeDate]):
+            dbManager = DBManager()
+            dbManager.resetScannerJobs()
 
     def triggerSubscriptionsUpdate():
         PKUserSusbscriptions.updateSubscriptions()
