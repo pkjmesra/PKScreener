@@ -40,8 +40,8 @@ on:
           required: false
           default: 'ubuntu-latest'
 
-  schedule:
-    - cron: '16 3 * * *' # Daily at 8:46AM IST
+  # schedule:
+  #   - cron: '16 3 * * *' # Daily at 8:46AM IST
 
 run-name: ${{ inputs.name || 'Daily scanner alerts jobs trigger'}}
 
@@ -55,7 +55,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: SubData
+        ref: main
 
     - name: Set up Python 
       uses: actions/setup-python@v5
