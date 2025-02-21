@@ -1545,7 +1545,7 @@ def sendSubscriptionOption(update:Update,context:CallbackContext,scanId):
             [{"text": f"Yes! Subscribe", "callback_data": f"SUB_{scanId}"}]
         ],
     }
-    message=f"Would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay <b>₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time per day)</b> for automated alerts to only <b>{scanId}</b> all day on the day of subscription."
+    message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
     if len(str(scanId).strip()) > 0 and not str(scanId).startswith("B"):
         context.bot.send_message(
             chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode="HTML"
@@ -2053,7 +2053,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
 
-    if user.id in user_states:
+    if user.id in user_states and user.username.lower() == OWNER_USER.lower():
         if "_awaiting_input_1" in user_states[user.id]:
             hskCmd = user_states[user.id].split("_")[0]
             user_states[user.id] = f"{hskCmd}_awaiting_input_2_{updateCarrier.text}"
@@ -2064,7 +2064,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
             userID = user_states[user.id].split("_")[-1]
             results = updateSubscription(int(userID),float(updateCarrier.text),subtype="remove" if hskCmd=="DUS" else "add")
             if results is None:
-                update.message.reply_text(f"✅ {'Balance' if hskCmd == 'UUB' else 'Subscription'} update for userID: {userID} with balance value: {updateCarrier.text} triggered!\nPlease check with Get Paying users in a few minutes!")
+                update.message.reply_text(f"✅ {'Balance' if hskCmd == 'UUB' else 'Subscription'} update for userID: {userID} with {'Balance' if hskCmd == 'UUB' else 'Subscription'} value: {updateCarrier.text} triggered!\nPlease check with Get Paying users in a few minutes!")
             # Clear user state
             del user_states[user.id]
             return START_ROUTES

@@ -114,6 +114,8 @@ class ScreeningStatistics:
     #Calculating signals
     def computeBuySellSignals(self,df,ema_period=200,retry=True):
         try:
+            df["Above"] = False
+            df["Below"] = False
             if Imports["vectorbt"]:
                 from vectorbt.indicators import MA as vbt
                 if df is not None:
@@ -127,7 +129,11 @@ class ScreeningStatistics:
                     df["Above"] = ema > df["ATRTrailingStop"]
                     df["Below"] = ema < df["ATRTrailingStop"]
         except (OSError,FileNotFoundError) as e: # pragma: no cover
-            OutputControls().printOutput(f"{colorText.FAIL}Some dependencies are missing. Try and run this option again.{colorText.END}")
+            msg = f"{colorText.FAIL}Some dependencies are missing. Try and run this option again.{colorText.END}"
+            if 'unittest' in sys.modules or any("pytest" in arg for arg in sys.argv):
+                print(msg)
+            else:
+                OutputControls().printOutput(msg)
             # OSError:RALLIS: [Errno 2] No such file or directory: '/tmp/_MEIzoTV6A/vectorbt/templates/light.json'
             # if "No such file or directory" in str(e):
             try:
@@ -148,7 +154,11 @@ class ScreeningStatistics:
                 return self.computeBuySellSignals(df,ema_period=ema_period,retry=False)
             return None
         except ImportError as e: # pragma: no cover
-            OutputControls().printOutput(f"{colorText.FAIL}The main module needed for best Buy/Sell result calculation is missing. Falling back on an alternative, but it is not very reliable.{colorText.END}")
+            msg = f"{colorText.FAIL}The main module needed for best Buy/Sell result calculation is missing. Falling back on an alternative, but it is not very reliable.{colorText.END}"
+            if 'unittest' in sys.modules or any("pytest" in arg for arg in sys.argv):
+                print(msg)
+            else:
+                OutputControls().printOutput(msg)
             if df is not None:
                 ema = pktalib.EMA(df["Close"], ema_period) if ema_period > 1 else df["Close"]#short_name='EMA', ewm=True)        
                 df["Above"] = ema > df["ATRTrailingStop"]

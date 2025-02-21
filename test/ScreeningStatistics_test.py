@@ -2096,11 +2096,11 @@ def test_validateIpoBase_exception(tools_instance):
 
 def test_validateLorentzian_buy_signal(tools_instance):
     # Create a sample DataFrame with a buy signal
-    df = pd.DataFrame({'Open': [10, 15, 20, 25],
-                       'Close': [12, 18, 22, 28],
-                       'High': [12, 18, 22, 28],
-                       'Low': [8, 12, 16, 20],
-                       'Volume': [100, 200, 300, 400]})
+    df = pd.DataFrame({'Open': [10, 15, 20, 25]*5,
+                       'Close': [12, 18, 22, 28]*5,
+                       'High': [12, 18, 22, 28]*5,
+                       'Low': [8, 12, 16, 20]*5,
+                       'Volume': [100, 200, 300, 400]*5})
 
     # Call the validateLorentzian function with the sample DataFrame and lookFor=1 (Buy)
     screenDict = {}
@@ -2118,11 +2118,11 @@ def test_validateLorentzian_buy_signal(tools_instance):
 
 def test_validateLorentzian_sell_signal(tools_instance):
     # Create a sample DataFrame with a sell signal
-    df = pd.DataFrame({'Open': [10, 15, 20, 25],
-                       'Close': [12, 18, 22, 28],
-                       'High': [12, 18, 22, 28],
-                       'Low': [8, 12, 16, 20],
-                       'Volume': [100, 200, 300, 400]})
+    df = pd.DataFrame({'Open': [10, 15, 20, 25]*5,
+                       'Close': [12, 18, 22, 28]*5,
+                       'High': [12, 18, 22, 28]*5,
+                       'Low': [8, 12, 16, 20]*5,
+                       'Volume': [100, 200, 300, 400]*5})
 
     # Call the validateLorentzian function with the sample DataFrame and lookFor=2 (Sell)
     screenDict = {}
@@ -2142,11 +2142,11 @@ def test_validateLorentzian_sell_signal(tools_instance):
 
 def test_validateLorentzian_no_signal(tools_instance):
     # Create a sample DataFrame without any signals
-    df = pd.DataFrame({'Open': [10, 15, 20, 25],
-                       'Close': [12, 18, 22, 28],
-                       'High': [12, 18, 22, 28],
-                       'Low': [8, 12, 16, 20],
-                       'Volume': [100, 200, 300, 400]})
+    df = pd.DataFrame({'Open': [10, 15, 20, 25]*5,
+                       'Close': [12, 18, 22, 28]*5,
+                       'High': [12, 18, 22, 28]*5,
+                       'Low': [8, 12, 16, 20]*5,
+                       'Volume': [100, 200, 300, 400]*5})
 
     # Call the validateLorentzian function with the sample DataFrame and lookFor=3 (Any)
     screenDict = {}
@@ -2160,11 +2160,11 @@ def test_validateLorentzian_no_signal(tools_instance):
 
 def test_validateLorentzian_exception(tools_instance):
     # Create a sample DataFrame that raises an exception
-    df = pd.DataFrame({'Open': ['a', 'b', 'c', 'd'],
-                       'Close': ['e', 'f', 'g', 'h'],
-                       'High': ['i', 'j', 'k', 'l'],
-                       'Low': ['m', 'n', 'o', 'p'],
-                       'Volume': ['q', 'r', 's', 't']})
+    df = pd.DataFrame({'Open': ['a', 'b', 'c', 'd']*5,
+                       'Close': ['e', 'f', 'g', 'h']*5,
+                       'High': ['i', 'j', 'k', 'l']*5,
+                       'Low': ['m', 'n', 'o', 'p']*5,
+                       'Volume': ['q', 'r', 's', 't']*5})
 
     # Call the validateLorentzian function with the invalid DataFrame
     screenDict = {}
@@ -2178,9 +2178,9 @@ def test_validateLorentzian_exception(tools_instance):
 
 def test_validateLowerHighsLowerLows_valid_input(tools_instance):
     # Create a sample DataFrame with lower highs, lower lows, and higher RSI
-    df = pd.DataFrame({'High': [7, 8, 9, 10],
-                       'Low': [2, 3, 4, 5],
-                       'RSI': [50, 55, 60, 65]})
+    df = pd.DataFrame({'High': [7, 8, 9, 10]*5,
+                       'Low': [2, 3, 4, 5]*5,
+                       'RSI': [50, 55, 60, 65]*5})
 
     # Call the validateLowerHighsLowerLows function with the sample DataFrame
     result = tools_instance.validateLowerHighsLowerLows(df)
@@ -3056,12 +3056,16 @@ class TestScreeningStatistics_computeBuySellSignals(unittest.TestCase):
         df = pd.DataFrame()
         with pytest.raises(KeyError):
             result = self.stats.computeBuySellSignals(df)
-            self.assertTrue(df.empty)
+        self.assertTrue(df.empty)
 
+    @pytest.mark.skipif(
+        "Windows" not in platform.system(),
+        reason="Cannot simulate the disabling of print func on Linux/Mac",
+    )
     @patch.dict("pkscreener.Imports", {"vectorbt": True})
     @patch("vectorbt.indicators.MA.run")
-    # @patch("builtins.print")
-    def test_computeBuySellSignals_with_vectorbt(self, mock_vbt_run):
+    @patch("PKDevTools.classes.OutputControls.OutputControls.printOutput")
+    def test_computeBuySellSignals_with_vectorbt(self, mock_print,mock_vbt_run):
         """Test Buy/Sell signals calculation when `vectorbt` is available."""
         mock_ema = MagicMock()
         mock_ema.ma_crossed_above.return_value = [True, False, True]
@@ -3105,7 +3109,10 @@ class TestScreeningStatistics_computeBuySellSignals(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.stats.computeBuySellSignals(df)
 
-    # @patch("builtins.print")
+    @pytest.mark.skipif(
+        "Windows" not in platform.system(),
+        reason="Cannot simulate the disabling of print func on Linux/Mac",
+    )
     @patch("PKDevTools.classes.OutputControls.OutputControls.printOutput")
     @patch("pkscreener.classes.ScreeningStatistics.ScreeningStatistics.downloadSaveTemplateJsons")
     def test_computeBuySellSignals_oserror_retry(self, mock_download, mock_printOutput):

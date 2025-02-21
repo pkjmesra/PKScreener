@@ -226,9 +226,10 @@ if __name__ == '__main__':
                 pass
         dbManager = DBManager()
         scannerJobs = dbManager.scannerJobsWithActiveUsers()
+        timestamp = int(PKDateUtilities.currentDateTimestamp())
         for scannerJob in scannerJobs:
             print(f"Launching {scannerJob.scannerId}")
-            options = f'--systemlaunched -a Y -m {scannerJob.scannerId.replace("_",":")}'
+            options = f'--triggertimestamp {timestamp} --systemlaunched -a Y -m {scannerJob.scannerId.replace("_",":")}'
             resp = triggerRemoteScanAlertWorkflow(options, branch)
             if resp.status_code == 204:
                 sleep(5)

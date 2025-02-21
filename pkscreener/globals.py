@@ -1887,7 +1887,11 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 pass
             
         loadCount = len(stockDictPrimary) if stockDictPrimary is not None else 0
-
+        # Let's use screening only for the stocks for which we could get the data.
+        savedOrDownloadedKeys = list(stockDictPrimary.keys())
+        missingStocks = set(listStockCodes) - set(savedOrDownloadedKeys)
+        OutputControls().printOutput(f"{colorText.GREEN}  [+] Adding {len(listStockCodes)-len(missingStocks)} stocks out of {len(listStockCodes)} to the queue...{colorText.END}")
+        listStockCodes = list(set(listStockCodes)-set(missingStocks)) if not downloadOnly else listStockCodes
         if downloadOnly:
             OutputControls().printOutput(
                 colorText.WARN
@@ -4032,7 +4036,7 @@ def handleAlertSubscriptions(user,message):
                             [{"text": f"Yes! Subscribe", "callback_data": f"SUB_{scanId}"}]
                         ],
                     }
-                    send_message(message=f"Would you like to subscribe to this ({scanId}) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to {scanId} all day on the day of subscription.",
+                    send_message(message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this ({scanId}) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to {scanId} all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴",
                         userID=int(user),
                         reply_markup=reply_markup)
                 elif alertUser is not None and len(alertUser.scannerJobs) > 0 and str(scanId) in alertUser.scannerJobs:
