@@ -165,6 +165,7 @@ PIPED_SCAN_SKIP_COMMAND_MENUS =["2", "3", "M", "0", "4"]
 PIPED_SCAN_SKIP_INDEX_MENUS =["W","N","E","S","0","Z","M","15"]
 UNSUPPORTED_COMMAND_MENUS =["22","M","Z","0",str(MAX_MENU_OPTION)]
 SUPPORTED_COMMAND_MENUS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45"]
+user_states = {}
 
 def registerUser(user,forceFetch=False):
     otpValue, subsModel,subsValidity,alertUser = 0,0,None,None
@@ -172,7 +173,7 @@ def registerUser(user,forceFetch=False):
         dbManager = DBManager()
         otpValue, subsModel,subsValidity,alertUser = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
         if str(otpValue).strip() != '0' and user.id not in PKLocalCache().registeredIDs:
-            PKLocalCache().registeredIDs.append(alertUser.userid)
+            PKLocalCache().registeredIDs.append(user.id)
     return otpValue, subsModel,subsValidity,alertUser
 
 def loadRegisteredUsers():
@@ -180,6 +181,13 @@ def loadRegisteredUsers():
     users = dbManager.getUsers(fieldName="userid")
     userIDs = [user.userid for user in users]
     PKLocalCache().registeredIDs.extend(userIDs)
+
+def isInMarketHours():
+    now = PKDateUtilities.currentDateTime()
+    marketStartTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().openHour,minute=MarketHours().openMinute)
+    marketCloseTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().closeHour,minute=MarketHours().closeMinute)
+    # We are in between market open and close hours
+    return not PKDateUtilities.isTodayHoliday()[0] and now >= marketStartTime and now <= marketCloseTime
 
 def initializeIntradayTimer():
     try:
@@ -205,6 +213,32 @@ def sanitiseTexts(text):
     if len(text) > MAX_MSG_LENGTH:
         return text[:MAX_MSG_LENGTH]
     return text
+
+def updateSubscription(userid,subvalue,subtype = "add"):
+    workflow_name = "w18-workflow-sub-data.yml"
+    branch = "main"
+    updatedResults = None
+    try:
+        workflow_postData  = (
+            '{"ref":"'
+            + branch
+            + '","inputs":{"userid":"'
+            + f"{userid}"
+            + '","subtype":"'
+            + f"{subtype}"
+            + '","subvalue":"'
+            + f"{subvalue}"
+            + '"}}'
+        )
+        ghp_token = PKEnvironment().allSecrets["PKG"]
+        resp = run_workflow(workflowType="O",repo="PKScreener",owner="pkjmesra",branch=branch,ghp_token=ghp_token,workflow_name=workflow_name,workflow_postData=workflow_postData)
+        if resp is not None and resp.status_code != 204:
+            updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
+    except Exception as e:
+        logger.error(e)
+        updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
+        pass
+    return updatedResults
 
 def matchUTR(update: Update, context: CallbackContext) -> str:
     global bot_available
@@ -243,27 +277,10 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
             matchedTran = PKGmailReader.matchUTR(utr=args[0])
             if matchedTran is not None:
                 updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\n\nYour subscription is being enabled soon!\n\nPlease check with /OTP in the next couple of minutes!\n\nThank you for trusting PKScreener!"
-                workflow_name = "w18-workflow-sub-data.yml"
-                subtype = "add"
-                userid = user.id
-                branch = "main"
                 try:
-                    subvalue = int(float(matchedTran.get("amountPaid")))
-                    workflow_postData  = (
-                        '{"ref":"'
-                        + branch
-                        + '","inputs":{"userid":"'
-                        + f"{userid}"
-                        + '","subtype":"'
-                        + f"{subtype}"
-                        + '","subvalue":"'
-                        + f"{subvalue}"
-                        + '"}}'
-                    )
-                    ghp_token = PKEnvironment().allSecrets["PKG"]
-                    resp = run_workflow(workflowType="O",repo="PKScreener",owner="pkjmesra",branch=branch,ghp_token=ghp_token,workflow_name=workflow_name,workflow_postData=workflow_postData)
-                    if resp is not None and resp.status_code != 204:
-                        updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
+                    results = updateSubscription(user.id,int(float(matchedTran.get("amountPaid"))))
+                    if results is not None:
+                        updatedResults = results
                 except Exception as e:
                     logger.error(e)
                     updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
@@ -540,6 +557,64 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     registerUser(user)
     return START_ROUTES
 
+def addNewButtonsToReplyMarkup(reply_markup, buttonKeyTextDict={}):
+    # Get the existing inline keyboard
+    keyboard = reply_markup.inline_keyboard if reply_markup else []
+    inlineMenus = []  # Temporary list to hold a row of buttons
+    for key, value in buttonKeyTextDict.items():
+        inlineMenus.append(InlineKeyboardButton(f"{value}", callback_data=f"{key}"))
+        # Add row of 2 buttons when full
+        if len(inlineMenus) == 2:
+            keyboard.append(inlineMenus)
+            inlineMenus = []  # Reset row
+    # Append any remaining buttons (if not forming a full row)
+    if inlineMenus:
+        keyboard.append(inlineMenus)
+    return InlineKeyboardMarkup(keyboard)
+
+def cancelAlertSubscription(update:Update,context:CallbackContext):
+    global bot_available
+    updatedResults= ""
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    scanId = updateCarrier.data.upper().replace("CAN_", "")
+    logger.info("User %s started the conversation.", user.first_name)
+    if not bot_available:
+        # Sometimes, either the payment does not go through or 
+        # it takes time to process the last month's payment if
+        # done in the past 24 hours while the last date was today.
+        # If that happens, we won't be able to run bots or scanners
+        # without incurring heavy charges. Let's run in the 
+        # unavailable mode instead until this gets fixed.
+        updatedResults = APOLOGY_TEXT
+    reply_markup=default_markup(user=user)
+    try:
+        dbManager = DBManager()
+        result = dbManager.removeScannerJob(user.id,scanId)
+        if result:
+            updatedResults = f"<b>{scanId}</b> has been successfully removed from your alert subscription(s). If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. For any feedback, please reach out to @ItsOnlyPK. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
+        else:
+            updatedResults = f"We encountered some <b>error</b> while trying to remove <b>{scanId}</b> from your alert subscription(s). Please try again or reach out to @ItsOnlyPK with feedback. If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
+        if hasattr(updateCarrier, "reply_text"):
+            updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
+        elif hasattr(updateCarrier, "edit_message_text"):
+            editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=f"/CAN_{scanId}_{user.id}\n{updatedResults}")
+    except Exception as e: # pragma: no cover
+        logger.error(e)
+        pass
+    return START_ROUTES
+
 def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False):
     global bot_available
     updateCarrier = None
@@ -565,12 +640,18 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         # unavailable mode instead until this gets fixed.
         updatedResults = APOLOGY_TEXT
     
+    reply_markup=default_markup(user=user)
     if bot_available:
         try:
             otpValue = 0
             alertUser = None
             dbManager = DBManager()
             otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)
+            scannerJobsSubscribed = ""
+            if alertUser is not None and len(alertUser.scannerJobs) > 0:
+                scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
+                if len(scannerJobsSubscribed) > 0:
+                    scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
         except Exception as e: # pragma: no cover
             logger.error(e)
             pass
@@ -595,13 +676,22 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             if otpValue == 0:
                 updatedResults = f"We are having difficulty generating OTP for your {userText}. Please try again later or reach out to @ItsOnlyPK."
             else:
-                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b>. {subscriptionModelNames}"
+                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         else:
-            updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b>. {subscriptionModelNames}"
+            updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
+        
+        #Add new buttons with alert subscription options to cancel
+        if alertUser is not None and len(alertUser.scannerJobs) > 0:
+            buttonDict = {}
+            for scannerJob in alertUser.scannerJobs:
+                if len(scannerJob) > 0:
+                    buttonDict[f"CAN_{scannerJob}"] = f"Stop {scannerJob} 🔔"
+            reply_markup = addNewButtonsToReplyMarkup(reply_markup,buttonDict)
+
     if hasattr(updateCarrier, "reply_text"):
-        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=default_markup(user=user),parse_mode="HTML")
+        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
     elif hasattr(updateCarrier, "edit_message_text"):
-        editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=default_markup(user=user))
+        editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
 
@@ -647,14 +737,14 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
         if len(alertUser.scannerJobs) > 0:
             # User is already subscribed to some alerts
             if str(scanId) in alertUser.scannerJobs:
-                menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised."
-                kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance)
+                menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised during market hours on a market-open day. <b>You need to subscribe every morning for any spcific alert.</b>"
+                kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
             else:
                 if  alertUser.balance < requiredBalance:
                     # Insufficient balance
                     menuText = f"You need at least <b>₹ {requiredBalance}</b> to subscribe to <b>{scanId} alerts for a day</b> ! Your current balance <b>₹ {alertUser.balance}</b> is <b>insufficient</b>. {payWall}"
                 else:
-                    menuText = kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance)
+                    menuText = kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
     
     elif alertUser is None or alertUser.balance == 0:
         # Either user is not subscribed or has 0 balance
@@ -664,17 +754,24 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=default_markup(user=user))
     return START_ROUTES
         
-def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance):
+def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser):
     # Sufficient balance to subscribe to scanId
     needsNewJobKickedOff = False
     menuText = ""
+    subscribed = False
     subscribedUsers = dbManager.usersForScannerJobId(scannerJobId=scanId)
-    if subscribedUsers is None or len(subscribedUsers) == 0:
+    isMarketOpen = True
+    try:
+        isMarketOpen = isInMarketHours()
+    except:
+        pass
+    if subscribedUsers is None or len(subscribedUsers) == 0 and isMarketOpen:
         # This is the first user who's requesting this scanner
         needsNewJobKickedOff = True
-    subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
+    if alertUser is None or str(scanId) not in alertUser.scannerJobs:
+        subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
     if subscribed:
-        menuText = f"You have been added to receive the alerts for {scanId}. Please note that it is valid only for today during Market Hours and resets right after that. You will need to re-subscribe again if you need it on the next day. Thank you for trusting PKScreener!"
+        menuText = f"You have been added to receive the alerts for <b>{scanId}</b>. Please note that it is valid only for today during Market Hours and resets right after that. <b>You will need to re-subscribe again if you need it on the next market open day</b>. Thank you for trusting PKScreener!"
         if needsNewJobKickedOff:
             run_workflow(f"{scanId}_{user.id}", str(user.id), f'--systemlaunched -a y -m {str(scanId).upper().replace("_",":")}', workflowType="S")
     else:
@@ -1184,6 +1281,61 @@ def Level2(update: Update, context: CallbackContext) -> str:
     registerUser(user)
     return START_ROUTES
 
+def handleHousekeeping(update: Update, context: CallbackContext) -> str:
+    updateCarrier = None
+    menuText = "Not implemented yet..."
+    shouldSendUpdate = False
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+        if updateCarrier is None:
+            return
+    # Get user that sent /start and log his name
+    user = updateCarrier.from_user
+    query = update.callback_query
+    query.answer()
+    preSelection = (query.data.upper().replace("C", ""))
+    selection = preSelection.split("_")[1]
+    if query is None:
+        start(update, context)
+        return START_ROUTES
+    reply_markup = default_markup(user)
+    dbMgr = DBManager()
+    if selection == "GAU":
+        activeUsers = dbMgr.getUsers(fieldName="userId")
+        if activeUsers is not None:
+            menuText = f"Number of all registered users in the DB: {len(activeUsers)}"
+    elif selection == "GAP":
+        payingUsers = dbMgr.getPayingUsers()
+        if payingUsers is not None and len(payingUsers) > 0:
+            menuText = "Here are all the paying users:"
+            menuText = f"{menuText}\n{"UserID".ljust(10,'#')} : {"Subs.".ljust(5,'#')} : {"Bal.".ljust(5,'#')}"
+            for payingUser in payingUsers:
+                menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
+    elif selection == "UUB":
+        user_states[user.id] = f"{selection}_awaiting_input_1"  # Set user state
+        menuText = "Please enter a userID for whom to update balance:"
+    elif selection in ["EUS", "DUS"]:
+        user_states[user.id] = f"{selection}_awaiting_input_1"  # Set user state
+        menuText = "Please enter a userID for whom to update subscription:"
+    elif selection == "GAS":
+        scanners = dbMgr.scannerJobsWithActiveUsers()
+        if scanners is not None:
+            if len(scanners) > 0:
+                menuText = f"Number of all scans running today in the DB: {len(scanners)}"
+                for scanner in scanners:
+                    scanID = scanner.scannerId
+                    subUsers = ", ".join(scanner.userIds)
+                    menuText = f"{menuText}\nScanner: {scanID} : Users: {subUsers}"
+            else:
+                menuText = "No users are subscribed for alerts today!"
+    editMessageText(query=query,editedText=menuText,reply_markup=reply_markup)
+    return START_ROUTES
+
 def default_markup(user=None,monitorIndex=0):
     mns = m0.renderForMenu(selectedMenu=None,
             skip=TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1],
@@ -1192,14 +1344,22 @@ def default_markup(user=None,monitorIndex=0):
         )
     if (PKDateUtilities.isTradingTime() and not PKDateUtilities.isTodayHoliday()[0]) or ("PKDevTools_Default_Log_Level" in os.environ.keys()) or sys.argv[0].endswith(".py"):
         mns.append(menu().create(f"MI_{monitorIndex}", "👩‍💻 🚀 Intraday Monitor", 2))
+    hskMenus = []
     if user is not None and user.username == OWNER_USER:
-        mns.append(menu().create(f"DV_0", ("✅ Enable Logging" if not configManager.logsEnabled else "🚫 Disable Logging"), 2))
-        mns.append(menu().create(f"DV_1", "🔄 Restart Bot", 2))
+        hskMenus.append(menu().create(f"DV_0", ("✅ Enable Logging" if not configManager.logsEnabled else "🚫 Disable Logging"), 2))
+        hskMenus.append(menu().create(f"DV_1", "🔄 Restart Bot", 2))
+        hskMenus.append(menu().create(f"HSK_GAU", "Get Active Users", 2))
+        hskMenus.append(menu().create(f"HSK_GAP", "Get Paying Users", 2))
+        hskMenus.append(menu().create(f"HSK_GAS", "Get Alerting Users", 2))
+        hskMenus.append(menu().create(f"HSK_EUS", "Enable User Subs", 2))
+        hskMenus.append(menu().create(f"HSK_DUS", "Disable User Subs", 2))
+        hskMenus.append(menu().create(f"HSK_UUB", "Update User Balance", 2))
+
     keyboard = []
     inlineMenus = []
     lastRowMenus = []
     rowIndex = 0
-    iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":"","VS":"🔔 📣 ","start":"🟢 🏁 "}
+    iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":"","VS":"🔔 📣 ","start":"🟢 🏁 ", "HS":"🕵️‍♂️ "}
     for mnu in mns:
         if mnu.menuKey[0:2] in TOP_LEVEL_SCANNER_MENUS:
             rowIndex +=1
@@ -1227,6 +1387,21 @@ def default_markup(user=None,monitorIndex=0):
     if len(inlineMenus) > 0:
         keyboard.append(inlineMenus)
     keyboard.append(lastRowMenus)
+    rowIndex = 0
+    inlineMenus = []
+    for hskMenu in hskMenus:
+        rowIndex +=1
+        inlineMenus.append(
+            InlineKeyboardButton(
+                iconDict.get(str(hskMenu.menuKey[0:2])) + hskMenu.menuText.split("(")[0],
+                callback_data="C" + str(hskMenu.menuKey),
+            )
+        )
+        if rowIndex % 2 == 0:
+            keyboard.append(inlineMenus)
+            inlineMenus = []
+    if len(inlineMenus) > 0:
+        keyboard.append(inlineMenus)
     reply_markup = InlineKeyboardMarkup(keyboard)
     return reply_markup
 
@@ -1370,7 +1545,7 @@ def sendSubscriptionOption(update:Update,context:CallbackContext,scanId):
             [{"text": f"Yes! Subscribe", "callback_data": f"SUB_{scanId}"}]
         ],
     }
-    message=f"Would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay <b>₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time per day)</b> for automated alerts to only <b>{scanId}</b> all day on the day of subscription."
+    message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
     if len(str(scanId).strip()) > 0 and not str(scanId).startswith("B"):
         context.bot.send_message(
             chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode="HTML"
@@ -1878,6 +2053,22 @@ def help_command(update: Update, context: CallbackContext) -> None:
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
 
+    if user.id in user_states and user.username.lower() == OWNER_USER.lower():
+        if "_awaiting_input_1" in user_states[user.id]:
+            hskCmd = user_states[user.id].split("_")[0]
+            user_states[user.id] = f"{hskCmd}_awaiting_input_2_{updateCarrier.text}"
+            update.message.reply_text(f"{'Balance' if hskCmd == 'UUB' else 'Subscription'} to be updated for entered userID: {updateCarrier.text} ✅\nPlease enter the {'Balance' if hskCmd == 'UUB' else 'Subscription'} value:")
+            return START_ROUTES
+        elif "_awaiting_input_2_" in user_states[user.id]:
+            hskCmd = user_states[user.id].split("_")[0]
+            userID = user_states[user.id].split("_")[-1]
+            results = updateSubscription(int(userID),float(updateCarrier.text),subtype="remove" if hskCmd=="DUS" else "add")
+            if results is None:
+                update.message.reply_text(f"✅ {'Balance' if hskCmd == 'UUB' else 'Subscription'} update for userID: {userID} with {'Balance' if hskCmd == 'UUB' else 'Subscription'} value: {updateCarrier.text} triggered!\nPlease check with Get Paying users in a few minutes!")
+            # Clear user state
+            del user_states[user.id]
+            return START_ROUTES
+
     cmds = m0.renderForMenu(
         selectedMenu=None,
         skip=TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1],
@@ -2096,6 +2287,8 @@ def runpkscreenerbot(availability=True) -> None:
                 CallbackQueryHandler(Level2, pattern="^" + str("CP_")),
                 CallbackQueryHandler(subscribeToScannerAlerts, pattern="^" + str("SUB_")),
                 CallbackQueryHandler(viewSubscriptionOptions, pattern="^" + str("VS_")),
+                CallbackQueryHandler(cancelAlertSubscription, pattern="^" + str("CAN_")),
+                CallbackQueryHandler(handleHousekeeping, pattern="^" + str("CHSK_")),
                 # CallbackQueryHandler(Level2, pattern="^" + str("CG_")),
                 CallbackQueryHandler(end, pattern="^" + str("CZ") + "$"),
                 CallbackQueryHandler(start, pattern="^"),

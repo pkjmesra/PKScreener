@@ -226,9 +226,10 @@ if __name__ == '__main__':
                 pass
         dbManager = DBManager()
         scannerJobs = dbManager.scannerJobsWithActiveUsers()
+        timestamp = int(PKDateUtilities.currentDateTimestamp())
         for scannerJob in scannerJobs:
             print(f"Launching {scannerJob.scannerId}")
-            options = f'--systemlaunched -a Y -m {scannerJob.scannerId.replace("_",":")}'
+            options = f'--triggertimestamp {timestamp} --systemlaunched -a Y -m {scannerJob.scannerId.replace("_",":")}'
             resp = triggerRemoteScanAlertWorkflow(options, branch)
             if resp.status_code == 204:
                 sleep(5)
@@ -237,8 +238,9 @@ if __name__ == '__main__':
         print(f"All scanner jobs launched!")
 
     def resetUserScannnerAlertJobs():
-        dbManager = DBManager()
-        dbManager.resetScannerJobs()
+        if (marketStatus == "Closed" or marketStatusFromNSE == "Closed") and (today in [tradeDate]):
+            dbManager = DBManager()
+            dbManager.resetScannerJobs()
 
     def triggerSubscriptionsUpdate():
         PKUserSusbscriptions.updateSubscriptions()
@@ -246,7 +248,7 @@ if __name__ == '__main__':
         tryCommitOutcomes(options="UpdateSubscriptions",pathSpec=pathSpec,delete=True)
 
     def triggerAddSubscription():
-        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKUserSusbscriptions.subscriptionModelFromValue(int(args.subscriptionvalue)),subValue=int(args.subscriptionvalue))
+        PKUserSusbscriptions.updateSubscription(userID=args.userid,subscription=PKUserSusbscriptions.subscriptionModelFromValue(int(float(args.subscriptionvalue))),subValue=int(float(args.subscriptionvalue)))
         pathSpec = f"{os.path.join(Archiver.get_user_data_dir(),'*.pdf')}"
         tryCommitOutcomes(options=f"AddSubscriptionFor-{args.userid}",pathSpec=pathSpec,delete=False)
         print("Added Sub Data")

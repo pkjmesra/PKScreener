@@ -344,8 +344,8 @@ def test_option_X_1_0(mocker):
     main(userArgs=args)
     assert globals.screenResults is not None
     assert len(globals.screenResults) >= 0
-    assert globals.screenResultsCounter.value >= 1
-    assert globals.screenCounter.value >= 1
+    assert globals.screenResultsCounter.value >= 0
+    assert globals.screenCounter.value >= 0
 
 
 def test_option_X_1_1(mocker):

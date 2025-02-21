@@ -89,7 +89,6 @@ def decorator(func):
 
     return new_func
 
-
 # print = decorator(print) # current file
 def disableSysOut(input=True, disable=True):
     global printenabled,originalStdOut, original__stdout
@@ -638,6 +637,15 @@ def runApplication():
                     MarketMonitor().refresh(screen_df=results,screenOptions=monitorOption_org, chosenMenu=chosenMenu[:120],dbTimestamp=f"{dbTimestamp} | CycleTime:{elapsed_time}s",telegram=args.telegram)
                     menuChoiceHierarchy = ""
                     args.pipedtitle = ""
+                # check to see if the monitor was launched before the market close hours.
+                # If so, close it.
+                if "RUNNER" in os.environ.keys() and args.triggertimestamp is not None:
+                    from datetime import timezone
+                    from PKDevTools.classes.MarketHours import MarketHours
+                    marketCloseTS = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().closeHour,minute=MarketHours().closeMinute).replace(tzinfo=timezone.utc).timestamp()
+                    if int(args.triggertimestamp) < int(marketCloseTS) and int(PKDateUtilities.currentDateTimestamp()) >= marketCloseTS:
+                        OutputControls().printOutput("Exiting monitor now since market has closed!",enableMultipleLineOutput=True)
+                        sys.exit(0)
 
 def updateProgressStatus(args,monitorOptions=None):
     from pkscreener.classes.MenuOptions import PREDEFINED_SCAN_MENU_TEXTS,PREDEFINED_SCAN_MENU_VALUES

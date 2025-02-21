@@ -5,7 +5,7 @@
 | :-------------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: |
 | Platforms | [![Windows][Windows-badge]][Windows] | [![Linux(x64)][Linux-badge_x64]][Linux_x64] [![Linux(arm64)][Linux-badge_arm64]][Linux_arm64] | [![Mac OS(x64)][Mac OS-badge_x64]][Mac OS_x64] [![Mac OS(arm64)][Mac OS-badge_arm64]][Mac OS_arm64] | [![Docker Status][Docker Status-badge]][Docker Status] |
 | Package / Docs | [![Documentation][Documentation-badge]][Documentation] [![OpenSSF Best Practices][OpenSSF-Badge]][OpenSSF-pkscreener]  | [![PyPI][pypi-badge]][pypi] | [![is wheel][wheel-badge]][pypi] | ![github license][github-license] |
-| Tests/Code-Quality | [![CodeFactor][Codefactor-badge]][Codefactor] | [![Coverage Status][Coverage-Status-badge]][Coverage-Status] | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
+| Tests/Code-Quality | [![CodeFactor][Codefactor-badge]][Codefactor] | <a href="https://coveralls.io/github/pkjmesra/PKScreener?branch=main"><img src="https://coveralls.io/repos/github/pkjmesra/PKScreener/badge.svg?branch=main"></a> | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
 
 ## What is PKScreener?
 | Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k|
@@ -328,15 +328,15 @@ After you have finished the run, go to that copied path, zip the contents of the
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.710/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250221.728/pkscreenercli.exe
 [Linux-badge_x64]: https://img.shields.io/badge/Linux(x64)-FCC624?logo=linux&logoColor=black
-[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.710/pkscreenercli_x64.bin
+[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250221.728/pkscreenercli_x64.bin
 [Linux-badge_arm64]: https://img.shields.io/badge/Linux(arm64)-FCC624?logo=linux&logoColor=black
-[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.710/pkscreenercli_arm64.bin
+[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250221.728/pkscreenercli_arm64.bin
 [Mac OS-badge_x64]: https://img.shields.io/badge/mac%20os(x64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.710/pkscreenercli_x64.run
+[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250221.728/pkscreenercli_x64.run
 [Mac OS-badge_arm64]: https://img.shields.io/badge/mac%20os(arm64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250213.710/pkscreenercli_arm64.run
+[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250221.728/pkscreenercli_arm64.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square

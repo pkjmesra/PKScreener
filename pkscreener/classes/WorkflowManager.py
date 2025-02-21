@@ -107,7 +107,7 @@ def run_workflow(command=None, user=None, options=None, workflowType="B",repo=No
                     + '","inputs":{"user":"'
                     + f"{user}"
                     + '","params":"'
-                    + f'{cmd_options}'
+                    + f'{cmd_options} --triggertimestamp {timestamp}'
                     + f'","ref":"{branch}","alertTrigger":"'
                     + f"{alertTrigger}"
                     + '","name":"'

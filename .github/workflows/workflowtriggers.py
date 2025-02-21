@@ -667,6 +667,7 @@ def triggerRemoteScanAlertWorkflow(scanOptions, branch):
         alertTrigger = 'Y'
     else:
         alertTrigger = 'N'
+    timestamp = int(PKDateUtilities.currentDateTimestamp())
     if args.user is None or len(str(args.user)) == 0:
         args.user = ""
         postdata = (
@@ -675,7 +676,7 @@ def triggerRemoteScanAlertWorkflow(scanOptions, branch):
                     + '","inputs":{"user":"'
                     + f"{args.user}"
                     + '","params":"'
-                    + f'-a Y -e -p -o {cmd_options}'
+                    + f'-a Y -e -p -o {cmd_options} --triggertimestamp {timestamp}'
                     + f'","ref":"{branch}","alertTrigger":"'
                     + f"{alertTrigger}"
                     + '"}}'
@@ -687,7 +688,7 @@ def triggerRemoteScanAlertWorkflow(scanOptions, branch):
                     + '","inputs":{"user":"'
                     + f"{args.user}"
                     + '","params":"'
-                    + f'-a Y -e -p -u {args.user} -o {cmd_options}'
+                    + f'-a Y -e -p -u {args.user} -o {cmd_options} --triggertimestamp {timestamp}'
                     + f'","ref":"{branch}","alertTrigger":"'
                     + f"{alertTrigger}"
                     + '"}}'

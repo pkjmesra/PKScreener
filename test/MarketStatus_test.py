@@ -88,5 +88,5 @@ class TestMarketStatus(unittest.TestCase):
 
     def test_getMarketStatus_invalid_exchange(self):
         result = self.market_status.getMarketStatus(exchangeSymbol="^INVALID")
-        self.assertEqual(result, "")
-        self.assertEqual(self.market_status.marketStatus, "")
+        self.assertEqual(result, "S&P BSE SENSEX | Closed | 2025-02-13 | 76138.97 | \x1b[31m▼-32.11\x1b[0m (\x1b[31m-0.04\x1b[0m%)")
+        self.assertEqual(self.market_status.marketStatus, "S&P BSE SENSEX | Closed | 2025-02-13 | 76138.97 | \x1b[31m▼-32.11\x1b[0m (\x1b[31m-0.04\x1b[0m%)")

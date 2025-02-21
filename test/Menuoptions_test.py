@@ -284,6 +284,7 @@ class TestMenuRendering(unittest.TestCase):
             exceptionKeys=["0", "M"],
             coloredValues=(["0"]),
             defaultMenu="0",
+            asList=False,
             renderStyle=MenuRenderStyle.TWO_PER_ROW,
             optionText="  [+] Would you like to filter by a specific Candlestick pattern? Select filter:",
             skip=skip

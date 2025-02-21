@@ -241,6 +241,7 @@ class TestMarketMonitor3(unittest.TestCase):
             df3Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1'],columns=["Close"],data=[1,2,3])
             df4Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1','TSLA1'],columns=["Close"],data=[1,2,3,4])
             df5Stocks = pd.DataFrame(index=['AAPL1', 'MSFT1','GOOG1','TSLA1','OpenAI'],columns=["Close"],data=[1,2,3,4,5])
+            dfNewStocks = pd.DataFrame(index=['NewStock'],columns=["Close"],data=[1])
             self.monitor.saveMonitorResultStocks(df2Stocks)
             # Initially all stocks should be in alert
             self.assertTrue(len(self.monitor.alertStocks) == 2)
@@ -270,3 +271,7 @@ class TestMarketMonitor3(unittest.TestCase):
             self.monitor.saveMonitorResultStocks(df5Stocks)
             self.assertTrue('OpenAI' in self.monitor.alertStocks)
             self.assertTrue(len(self.monitor.alertStocks) == 1)
+            self.monitor.alertedStocks[str(self.monitor.monitorIndex)].extend(['NewStock'])
+            self.monitor.saveMonitorResultStocks(dfNewStocks)
+            self.assertTrue('NewStock' not in self.monitor.alertStocks)
+            self.assertTrue(len(self.monitor.alertStocks) == 0)

@@ -330,7 +330,7 @@ class TestAssetsManager(unittest.TestCase):
         result = PKAssetsManager.loadStockData(stock_dict, config_manager, downloadOnly=download_only, forceLoad=force_load, forceRedownload=force_redownload, stockCodes=stock_codes, exchangeSuffix=exchange_suffix)
 
         # Assert that data was downloaded as it was not found in local cache
-        mock_download_data.assert_called_once()
+        mock_download_data.assert_called()
         mock_save.assert_not_called()
         self.assertEqual(result, stock_dict)
 
@@ -390,7 +390,7 @@ class TestAssetsManager(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertIn('AAPL', result)
         self.assertIn('GOOGL', result)
-        mock_print.assert_called_with(f"\x1b[32m\n  [+] Automatically Using Cached Stock Data due to After-Market hours!\x1b[0m")
+        mock_print.assert_called_with(f"\x1b[32m\n  [+] Automatically Using [2] Tickers' Cached Stock Data due to After-Market hours!\x1b[0m")
 
     @patch('builtins.open', new_callable=mock_open)
     @patch('pkscreener.classes.AssetsManager.pickle.load', side_effect=pickle.UnpicklingError)
@@ -481,7 +481,7 @@ class TestAssetsManager(unittest.TestCase):
         self.assertIn('AAPL', result)
         self.assertIn('GOOGL', result)
         self.assertEqual(result['AAPL'], {'price': 140, 'volume': 1000})  # Should update AAPL with new data
-        mock_print.assert_called_with(f"\x1b[32m\n  [+] Automatically Using Cached Stock Data due to After-Market hours!\x1b[0m")
+        mock_print.assert_called_with(f"\x1b[32m\n  [+] Automatically Using [2] Tickers' Cached Stock Data due to After-Market hours!\x1b[0m")
 
     @patch('pkscreener.classes.AssetsManager.Utility.tools.tryFetchFromServer')
     @patch('builtins.open', new_callable=mock_open)

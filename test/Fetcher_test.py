@@ -268,7 +268,8 @@ def test_fetchStockData_positive(configManager, tools_instance):
             rounding=True,
             group_by='ticker', 
             start=None, 
-            end=None
+            end=None,
+            auto_adjust=True
         )
 
 
