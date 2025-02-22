@@ -70,6 +70,7 @@ from PKDevTools.classes.GmailReader import PKGmailReader
 from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus,MAX_MENU_OPTION
 from pkscreener.classes.WorkflowManager import run_workflow
 import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes.PKAnalytics import PKAnalyticsService
 try:
     from PKDevTools.classes.DBManager import DBManager
     from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions
@@ -1422,9 +1423,14 @@ def isUserSubscribed(user):
 
 def launchScreener(options, user, context, optionChoices, update):
     try:
-        if not isUserSubscribed(user):
+        scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
+        userSubs = isUserSubscribed(user)
+        try:
+            PKAnalyticsService().send_event("bot_scan",{"bot_userid":str(user.id), "bot_username":str(user.username),"scan_id":str(scanRequest),"user_subscribed":userSubs})
+        except Exception as e:
+            pass
+        if not userSubs:
             basicSubscriptions = ["X_0","X_N","X_1_"]
-            scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
             isBasicScanRequest = False
             for basicSub in basicSubscriptions:
                 if basicSub in scanRequest:

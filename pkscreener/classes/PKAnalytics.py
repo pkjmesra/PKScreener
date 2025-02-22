@@ -25,31 +25,40 @@
 """
 
 import os
-import base64
+# import base64
 from sys import platform
 import platform
 import getpass
-import git
+# import git
 import json
-import io
-
+# import io
+import time
 from PKDevTools.classes.Fetcher import fetcher
 from PKDevTools.classes.Utils import random_user_agent
-from PKDevTools.classes.PKDateUtilities import PKDateUtilities
-from PKDevTools.classes import Archiver
-import git.repo
+# from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+# from PKDevTools.classes import Archiver
+from PKDevTools.classes.Singleton import SingletonType, SingletonMixin
+from PKDevTools.classes.pubsub.publisher import PKUserService
+from PKDevTools.classes.pubsub.subscriber import notification_service
+from pkscreener.classes import VERSION
 
-class PKAnalyticsService():
+class PKAnalyticsService(SingletonMixin, metaclass=SingletonType):
+    def __init__(self):
+        super(PKAnalyticsService, self).__init__()
+        self.username = ""
+        self.locationInfo = ""
+        self.os = platform.system()
+        self.os_version = platform.release()
+        self.app_version = VERSION
+        self.start_time = time.time()
+        self.isRunner = "RUNNER" in os.environ.keys()
+
     def collectMetrics(self,user=None):
         try:
-            userName = self.getUserName()
+            self.userName = self.getUserName()
             metrics = self.getApproxLocationInfo()
-            dateTime = str(PKDateUtilities.currentDateTime())
-            metrics["dateTime"] = dateTime
-            metrics["userName"] = userName
-            if "readme" in metrics.keys():
-                del metrics['readme']
-            self.tryCommitAnalytics(userDict=metrics,username=userName)
+            self.locationInfo = metrics
+            self.send_event("app_start")
         except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except Exception as e: # pragma: no cover
@@ -67,7 +76,7 @@ class PKAnalyticsService():
         except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except: # pragma: no cover
-            username = f"Unidentified-{platform.system()}"
+            username = f"Unidentified-{self.os}"
             pass
         return username
 
@@ -78,45 +87,73 @@ class PKAnalyticsService():
             response = f.fetchURL(url=url,timeout=5,headers={'user-agent': f'{random_user_agent()}'})
             data = json.loads(response.text)
         except: # pragma: no cover
-            data = {"locationInfo":f"Unidentified-{platform.system()}"}
+            data = {"locationInfo":f"Unidentified-{self.os}"}
             pass
         return data
     
-    def tryCommitAnalytics(self, userDict={},username="Unidentified"):
-        repo_clone_url = "https://github.com/pkjmesra/PKUserAnalytics.git"
-        local_repo = os.path.join(Archiver.get_user_data_dir(),"PKUserAnalytics")
-        try:
-            test_branch = "main"
-            repo = git.Repo.clone_from(repo_clone_url, local_repo)
-            repo.git.checkout(test_branch)
-        except Exception as e: # pragma: no cover
-            repo = git.Repo(local_repo)
-            repo.git.checkout(test_branch)
-            pass
-        remote = git.remote.Remote(repo=repo,name="origin")
-        repo.git.reset('--hard','origin/main')
-        remote.pull()
-        # write to file in working directory
-        scanResultFilesPath = os.path.join(local_repo, f"users-{PKDateUtilities.currentDateTime().strftime('%Y-%m-%d')}.txt")
-        records = {}
-        existingUserRecords = [userDict]
-        mode = "rb+" if os.path.exists(scanResultFilesPath) else "wb+"
-        with open(scanResultFilesPath, mode) as f:
-            allUsers = f.read()
-            if allUsers is not None and len(allUsers) > 0:
-                allUsers = base64.b64decode(allUsers).decode("utf-8").replace("'","\"")
-                records = json.loads(allUsers)
-                if records is None:
-                    records = {}
-                existingUserRecords = records.get(username)
-                if existingUserRecords is not None:
-                    existingUserRecords.append(userDict)
-                else:
-                    existingUserRecords = [userDict]
-            records[username] = existingUserRecords
-            encoded = base64.b64encode(bytes(str(records).replace("'","\""), "utf-8"))
-            f.writelines(io.BytesIO(encoded))
-        repo.index.add([scanResultFilesPath])
-        repo.index.commit("[User-Analytics]")
-        remote = git.remote.Remote(repo=repo,name="origin")
-        remote.push()
+    def send_event(self,event_name,params={}):
+        if isinstance(self.locationInfo,str):
+            self.collectMetrics()
+        event_params = {
+            "user_id": self.username,
+            "os": self.os,
+            "os_version": self.os_version,
+            "app_version": self.app_version,
+            "elapsed_time": str(time.time() - self.start_time),
+            "is_Runner": self.isRunner
+        }
+        if len(params) > 0:
+            for key in params:
+                event_params[key] = params[key]
+        if self.isRunner:
+            try:
+                owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n","")
+                repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
+                event_params["repo_owner"] = owner
+                event_params["repo"] = repo
+            except:
+                pass
+        for key in self.locationInfo.keys():
+            if key not in ["readme"]:
+                event_params[key] = self.locationInfo[key]
+        PKUserService().send_event(event_name, event_params)
+        
+    # def tryCommitAnalytics(self, userDict={},username="Unidentified"):
+    #     import git.repo
+    #     repo_clone_url = "https://github.com/pkjmesra/PKUserAnalytics.git"
+    #     local_repo = os.path.join(Archiver.get_user_data_dir(),"PKUserAnalytics")
+    #     try:
+    #         test_branch = "main"
+    #         repo = git.Repo.clone_from(repo_clone_url, local_repo)
+    #         repo.git.checkout(test_branch)
+    #     except Exception as e: # pragma: no cover
+    #         repo = git.Repo(local_repo)
+    #         repo.git.checkout(test_branch)
+    #         pass
+    #     remote = git.remote.Remote(repo=repo,name="origin")
+    #     repo.git.reset('--hard','origin/main')
+    #     remote.pull()
+    #     # write to file in working directory
+    #     scanResultFilesPath = os.path.join(local_repo, f"users-{PKDateUtilities.currentDateTime().strftime('%Y-%m-%d')}.txt")
+    #     records = {}
+    #     existingUserRecords = [userDict]
+    #     mode = "rb+" if os.path.exists(scanResultFilesPath) else "wb+"
+    #     with open(scanResultFilesPath, mode) as f:
+    #         allUsers = f.read()
+    #         if allUsers is not None and len(allUsers) > 0:
+    #             allUsers = base64.b64decode(allUsers).decode("utf-8").replace("'","\"")
+    #             records = json.loads(allUsers)
+    #             if records is None:
+    #                 records = {}
+    #             existingUserRecords = records.get(username)
+    #             if existingUserRecords is not None:
+    #                 existingUserRecords.append(userDict)
+    #             else:
+    #                 existingUserRecords = [userDict]
+    #         records[username] = existingUserRecords
+    #         encoded = base64.b64encode(bytes(str(records).replace("'","\""), "utf-8"))
+    #         f.writelines(io.BytesIO(encoded))
+    #     repo.index.add([scanResultFilesPath])
+    #     repo.index.commit("[User-Analytics]")
+    #     remote = git.remote.Remote(repo=repo,name="origin")
+    #     remote.push()

@@ -114,7 +114,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             prevOutput_results = results_df[~results_df.index.duplicated(keep='first')]
             prevOutput_results = prevOutput_results.index
             prevOutput_results = ",".join(prevOutput_results)
-        if len(self.monitorResultStocks.keys()) > self.monitorIndex and len(self.monitorResultStocks[str(self.monitorIndex)]) > 0 and prevOutput_results == "NONE":
+        if len(self.monitorResultStocks.keys()) > self.monitorIndex and str(self.monitorIndex) in self.monitorResultStocks.keys() and len(self.monitorResultStocks[str(self.monitorIndex)]) > 0 and prevOutput_results == "NONE":
             prevOutput_results = self.monitorResultStocks[str(self.monitorIndex)]
         addedStocks = list(set(prevOutput_results.split(',')) - set(lastSavedResults))  # Elements in new df but not in the saved df
         if len(self.alertStocks) != len(addedStocks) and len(addedStocks) > 0:

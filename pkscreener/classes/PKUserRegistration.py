@@ -94,6 +94,8 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
     @classmethod
     def login(self, trialCount=0):
         try:
+            from pkscreener.classes.PKAnalytics import PKAnalyticsService
+            PKAnalyticsService().collectMetrics()
             if "RUNNER" in os.environ.keys():
                 return ValidationResult.Success
         except: # pragma: no cover
