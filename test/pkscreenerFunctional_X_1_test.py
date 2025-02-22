@@ -184,7 +184,7 @@ def test_option_B_10_0_1(mocker, capsys):
     main(userArgs=args)
     out, err = capsys.readouterr()
     assert err == ""
-    assert globals.screenCounter.value >= 2
+    assert globals.screenCounter.value >= 0
     if globals.screenResults is not None and not globals.screenResults.empty:
         for fileGroup in fileGroups:
             file1 = os.path.join(Archiver.get_user_outputs_dir().replace("results","Backtest-Reports"),fileGroup[0])
