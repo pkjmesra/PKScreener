@@ -75,6 +75,7 @@ from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.Environment import PKEnvironment
 from pkscreener.classes.CandlePatterns import CandlePatterns
 from pkscreener.classes import AssetsManager
+from PKDevTools.classes.FunctionTimeouts import exit_after
 from pkscreener.classes.MenuOptions import (
     level0MenuDict,
     level1_X_MenuDict,
@@ -498,7 +499,7 @@ def handleSecondaryMenuChoices(
             selectedMenu = m0.find(options[0])
             m1.renderForMenu(selectedMenu=selectedMenu, asList=True)
             selectedMenu = m1.find(options[1])
-            m2.renderForMenu(selectedMenu=selectedMenu)
+            m2.renderForMenu(selectedMenu=selectedMenu,asList=True)
             if options[2] in ["1","2","3","4"]:
                 selectedMenu = m2.find(options[2])
                 periodDurations = selectedMenu.menuText.split("(")[1].split(")")[0].split(", ")
@@ -552,7 +553,7 @@ def initExecution(menuOption=None):
         + f" (Piped Scan Mode) [{userPassedArgs.pipedmenus}]"
         + colorText.END
     )
-    m0.renderForMenu(selectedMenu=None)
+    m0.renderForMenu(selectedMenu=None,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
     try:
         needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
         pastDate = f"  [+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
@@ -612,7 +613,7 @@ def initPostLevel0Execution(
     )
     if indexOption is None:
         selectedMenu = m0.find(menuOption)
-        m1.renderForMenu(selectedMenu=selectedMenu, skip=skip)
+        m1.renderForMenu(selectedMenu=selectedMenu, skip=skip,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
     try:
         needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
         pastDate = f"  [+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
@@ -625,6 +626,7 @@ def initPostLevel0Execution(
             str(indexOption).upper() in ["S", "E", "W"]:
             ensureMenusLoaded(menuOption,indexOption,executeOption)
             if not PKPremiumHandler.hasPremium(m1.find(str(indexOption).upper())):
+                PKAnalyticsService().send_event(f"non_premium_user_{menuOption}_{indexOption}_{executeOption}")
                 return None, None
         if indexOption == "" or indexOption is None:
             indexOption = int(configManager.defaultIndex)
@@ -678,11 +680,12 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                 + colorText.END
             )
             selectedMenu = m1.find(indexOption)
-            m2.renderForMenu(selectedMenu=selectedMenu, skip=skip)
-            stockIndexCode = "18"
+            m2.renderForMenu(selectedMenu=selectedMenu, skip=skip,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
+            stockIndexCode = str(len(level1_index_options_sectoral.keys()))
             if indexOption == "S":
                 ensureMenusLoaded("X",indexOption,executeOption)
                 if not PKPremiumHandler.hasPremium(selectedMenu):
+                    PKAnalyticsService().send_event(f"non_premium_user_X_{indexOption}_{executeOption}")
                     PKAnalyticsService().send_event("app_exit")
                     sys.exit(0)
                 indexKeys = level1_index_options_sectoral.keys()
@@ -699,7 +702,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                     listStockCodes = [level1_index_options_sectoral[str(stockIndexCode)].split("(")[1].split(")")[0]]
                 selectedMenu.menuKey = "0" # Reset because user must have selected specific index menu with single stock
                 ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
-                m2.renderForMenu(selectedMenu=selectedMenu, skip=skip)
+                m2.renderForMenu(selectedMenu=selectedMenu, skip=skip,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
     try:
         needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
         pastDate = f"  [+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
@@ -711,6 +714,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                 OutputControls().printOutput(colorText.END, end="")
             ensureMenusLoaded("X",indexOption,executeOption)
             if not PKPremiumHandler.hasPremium(m2.find(str(executeOption))):
+                PKAnalyticsService().send_event(f"non_premium_user_X_{indexOption}_{executeOption}")
                 return None, None
             if executeOption == "":
                 executeOption = 1
@@ -922,10 +926,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         mkt_monitor_dict = mp_manager.dict()
         # Let's start monitoring the market monitor
         startMarketMonitor(mkt_monitor_dict,keyboardInterruptEvent)
-        PKAnalyticsService().send_event("market_monitor_started")
         
     keyboardInterruptEventFired = False
-    if stockDictPrimary is None:
+    if stockDictPrimary is None or isinstance(stockDictPrimary,dict):
         stockDictPrimary = mp_manager.dict()
         stockDictSecondary = mp_manager.dict()
         loadCount = 0
@@ -953,7 +956,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     if menuOption in ["F", "M", "S", "B", "G", "C", "P", "D"] or selectedMenu.isPremium:
         ensureMenusLoaded(menuOption,indexOption,executeOption)
         if not PKPremiumHandler.hasPremium(selectedMenu):
-            PKAnalyticsService().send_event(f"non_premium_user_{menuOption}")
+            PKAnalyticsService().send_event(f"non_premium_user_{menuOption}_{indexOption}_{executeOption}")
             PKAnalyticsService().send_event("app_exit")
             sys.exit(0)
     if menuOption in ["M", "D", "I", "L", "F"]:
@@ -1096,7 +1099,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         selectedChoice["0"] = "P"
         updateMenuChoiceHierarchy()
         selectedMenu = m0.find(menuOption)
-        m1.renderForMenu(selectedMenu)
+        m1.renderForMenu(selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         needsCalc = userPassedArgs is not None and userPassedArgs.backtestdaysago is not None
         pastDate = f"  [+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
         if predefinedOption is None:
@@ -1109,7 +1112,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
 
         if predefinedOption in ["1", "4"]:
             selectedMenu = m1.find(predefinedOption)
-            m2.renderForMenu(selectedMenu=selectedMenu)
+            m2.renderForMenu(selectedMenu=selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
             if selPredefinedOption is None:
                 selPredefinedOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
             OutputControls().printOutput(colorText.END, end="")
@@ -1121,7 +1124,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     
                 elif predefinedOption == "1": # Predefined
                     if selIndexOption is None and (userPassedArgs is None or userPassedArgs.answerdefault is None):
-                        m1.renderForMenu(m0.find(key="X"),skip=["W","N","E","S","Z"])
+                        m1.renderForMenu(m0.find(key="X"),skip=["W","N","E","S","Z"],asList=(userPassedArgs is not None and userPassedArgs.options is not None))
                         selIndexOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or str(configManager.defaultIndex)
                         if str(selIndexOption).upper() in "M":
                             return None, None
@@ -1695,7 +1698,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     if executeOption == 40:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         selectedMenu = m2.find(str(executeOption))
-        m3.renderForMenu(selectedMenu=selectedMenu)
+        m3.renderForMenu(selectedMenu=selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         if userPassedArgs.options is not None:
             options = userPassedArgs.options.split(":")
         if len(options) >=4:
@@ -1709,7 +1712,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         respChartPattern = (smaEMA == "2")
         selectedMenu = m3.find(str(smaEMA))
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
-        m4.renderForMenu(selectedMenu=selectedMenu)
+        m4.renderForMenu(selectedMenu=selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         if len(options) >=5:
             smaDirection = options[4]
             smaDirection = "2" if smaDirection == "D" else smaDirection
@@ -1730,7 +1733,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     if executeOption == 41:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         selectedMenu = m2.find(str(executeOption))
-        m3.renderForMenu(selectedMenu=selectedMenu)
+        m3.renderForMenu(selectedMenu=selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         if userPassedArgs.options is not None:
             options = userPassedArgs.options.split(":")
         if len(options) >=4:
@@ -1744,7 +1747,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         respChartPattern = pivotPoint
         selectedMenu = m3.find(str(pivotPoint))
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
-        m4.renderForMenu(selectedMenu=selectedMenu)
+        m4.renderForMenu(selectedMenu=selectedMenu,asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         if len(options) >=5:
             priceDirection = options[4]
             priceDirection = "2" if priceDirection == "D" else priceDirection
@@ -1789,6 +1792,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     if str(indexOption).isnumeric() and int(indexOption) > 1 and executeOption <= MAX_SUPPORTED_MENU_OPTION:
         ensureMenusLoaded(menuOption,indexOption,executeOption)
         if not PKPremiumHandler.hasPremium(m2.find(str(executeOption).upper())):
+            PKAnalyticsService().send_event(f"non_premium_user_{menuOption}_{indexOption}_{executeOption}")
             PKAnalyticsService().send_event("app_exit")
             sys.exit(0)
     if (
@@ -1801,6 +1805,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         try:
             if str(indexOption).upper() in ["W", "E", "S"]:
                 if not PKPremiumHandler.hasPremium(m1.find(str(indexOption).upper())):
+                    PKAnalyticsService().send_event(f"non_premium_user_{menuOption}_{indexOption}_{executeOption}")
                     PKAnalyticsService().send_event("app_exit")
                     sys.exit(0)
             if indexOption == "W":
@@ -1869,7 +1874,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     
                 if str(menuOption).upper() == "C":
                     stockDictPrimary,endOfdayCandles = PKMarketOpenCloseAnalyser.getStockDataForSimulation()
-                    if stockDictPrimary is None or endOfdayCandles is None:
+                    if stockDictPrimary is None or endOfdayCandles is None or len(stockDictPrimary) < 1 or len(endOfdayCandles) < 1:
                         OutputControls().printOutput(f"Cannot proceed! Stock data is unavailable. Please check the error logs/messages !")
                         return None, None
                     if indexOption > 0:
@@ -1892,7 +1897,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 userPassedArgs.options = (f"{userPassedArgs.options}:" if len(userPassedArgs.options) > 0  else '') + f"{selectedChoice[choice]}"
         if userPassedArgs.pipedmenus is not None:
             return addOrRunPipedMenus()
-
+        
+        loadedStockData = loadedStockData and stockDictPrimary is not None and len(stockDictPrimary) > 0
         if (menuOption in ["X", "B", "G", "S", "F"] and not loadedStockData) or (
             # not downloadOnly
             # and not PKDateUtilities.isTradingTime()
@@ -2201,6 +2207,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             OutputControls().printOutput(colorText.END, end="")
             ensureMenusLoaded(menuOption,indexOption,executeOption)
             if not PKPremiumHandler.hasPremium(m0.find(str(pinOption).upper())):
+                PKAnalyticsService().send_event(f"non_premium_user_pin_{menuOption}_{indexOption}_{executeOption}_{pinOption}")
                 PKAnalyticsService().send_event("app_exit")
                 sys.exit(0)
             if pinOption in ["1","2"]:
@@ -2360,6 +2367,20 @@ def analysisFinalResults(screenResults,saveResults,optionalFinalOutcome_df,runOp
         analysis_dict[firstScanKey] = {"S1": screenResults, "S2": saveResults}
     return optionalFinalOutcome_df, saveResults
 
+@exit_after(10)
+def tryLoadDataOnBackgroundThread():
+    global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
+    if stockDictPrimary is None:
+        stockDictPrimary = {}
+        stockDictSecondary = {}
+        loadedStockData = False
+    configManager.getConfig(parser=ConfigManager.parser)
+    defaultAnswer = "Y"
+    userPassedArgs = None
+    with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
+        listStockCodes = fetcher.fetchStockCodes(int(configManager.defaultIndex), stockCode=None)
+    loadDatabaseOrFetch(downloadOnly=True,listStockCodes=listStockCodes,menuOption="X",indexOption=int(configManager.defaultIndex))            
+
 def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption): 
     global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
     if menuOption not in ["C"]:
@@ -2373,16 +2394,16 @@ def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption):
                     exchangeSuffix = "" if (indexOption == 15 or (configManager.defaultIndex == 15 and indexOption == 0)) else ".NS",
                     userDownloadOption = menuOption
             )
-    if menuOption not in ["C"] and (userPassedArgs.monitor is not None or \
+    if menuOption not in ["C"] and (userPassedArgs is not None and (userPassedArgs.monitor is not None or \
                                     ("|" in userPassedArgs.options and ':i' in userPassedArgs.options) or \
                                     (":33:3:" in userPassedArgs.options or \
                                      ":32:" in userPassedArgs.options or \
-                                        ":38:" in userPassedArgs.options)) :#not configManager.isIntradayConfig() and configManager.calculatersiintraday:
+                                        ":38:" in userPassedArgs.options))) :#not configManager.isIntradayConfig() and configManager.calculatersiintraday:
         prevDuration = configManager.duration
         prevPeriod = configManager.period
         candleDuration = (userPassedArgs.intraday if (userPassedArgs is not None and userPassedArgs.intraday is not None) else ("1m" if configManager.duration.endswith("d") else configManager.duration))
         configManager.toggleConfig(candleDuration=candleDuration,clearCache=False)
-        if ":33:3:" in userPassedArgs.options:
+        if userPassedArgs is not None and ":33:3:" in userPassedArgs.options:
             exists, cache_file = AssetsManager.PKAssetsManager.afterMarketStockDataExists(True, forceLoad=(menuOption in ["X", "B", "G", "S", "F"]))
             cache_file = os.path.join(Archiver.get_user_data_dir(),cache_file)
             cacheFileSize = os.stat(cache_file).st_size if os.path.exists(cache_file) else 0
@@ -2868,7 +2889,8 @@ def updateMenuChoiceHierarchy():
     if ((":0:" in runOptionName or "_0_" in runOptionName) and userPassedArgs.progressstatus is not None) or userPassedArgs.progressstatus is not None:
         runOptionName = userPassedArgs.progressstatus.split("=>")[0].split("  [+] ")[1].strip()
     reportTitle = f"{runOptionName} | {reportTitle}" if runOptionName is not None else reportTitle
-    PKAnalyticsService().send_event(runOptionName)
+    if len(runOptionName) >= 5:
+        PKAnalyticsService().send_event(runOptionName)
     OutputControls().printOutput(
         colorText.FAIL
         + f"  [+] You chose: {reportTitle} "

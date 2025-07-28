@@ -25,6 +25,7 @@
 """
 
 import os
+import sys
 # import base64
 from sys import platform
 import platform
@@ -41,20 +42,25 @@ from PKDevTools.classes.Singleton import SingletonType, SingletonMixin
 from PKDevTools.classes.pubsub.publisher import PKUserService
 from PKDevTools.classes.pubsub.subscriber import notification_service
 from pkscreener.classes import VERSION
-
+from pkscreener.classes.ConfigManager import tools, parser
 class PKAnalyticsService(SingletonMixin, metaclass=SingletonType):
     def __init__(self):
         super(PKAnalyticsService, self).__init__()
-        self.username = ""
         self.locationInfo = ""
         self.os = platform.system()
         self.os_version = platform.release()
         self.app_version = VERSION
         self.start_time = time.time()
         self.isRunner = "RUNNER" in os.environ.keys()
+        self.onefile = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+        self.username = f"Unidentified-{self.os}"
+        self.configManager = tools()
+        self.configManager.getConfig(parser)
 
     def collectMetrics(self,user=None):
         try:
+            if not self.configManager.enableUsageAnalytics:
+                return
             self.userName = self.getUserName()
             metrics = self.getApproxLocationInfo()
             self.locationInfo = metrics
@@ -66,19 +72,19 @@ class PKAnalyticsService(SingletonMixin, metaclass=SingletonType):
 
     def getUserName(self):
         try:
-            username = os.getlogin()
-            if username is None or len(username) == 0:
-                username = os.environ.get('username') if platform.startswith("win") else os.environ.get("USER")
-                if username is None or len(username) == 0:
-                    username = os.environ.get('USERPROFILE')
-                    if username is None or len(username) == 0:
-                        username = os.path.expandvars("%userprofile%") if platform.startswith("win") else getpass.getuser()
+            self.username = os.getlogin()
+            if self.username is None or len(self.username) == 0:
+                self.username = os.environ.get('username') if platform.startswith("win") else os.environ.get("USER")
+                if self.username is None or len(self.username) == 0:
+                    self.username = os.environ.get('USERPROFILE')
+                    if self.username is None or len(self.username) == 0:
+                        self.username = os.path.expandvars("%userprofile%") if platform.startswith("win") else getpass.getuser()
         except KeyboardInterrupt: # pragma: no cover
             raise KeyboardInterrupt
         except: # pragma: no cover
-            username = f"Unidentified-{self.os}"
+            self.username = f"Unidentified-{self.os}"
             pass
-        return username
+        return self.username
 
     def getApproxLocationInfo(self):
         try:
@@ -92,15 +98,19 @@ class PKAnalyticsService(SingletonMixin, metaclass=SingletonType):
         return data
     
     def send_event(self,event_name,params={}):
+        if not self.configManager.enableUsageAnalytics:
+            return
         if isinstance(self.locationInfo,str):
             self.collectMetrics()
         event_params = {
-            "user_id": self.username,
+            "user_id": str(self.username),
             "os": self.os,
             "os_version": self.os_version,
             "app_version": self.app_version,
             "elapsed_time": str(time.time() - self.start_time),
-            "is_Runner": self.isRunner
+            "is_runner": self.isRunner,
+            "is_container": str(os.environ.get("PKSCREENER_DOCKER", "")).lower() in ("yes", "y", "on", "true", "1"),
+            "one_file_bundle": self.onefile
         }
         if len(params) > 0:
             for key in params:

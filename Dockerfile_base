@@ -53,7 +53,7 @@ RUN wget https://raw.githubusercontent.com/pkjmesra/PKScreener/main/.github/depe
   pip3 install setuptools cmake numpy
 
 RUN rm -rf main.zip
-RUN pip3 install ta-lib==0.6.0
+RUN pip3 install ta-lib==0.6.4
 
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt

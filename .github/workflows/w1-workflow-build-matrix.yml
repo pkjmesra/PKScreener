@@ -131,6 +131,7 @@ jobs:
               python3 -m pip install --upgrade pip
               pip3 uninstall -y PKNSETools
               pip3 uninstall -y PKDevTools
+              pip3.12 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-win_amd64.whl
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install .
@@ -157,7 +158,7 @@ jobs:
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.6.0
+              pip3 install ta-lib==0.6.4
               pip3 install .
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin --testbuild
@@ -182,7 +183,7 @@ jobs:
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
-              pip3 install ta-lib==0.6.0
+              pip3 install ta-lib==0.6.4
               pip3 install .
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin --testbuild
@@ -208,7 +209,7 @@ jobs:
               export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
               export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
               #python3 -m pip install -U ta-lib
-              python3 -m pip install --no-cache-dir ta-lib==0.6.0
+              python3 -m pip install --no-cache-dir ta-lib==0.6.4
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run -e -a Y -o H
@@ -234,7 +235,7 @@ jobs:
               export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
               export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
               #python3 -m pip install -U ta-lib
-              python3 -m pip install --no-cache-dir ta-lib==0.6.0
+              python3 -m pip install --no-cache-dir ta-lib==0.6.4
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run --testbuild

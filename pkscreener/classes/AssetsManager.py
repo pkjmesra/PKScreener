@@ -42,6 +42,7 @@ from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.MarketHours import MarketHours
 from PKDevTools.classes.Committer import Committer
 from PKDevTools.classes.SuppressOutput import SuppressOutput
+from PKDevTools.classes.PKBackupRestore import start_backup
 
 import pkscreener.classes.Fetcher as Fetcher
 from pkscreener.classes.PKTask import PKTask
@@ -131,6 +132,7 @@ class PKAssetsManager:
                 df.to_excel(writer, sheet_name=sheetName[-31:]) # sheetname cannot be beyond 31 character
                 # Close the Pandas Excel writer and output the Excel file.
                 writer.close()
+                df.to_csv(filePath.replace(".xlsx",".csv"))
                 isSaved = True
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
@@ -231,11 +233,11 @@ class PKAssetsManager:
                     pickle.dump(stockDict.copy(), f, protocol=pickle.HIGHEST_PROTOCOL)
                     OutputControls().printOutput(colorText.GREEN + "=> Done." + colorText.END)
                 if downloadOnly:
-                    if "RUNNER" not in os.environ.keys():
-                        copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{fileName}")
-                        cacheFileSize = os.stat(cache_file).st_size if os.path.exists(cache_file) else 0
-                        if os.path.exists(cache_file) and cacheFileSize >= 1024*1024*40:
-                            shutil.copy(cache_file,copyFilePath) # copy is the saved source of truth
+                    # if "RUNNER" not in os.environ.keys():
+                        # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{fileName}")
+                        # cacheFileSize = os.stat(cache_file).st_size if os.path.exists(cache_file) else 0
+                        # if os.path.exists(cache_file) and cacheFileSize >= 1024*1024*40:
+                        #     shutil.copy(cache_file,copyFilePath) # copy is the saved source of truth
 
                     rootDirs = [Archiver.get_user_data_dir(),Archiver.get_user_indices_dir(),outputFolder]
                     patterns = ["*.csv","*.pkl"]
@@ -268,7 +270,7 @@ class PKAssetsManager:
     def had_rate_limit_errors():
         """Checks if any stored errors are YFRateLimitError."""
         err = ",".join(list(shared._ERRORS.values()))
-        hitRateLimit = "YFRateLimitError" in err
+        hitRateLimit = "YFRateLimitError" in err or "Too Many Requests" in err or "429" in err
         if hitRateLimit:
             OutputControls().printOutput(
                 colorText.FAIL
@@ -281,8 +283,8 @@ class PKAssetsManager:
     def downloadLatestData(stockDict,configManager,stockCodes=[],exchangeSuffix=".NS",downloadOnly=False,numStocksPerIteration=0):
         shared._ERRORS.clear()  # Clear previous errors
         # if numStocksPerIteration == 0:
-        maxParallelProcesses = 17
-        numStocksPerIteration = (int(len(stockCodes)/int(len(stockCodes)/maxParallelProcesses)) if len(stockCodes) >= maxParallelProcesses else len(stockCodes)) + 1
+        # maxParallelProcesses = 17
+        numStocksPerIteration = 100 #(int(len(stockCodes)/int(len(stockCodes)/maxParallelProcesses)) if len(stockCodes) >= maxParallelProcesses else len(stockCodes)) + 1
         queueCounter = 0
         iterations = int(len(stockCodes)/numStocksPerIteration) + 1
         tasksList = []
@@ -357,16 +359,17 @@ class PKAssetsManager:
             # return stockDict
         if downloadOnly or isTrading:
             # We don't want to download from local stale pkl file or stale file at server
+            start_backup()
             return stockDict
         
         default_logger().debug(
             f"Stock data cache file:{cache_file} exists ->{str(exists)}"
         )
         stockDataLoaded = False
-        copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
+        # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
         srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
-        if os.path.exists(copyFilePath):
-            shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
+        # if os.path.exists(copyFilePath):
+        #     shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
         if os.path.exists(srcFilePath) and not forceRedownload:
             stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
         if (
@@ -387,93 +390,62 @@ class PKAssetsManager:
             stockDict, _ = PKAssetsManager.downloadLatestData(stockDict,configManager,stockCodes,exchangeSuffix=exchangeSuffix,downloadOnly=downloadOnly,numStocksPerIteration=len(stockCodes) if stockCodes is not None else 0)
         # See if we need to save stock data
         stockDataLoaded = stockDataLoaded or (len(stockDict) > 0 and (len(stockDict) != initialLoadCount))
-        if stockDataLoaded:
-            PKAssetsManager.saveStockData(stockDict,configManager,initialLoadCount,isIntraday,downloadOnly, forceSave=stockDataLoaded)
         leftOutStocks = list(set(stockCodes)-set(list(stockDict.keys())))
         if len(leftOutStocks) > int(len(stockCodes)*0.05) and not PKAssetsManager.had_rate_limit_errors():
             # More than 5 % of stocks are still remaining
             stockDict, _ = PKAssetsManager.downloadLatestData(stockDict,configManager,leftOutStocks,exchangeSuffix=exchangeSuffix,downloadOnly=downloadOnly,numStocksPerIteration=len(leftOutStocks) if leftOutStocks is not None else 0)
+        if stockDataLoaded and downloadOnly:
+            PKAssetsManager.saveStockData(stockDict,configManager,initialLoadCount,isIntraday,downloadOnly, forceSave=stockDataLoaded)
+        start_backup()
         return stockDict
 
     @Halo(text='  [+] Loading data from local cache...', spinner='dots')
     def loadDataFromLocalPickle(stockDict, configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading):
         stockDataLoaded = False
         srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
-        with open(srcFilePath, "rb") as f:
-            try:
+
+        try:
+            with open(srcFilePath, "rb") as f:
                 stockData = pickle.load(f)
-                if not downloadOnly:
-                    OutputControls().printOutput(
-                            colorText.GREEN
-                            + f"\n  [+] Automatically Using [{len(stockData)}] Tickers' Cached Stock Data {'due to After-Market hours' if not PKDateUtilities.isTradingTime() else ''}!"
-                            + colorText.END
-                        )
-                if stockData is not None and len(stockData) > 0:
-                    multiIndex = stockData.keys()
-                    if isinstance(multiIndex, pd.MultiIndex):
-                            # If we requested for multiple stocks from yfinance
-                            # we'd have received a multiindex dataframe
-                        listStockCodes = multiIndex.get_level_values(0)
-                        listStockCodes = sorted(list(filter(None,list(set(listStockCodes)))))
-                        if len(listStockCodes) > 0 and len(exchangeSuffix) > 0 and exchangeSuffix in listStockCodes[0]:
-                            listStockCodes = [x.replace(exchangeSuffix,"") for x in listStockCodes]
+            if not stockData:
+                return stockDict, stockDataLoaded
+            if not downloadOnly:
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"\n  [+] Automatically Using [{len(stockData)}] Tickers' Cached Stock Data"
+                    + (" due to After-Market hours" if not PKDateUtilities.isTradingTime() else "")
+                    + colorText.END
+                )
+            multiIndex = stockData.keys()
+            if isinstance(multiIndex, pd.MultiIndex):
+                listStockCodes = sorted(set(multiIndex.get_level_values(0)))
+            else:
+                listStockCodes = list(stockData.keys())
+            if exchangeSuffix and any(exchangeSuffix in code for code in listStockCodes):
+                listStockCodes = [x.replace(exchangeSuffix, "") for x in listStockCodes]
+            for stock in listStockCodes:
+                df_or_dict = stockData.get(stock)
+                df_or_dict = df_or_dict.to_dict("split") if isinstance(df_or_dict, pd.DataFrame) else df_or_dict
+                existingPreLoadedData = stockDict.get(stock)
+                if existingPreLoadedData:
+                    if isTrading:
+                        for col in ["MF", "FII", "MF_Date", "FII_Date", "FairValue"]:
+                            existingPreLoadedData[col] = df_or_dict.get(col)
+                        stockDict[stock] = existingPreLoadedData
                     else:
-                        listStockCodes = list(stockData.keys())
-                        if len(listStockCodes) > 0 and len(exchangeSuffix) > 0 and exchangeSuffix in listStockCodes[0]:
-                            listStockCodes = [x.replace(exchangeSuffix,"") for x in listStockCodes]
-                    for stock in listStockCodes:
-                        df_or_dict = stockData.get(stock)
-                        df_or_dict = df_or_dict.to_dict("split") if isinstance(df_or_dict,pd.DataFrame) else df_or_dict
-                            # This will keep all the latest security data we downloaded
-                            # just now and also copy the additional data like, MF/FII,FairValue
-                            # etc. data, from yesterday's saved data.
-                        try:
-                            existingPreLoadedData = stockDict.get(stock)
-                            if existingPreLoadedData is not None:
-                                if isTrading:
-                                        # Only copy the MF/FII/FairValue data and leave the stock prices as is.
-                                    cols = ["MF", "FII","MF_Date","FII_Date","FairValue"]
-                                    for col in cols:
-                                        existingPreLoadedData[col] = df_or_dict.get(col)
-                                    stockDict[stock] = existingPreLoadedData
-                                else:
-                                    stockDict[stock] = df_or_dict | existingPreLoadedData
-                            else:
-                                if not isTrading:
-                                    stockDict[stock] = df_or_dict
-                        except KeyboardInterrupt: # pragma: no cover
-                            raise KeyboardInterrupt
-                        except: # pragma: no cover
-                                # Probably, the "stock" got removed from the latest download
-                                # and so, was not found in stockDict
-                            continue
-                    # if len(stockDict) > 0:
-                    #     stockDict = stockDict | stockData
-                    # else:
-                    #     stockDict = stockData
-                    stockDataLoaded = True
-            except KeyboardInterrupt: # pragma: no cover
-                raise KeyboardInterrupt
-            except pickle.UnpicklingError as e: # pragma: no cover
-                default_logger().debug(e, exc_info=True)
-                f.close()
-                OutputControls().printOutput(
-                        colorText.FAIL
-                        + "  [+] Error while Reading Stock Cache. Press <Enter> to continue..."
-                        + colorText.END
-                    )
-                if PKAssetsManager.promptFileExists(defaultAnswer=defaultAnswer) == "Y":
-                    configManager.deleteFileWithPattern()
-            except EOFError as e:  # pragma: no cover
-                default_logger().debug(e, exc_info=True)
-                f.close()
-                OutputControls().printOutput(
-                        colorText.FAIL
-                        + "  [+] Stock Cache Corrupted."
-                        + colorText.END
-                    )
-                if PKAssetsManager.promptFileExists(defaultAnswer=defaultAnswer) == "Y":
-                    configManager.deleteFileWithPattern()
+                        stockDict[stock] = {**existingPreLoadedData, **df_or_dict}
+                elif not isTrading:
+                    stockDict[stock] = df_or_dict
+            stockDataLoaded = True
+        except (pickle.UnpicklingError, EOFError) as e:
+            default_logger().debug(e, exc_info=True)
+            OutputControls().printOutput(
+                colorText.FAIL + "  [+] Error while Reading Stock Cache." + colorText.END
+            )
+            if PKAssetsManager.promptFileExists(defaultAnswer=defaultAnswer) == "Y":
+                configManager.deleteFileWithPattern()
+        except KeyboardInterrupt:
+            raise
         return stockDict, stockDataLoaded
 
     @Halo(text='', spinner='dots')
@@ -575,12 +547,12 @@ class PKAssetsManager:
                                     # and so, was not found in stockDict
                                 continue
                         stockDataLoaded = True
-                        copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
-                        srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
-                        if os.path.exists(copyFilePath) and os.path.exists(srcFilePath):
-                            shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
-                        if not os.path.exists(copyFilePath) and os.path.exists(srcFilePath): # Let's make a copy of the original one
-                            shutil.copy(srcFilePath,copyFilePath)
+                        # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
+                        # srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
+                        # if os.path.exists(copyFilePath) and os.path.exists(srcFilePath):
+                        #     shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
+                        # if not os.path.exists(copyFilePath) and os.path.exists(srcFilePath): # Let's make a copy of the original one
+                        #     shutil.copy(srcFilePath,copyFilePath)
                         # Remove the progress bar now!
                         OutputControls().moveCursorUpLines(1)
                 except KeyboardInterrupt: # pragma: no cover
@@ -594,7 +566,7 @@ class PKAssetsManager:
                         f"Stock data cache file:{cache_file} on server has length ->{filesize} {'Mb' if chunksize >= MB else ('Kb' if chunksize >= KB else 'bytes')}"
                     )
             if not retrial and not stockDataLoaded:
-                    # Don't try for more than once.
+                # Don't try for more than once.
                 stockDict = PKAssetsManager.loadStockData(
                         stockDict,
                         configManager,

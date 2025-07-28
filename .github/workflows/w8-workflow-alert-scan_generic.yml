@@ -171,7 +171,7 @@ jobs:
 
     - name: Configure env.dev file
       run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
@@ -181,6 +181,7 @@ jobs:
         TURSO_TOKEN : ${{secrets.TURSO_TOKEN}}
         TDU : ${{secrets.TURSO_DATABASE_URL}}
         TAT : ${{secrets.TURSO_AUTH_TOKEN}}
+        
   
     - name: Run Scan on Windows
       shell: cmd

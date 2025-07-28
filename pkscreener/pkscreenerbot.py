@@ -71,6 +71,7 @@ from pkscreener.classes.MenuOptions import MenuRenderStyle, menu, menus,MAX_MENU
 from pkscreener.classes.WorkflowManager import run_workflow
 import pkscreener.classes.ConfigManager as ConfigManager
 from pkscreener.classes.PKAnalytics import PKAnalyticsService
+from PKDevTools.classes.FunctionTimeouts import ping
 try:
     from PKDevTools.classes.DBManager import DBManager
     from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions
@@ -1314,9 +1315,9 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
         payingUsers = dbMgr.getPayingUsers()
         if payingUsers is not None and len(payingUsers) > 0:
             menuText = "Here are all the paying users:"
-            menuText = f"{menuText}\n{"UserID".ljust(10,'#')} : {"Subs.".ljust(5,'#')} : {"Bal.".ljust(5,'#')}"
+            menuText = f"{menuText}\n{"UserID".ljust(10,'#')} : {"UserName".ljust(10,'#')} : {"Subs.".ljust(5,'#')} : {"Bal.".ljust(5,'#')}"
             for payingUser in payingUsers:
-                menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
+                menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.username).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
     elif selection == "UUB":
         user_states[user.id] = f"{selection}_awaiting_input_1"  # Set user state
         menuText = "Please enter a userID for whom to update balance:"
@@ -1360,7 +1361,8 @@ def default_markup(user=None,monitorIndex=0):
     inlineMenus = []
     lastRowMenus = []
     rowIndex = 0
-    iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":"","VS":"🔔 📣 ","start":"🟢 🏁 ", "HS":"🕵️‍♂️ "}
+    # https://emojidb.org/otp-emojis
+    iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":"","VS":"🔔 📣 ","start":"🟢 🏁 ", "HS":"🕵️‍♂️ ","otp":"🔐 "}
     for mnu in mns:
         if mnu.menuKey[0:2] in TOP_LEVEL_SCANNER_MENUS:
             rowIndex +=1
@@ -1383,6 +1385,12 @@ def default_markup(user=None,monitorIndex=0):
         InlineKeyboardButton(
             iconDict.get("start") + "Start",
             callback_data="start",
+        )
+    )
+    lastRowMenus.append(
+        InlineKeyboardButton(
+            iconDict.get("otp") + "Get OTP",
+            callback_data="OTP",
         )
     )
     if len(inlineMenus) > 0:
@@ -2256,7 +2264,7 @@ def addCommandsForMenuItems(application):
 #     message_id=job.context.message_id
 #   )
 
-
+@ping(interval=300,instance=PKAnalyticsService(),prefix="bot_")
 def runpkscreenerbot(availability=True) -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
@@ -2283,6 +2291,7 @@ def runpkscreenerbot(availability=True) -> None:
         states={
             START_ROUTES: [
                 CallbackQueryHandler(XScanners, pattern="^" + str("CX") + "$"),
+                CallbackQueryHandler(otp, pattern="^" + str("OTP") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CB") + "$"),
                 CallbackQueryHandler(PScanners, pattern="^" + str("CP") + "$"),
                 CallbackQueryHandler(XScanners, pattern="^" + str("CMI_")),

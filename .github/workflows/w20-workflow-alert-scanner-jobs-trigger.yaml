@@ -84,7 +84,7 @@ jobs:
         TDU : ${{secrets.TURSO_DATABASE_URL}}
         TAT : ${{secrets.TURSO_AUTH_TOKEN}}
   
-    - name: Reset/Remove daily alert subscribed users & Reset all scanner jobs for all users
+    - name: Triger alerting jobs
       shell: bash
       timeout-minutes: 2
       continue-on-error: true

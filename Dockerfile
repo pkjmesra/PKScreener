@@ -38,6 +38,7 @@ COPY requirements.txt .
 RUN pip3 install --upgrade pip && \
     pip3 uninstall pkscreener PKNSETools PKDevTools -y && \
     pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl && \
     pip3 install . && \
     mv /PKScreener-main/pkscreener/pkscreenercli.py /pkscreenercli.py && \
     rm -rf /PKScreener-main && \
