@@ -158,7 +158,7 @@ if __name__ == '__main__':
         else:
             scanResultFilesPath = pathSpec
             if delete:
-                scanResultFilesPath = f"-A {scanResultFilesPath}"
+                scanResultFilesPath = f"-A '{scanResultFilesPath}'"
 
         if args.branchname is not None:
             Committer.commitTempOutcomes(addPath=scanResultFilesPath,commitMessage=f"[Temp-Commit-{choices}]",branchName=args.branchname, showStatus=True)
