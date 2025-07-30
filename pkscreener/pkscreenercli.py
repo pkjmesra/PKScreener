@@ -311,7 +311,8 @@ argParser.add_argument(
     help="runs and tests all options",
     required=False,
 )
-
+from PKDevTools.classes.FunctionTimeouts import ping
+from pkscreener.classes.PKAnalytics import PKAnalyticsService
 def csv_split(s):
     return list(csv.reader([s], delimiter=' '))[0]
 
@@ -918,6 +919,7 @@ def updateConfig(args):
             configManager.duration = "1d"
             configManager.setConfig(ConfigManager.parser,default=True, showFileCreatedText=False)
 
+@ping(interval=60,instance=PKAnalyticsService())
 def pkscreenercli():
     global originalStdOut, args
     if sys.platform.startswith("darwin"):
@@ -931,6 +933,14 @@ def pkscreenercli():
                 OutputControls().printOutput(e)
                 traceback.print_exc()
             pass
+        finally:
+            from PKDevTools.classes.PKBackupRestore import restore_backup
+            restore_backup()
+            sleep(3)
+        #     import threading
+        #     from pkscreener.globals import tryLoadDataOnBackgroundThread
+        #     ping_thread = threading.Thread(target=tryLoadDataOnBackgroundThread, daemon=True)
+        #     ping_thread.start()
     try:
         removeOldInstances()
         OutputControls(enableMultipleLineOutput=(args is None or args.monitor is None or args.runintradayanalysis),enableUserInput=(args is None or args.answerdefault is None)).printOutput("",end="\r")
@@ -1213,6 +1223,14 @@ def scheduleNextRun():
     cron_runs += 1
 
 if __name__ == "__main__":
+    if "RUNNER" in os.environ.keys():
+        try:
+            owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n","")
+            repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
+            if owner.lower() not in ["pkjmesra","pkscreener"]:
+                sys.exit(0)
+        except:
+            pass
     try:
         pkscreenercli()
     except KeyboardInterrupt: # pragma: no cover

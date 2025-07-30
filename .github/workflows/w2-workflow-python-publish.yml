@@ -245,11 +245,19 @@ jobs:
       #     cd .github/dependencies/
       #     pip3 install TA_Lib-0.4.29-cp${{ matrix.python }}-cp${{ matrix.python }}-win_amd64.whl
 
-      - name: Install Python Dependencies
+      - name: Install Python Dependencies for ${{ matrix.TARGET }}
+        if: ${{ matrix.platform_id != 'win_amd64' }}
         run: |
           pip3 install -r requirements.txt
           pip3 install -r requirements-dev.txt
-          
+      
+      - name: Install Python Dependencies for ${{ matrix.TARGET }}
+        if: ${{ matrix.platform_id == 'win_amd64' }}
+        run: |
+          pip3.12 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-win_amd64.whl
+          pip3 install -r requirements.txt
+          pip3 install -r requirements-dev.txt
+
       - name: Declare env variables
         id: vars
         shell: bash

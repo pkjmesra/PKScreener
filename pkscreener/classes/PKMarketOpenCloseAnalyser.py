@@ -87,12 +87,16 @@ class PKMarketOpenCloseAnalyser:
         daily_exists, daily_cache_file, stockDict = PKMarketOpenCloseAnalyser.ensureDailyStockDataExists(listStockCodes=listStockCodes)
         updatedCandleData = PKMarketOpenCloseAnalyser.updatedCandleData
         allDailyCandles = PKMarketOpenCloseAnalyser.allDailyCandles
+        if updatedCandleData is not None and len(updatedCandleData) < 1:
+            updatedCandleData = None
+        if allDailyCandles is not None and len(allDailyCandles) < 1:
+            allDailyCandles = None
         if  ((int_exists or len(stockDictInt) > 0) and (daily_exists or len(stockDict) > 0)) and (updatedCandleData is None or allDailyCandles is None):
             allDailyCandles = PKMarketOpenCloseAnalyser.getLatestDailyCandleData(daily_cache_file,stockDict)
             morningIntradayCandle = PKMarketOpenCloseAnalyser.getIntradayCandleFromMorning(int_cache_file,sliceWindowDatetime=sliceWindowDatetime,stockDictInt=stockDictInt)
             updatedCandleData = PKMarketOpenCloseAnalyser.combineDailyStockDataWithMorningSimulation(allDailyCandles,morningIntradayCandle)
-            # PKMarketOpenCloseAnalyser.updatedCandleData = updatedCandleData
-            # PKMarketOpenCloseAnalyser.allDailyCandles = allDailyCandles
+            PKMarketOpenCloseAnalyser.updatedCandleData = updatedCandleData
+            PKMarketOpenCloseAnalyser.allDailyCandles = allDailyCandles
             AssetsManager.PKAssetsManager.saveStockData(updatedCandleData,PKMarketOpenCloseAnalyser.configManager,1,False,False, True)
         return updatedCandleData, allDailyCandles
 
@@ -282,9 +286,11 @@ class PKMarketOpenCloseAnalyser:
                 with pd.option_context('mode.chained_assignment', None):
                     df.dropna(axis=0, how="all", inplace=True)
                 if df is not None and len(df) > 0:
+                    close = PKMarketOpenCloseAnalyser.getMorningClose(df)
+                    adjClose = df["Adj Close"][-1] if "Adj Close" in df.columns else close
                     combinedCandle = {"Open":PKMarketOpenCloseAnalyser.getMorningOpen(df), "High":max(df["High"]), 
-                                    "Low":min(df["Low"]),"Close":PKMarketOpenCloseAnalyser.getMorningClose(df),
-                                    "Adj Close":df["Adj Close"][-1],"Volume":sum(df["Volume"])}
+                                    "Low":min(df["Low"]),"Close":close,
+                                    "Adj Close":adjClose,"Volume":sum(df["Volume"])}
                     tradingDate = df.index[-1] #PKDateUtilities.tradingDate()
                     timestamp = datetime.datetime.strptime(tradingDate.strftime("%Y-%m-%d %H:%M:%S"),"%Y-%m-%d %H:%M:%S")
                     df = pd.DataFrame([combinedCandle], columns=df.columns, index=[timestamp])

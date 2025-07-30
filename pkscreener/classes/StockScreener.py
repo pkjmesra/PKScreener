@@ -981,19 +981,23 @@ class StockScreener:
                 data.set_index("Date", inplace=True)
                 data.drop("index",axis=1,inplace=True)
             else:
-                data = fetcher.fetchStockData(
-                        stock,
-                        period,
-                        configManager.duration if duration is None else duration,
-                        hostRef.proxyServer,
-                        hostRef.processingResultsCounter,
-                        hostRef.processingCounter,
-                        totalSymbols,
-                        start=start,
-                        end=start,
-                        exchangeSuffix=".NS" if exchangeName == "INDIA" else "",
-                        printCounter=printCounter
-                    )
+                # The following code tries to re-fetch the missing stock data
+                # It has been commented because it's less likely to fetch the data again
+                # within seconds of the first try when we must have tried to fetch data
+                # in batches.
+                # data = fetcher.fetchStockData(
+                #         stock,
+                #         period,
+                #         configManager.duration if duration is None else duration,
+                #         hostRef.proxyServer,
+                #         hostRef.processingResultsCounter,
+                #         hostRef.processingCounter,
+                #         totalSymbols,
+                #         start=start,
+                #         end=start,
+                #         exchangeSuffix=".NS" if exchangeName == "INDIA" else "",
+                #         printCounter=printCounter
+                #     )
                 if hostData is not None and data is not None:
                     # During the market trading hours, we don't want to go for MFI/FV value fetching
                     # So let's copy the old saved ones.

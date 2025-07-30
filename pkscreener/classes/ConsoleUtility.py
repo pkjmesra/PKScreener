@@ -41,6 +41,9 @@ class PKConsoleTools:
     
     fetcher = Fetcher.screenerStockDataFetcher()
     def clearScreen(userArgs=None,clearAlways=False,forceTop=False):
+        timeit = 'timeit' in os.environ.keys()
+        if timeit:
+            return
         if "RUNNER" in os.environ.keys() or (userArgs is not None and userArgs.prodbuild):
             if userArgs is not None and userArgs.v:
                 os.environ["RUNNER"]="LOCAL_RUN_SCANNER"
