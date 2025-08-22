@@ -146,7 +146,8 @@ jobs:
       shell: bash
       id: releaseurlsetter
       run: |
-        pip3 install requests
+        pip3 install PKDevTools
+        pip3 install PKNSETools
         python3 .github/workflows/githubutilities.py -d
 
     - name: Download latest executable on Windows
@@ -165,29 +166,6 @@ jobs:
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-
-    - name: Delete stock data
-      shell: bash
-      continue-on-error: true
-      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
-      run: |
-        rm -rf actions-data-download/*stock_data_*.pkl || true
-        rm -rf actions-data-download/*DB.pkl || true
-
-    - name: Delete results stock data
-      shell: bash
-      continue-on-error: true
-      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
-      run: |
-        rm -rf results/Data/*stock_data_*.pkl || true
-        rm -rf results/Data/*DB.pkl || true
-
-    - name: Remove deleted file from git
-      shell: bash
-      continue-on-error: true
-      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
-      run: |
-        git ls-files --deleted -z | xargs -0 git rm
           
     - name: Download 52 week Stock Data on Ubuntu
       shell: bash
@@ -196,9 +174,9 @@ jobs:
       run: |
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
-        rm -rf results//Data/*.lck || true
-        ls -l results/Data
-        cp results/Data/*.pkl actions-data-download
+        rm -rf results/*.lck || true
+        ls -l results
+        cp results/*.pkl actions-data-download
         ls -l actions-data-download
         git status
       env:
@@ -247,152 +225,23 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        git config --global http.postBuffer 150000000
         git remote update
         git fetch
         git add actions-data-download/*.pkl --force
-        git add results/Data/*.pkl --force
-        git add results/Indices/*.csv --force
-        git add results/Indices/*.csv -u
-        git add results/Data/*.pkl -u
-        git add actions-data-download/*.pkl -u
         git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
         git push -v -u origin +actions-data-download
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-        
-    - name: Squash Commits (Python)
-      if: ${{ inputs.skipDownload == '' }}
-      shell: bash
+    
+    - name: Trigger Intraday analysis scan
       continue-on-error: true
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config --global http.postBuffer 150000000
-        git fetch
-        python3 .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-
-    - name: Install Python Dependencies for clean up
-      if: ${{ inputs.cleanuphistoricalscans == 'Y' || inputs.skipDownload == '' }}
-      continue-on-error: true
-      run: |
-        pip3 install --upgrade pip
-        pip3 install -r requirements.txt
-        pip3 install .
-
-    - name: Configure env.dev file
-      run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
-        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
       shell: bash
-      env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        
-    - name: Trigger miscellaneous tasks that are download-data dependent
-      if: ${{ inputs.skipDownload == '' }}
-      shell: bash
-      continue-on-error: true
       run: |
-        python3 .github/workflows/workflowtriggers.py -f --misc
+        pip3 install pkscreener
+        python3 .github/workflows/workflowtriggers.py --runintradayanalysis -u -1001785195297
       env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         RUNNER : "GitHub_Actions"
-
-    - name: Clean up old historical scan results
-      shell: bash
-      if: ${{ inputs.cleanuphistoricalscans == 'Y' }}
-      continue-on-error: true
-      env:
-        RUNNER : "LOCAL_RUN_SCANNER"
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-      run: |
-        python3 .github/workflows/workflowtriggers.py -f --cleanuphistoricalscans --scanDaysInPast 450 -s0 S,T,E,U,Z,F,H,Y,G,M,D,I,L -s1 "" -s2 "" -s3 "" -s4 "" --branchname actions-data-download
-
-
-    - name: Setup Python environment for triggers on Ubuntu
-      shell: bash
-      if: ${{ inputs.cleanuphistoricalscans != 'Y' && startsWith(runner.os, 'Linux') }}
-      continue-on-error: true
-      run: |
-        cd .github/dependencies/
-        pwd
-        sudo dpkg -i ta-lib_0.6.4_amd64.deb
-        cd /home/runner/work/PKScreener/PKScreener/
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
-        pip3 install -r requirements-dev.txt
-        pip3 install ta-lib==0.6.0
-        pip3 install .
-
-    - name: Setup Python environment for triggers on Windows
-      continue-on-error: true
-      if: ${{ inputs.cleanuphistoricalscans != 'Y' && startsWith(runner.os, 'Windows') }}
-      shell: bash
-      run: |
-        cd .github/dependencies/
-        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        fi
-        cd ..
-        cd ..
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
-        pip3 install -r requirements-dev.txt
-        pip3 install .
-        
-    - name: Run Historical Scan on Ubuntu
-      shell: bash
-      continue-on-error: true
-      env:
-        RUNNER : "LOCAL_RUN_SCANNER"
-        GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
-        GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-      if: ${{ inputs.cleanuphistoricalscans != 'Y' && startsWith(runner.os, 'Linux') }}
-      run: |
-        python3 .github/workflows/workflowtriggers.py ${{ inputs.scanOptions }}
-        echo "STAGED_COMMITS=$(git diff --cached --numstat | wc -l)" >> $GITHUB_OUTPUT
-      id: histRunnnerLinux
-
-    - name: Run Historical Scan on Windows
-      continue-on-error: true
-      env:
-        RUNNER : "LOCAL_RUN_SCANNER"
-        GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
-        GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-      if: ${{ inputs.cleanuphistoricalscans != 'Y' && startsWith(runner.os, 'Windows') }}
-      shell: cmd
-      run: |
-        python3 .github/workflows/workflowtriggers.py ${{ inputs.scanOptions }}
-        echo "STAGED_COMMITS=$(git diff --cached --numstat | wc -l)" >> $GITHUB_OUTPUT
-      id: histRunnnerWindows
-
-    - name: Push Historical scan Data
-      shell: bash
-      if: ${{ inputs.cleanuphistoricalscans != 'Y' && ( steps.histRunnnerLinux.outputs.STAGED_COMMITS != 0 || steps.histRunnnerWindows.outputs.STAGED_COMMITS != 0 ) }}
-      run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        git config --global http.postBuffer 150000000
-        git remote update
-        git fetch
-        git add actions-data-scan/*.txt --force
-        git commit -m "GitHub-Action-Workflow-Market-Data-Scan-Results-(Default-Config)"
-        git push -v -u origin +actions-data-download
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
     - name: Delete this workflow run
       continue-on-error: true

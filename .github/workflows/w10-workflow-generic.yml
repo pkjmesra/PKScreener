@@ -1,0 +1,164 @@
+# """
+#     The MIT License (MIT)
+
+#     Copyright (c) 2023 pkjmesra
+
+#     Permission is hereby granted, free of charge, to any person obtaining a copy
+#     of this software and associated documentation files (the "Software"), to deal
+#     in the Software without restriction, including without limitation the rights
+#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#     copies of the Software, and to permit persons to whom the Software is
+#     furnished to do so, subject to the following conditions:
+
+#     The above copyright notice and this permission notice shall be included in all
+#     copies or substantial portions of the Software.
+
+#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#     SOFTWARE.
+
+# """
+name: 10. Generic workflow runner
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Run Details'
+        required: false
+        default: 'Generic workflow runner'
+      targetPythonVersion:
+        description: 'Target Python version: 3.9 , 3.10, 3.11 ?'
+        required: false
+        type: string
+        default: '3.12'
+      runson:
+          description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
+          required: false
+          default: 'ubuntu-latest'
+      installtalib:
+        description: 'Is TA-Lib install required? (Y/N). N to skip installing talib.'
+        required: false
+        default: 'N'
+      scanOptions:
+        description: 'Scan options for historical scans. cleanuphistoricalscans MUST to be left empty to run historical scans.'
+        required: false
+        default: '--runintradayanalysis -u -1001785195297'
+
+  # schedule:
+  # - cron: '58 9 * * 0-6'
+
+run-name: ${{ inputs.scanOptions || 'Generic workflow runner'}}
+
+jobs:
+
+  RunWorkflow:
+
+    runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
+    permissions: write-all
+      # actions: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: actions-data-download
+
+    - name: Set up Python 
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.targetPythonVersion  || 3.12 }}
+
+    - name: Restore Dependencies from Windows Cache
+      if: startsWith(runner.os, 'Windows')
+      uses: actions/cache@v4
+      continue-on-error: true
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v4
+      continue-on-error: true
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+          
+    - name: Install TA-Lib for Windows
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
+      shell: bash
+      run: |
+        python3 -m pip install --upgrade pip
+        cd .github/dependencies/
+        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
+          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
+          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
+          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        fi
+
+    - name: Install TA-Lib for Linux
+      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
+      run: |
+        cd .github/dependencies/
+        pwd
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib
+
+    - name: Environment setup to get latest EXE
+      shell: bash
+      id: releaseurlsetter
+      run: |
+        pip3 install requests
+        python3 .github/workflows/githubutilities.py -d
+
+    - name: Download latest executable on Windows
+      shell: cmd
+      if: ${{ startsWith(runner.os, 'Windows' ) }}
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o pkscreenercli.exe -JL %exe_path%
+
+    - name: Download latest executable on Ubuntu
+      shell: bash
+      if: ${{ startsWith(runner.os, 'Linux' ) }}
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+    
+    - name: Trigger workflow
+      continue-on-error: true
+      shell: bash
+      run: |
+        pip3 install pkscreener
+        python3 .github/workflows/workflowtriggers.py ${{ inputs.scanOptions }}
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        RUNNER : "GitHub_Actions"
+
+    - name: Delete this workflow run
+      continue-on-error: true
+      if: ${{ startsWith(runner.os, 'Linux' ) }}
+      shell: bash
+      run: |
+        gh run list --status success --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+        gh run list --status cancelled --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+      env:
+        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

@@ -31,24 +31,34 @@ on:
         required: false
         default: 'PKScreener - Scan Alerts'
       targetPythonVersion:
-        description: 'Target Python version: 3.9 , 3.10, , 3.12, 3.13 ?'
+        description: 'Target Python version: 3.9 , 3.10, 3.11,3.12,3.13 ?'
         required: false
         type: string
         default: '3.12'
-
-  # schedule:
-  # - cron: '55 9 * * 0-6'
+      runson:
+        description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
+        required: false
+        default: 'ubuntu-latest'
+  schedule:
+  - cron: '55 9 * * 0-6'
 
 jobs:
 
   NIFTY_Prediction_Alert:
 
-    runs-on: windows-latest
+    runs-on: ${{ inputs.runson || 'ubuntu-latest' }} #ubuntu-latest #windows-latest
 
     steps:
     - uses: actions/checkout@v4
       with:
+        # repository: pkjmesra/PKScreener
         ref: main
+        # token: ${{secrets.GITHUB_TOKEN}}
+    
+    - name: setup git config
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
 
     - name: Set up Python 
       uses: actions/setup-python@v5
@@ -63,10 +73,36 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib
+    - name: Load Cache for Linux Dependencies
+      uses: actions/cache@v4
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+          
+    - name: Restore Dependencies from Ubuntu Cache
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
+      id: cache-venv  # name for referring later
+      with:
+        path: ./.venv/  # what we cache: the virtualenv
+        # The cache key depends on requirements.txt
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
+
+    - name: Install TA-Lib for Windows
+      if: ${{ startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
+        pip3 install requests
         cd .github/dependencies/
         if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
           pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
@@ -77,6 +113,39 @@ jobs:
         elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
           pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
         fi
+
+    - name: Install TA-Lib for Linux
+      if: ${{ startsWith(runner.os, 'Linux') }}
+      run: |
+        cd .github/dependencies/
+        pwd
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
+        cd /home/runner/work/PKScreener/PKScreener/
+        pip3 install ta-lib
+          
+    - name: Environment setup to get latest EXE
+      shell: bash
+      id: releaseurlsetter
+      run: |
+        pip3 install requests
+        python3 .github/workflows/githubutilities.py -d
+  
+    - name: Download latest executable on Windows
+      shell: cmd
+      if: ${{ startsWith(runner.os, 'Windows' ) }}
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o pkscreenercli.exe -JL %exe_path%
+
+    - name: Download latest executable on Ubuntu
+      shell: bash
+      if: ${{ startsWith(runner.os, 'Linux' ) }}
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
+        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
 
     - name: Install Python Dependencies
       run: |
@@ -92,25 +161,68 @@ jobs:
     - name: Configure env.dev file
       if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
       run: |
-        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
+        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkscreener/PKScreener.git'+'\n'); file.close()"
+        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkscreener/PKScreener.git'+'\n'); file.close()"
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: 1. Next day Nifty/Market AI prediction
       if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
-      shell: cmd
-      run: |
-        cd pkscreener/
-        python3 pkscreenercli.py -a Y -p -o X:N -e
-        cd ..
-
-    - name: Update holidays
       shell: bash
+      env:
+        RUNNER : "GitHub_Actions"
+        ALERT_TRIGGER : "Y"
       run: |
-        python3 .github/workflows/workflowtriggers.py --updateholidays
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -a Y -l -o X:N -e
+
+  HOLIDAYS_UPDATE:
+    runs-on: ${{ inputs.runson || 'ubuntu-latest' }} #ubuntu-latest #windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: pkjmesra/PKScreener
+          ref: main
+          token: ${{secrets.GITHUB_TOKEN}}
+      
+      - name: setup git config
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Set up Python 
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.targetPythonVersion || 3.11 }}
+
+      - name: Install Python Dependencies
+        run: |
+          pip3 install -r requirements.txt
+          pip3 install .
+
+      - name: Configure env.dev file
+        run: |
+          python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkscreener/PKScreener.git'+'\n'); file.close()"
+          python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkscreener/PKScreener.git'+'\n'); file.close()"
+        shell: bash
+        env:
+          CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Update holidays
+        shell: bash
+        timeout-minutes: 5
+        env:
+          RUNNER : "GitHub_Actions"
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          python3 .github/workflows/workflowtriggers.py --updateholidays
+        
   # Delete_Workflow_Run:
   #   runs-on: ubuntu-latest
   #   needs: [NIFTY_Prediction_Alert]
