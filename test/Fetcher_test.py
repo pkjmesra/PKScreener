@@ -38,7 +38,7 @@ import pytest
 from PKDevTools.classes.Fetcher import StockDataEmptyException
 
 from pkscreener.classes import ConfigManager
-from pkscreener.classes.Fetcher import screenerStockDataFetcher
+from pkscreener.classes.Fetcher import screenerStockDataFetcher, yf_session
 from pkscreener.classes.PKTask import PKTask
 
 @pytest.fixture
@@ -259,17 +259,19 @@ def test_fetchStockData_positive(configManager, tools_instance):
         result = tools_instance.fetchStockData("AAPL", "1d", "1m", None, 0, 0, 1)
         assert result.equals(pd.DataFrame({"Close": [100, 200, 300]}))
         mock_download.assert_called_once_with(
-            tickers="AAPL.NS",
-            period="1d",
-            interval="1m",
-            proxy=None,
-            progress=False,
-            timeout=configManager.generalTimeout/4,
-            rounding=True,
+            tickers='AAPL.NS', 
+            period='1d', 
+            interval='1m', 
+            proxy=None, 
+            progress=False, 
+            rounding=True, 
             group_by='ticker', 
+            timeout=0.5, 
             start=None, 
-            end=None,
-            auto_adjust=True
+            end=None, 
+            auto_adjust=True, 
+            threads=True, 
+            session = yf_session
         )
 
 

@@ -82,7 +82,7 @@ jobs:
       with:
         ref: ${{ inputs.branch-name }}
         # repository: pkjmesra/PKScreener
-        # token: ${{secrets.PK_GITHUB_TOKEN}}
+        # token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -220,14 +220,14 @@ jobs:
       env:
         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
-    # - name: Delete original repo workflow runs
-    #   shell: bash
-    #   run: |
-    #     gh run list --status success --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-    #     gh run list --status cancelled --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-    #     gh run list --status completed --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-    #   env:
-    #     GH_TOKEN : ${{secrets.PK_GITHUB_TOKEN}}
+    - name: Delete original repo workflow runs
+      shell: bash
+      run: |
+        gh run list --status success --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+        gh run list --status cancelled --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+        gh run list --status completed --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
+      env:
+        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
   # Delete_Workflow_Run:
   #   runs-on: ubuntu-latest
