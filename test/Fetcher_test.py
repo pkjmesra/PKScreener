@@ -719,14 +719,14 @@ class TestScreenerStockDataFetcher3(unittest.TestCase):
     
     @patch("yfinance.download")
     def test_fetchStockData_success(self, mock_yf_download):
-        mock_df = pd.DataFrame({"Open": [100], "close": [105]})
+        mock_df = pd.DataFrame({"open": [100], "close": [105]})
         mock_yf_download.return_value = mock_df
         
         fetcher = screenerStockDataFetcher()
         data = fetcher.fetchStockData("AAPL", "1d", "1m")
         
         self.assertFalse(data.empty)
-        self.assertIn("Open", data.columns)
+        self.assertIn("open", data.columns)
         self.assertIn("close", data.columns)
     
     @patch("yfinance.download")
@@ -739,7 +739,7 @@ class TestScreenerStockDataFetcher3(unittest.TestCase):
     
     @patch("yfinance.download")
     def test_fetchStockData_list_of_tickers(self, mock_yf_download):
-        mock_df = pd.DataFrame({("AAPL", "Open"): [100], ("AAPL", "close"): [105]})
+        mock_df = pd.DataFrame({("AAPL", "open"): [100], ("AAPL", "close"): [105]})
         mock_df.columns = pd.MultiIndex.from_tuples(mock_df.columns)
         mock_yf_download.return_value = mock_df
         

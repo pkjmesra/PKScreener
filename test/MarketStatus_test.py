@@ -51,19 +51,19 @@ class TestMarketStatus(unittest.TestCase):
 
     @patch('PKNSETools.PKNSEStockDataFetcher.nseStockDataFetcher.capitalMarketStatus')
     def test_marketStatus_property_setter(self, mock_capitalMarketStatus):
-        self.market_status.marketStatus = "Open"
-        self.assertEqual(self.market_status.marketStatus, "Open")
+        self.market_status.marketStatus = "open"
+        self.assertEqual(self.market_status.marketStatus, "open")
         self.assertIn("marketStatus", self.market_status.attributes)
 
     def test_getMarketStatus_success(self):
         mock_fetcher = MagicMock()
-        mock_fetcher.capitalMarketStatus.return_value = ("Open", "Closed", None)
+        mock_fetcher.capitalMarketStatus.return_value = ("open", "Closed", None)
         MarketStatus.nseFetcher = mock_fetcher
         
         result = self.market_status.getMarketStatus(exchangeSymbol="^NSEI")
-        self.assertTrue("Open" in result or "close" in result)
+        self.assertTrue("open" in result or "close" in result)
         self.assertIn("marketStatus", self.market_status.attributes)
-        self.assertTrue("Open" in self.market_status.marketStatus or "close" in self.market_status.marketStatus)
+        self.assertTrue("open" in self.market_status.marketStatus or "close" in self.market_status.marketStatus)
 
     @patch('PKNSETools.PKNSEStockDataFetcher.nseStockDataFetcher.capitalMarketStatus', side_effect=Exception("Fetch Error"))
     def test_getMarketStatus_exception(self, mock_capitalMarketStatus):
@@ -76,13 +76,13 @@ class TestMarketStatus(unittest.TestCase):
     @patch('PKNSETools.PKNSEStockDataFetcher.nseStockDataFetcher.capitalMarketStatus')
     def test_getMarketStatus_with_progress(self, mock_capitalMarketStatus):
         mock_fetcher = MagicMock()
-        mock_fetcher.capitalMarketStatus.return_value = ("Open", "Closed", None)
+        mock_fetcher.capitalMarketStatus.return_value = ("open", "Closed", None)
         MarketStatus.nseFetcher = mock_fetcher
         
         progress = {}
         result = self.market_status.getMarketStatus(progress=progress, task_id=1, exchangeSymbol="^NSEI")
         
-        self.assertTrue("Open" in result or "close" in result)
+        self.assertTrue("open" in result or "close" in result)
         # self.assertIn(1, progress)
         # self.assertEqual(progress[1], {"progress": 1, "total": 1})
 

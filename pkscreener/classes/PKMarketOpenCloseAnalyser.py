@@ -288,7 +288,7 @@ class PKMarketOpenCloseAnalyser:
                 if df is not None and len(df) > 0:
                     close = PKMarketOpenCloseAnalyser.getMorningClose(df)
                     adjClose = df["Adj Close"][-1] if "Adj Close" in df.columns else close
-                    combinedCandle = {"Open":PKMarketOpenCloseAnalyser.getMorningOpen(df), "high":max(df["high"]), 
+                    combinedCandle = {"open":PKMarketOpenCloseAnalyser.getMorningOpen(df), "high":max(df["high"]), 
                                     "low":min(df["low"]),"close":close,
                                     "Adj Close":adjClose,"volume":sum(df["volume"])}
                     tradingDate = df.index[-1] #PKDateUtilities.tradingDate()
@@ -304,15 +304,15 @@ class PKMarketOpenCloseAnalyser:
 
     def getMorningOpen(df):
         try:
-            open = df["Open"][0]
+            open = df["open"][0]
         except KeyError: # pragma: no cover
-            open = df["Open"][df.index.values[0]]
+            open = df["open"][df.index.values[0]]
         index = 0
         while np.isnan(open) and index < len(df):
             try:
-                open = df["Open"][index + 1]
+                open = df["open"][index + 1]
             except KeyError: # pragma: no cover
-                open = df["Open"][df.index.values[index + 1]]
+                open = df["open"][df.index.values[index + 1]]
             index += 1
         return open
     

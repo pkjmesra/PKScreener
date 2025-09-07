@@ -229,10 +229,10 @@ class TestGetIntradayCandleFromMorning(unittest.TestCase):
         mock_data = {
             'AAPL': {
                 "data": [
-                    {"Open": 150, "high": 155, "low": 149, "close": 154, "Adj Close": 154, "volume": 1000},
-                    {"Open": 154, "high": 156, "low": 153, "close": 155, "Adj Close": 155, "volume": 1100}
+                    {"open": 150, "high": 155, "low": 149, "close": 154, "Adj Close": 154, "volume": 1000},
+                    {"open": 154, "high": 156, "low": 153, "close": 155, "Adj Close": 155, "volume": 1100}
                 ],
-                "columns": ["Open", "high", "low", "close", "Adj Close", "volume"],
+                "columns": ["open", "high", "low", "close", "Adj Close", "volume"],
                 "index": pd.date_range(start='2023-10-01 09:15', periods=2, freq='T')
             }
         }
@@ -258,7 +258,7 @@ class TestGetIntradayCandleFromMorning(unittest.TestCase):
         mock_data = {
             'AAPL': {
                 "data": [],
-                "columns": ["Open", "high", "low", "close", "Adj Close", "volume"],
+                "columns": ["open", "high", "low", "close", "Adj Close", "volume"],
                 "index": []
             }
         }
@@ -277,9 +277,9 @@ class TestGetIntradayCandleFromMorning(unittest.TestCase):
         mock_data = {
             'AAPL': {
                 "data": [
-                    {"Open": 150, "high": 155, "low": 149, "close": 154, "Adj Close": 154, "volume": 1000},
+                    {"open": 150, "high": 155, "low": 149, "close": 154, "Adj Close": 154, "volume": 1000},
                 ],
-                "columns": ["Open", "high", "low", "close", "Adj Close", "volume"],
+                "columns": ["open", "high", "low", "close", "Adj Close", "volume"],
                 "index": pd.date_range(start='2023-10-01 09:15', periods=1, freq='T')
             }
         }

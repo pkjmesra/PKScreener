@@ -342,7 +342,7 @@ class PKAssetsManager:
             # return stockDict
         if downloadOnly or isTrading:
             # We don't want to download from local stale pkl file or stale file at server
-            start_backup()
+            # start_backup()
             return stockDict
         
         default_logger().debug(
@@ -379,7 +379,7 @@ class PKAssetsManager:
             stockDict, _ = PKAssetsManager.downloadLatestData(stockDict,configManager,leftOutStocks,exchangeSuffix=exchangeSuffix,downloadOnly=downloadOnly,numStocksPerIteration=len(leftOutStocks) if leftOutStocks is not None else 0)
         if stockDataLoaded and downloadOnly:
             PKAssetsManager.saveStockData(stockDict,configManager,initialLoadCount,isIntraday,downloadOnly, forceSave=stockDataLoaded)
-        start_backup()
+        # start_backup()
         return stockDict
 
     @Halo(text='  [+] Loading data from local cache...', spinner='dots')

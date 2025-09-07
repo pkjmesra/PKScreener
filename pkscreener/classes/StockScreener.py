@@ -35,7 +35,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 # from PKDevTools.classes.log import tracelog
 # from PKDevTools.classes.PKTimer import PKTimer
-from PKDevTools.classes import Archiver
+from PKDevTools.classes import Archiver, log
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.Fetcher import StockDataEmptyException
 from PKDevTools.classes.SuppressOutput import SuppressOutput
@@ -50,6 +50,17 @@ class StockScreener:
     def __init__(self):
         self.isTradingTime = PKDateUtilities.isTradingTime()
         self.configManager = None
+
+    def setupLogger(self, log_level):
+        if log_level > 0:
+            os.environ["PKDevTools_Default_Log_Level"] = str(log_level)
+        log.setup_custom_logger(
+            "pkscreener",
+            log_level,
+            trace=False,
+            log_file_path="pkscreener-logs.txt",
+            filter=None,
+        )
 
     # @tracelog
     def screenStocks(
@@ -85,6 +96,7 @@ class StockScreener:
         ), "hostRef argument must not be None. It should be an instance of PKMultiProcessorClient"
         if stock is None or len(stock) == 0:
             return None
+        self.setupLogger(log_level=logLevel)
         configManager = hostRef.configManager
         self.configManager = configManager
         screeningDictionary, saveDictionary = self.initResultDictionaries()
@@ -1049,6 +1061,7 @@ class StockScreener:
             else:
                 data.rename(columns={"index": "Date"}, inplace=True)
             data.set_index("Date", inplace=True)
+            data.index = pd.to_datetime(data.index)
         except: # pragma: no cover
             pass
         if ((shouldCache and not self.isTradingTime and (hostData is None  or hostDataLength == 0)) or downloadOnly) \

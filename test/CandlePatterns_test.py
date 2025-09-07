@@ -42,7 +42,7 @@ def candle_patterns():
 
 def prepData():
     ohlc = {
-        "Open": [1, 2, 3, 4],
+        "open": [1, 2, 3, 4],
         "high": [5, 6, 7, 8],
         "low": [9, 10, 11, 12],
         "close": [13, 14, 15, 16],

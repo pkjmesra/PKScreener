@@ -38,7 +38,7 @@ import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
 from PKDevTools.classes.OutputControls import OutputControls
-from PKDevTools.classes import Archiver
+from PKDevTools.classes import Archiver, log
 from PKNSETools.morningstartools import Stock
 
 if sys.version_info >= (3, 11):
@@ -90,6 +90,18 @@ class ScreeningStatistics:
         self.configManager = configManager
         self.default_logger = default_logger
         self.shouldLog = shouldLog
+        self.setupLogger(self.default_logger.level)
+
+    def setupLogger(self, log_level):
+        if log_level > 0:
+            os.environ["PKDevTools_Default_Log_Level"] = str(log_level)
+        log.setup_custom_logger(
+            "pkscreener",
+            log_level,
+            trace=False,
+            log_file_path="pkscreener-logs.txt",
+            filter=None,
+        )
 
     def calc_relative_strength(self,df:pd.DataFrame):
         if df is None or len(df) <= 1:
@@ -968,7 +980,7 @@ class ScreeningStatistics:
                     + colorText.END
                 )
                 return not alreadyBrokenout
-            noOfHigherShadows = len(data[data.High > maxClose])
+            noOfHigherShadows = len(data[data.high > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
                 saveDict["Breakout"] = "BO: " + str(maxHigh) + " R: 0"
                 if recentClose >= maxHigh:
@@ -1064,7 +1076,7 @@ class ScreeningStatistics:
         avwap = pktalib.AVWAP(df=reversedData,anchored_date=anchored_date)
         if 'anchored_VWAP' not in reversedData.keys():
             reversedData.loc[:,'anchored_VWAP'] =avwap
-        recentOpen = reversedData["Open"].tail(1).head(1).iloc[0]
+        recentOpen = reversedData["open"].tail(1).head(1).iloc[0]
         recentClose = reversedData["close"].tail(1).head(1).iloc[0]
         recentLow = reversedData["low"].tail(1).head(1).iloc[0]
         recentAVWAP = reversedData["anchored_VWAP"].tail(1).head(1).iloc[0]
@@ -1216,7 +1228,7 @@ class ScreeningStatistics:
         data['Date'] = data['Date'].apply(lambda x : x.strftime('%Y-%m-%d'))
         data['Close_ch'] = data["close"].shift(+1)
         data['rpv'] = ((data["close"] / data['Close_ch']) - 1) * data["volume"]
-        data['SMA50_Volume'] = data.Volume.rolling(50).mean()
+        data['SMA50_Volume'] = data.volume.rolling(50).mean()
         data['SMA50_rpv'] = data.rpv.rolling(50).mean()
 
         T = 0
@@ -1423,7 +1435,7 @@ class ScreeningStatistics:
         recent = data.head(2)
         if len(recent) < 2:
             return False
-        return recent["Open"].iloc[0] > recent["high"].iloc[1]
+        return recent["open"].iloc[0] > recent["high"].iloc[1]
 
     # Find stocks that opened higher than the previous high
     def findHigherOpens(self, df):
@@ -1435,7 +1447,7 @@ class ScreeningStatistics:
         recent = data.head(2)
         if len(recent) < 2:
             return False
-        return recent["Open"].iloc[0] > recent["close"].iloc[1]
+        return recent["open"].iloc[0] > recent["close"].iloc[1]
 
     # Find DEEL Momentum
     def findHighMomentum(self, df, strict=False):
@@ -1519,10 +1531,10 @@ class ScreeningStatistics:
                 int_df = df_intraday[df_intraday.index <=  pd.to_datetime(f'{PKDateUtilities.tradingDate().strftime(f"%Y-%m-%d")} {MarketHours().openHour:02}:{MarketHours().openMinute+candle1MinuteNumberSinceMarketStarted}:00+05:30', utc=True)]
                 pass
             if int_df is not None and len(int_df) > 0:
-                combinedCandle = {"Open":self.getMorningOpen(int_df), "high":max(int_df["high"]), 
+                combinedCandle = {"open":self.getMorningOpen(int_df), "high":max(int_df["high"]), 
                                 "low":min(int_df["low"]),"close":self.getMorningClose(int_df),
                                 "Adj Close":int_df["Adj Close"][-1],"volume":sum(int_df["volume"])}
-                openPrice = combinedCandle["Open"]
+                openPrice = combinedCandle["open"]
                 lowPrice = combinedCandle["low"]
                 closePrice = combinedCandle["close"]
                 highPrice = combinedCandle["high"]
@@ -1836,7 +1848,7 @@ class ScreeningStatistics:
             bearishMAReversal = dataCopy["maRev"].iloc[0] <= dataCopy["maRev"].iloc[1] and \
                 dataCopy["maRev"].iloc[1] <= dataCopy["maRev"].iloc[2] and \
                     dataCopy["maRev"].iloc[2] > dataCopy["maRev"].iloc[3]
-            isRecentCloseWithinPercentRange = dataCopy.equals(dataCopy[(dataCopy.Close >= (dataCopy.maRev - (dataCopy.maRev * percentage))) & (dataCopy.Close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))])
+            isRecentCloseWithinPercentRange = dataCopy.equals(dataCopy[(dataCopy.close >= (dataCopy.maRev - (dataCopy.maRev * percentage))) & (dataCopy.close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))])
             if (isRecentCloseWithinPercentRange and bullishClose and bullishMAReversal) or \
                 (isRecentCloseWithinPercentRange and not bullishClose and bearishMAReversal):
                 hasReversals = True
@@ -2088,7 +2100,7 @@ class ScreeningStatistics:
         color = 'tab:green'
         xdate = [x.date() for x in data.index]
         ax1.set_xlabel('Date', color=color)
-        ax1.plot(xdate, data.Close, label="close", color=color)
+        ax1.plot(xdate, data.close, label="close", color=color)
         ax1.tick_params(axis='x', labelcolor=color)
 
         ax2 = ax1.twiny() # ax2 and ax1 will have common y axis and different x axis, twiny
@@ -2229,13 +2241,13 @@ class ScreeningStatistics:
         return isUptrend, mf_inst_ownershipChange, fairValueDiff
 
     def getCandleBodyHeight(self, dailyData):
-        bodyHeight = dailyData["close"].iloc[0] - dailyData["Open"].iloc[0]
+        bodyHeight = dailyData["close"].iloc[0] - dailyData["open"].iloc[0]
         return bodyHeight
 
     # Private method to find candle type
     # True = Bullish, False = Bearish
     def getCandleType(self, dailyData):
-        return bool(dailyData["close"].iloc[0] >= dailyData["Open"].iloc[0])
+        return bool(dailyData["close"].iloc[0] >= dailyData["open"].iloc[0])
 
     def getFairValue(self, stock, hostData=None, force=False,exchangeName="INDIA"):
         if hostData is None or len(hostData) < 1:
@@ -2344,10 +2356,10 @@ class ScreeningStatistics:
         return close
 
     def getMorningOpen(self,df):
-        open = df["Open"][0]
+        open = df["open"][0]
         index = 0
         while open is np.nan and index < len(df):
-            open = df["Open"][index + 1]
+            open = df["open"][index + 1]
             index += 1
         return open
 
@@ -2453,7 +2465,7 @@ class ScreeningStatistics:
             ### v2 Preprocessing
             data["high"] = data["high"].pct_change() * 100
             data["low"] = data["low"].pct_change() * 100
-            data["Open"] = data["Open"].pct_change() * 100
+            data["open"] = data["open"].pct_change() * 100
             data["close"] = data["close"].pct_change() * 100
             data = data.iloc[-1]
             ###
@@ -2533,26 +2545,26 @@ class ScreeningStatistics:
 
             with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
                 if "sell" in data_list[cnt]:
-                    streched = d[(d.Low > d["5EMA"]) & (d.Low - d["5EMA"] > 0.5)]
-                    streched["SL"] = streched.High
+                    streched = d[(d.low > d["5EMA"]) & (d.low - d["5EMA"] > 0.5)]
+                    streched["SL"] = streched.high
                     validate = d[
-                        (d.Low.shift(1) > d["5EMA"].shift(1))
-                        & (d.Low.shift(1) - d["5EMA"].shift(1) > 0.5)
+                        (d.low.shift(1) > d["5EMA"].shift(1))
+                        & (d.low.shift(1) - d["5EMA"].shift(1) > 0.5)
                     ]
                     old_index = validate.index
                 else:
-                    mask = (d.High < d["5EMA"]) & (d["5EMA"] - d.High > 0.5)  # Buy
+                    mask = (d.high < d["5EMA"]) & (d["5EMA"] - d.high > 0.5)  # Buy
                     streched = d[mask]
-                    streched["SL"] = streched.Low
+                    streched["SL"] = streched.low
                     validate = d.loc[mask.shift(1).fillna(False)]
                     old_index = validate.index
             tgt = pd.DataFrame(
                 (
-                    validate.Close.reset_index(drop=True)
+                    validate.close.reset_index(drop=True)
                     - (
                         (
                             streched.SL.reset_index(drop=True)
-                            - validate.Close.reset_index(drop=True)
+                            - validate.close.reset_index(drop=True)
                         )
                         * risk_reward
                     )
@@ -2570,9 +2582,9 @@ class ScreeningStatistics:
             validate = validate.tail(len(old_index))
             validate = validate.set_index(old_index)
             if "sell" in data_list[cnt]:
-                final = validate[validate.Close < validate["5EMA"]].tail(1)
+                final = validate[validate.close < validate["5EMA"]].tail(1)
             else:
-                final = validate[validate.Close > validate["5EMA"]].tail(1)
+                final = validate[validate.close > validate["5EMA"]].tail(1)
 
             if data_list[cnt] not in last_signal:
                 last_signal[data_list[cnt]] = final
@@ -3046,8 +3058,8 @@ class ScreeningStatistics:
         reversedData = data[::-1]  # Reverse the dataframe
         recentClose = reversedData["close"].tail(1).head(1).iloc[0]
         yesterdayClose = reversedData["close"].tail(2).head(1).iloc[0]
-        recentOpen = reversedData["Open"].tail(1).head(1).iloc[0]
-        yesterdayOpen = reversedData["Open"].tail(2).head(1).iloc[0]
+        recentOpen = reversedData["open"].tail(1).head(1).iloc[0]
+        yesterdayOpen = reversedData["open"].tail(2).head(1).iloc[0]
         recentVol = reversedData["volume"].tail(1).head(1).iloc[0]
         # Daily open > 1 day ago open &
         # Daily Close > 1 day ago close &
@@ -3298,10 +3310,10 @@ class ScreeningStatistics:
                     data = orgData.head(i)
                     refCandle = data.tail(1)
                     if (
-                        (len(data.High[data.High > refCandle.High.item()]) == 0)
-                        and (len(data.Low[data.Low < refCandle.Low.item()]) == 0)
-                        and (len(data.Open[data.Open > refCandle.High.item()]) == 0)
-                        and (len(data.Close[data.Close < refCandle.Low.item()]) == 0)
+                        (len(data.high[data.high > refCandle.high.item()]) == 0)
+                        and (len(data.low[data.low < refCandle.low.item()]) == 0)
+                        and (len(data.open[data.open > refCandle.high.item()]) == 0)
+                        and (len(data.close[data.close < refCandle.low.item()]) == 0)
                     ):
                         screenDict["Pattern"] = (
                             saved[0]
@@ -3320,10 +3332,10 @@ class ScreeningStatistics:
                     data = orgData.head(i)
                     refCandle = data.tail(1)
                     if (
-                        (len(data.High[data.High > refCandle.High.item()]) == 0)
-                        and (len(data.Low[data.Low < refCandle.Low.item()]) == 0)
-                        and (len(data.Open[data.Open > refCandle.High.item()]) == 0)
-                        and (len(data.Close[data.Close < refCandle.Low.item()]) == 0)
+                        (len(data.high[data.high > refCandle.high.item()]) == 0)
+                        and (len(data.low[data.low < refCandle.low.item()]) == 0)
+                        and (len(data.open[data.open > refCandle.high.item()]) == 0)
+                        and (len(data.close[data.close < refCandle.low.item()]) == 0)
                     ):
                         screenDict["Pattern"] = (
                             saved[0]
@@ -3342,7 +3354,7 @@ class ScreeningStatistics:
         if df is None or len(df) == 0:
             return False
         data = df.copy()
-        listingPrice = data[::-1].head(1)["Open"].iloc[0]
+        listingPrice = data[::-1].head(1)["open"].iloc[0]
         currentPrice = data.head(1)["close"].iloc[0]
         ATH = data.describe()["high"]["max"]
         if ATH > (listingPrice + (listingPrice * percentage)):
@@ -3384,7 +3396,7 @@ class ScreeningStatistics:
         data = data[::-1]  # Reverse the dataframe
         data = data.rename(
             columns={
-                "Open": "open",
+                "open": "open",
                 "close": "close",
                 "high": "high",
                 "low": "low",
@@ -3645,13 +3657,13 @@ class ScreeningStatistics:
             for row in data.iterrows():
                 # All 3 candles should be Green and NOT Circuits
                 yc = row[1]["close"]
-                yo = row[1]["Open"]
+                yo = row[1]["open"]
                 if yc <= yo:
                     # self.default_logger.info(
                     #     f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because yesterday-close ({yc}) <= yesterday-open ({yo})'
                     # )
                     return False
-            openDesc = data.sort_values(by=["Open"], ascending=False)
+            openDesc = data.sort_values(by=["open"], ascending=False)
             closeDesc = data.sort_values(by=["close"], ascending=False)
             volDesc = data.sort_values(by=["volume"], ascending=False)
             try:
@@ -3663,9 +3675,9 @@ class ScreeningStatistics:
                     # self.default_logger.info(
                     #     f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!'
                     # )
-                    to = data["Open"].iloc[0]
+                    to = data["open"].iloc[0]
                     yc = data["close"].iloc[1]
-                    yo = data["Open"].iloc[1]
+                    yo = data["open"].iloc[1]
                     dyc = data["close"].iloc[2]
                     if (to >= yc) and (yo >= dyc):
                         # self.default_logger.info(
@@ -3737,7 +3749,7 @@ class ScreeningStatistics:
         emaDev = ema_20 * maRange / 100
         vwapDev = vwap * maRange / 100
         open, high, low, close, sma, lma = (
-            data["Open"].iloc[0],
+            data["open"].iloc[0],
             data["high"].iloc[0],
             data["low"].iloc[0],
             data["close"].iloc[0],
@@ -3810,7 +3822,7 @@ class ScreeningStatistics:
         if PKDateUtilities.isTradingTime():
             rangeData = data.head(nr + 1)[1:]
             now_candle = data.head(1)
-            rangeData["Range"] = abs(rangeData["close"] - rangeData["Open"])
+            rangeData["Range"] = abs(rangeData["close"] - rangeData["open"])
             recent = rangeData.head(1)
             if (
                 len(recent) == 1
@@ -3837,7 +3849,7 @@ class ScreeningStatistics:
             return False
         else:
             rangeData = data.head(nr)
-            rangeData.loc[:,'Range'] = abs(rangeData["close"] - rangeData["Open"])
+            rangeData.loc[:,'Range'] = abs(rangeData["close"] - rangeData["open"])
             recent = rangeData.head(1)
             if recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
                 screenDict["Pattern"] = (
@@ -3974,7 +3986,7 @@ class ScreeningStatistics:
         try:
             df_ichi = df_new.rename(
                 columns={
-                    "Open": "open",
+                    "open": "open",
                     "high": "high",
                     "low": "low",
                     "close": "close",
@@ -4138,7 +4150,7 @@ class ScreeningStatistics:
         w_sma_8 = pktalib.SMA(weeklyData["close"],timeperiod=8).tail(1).iloc[0]
         numPreviousCandles = 20
         pullbackData = data.head(numPreviousCandles)
-        pullbackData.loc[:,'PullBack'] = pullbackData["close"].lt(pullbackData["Open"]) #.shift(periods=1)) #& data["low"].lt(data["low"].shift(periods=1))
+        pullbackData.loc[:,'PullBack'] = pullbackData["close"].lt(pullbackData["open"]) #.shift(periods=1)) #& data["low"].lt(data["low"].shift(periods=1))
         shrinkedVolData = pullbackData[pullbackData["PullBack"] == True].head(numPreviousCandles)
         recentLargestVolume = max(pullbackData[pullbackData["PullBack"] == False].head(3)["volume"])
         # pullbackData.loc[:,'PBVolRatio'] = pullbackData["volume"]/recentLargestVolume
@@ -4213,11 +4225,11 @@ class ScreeningStatistics:
             try:
                 # Check for previous RED candles
                 # Current candle = 0th, Previous Candle = 1st for following logic
-                if data.iloc[1]["Open"] >= data.iloc[1]["close"]:
-                    spread1 = abs(data.iloc[1]["Open"] - data.iloc[1]["close"])
-                    spread0 = abs(data.iloc[0]["Open"] - data.iloc[0]["close"])
+                if data.iloc[1]["open"] >= data.iloc[1]["close"]:
+                    spread1 = abs(data.iloc[1]["open"] - data.iloc[1]["close"])
+                    spread0 = abs(data.iloc[0]["open"] - data.iloc[0]["close"])
                     lower_wick_spread0 = (
-                        max(data.iloc[0]["Open"], data.iloc[0]["close"])
+                        max(data.iloc[0]["open"], data.iloc[0]["close"])
                         - data.iloc[0]["low"]
                     )
                     vol1 = data.iloc[1]["volume"]
@@ -4227,7 +4239,7 @@ class ScreeningStatistics:
                         spread0 > spread1
                         and vol0 < vol1
                         and data.iloc[0]["volume"] < data.iloc[0]["VolMA"]
-                        and data.iloc[0]["close"] <= data.iloc[1]["Open"]
+                        and data.iloc[0]["close"] <= data.iloc[1]["open"]
                         and spread0 < lower_wick_spread0
                         and data.iloc[0]["volume"] <= int(data.iloc[1]["volume"] * 0.75)
                     ):
@@ -4243,7 +4255,7 @@ class ScreeningStatistics:
                         spread0 < spread1
                         and vol0 > vol1
                         and data.iloc[0]["volume"] > data.iloc[0]["VolMA"]
-                        and data.iloc[0]["close"] <= data.iloc[1]["Open"]
+                        and data.iloc[0]["close"] <= data.iloc[1]["open"]
                     ):
                         screenDict["Pattern"] = (
                             saved[0] 

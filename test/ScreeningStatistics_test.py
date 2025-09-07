@@ -374,20 +374,20 @@ def test_findAroonBullishCrossover_edge(tools_instance):
 
 def test_positive_case_findBreakingoutNow(tools_instance):
     df = pd.DataFrame({
-        "Open": [50, 60, 70, 80, 90, 100],
+        "open": [50, 60, 70, 80, 90, 100],
         "close": [55, 65, 75, 85, 95, 105]
     })
     assert tools_instance.findBreakingoutNow(df,df,{},{}) == False
 
     df = pd.DataFrame({
-        "Open": [100,100,100,100,100,100,100,100,100,100,100,100],
+        "open": [100,100,100,100,100,100,100,100,100,100,100,100],
         "close": [130,110,110,110,110,110,110,110,110,110,110,110,]
     })
     assert tools_instance.findBreakingoutNow(df,df,{},{}) == True
 
 def test_negative_case_findBreakingoutNow(tools_instance):
     df = pd.DataFrame({
-        "Open": [50, 60, 70, 80, 90, 80],
+        "open": [50, 60, 70, 80, 90, 80],
         "close": [55, 65, 75, 85, 95, 85]
     })
     assert tools_instance.findBreakingoutNow(df,df,{},{}) == False
@@ -398,14 +398,14 @@ def test_empty_dataframe_findBreakingoutNow(tools_instance):
 
 def test_dataframe_with_nan_findBreakingoutNow(tools_instance):
     df = pd.DataFrame({
-        "Open": [50, 60, np.nan, 80, 90, 100],
+        "open": [50, 60, np.nan, 80, 90, 100],
         "close": [55, 65, np.nan, 85, 95, 105]
     })
     assert tools_instance.findBreakingoutNow(df,df,{},{}) == False
 
 def test_dataframe_with_inf_findBreakingoutNow(tools_instance):
     df = pd.DataFrame({
-        "Open": [50, 60, np.inf, 80, 90, 100],
+        "open": [50, 60, np.inf, 80, 90, 100],
         "close": [55, 65, np.inf, 85, 95, 105]
     })
     assert tools_instance.findBreakingoutNow(df,df,{},{}) == False
@@ -429,7 +429,7 @@ def test_findBreakoutValue_negative(tools_instance):
         {
             "high": [90, 80, 70, 60, 50],
             "close": [80, 70, 60, 50, 40],
-            "Open": [80, 70, 60, 50, 40],
+            "open": [80, 70, 60, 50, 40],
         }
     )
     screenDict = {}
@@ -467,7 +467,7 @@ def test_findBreakoutValue_edge(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -601,7 +601,7 @@ def test_findBullishIntradayRSIMACD_positive():
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -682,7 +682,7 @@ def test_findNR4Day_positive():
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -805,7 +805,7 @@ def test_findReversalMA_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -926,7 +926,7 @@ def test_findTrend_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -1113,7 +1113,7 @@ def test_findTrendlines_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -1235,7 +1235,7 @@ def test_getCandleType_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -1360,7 +1360,7 @@ def test_getNiftyPrediction_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -1531,7 +1531,7 @@ def test_preprocessData_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -1716,7 +1716,7 @@ def test_validate15MinutePriceVolumeBreakout_positive(tools_instance):
                 190,
                 200,
             ],
-            "Open": [
+            "open": [
                 200,
                 190,
                 180,
@@ -2699,7 +2699,7 @@ def test_validateMACDHistogramBelow0_positive(tools_instance):
 
 # Negative test case for validateMomentum function
 def test_validateMomentum_negative(tools_instance):
-    data = pd.DataFrame({"close": [100, 90, 80], "Open": [110, 100, 90]})
+    data = pd.DataFrame({"close": [100, 90, 80], "open": [110, 100, 90]})
     screenDict = {}
     saveDict = {}
     result = tools_instance.validateMomentum(data, screenDict, saveDict)
@@ -2765,7 +2765,7 @@ def mock_data():
             "close": [100, 105, 110, 115],
             "RSI": [60, 65, 70, 75],
             "FASTK": [30, 40, 50, 60],
-            "Open": [95, 100, 105, 110],
+            "open": [95, 100, 105, 110],
             "high": [105, 110, 115, 120],
             "low": [95, 100, 105, 110],
             "volume": [1000, 2000, 3000, 4000],
@@ -2951,13 +2951,13 @@ def test_validateVolume_negative(mock_data, mock_screen_dict, mock_save_dict, to
     assert tools_instance.validateVolume(mock_data, mock_screen_dict, mock_save_dict, 2.5,10000) == (False, False)
 
 def test_SpreadAnalysis_positive(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
-    mock_data["Open"] = [140, 135, 150, 155]
+    mock_data["open"] = [140, 135, 150, 155]
     assert tools_instance.validateVolumeSpreadAnalysis(mock_data, mock_screen_dict, mock_save_dict) == True
     assert mock_screen_dict["Pattern"] == "\033[32mSupply Drought\033[0m"
     assert mock_save_dict["Pattern"] == "Supply Drought"
 
 def test_validateVolumeSpreadAnalysis_negative(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
-    mock_data["Open"] = [100, 105, 110,120]
+    mock_data["open"] = [100, 105, 110,120]
     assert tools_instance.validateVolumeSpreadAnalysis(mock_data, mock_screen_dict, mock_save_dict) == False
     assert mock_screen_dict.get("Pattern") == None
     assert mock_save_dict.get("Pattern") == None
@@ -2968,16 +2968,16 @@ def test_validateVolumeSpreadAnalysis_datalength_lessthan2(mock_data, mock_scree
     assert mock_save_dict.get("Pattern") == None
 
 def test_validateVolumeSpreadAnalysis_open_less_than_close(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
-    mock_data.loc[1, "Open"] = 100
+    mock_data.loc[1, "open"] = 100
     mock_data.loc[1, "close"] = 110
     assert tools_instance.validateVolumeSpreadAnalysis(mock_data, mock_screen_dict, mock_save_dict) == False
     assert mock_screen_dict.get("Pattern") == None
     assert mock_save_dict.get("Pattern") == None
 
 def test_validateVolumeSpreadAnalysis_spread0_lessthan_spread1(mock_data, mock_screen_dict, mock_save_dict, tools_instance):
-    mock_data.loc[1, "Open"] = 120
+    mock_data.loc[1, "open"] = 120
     mock_data.loc[1, "close"] = 100
-    mock_data.loc[0, "Open"] = 110
+    mock_data.loc[0, "open"] = 110
     mock_data.loc[0, "close"] = 100
     mock_data.loc[0, "volume"] = mock_data.iloc[0]["VolMA"] + 1000
     mock_data.loc[1, "volume"] = mock_data["volume"].iloc[0] -1000
