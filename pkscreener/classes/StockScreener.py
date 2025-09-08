@@ -35,7 +35,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 # from PKDevTools.classes.log import tracelog
 # from PKDevTools.classes.PKTimer import PKTimer
-from PKDevTools.classes import Archiver
+from PKDevTools.classes import Archiver, log
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.Fetcher import StockDataEmptyException
 from PKDevTools.classes.SuppressOutput import SuppressOutput
@@ -50,6 +50,17 @@ class StockScreener:
     def __init__(self):
         self.isTradingTime = PKDateUtilities.isTradingTime()
         self.configManager = None
+
+    def setupLogger(self, log_level):
+        if log_level > 0:
+            os.environ["PKDevTools_Default_Log_Level"] = str(log_level)
+        log.setup_custom_logger(
+            "pkscreener",
+            log_level,
+            trace=False,
+            log_file_path="pkscreener-logs.txt",
+            filter=None,
+        )
 
     # @tracelog
     def screenStocks(
@@ -85,6 +96,7 @@ class StockScreener:
         ), "hostRef argument must not be None. It should be an instance of PKMultiProcessorClient"
         if stock is None or len(stock) == 0:
             return None
+        self.setupLogger(log_level=logLevel)
         configManager = hostRef.configManager
         self.configManager = configManager
         screeningDictionary, saveDictionary = self.initResultDictionaries()
@@ -682,7 +694,7 @@ class StockScreener:
                             screener.validateCCI(
                                 processedData, screeningDictionary, saveDictionary, minRSI, maxRSI
                             )
-                        if isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
+                        if configManager.enableAdditionalTrendFilters and isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
                             # We don't need to have MFI or fair value data for backtesting because those
                             # are anyways only available for days in the past.
                             # For executeOption 21, we'd have already got the mfiStake and fairValueDiff
@@ -719,28 +731,28 @@ class StockScreener:
             # Capturing Ctr+C Here isn't a great idea
             pass
         except StockDataEmptyException as e: # pragma: no cover
-            # if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
-            #     hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
+            if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
+                hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.EligibilityConditionNotMet as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotNewlyListed as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotAStageTwoStock as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotEnoughVolumeAsPerConfig as e: # pragma: no cover 
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.DownloadDataOnly as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
             try:
                 data = hostRef.objectDictionaryPrimary.get(stock)
                 if data is not None:
@@ -750,7 +762,7 @@ class StockScreener:
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
                 pass
             try:
                 screener.getFairValue(stock,hostData=data, force=True,exchangeName=exchangeName)
@@ -758,24 +770,24 @@ class StockScreener:
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
                 pass
             pass
         except ScreeningStatistics.LTPNotInConfiguredRange as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
             pass
         except KeyError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
             pass
         except OSError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
             pass
         except Exception as e:  # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
             if testbuild or printCounter:
                 import traceback
                 traceback.print_exc()
@@ -905,19 +917,19 @@ class StockScreener:
         fullData = None
         processedData = None
         ohlc_dict = {
-            'Open':'first',
-            'High':'max',
-            'Low':'min',
-            'Close':'last',
+            "open":'first',
+            "high":'max',
+            "low":'min',
+            "close":'last',
             'Adj Close': 'last',
-            'Volume':'sum'
+            "volume":'sum'
         }
         candleDuration = self.configManager.candleDurationInt
         candleDurationFrequency = self.configManager.candleDurationFrequency
         durationFrequency = "T" if candleDurationFrequency=="m" else ("H" if candleDurationFrequency=="h" else ("M" if candleDurationFrequency=="mo" else ("W" if candleDurationFrequency=="wk" else "T")))
         if int(candleDuration) >= 1 and (candleDurationFrequency in ["m","h","mo","wk"]):
             data = data.resample(f'{candleDuration}{durationFrequency}', offset='15min').agg(ohlc_dict)
-            data = data[data["High"]>0] # resampling can introduce 0 value rows for non-market hours
+            data = data[data["high"]>0] # resampling can introduce 0 value rows for non-market hours
         if backtestDuration == 0:
             fullData, processedData = screener.preprocessData(
                     data, daysToLookback=configManager.effectiveDaysToLookback
@@ -1049,6 +1061,7 @@ class StockScreener:
             else:
                 data.rename(columns={"index": "Date"}, inplace=True)
             data.set_index("Date", inplace=True)
+            data.index = pd.to_datetime(data.index)
         except: # pragma: no cover
             pass
         if ((shouldCache and not self.isTradingTime and (hostData is None  or hostDataLength == 0)) or downloadOnly) \
@@ -1130,7 +1143,7 @@ class StockScreener:
             "52Wk-L",
             "RSI",
             "RSIi",
-            "Volume",
+            "volume",
             "22-Pd",
             "Consol.",
             "Breakout",
@@ -1148,7 +1161,7 @@ class StockScreener:
             "52Wk-L": 0,
             "RSI": 0,
             "RSIi": 0,
-            "Volume": "",
+            "volume": "",
             "22-Pd": "",
             "Consol.": "Range:0%",
             "Breakout": "BO: 0 R: 0",
@@ -1166,7 +1179,7 @@ class StockScreener:
             "52Wk-L": 0,
             "RSI": 0,
             "RSIi": 0,
-            "Volume": "",
+            "volume": "",
             "22-Pd": "",
             "Consol.": "Range:0%",
             "Breakout": "BO: 0 R: 0",

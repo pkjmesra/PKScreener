@@ -191,57 +191,57 @@ jobs:
             OUT_PATH: /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
             FILE_NAME: pkscreenercli_arm64.bin
 
-          - os: macos-latest
-            platform_id: macosx_arm64
-            TARGET: MacOS
-            CMD_BUILD: |
-              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
-              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
-            DEP_BUILD: |
-              brew install ta-lib
-              brew upgrade ta-lib
-              arch -arm64 brew install ta-lib
-              python3 -m pip install --upgrade pip
-              pip3 uninstall -y PKNSETools
-              pip3 uninstall -y PKDevTools
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
-              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
-              #python3 -m pip install -U ta-lib
-              python3 -m pip install --no-cache-dir ta-lib==0.6.4
-              pip3 install .
-            TEST_BUILD: |
-              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run -e -a Y -o H
-              exit $?
-            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
-            FILE_NAME: pkscreenercli_arm64.run
+          # - os: macos-latest
+          #   platform_id: macosx_arm64
+          #   TARGET: MacOS
+          #   CMD_BUILD: |
+          #     pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
+          #     mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
+          #   DEP_BUILD: |
+          #     brew install ta-lib
+          #     brew upgrade ta-lib
+          #     arch -arm64 brew install ta-lib
+          #     python3 -m pip install --upgrade pip
+          #     pip3 uninstall -y PKNSETools
+          #     pip3 uninstall -y PKDevTools
+          #     pip3 install -r requirements.txt
+          #     pip3 install -r requirements-dev.txt
+          #     export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+          #     export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+          #     #python3 -m pip install -U ta-lib
+          #     python3 -m pip install --no-cache-dir ta-lib==0.6.4
+          #     pip3 install .
+          #   TEST_BUILD: |
+          #     /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run -e -a Y -o H
+          #     exit $?
+          #   OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
+          #   FILE_NAME: pkscreenercli_arm64.run
           
-          - os: macos-13
-            platform_id: macosx_x86_64
-            TARGET: MacOS
-            CMD_BUILD: |
-              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
-              mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
-            DEP_BUILD: |
-              brew install ta-lib
-              brew upgrade ta-lib
-              arch -x86_64 brew install ta-lib
-              python3 -m pip install --upgrade pip
-              pip3 uninstall -y PKNSETools
-              pip3 uninstall -y PKDevTools
-              pip3 install -r requirements.txt
-              pip3 install -r requirements-dev.txt
-              export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
-              export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
-              #python3 -m pip install -U ta-lib
-              python3 -m pip install --no-cache-dir ta-lib==0.6.4
-              pip3 install .
-            TEST_BUILD: |
-              /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run --testbuild
-              exit $?
-            OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
-            FILE_NAME: pkscreenercli_x64.run
+          # - os: macos-13
+            # platform_id: macosx_x86_64
+            # TARGET: MacOS
+            # CMD_BUILD: |
+            #   pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
+            #   mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
+            # DEP_BUILD: |
+            #   brew install ta-lib
+            #   brew upgrade ta-lib
+            #   arch -x86_64 brew install ta-lib
+            #   python3 -m pip install --upgrade pip
+            #   pip3 uninstall -y PKNSETools
+            #   pip3 uninstall -y PKDevTools
+            #   pip3 install -r requirements.txt
+            #   pip3 install -r requirements-dev.txt
+            #   export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+            #   export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+            #   #python3 -m pip install -U ta-lib
+            #   python3 -m pip install --no-cache-dir ta-lib==0.6.4
+            #   pip3 install .
+            # TEST_BUILD: |
+            #   /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run --testbuild
+            #   exit $?
+            # OUT_PATH: /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
+            # FILE_NAME: pkscreenercli_x64.run
     steps:
       - uses: actions/checkout@v4
         with:

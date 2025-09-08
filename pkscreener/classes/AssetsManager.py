@@ -32,7 +32,7 @@ import pandas as pd
 import numpy as np
 from halo import Halo
 from alive_progress import alive_bar
-from yfinance import shared
+# from yfinance import shared
 
 from PKDevTools.classes.log import default_logger
 from PKDevTools.classes import Archiver
@@ -187,29 +187,9 @@ class PKAssetsManager:
         return None
 
     def afterMarketStockDataExists(intraday=False, forceLoad=False):
-        curr = PKDateUtilities.currentDateTime()
-        openTime = curr.replace(hour=MarketHours().openHour, minute=MarketHours().openMinute)
-        cache_date = PKDateUtilities.previousTradingDate(PKDateUtilities.nextTradingDate(curr)) #curr  # for monday to friday
-        weekday = curr.weekday()
-        isTrading = PKDateUtilities.isTradingTime()
-        if (forceLoad and isTrading) or isTrading:
-            #curr = PKDateUtilities.tradingDate()
-            cache_date = PKDateUtilities.previousTradingDate(curr) #curr - datetime.timedelta(1)
-        # for monday to friday before market open or between market open to market close, we're backtesting
-        if curr < openTime:
-            cache_date = PKDateUtilities.previousTradingDate(curr) # curr - datetime.timedelta(1)
-        if weekday == 0 and curr < openTime:  # for monday before market open
-            cache_date = PKDateUtilities.previousTradingDate(curr) #curr - datetime.timedelta(3)
-        if weekday == 5 or weekday == 6:  # for saturday and sunday
-            cache_date = PKDateUtilities.previousTradingDate(curr) # curr - datetime.timedelta(days=weekday - 4)
-        cache_date = cache_date.strftime("%d%m%y")
-        pattern = f"{'intraday_' if intraday else ''}stock_data_"
-        cache_file = pattern + str(cache_date) + ".pkl"
-        exists = False
-        for f in glob.glob(f"{pattern}*.pkl", root_dir=Archiver.get_user_data_dir()):
-            if f.endswith(cache_file):
-                exists = True
-                break
+        exists, cache_file = Archiver.afterMarketStockDataExists(intraday=intraday,
+                                                                 forceLoad=forceLoad,
+                                                                 date_suffix=False)
         return exists, cache_file
 
     @Halo(text='', spinner='dots')
@@ -268,8 +248,9 @@ class PKAssetsManager:
         return cache_file
 
     def had_rate_limit_errors():
+        return False
         """Checks if any stored errors are YFRateLimitError."""
-        err = ",".join(list(shared._ERRORS.values()))
+        err = "" #",".join(list(shared._ERRORS.values()))
         hitRateLimit = "YFRateLimitError" in err or "Too Many Requests" in err or "429" in err
         if hitRateLimit:
             OutputControls().printOutput(
@@ -281,6 +262,7 @@ class PKAssetsManager:
     
     @Halo(text='  [+] Downloading fresh data from Data Providers...', spinner='dots')
     def downloadLatestData(stockDict,configManager,stockCodes=[],exchangeSuffix=".NS",downloadOnly=False,numStocksPerIteration=0):
+        """
         shared._ERRORS.clear()  # Clear previous errors
         # if numStocksPerIteration == 0:
         # maxParallelProcesses = 17
@@ -300,8 +282,9 @@ class PKAssetsManager:
             if len(stocks) > 0:
                 tasksList.append(task)
             queueCounter += 1
-        
+        """
         processedStocks = []
+        """
         if len(tasksList) > 0:
             # Suppress any multiprocessing errors/warnings
             with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
@@ -317,6 +300,7 @@ class PKAssetsManager:
                         if taskResult is not None and isinstance(taskResult,pd.DataFrame) and not taskResult.empty:
                             stockDict[stock] = taskResult.to_dict("split")
                             processedStocks.append(stock)
+        """
         leftOutStocks = list(set(stockCodes)-set(processedStocks))
         default_logger().debug(f"Attempted fresh download of {len(stockCodes)} stocks and downloaded {len(processedStocks)} stocks. {len(leftOutStocks)} stocks remaining.")
         return stockDict, leftOutStocks
@@ -359,7 +343,7 @@ class PKAssetsManager:
             # return stockDict
         if downloadOnly or isTrading:
             # We don't want to download from local stale pkl file or stale file at server
-            start_backup()
+            # start_backup()
             return stockDict
         
         default_logger().debug(
@@ -396,7 +380,7 @@ class PKAssetsManager:
             stockDict, _ = PKAssetsManager.downloadLatestData(stockDict,configManager,leftOutStocks,exchangeSuffix=exchangeSuffix,downloadOnly=downloadOnly,numStocksPerIteration=len(leftOutStocks) if leftOutStocks is not None else 0)
         if stockDataLoaded and downloadOnly:
             PKAssetsManager.saveStockData(stockDict,configManager,initialLoadCount,isIntraday,downloadOnly, forceSave=stockDataLoaded)
-        start_backup()
+        # start_backup()
         return stockDict
 
     @Halo(text='  [+] Loading data from local cache...', spinner='dots')
@@ -486,7 +470,7 @@ class PKAssetsManager:
             MB = KB * 1024
             chunksize = MB if serverBytes >= MB else (KB if serverBytes >= KB else 1)
             filesize = int( serverBytes / chunksize)
-            if filesize > 40 and chunksize == MB: # Saved data can't be in KBs. Something definitely went wrong. It should be upward of 40MB
+            if filesize > 20 and chunksize == MB: # Saved data can't be in KBs. Something definitely went wrong. It should be upward of 40MB
                 bar, spinner = Utility.tools.getProgressbarStyle()
                 try:
                     f = open(

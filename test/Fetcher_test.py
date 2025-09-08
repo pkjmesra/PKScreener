@@ -255,9 +255,9 @@ def test_fetchStockCodes_negative(configManager, tools_instance):
 
 def test_fetchStockData_positive(configManager, tools_instance):
     with patch("yfinance.download") as mock_download:
-        mock_download.return_value = pd.DataFrame({"Close": [100, 200, 300]})
+        mock_download.return_value = pd.DataFrame({"close": [100, 200, 300]})
         result = tools_instance.fetchStockData("AAPL", "1d", "1m", None, 0, 0, 1)
-        assert result.equals(pd.DataFrame({"Close": [100, 200, 300]}))
+        assert result.equals(pd.DataFrame({"close": [100, 200, 300]}))
         mock_download.assert_called_once_with(
             tickers='AAPL.NS', 
             period='1d', 
@@ -303,9 +303,9 @@ def test_fetchStockData_negative(configManager, tools_instance):
 
 def test_fetchLatestNiftyDaily_positive(configManager, tools_instance):
     with patch("yfinance.download") as mock_download:
-        mock_download.return_value = pd.DataFrame({"Close": [100, 200, 300]})
+        mock_download.return_value = pd.DataFrame({"close": [100, 200, 300]})
         result = tools_instance.fetchLatestNiftyDaily()
-        assert result.equals(pd.DataFrame({"Close": [100, 200, 300]}))
+        assert result.equals(pd.DataFrame({"close": [100, 200, 300]}))
         mock_download.assert_called_once_with(
             tickers="^NSEI",
             period="5d",
@@ -319,23 +319,23 @@ def test_fetchLatestNiftyDaily_positive(configManager, tools_instance):
 def test_fetchFiveEmaData_positive(configManager, tools_instance):
     with patch("yfinance.download") as mock_download:
         mock_download.side_effect = [
-            pd.DataFrame({"Close": [100, 200, 300]}),
-            pd.DataFrame({"Close": [400, 500, 600]}),
-            pd.DataFrame({"Close": [700, 800, 900]}),
-            pd.DataFrame({"Close": [1000, 1100, 1200]}),
+            pd.DataFrame({"close": [100, 200, 300]}),
+            pd.DataFrame({"close": [400, 500, 600]}),
+            pd.DataFrame({"close": [700, 800, 900]}),
+            pd.DataFrame({"close": [1000, 1100, 1200]}),
         ]
         r1, r2, r3, r4 = tools_instance.fetchFiveEmaData()
         r1_diff = pd.concat(
-            [r1, pd.DataFrame({"Close": [700, 800, 900]})]
+            [r1, pd.DataFrame({"close": [700, 800, 900]})]
         ).drop_duplicates(keep=False)
         r2_diff = pd.concat(
-            [r2, pd.DataFrame({"Close": [1000, 1100, 1200]})]
+            [r2, pd.DataFrame({"close": [1000, 1100, 1200]})]
         ).drop_duplicates(keep=False)
         r3_diff = pd.concat(
-            [r3, pd.DataFrame({"Close": [100, 200, 300]})]
+            [r3, pd.DataFrame({"close": [100, 200, 300]})]
         ).drop_duplicates(keep=False)
         r4_diff = pd.concat(
-            [r4, pd.DataFrame({"Close": [400, 500, 600]})]
+            [r4, pd.DataFrame({"close": [400, 500, 600]})]
         ).drop_duplicates(keep=False)
         assert r1_diff.empty is True
         assert r2_diff.empty is True
@@ -719,15 +719,15 @@ class TestScreenerStockDataFetcher3(unittest.TestCase):
     
     @patch("yfinance.download")
     def test_fetchStockData_success(self, mock_yf_download):
-        mock_df = pd.DataFrame({"Open": [100], "Close": [105]})
+        mock_df = pd.DataFrame({"open": [100], "close": [105]})
         mock_yf_download.return_value = mock_df
         
         fetcher = screenerStockDataFetcher()
         data = fetcher.fetchStockData("AAPL", "1d", "1m")
         
         self.assertFalse(data.empty)
-        self.assertIn("Open", data.columns)
-        self.assertIn("Close", data.columns)
+        self.assertIn("open", data.columns)
+        self.assertIn("close", data.columns)
     
     @patch("yfinance.download")
     def test_fetchStockData_no_data(self, mock_yf_download):
@@ -739,7 +739,7 @@ class TestScreenerStockDataFetcher3(unittest.TestCase):
     
     @patch("yfinance.download")
     def test_fetchStockData_list_of_tickers(self, mock_yf_download):
-        mock_df = pd.DataFrame({("AAPL", "Open"): [100], ("AAPL", "Close"): [105]})
+        mock_df = pd.DataFrame({("AAPL", "open"): [100], ("AAPL", "close"): [105]})
         mock_df.columns = pd.MultiIndex.from_tuples(mock_df.columns)
         mock_yf_download.return_value = mock_df
         

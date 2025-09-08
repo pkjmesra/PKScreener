@@ -158,7 +158,7 @@ class TestAssetsManager(unittest.TestCase):
 
         # Mock task result
         task_result = MagicMock()
-        task_result.to_dict.return_value = {'date': ['2021-01-01'], 'close': [150]}
+        task_result.to_dict.return_value = {'date': ['2021-01-01'], "close": [150]}
         
         # Create a mock task
         task = MagicMock()
@@ -175,7 +175,7 @@ class TestAssetsManager(unittest.TestCase):
 
         # Assert task creation and stock dict update
         self.assertEqual(len(result_dict), 0)
-        # self.assertEqual(result_dict['AAPL'], {'date': ['2021-01-01'], 'close': [150]})
+        # self.assertEqual(result_dict['AAPL'], {'date': ['2021-01-01'], "close": [150]})
         self.assertEqual(len(left_out_stocks), 3)  # GOOGL and MSFT were not processed
 
         # Check that scheduleTasks was called with the correct parameters
@@ -213,7 +213,7 @@ class TestAssetsManager(unittest.TestCase):
 
         # Mock task result
         task_result = MagicMock()
-        task_result.to_dict.return_value = {'date': ['2021-01-01'], 'close': [150]}
+        task_result.to_dict.return_value = {'date': ['2021-01-01'], "close": [150]}
         
         # Mock task
         task = MagicMock()
@@ -230,7 +230,7 @@ class TestAssetsManager(unittest.TestCase):
 
         # Assert single stock download
         self.assertEqual(len(result_dict), 0)
-        # self.assertEqual(result_dict['AAPL'], {'date': ['2021-01-01'], 'close': [150]})
+        # self.assertEqual(result_dict['AAPL'], {'date': ['2021-01-01'], "close": [150]})
         self.assertEqual(left_out_stocks, ['AAPL'])
 
     @patch('pkscreener.classes.Fetcher.screenerStockDataFetcher.fetchStockDataWithArgs', side_effect=Exception("Download failed"))
@@ -376,8 +376,8 @@ class TestAssetsManager(unittest.TestCase):
         is_trading = False
         
         stock_data = {
-            'AAPL': {'price': 150, 'volume': 1000},
-            'GOOGL': {'price': 2800, 'volume': 500}
+            'AAPL': {'price': 150, "volume": 1000},
+            'GOOGL': {'price': 2800, "volume": 500}
         }
 
         mock_pickle_load.return_value = stock_data
@@ -459,15 +459,15 @@ class TestAssetsManager(unittest.TestCase):
     @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.isTradingTime', return_value=False)
     def test_load_data_from_local_pickle_with_existing_data(self, mock_trading, mock_print, mock_pickle_load, mock_open):
         # Arrange
-        stock_dict = {'AAPL': {'price': 140, 'volume': 1000}}
+        stock_dict = {'AAPL': {'price': 140, "volume": 1000}}
         config_manager = MagicMock()
         exchange_suffix = ".NS"
         cache_file = 'test_cache.pkl'
         is_trading = False
         
         stock_data = {
-            'AAPL': {'price': 150, 'volume': 1100},
-            'GOOGL': {'price': 2800, 'volume': 500}
+            'AAPL': {'price': 150, "volume": 1100},
+            'GOOGL': {'price': 2800, "volume": 500}
         }
 
         mock_pickle_load.return_value = stock_data
@@ -480,7 +480,7 @@ class TestAssetsManager(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertIn('AAPL', result)
         self.assertIn('GOOGL', result)
-        self.assertEqual(result['AAPL'], {'price': 150, 'volume': 1100})  # Should update AAPL with new data
+        self.assertEqual(result['AAPL'], {'price': 150, "volume": 1100})  # Should update AAPL with new data
         mock_print.assert_called_with(f"\x1b[32m\n  [+] Automatically Using [2] Tickers' Cached Stock Data due to After-Market hours\x1b[0m")
 
     @patch('pkscreener.classes.AssetsManager.Utility.tools.tryFetchFromServer')

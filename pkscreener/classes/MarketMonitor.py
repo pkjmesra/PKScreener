@@ -145,7 +145,7 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
             if "RUNNER" in os.environ.keys():
                 self.monitor_df.reset_index(inplace=True)
                 with pd.option_context('mode.chained_assignment', None):
-                    self.monitor_df = self.monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in self.monitor_df.columns else "RSI","Volume"]]
+                    self.monitor_df = self.monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in self.monitor_df.columns else "RSI","volume"]]
                     # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
                     # multiprocessing, which behaves erratically if imported at the top.
                     self.monitor_df.loc[:, "%Chng"] = self.monitor_df.loc[:, "%Chng"].astype(str).apply(
@@ -154,17 +154,17 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                     self.monitor_df.loc[:, "52Wk-H"] = self.monitor_df.loc[:, "52Wk-H"].astype(str).apply(
                         lambda x: ImageUtility.PKImageTools.roundOff(x,0)
                     )
-                    self.monitor_df.loc[:, "Volume"] = self.monitor_df.loc[:, "Volume"].astype(str).apply(
+                    self.monitor_df.loc[:, "volume"] = self.monitor_df.loc[:, "volume"].astype(str).apply(
                         lambda x: ImageUtility.PKImageTools.roundOff(x,0)
                     )
-                    self.monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
+                    self.monitor_df.rename(columns={"%Chng": "Ch%","volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
                     telegram_df = self.updateDataFrameForTelegramMode(telegram or "RUNNER" in os.environ.keys(), self.monitor_df)
                     self.monitor_df.set_index("Stock",inplace=True)
             
         if not self.isPinnedSingleMonitorMode:
             screen_monitor_df.reset_index(inplace=True)
             with pd.option_context('mode.chained_assignment', None):
-                screen_monitor_df = screen_monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in screen_monitor_df.columns else "RSI","Volume"]].head(self.maxNumRowsInEachResult-1)
+                screen_monitor_df = screen_monitor_df[["Stock", "LTP", "%Chng","52Wk-H","RSI/i" if "RSI/i" in screen_monitor_df.columns else "RSI","volume"]].head(self.maxNumRowsInEachResult-1)
                 # Import Utility here since Utility has dependency on PKScheduler which in turn has dependency on 
                 # multiprocessing, which behaves erratically if imported at the top.
                 screen_monitor_df.loc[:, "%Chng"] = screen_monitor_df.loc[:, "%Chng"].astype(str).apply(
@@ -173,10 +173,10 @@ class MarketMonitor(SingletonMixin, metaclass=SingletonType):
                 screen_monitor_df.loc[:, "52Wk-H"] = screen_monitor_df.loc[:, "52Wk-H"].astype(str).apply(
                     lambda x: ImageUtility.PKImageTools.roundOff(x,0)
                 )
-                screen_monitor_df.loc[:, "Volume"] = screen_monitor_df.loc[:, "Volume"].astype(str).apply(
+                screen_monitor_df.loc[:, "volume"] = screen_monitor_df.loc[:, "volume"].astype(str).apply(
                     lambda x: ImageUtility.PKImageTools.roundOff(x,0)
                 )
-                screen_monitor_df.rename(columns={"%Chng": "Ch%","Volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
+                screen_monitor_df.rename(columns={"%Chng": "Ch%","volume":"Vol","52Wk-H":"52WkH", "RSI":"RSI/i"}, inplace=True)
             telegram_df = self.updateDataFrameForTelegramMode(telegram or "RUNNER" in os.environ.keys(), screen_monitor_df)
         
         if monitorPosition is not None:

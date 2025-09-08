@@ -42,10 +42,10 @@ def candle_patterns():
 
 def prepData():
     ohlc = {
-        "Open": [1, 2, 3, 4],
-        "High": [5, 6, 7, 8],
-        "Low": [9, 10, 11, 12],
-        "Close": [13, 14, 15, 16],
+        "open": [1, 2, 3, 4],
+        "high": [5, 6, 7, 8],
+        "low": [9, 10, 11, 12],
+        "close": [13, 14, 15, 16],
     }
     df = pd.DataFrame(ohlc, columns=ohlc.keys())
     return df
@@ -130,11 +130,11 @@ def test_findPattern_cupNhandle(candle_patterns):
     dict = {}
     saveDict = {}
     df = pd.DataFrame({
-            'Open': np.random.rand(1000) * 100,
-            'High': np.random.rand(1000) * 100,
-            'Low': np.random.rand(1000) * 100,
-            'Close': np.random.rand(1000) * 100,
-            'Volume': np.random.randint(1, 1000, size=1000),
+            "open": np.random.rand(1000) * 100,
+            "high": np.random.rand(1000) * 100,
+            "low": np.random.rand(1000) * 100,
+            "close": np.random.rand(1000) * 100,
+            "volume": np.random.randint(1, 1000, size=1000),
             'Date': pd.date_range(start='2023-01-01', periods=1000)
         })
     df.set_index('Date', inplace=True)
@@ -191,7 +191,7 @@ def test_findPattern_ladder_bottom_bearish(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDLLADDERBOTTOM") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert "\033[31mBearish Ladder Bottom\033[0m" in dict["Pattern"]
@@ -214,7 +214,7 @@ def test_findPattern_3_line_strike_bearish(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDL3LINESTRIKE") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31m3 Line Strike\033[0m"
@@ -248,7 +248,7 @@ def test_findPattern_3_inside_down(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDL3INSIDE") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31m3 Inside Down\033[0m"
@@ -271,7 +271,7 @@ def test_findPattern_3_outside_down(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDL3OUTSIDE") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31m3 Outside Down\033[0m"
@@ -305,7 +305,7 @@ def test_findPattern_bearish_harami(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDLHARAMI") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31mBearish Harami\033[0m"
@@ -328,7 +328,7 @@ def test_findPattern_bearish_harami_cross(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDLHARAMICROSS") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31mBearish Harami Cross\033[0m"
@@ -351,7 +351,7 @@ def test_findPattern_bearish_marubozu(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDLMARUBOZU") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31mBearish Marubozu\033[0m"
@@ -440,7 +440,7 @@ def test_findPattern_bearish_engulfing(candle_patterns):
     saveDict = {}
     df = prepData()
     with prepPatch("CDLENGULFING") as cdl_obj:
-        df.loc[3, "Close"] = -1
+        df.loc[3, "close"] = -1
         cdl_obj.return_value = df.tail(1).squeeze()
         assert candle_patterns.findPattern(df, dict, saveDict) is True
     assert dict["Pattern"] == "\033[31mBearish Engulfing\033[0m"

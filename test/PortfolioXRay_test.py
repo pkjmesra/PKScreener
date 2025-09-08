@@ -394,7 +394,7 @@ def test_cleanupData(savedResults):
     savedResults = pd.DataFrame({
         "LTP": ["10.0", "20.0", "30.0"],
         "RSI": ["50.0", "60.0", "70.0"],
-        "Volume": ["100x", "200x", "300x"],
+        "volume": ["100x", "200x", "300x"],
         "Consol.": ["Range: 10%", "Range: 20%", "Range: 30%"],
         f"Breakout({configManager.daysToLookback}Prds)": ["BO: 1.0 R: 2.0 (Potential)", "BO: 3.0 R: 4.0 (Potential)", "BO: 5.0 R: 6.0 (Potential)"],
         "52Wk-H": ["100.0", "200.0", "300.0"],
@@ -408,7 +408,7 @@ def test_cleanupData(savedResults):
     assert len(result) == len(savedResults)
     assert "LTP" in result.columns
     assert "RSI" in result.columns
-    assert "Volume" in result.columns
+    assert "volume" in result.columns
     assert "Consol." in result.columns
     assert "Breakout" in result.columns
     assert "Resistance" in result.columns
@@ -417,7 +417,7 @@ def test_cleanupData(savedResults):
     assert "CCI" in result.columns
     assert result["LTP"].tolist() == [10.0, 20.0, 30.0]
     assert result["RSI"].tolist() == [50.0, 60.0, 70.0]
-    assert result["Volume"].tolist() == [100.0, 200.0, 300.0]
+    assert result["volume"].tolist() == [100.0, 200.0, 300.0]
     assert result["Consol."].tolist() == [10.0, 20.0, 30.0]
     assert result["Breakout"].tolist() == [1.0, 3.0, 5.0]
     assert result["Resistance"].tolist() == [2.0, 4.0, 6.0]
@@ -783,16 +783,16 @@ def test_filterMASignalResist(df):
     assert filterMASignalResist(None) is None
 
 def test_filterVolumeLessThan25(df):
-    df = pd.DataFrame({"Volume": [1,0.3,1.5,2.5,3,4]})
+    df = pd.DataFrame({"volume": [1,0.3,1.5,2.5,3,4]})
     result = filterVolumeLessThan25(df)
-    expected_result = pd.DataFrame({"Volume": [1,0.3,1.5]})
+    expected_result = pd.DataFrame({"volume": [1,0.3,1.5]})
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_result.reset_index(drop=True))
     assert filterVolumeLessThan25(None) is None
 
 def test_filterVolumeMoreThan25(df):
-    df = pd.DataFrame({"Volume": [1,0.3,1.5,2.5,3,4]})
+    df = pd.DataFrame({"volume": [1,0.3,1.5,2.5,3,4]})
     result = filterVolumeMoreThan25(df)
-    expected_result = pd.DataFrame({"Volume": [2.5,3,4]})
+    expected_result = pd.DataFrame({"volume": [2.5,3,4]})
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected_result.reset_index(drop=True))
     assert filterVolumeMoreThan25(None) is None
 

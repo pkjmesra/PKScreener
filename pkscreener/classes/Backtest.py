@@ -75,7 +75,7 @@ def backtest(
         return backTestedData
     data = data.head(max(calcPeriods) + 1)
     # Let's check the returns for the given strategy over a period ranging from 1 period to 30 periods.
-    # columns=['Stock', 'Date', 'Volume', 'Trend', 'MA-Signal', 'LTP', '52Wk-H',
+    # columns=['Stock', 'Date', "volume", 'Trend', 'MA-Signal', 'LTP', '52Wk-H',
     #          '52Wk-L', '1-Pd', '2-Pd', '3-Pd', '4-Pd', '5-Pd', '10-Pd', '15-Pd',
     #          '22-Pd', '30-Pd', 'Consol.', 'Breakout', 'RSI', 'Pattern', 'CCI',
     #          'LTP1', 'Growth1', 'LTP2', 'Growth2', 'LTP3', 'Growth3', 'LTP4',
@@ -96,7 +96,7 @@ def backtest(
     columns=[
                 "Stock",
                 "Date",
-                "Volume",
+                "volume",
                 "Trend",
                 "MA-Signal",
                 "LTP",
@@ -106,7 +106,7 @@ def backtest(
     backTestedStock = {
         "Stock": "",
         "Date": "",
-        "Volume": "",
+        "volume": "",
         "Trend": "",
         "MA-Signal": "",
         "LTP": "",
@@ -123,7 +123,7 @@ def backtest(
     backTestedStock["Consol."] = screenedDict["Consol."]
     backTestedStock["Breakout"] = screenedDict["Breakout"]
     backTestedStock["MA-Signal"] = screenedDict["MA-Signal"]
-    backTestedStock["Volume"] = screenedDict["Volume"]
+    backTestedStock["volume"] = screenedDict["volume"]
     backTestedStock["LTP"] = screenedDict["LTP"]
     backTestedStock["52Wk-H"] = screenedDict["52Wk-H"]
     backTestedStock["52Wk-L"] = screenedDict["52Wk-L"]
@@ -136,7 +136,7 @@ def backtest(
             backTestedStock[f"{abs(prd)}-Pd"] = ""
             backTestedStock[f"LTP{prd}"] = ""
             backTestedStock[f"Growth{prd}"] = ""
-            rolling_pct = data["Close"].pct_change(periods=prd) * 100
+            rolling_pct = data["close"].pct_change(periods=prd) * 100
             pct_change = rolling_pct.iloc[prd]
             if not sellSignal:
                 colored_pct = colorText.GREEN if pct_change >= 0 else colorText.FAIL

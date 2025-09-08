@@ -177,7 +177,7 @@ class PKConsoleTools:
                     + "\n  [+] Showing recently screened results..\n"
                     + colorText.END
                 )
-                df.sort_values(by=["Volume" if "Volume" in df.keys() else df.keys()[0]], ascending=False, inplace=True)
+                df.sort_values(by=["volume" if "volume" in df.keys() else df.keys()[0]], ascending=False, inplace=True)
                 OutputControls().printOutput(
                     colorText.miniTabulator().tabulate(
                         df, headers="keys", tablefmt=colorText.No_Pad_GridFormat,

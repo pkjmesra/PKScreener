@@ -288,9 +288,9 @@ class PKMarketOpenCloseAnalyser:
                 if df is not None and len(df) > 0:
                     close = PKMarketOpenCloseAnalyser.getMorningClose(df)
                     adjClose = df["Adj Close"][-1] if "Adj Close" in df.columns else close
-                    combinedCandle = {"Open":PKMarketOpenCloseAnalyser.getMorningOpen(df), "High":max(df["High"]), 
-                                    "Low":min(df["Low"]),"Close":close,
-                                    "Adj Close":adjClose,"Volume":sum(df["Volume"])}
+                    combinedCandle = {"open":PKMarketOpenCloseAnalyser.getMorningOpen(df), "high":max(df["high"]), 
+                                    "low":min(df["low"]),"close":close,
+                                    "Adj Close":adjClose,"volume":sum(df["volume"])}
                     tradingDate = df.index[-1] #PKDateUtilities.tradingDate()
                     timestamp = datetime.datetime.strptime(tradingDate.strftime("%Y-%m-%d %H:%M:%S"),"%Y-%m-%d %H:%M:%S")
                     df = pd.DataFrame([combinedCandle], columns=df.columns, index=[timestamp])
@@ -304,29 +304,29 @@ class PKMarketOpenCloseAnalyser:
 
     def getMorningOpen(df):
         try:
-            open = df["Open"][0]
+            open = df["open"][0]
         except KeyError: # pragma: no cover
-            open = df["Open"][df.index.values[0]]
+            open = df["open"][df.index.values[0]]
         index = 0
         while np.isnan(open) and index < len(df):
             try:
-                open = df["Open"][index + 1]
+                open = df["open"][index + 1]
             except KeyError: # pragma: no cover
-                open = df["Open"][df.index.values[index + 1]]
+                open = df["open"][df.index.values[index + 1]]
             index += 1
         return open
     
     def getMorningClose(df):
         try:
-            close = df["Close"][-1]
+            close = df["close"][-1]
         except KeyError: # pragma: no cover
-            close = df["Close"][df.index.values[-1]]
+            close = df["close"][df.index.values[-1]]
         index = len(df)
         while np.isnan(close) and index >= 0:
             try:
-                close = df["Close"][index - 1]
+                close = df["close"][index - 1]
             except KeyError: # pragma: no cover
-                close = df["Close"][df.index.values[index - 1]]
+                close = df["close"][df.index.values[index - 1]]
             index -= 1
         return close
     
@@ -459,15 +459,15 @@ class PKMarketOpenCloseAnalyser:
                 highTS, highRow = scrStats.findIntradayHighCrossover(df=df)
                 # buySell_df = scrStats.computeBuySellSignals(updatedCandleData[stock]["data"])
                 # OutputControls().printOutput(buySell_df)
-                dayHighLTP = dayHighLTP if pd.notna(dayHighLTP) else highRow["High"][-1]
+                dayHighLTP = dayHighLTP if pd.notna(dayHighLTP) else highRow["high"][-1]
                 sellTimestamps.append(PKDateUtilities.utc_to_ist(ts).strftime("%H:%M"))
                 dayHighTimestamps.append(PKDateUtilities.utc_to_ist(highTS).strftime("%H:%M"))
-                sellLTPs.append(row["High"][-1])
+                sellLTPs.append(row["high"][-1])
                 eodLTPs.append(round(endOfDayLTP,2))
                 dayHighLTPs.append(round(dayHighLTP,2))
                 eodDiffs.append(round(endOfDayLTP - morningLTP,2))
                 dayHighDiffs.append(round(dayHighLTP - morningLTP,2))
-                sqrOffDiffs.append(round(row["High"][-1] - morningLTP,2))
+                sqrOffDiffs.append(round(row["high"][-1] - morningLTP,2))
                 morningAlertLTPs.append(str(int(round(morningLTP,0))))
                 index += 1
             except: # pragma: no cover

@@ -31,6 +31,6 @@ Imports = {
     "pandas_ta": find_spec("pandas_ta") is not None,
     "tensorflow": find_spec("tensorflow") is not None,
     "keras": find_spec("keras") is not None,
-    "yfinance": find_spec("yfinance") is not None,
+    # "yfinance": find_spec("yfinance") is not None,
     "vectorbt": find_spec("vectorbt") is not None,
 }

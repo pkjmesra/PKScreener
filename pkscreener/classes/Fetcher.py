@@ -31,23 +31,23 @@ from time import sleep
 warnings.simplefilter("ignore", DeprecationWarning)
 warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
-import yfinance as yf
-from yfinance import shared
+# import yfinance as yf
+# from yfinance import shared
 # from yfinance.const import USER_AGENTS
 from PKDevTools.classes.Utils import USER_AGENTS
 import random
-from yfinance.version import version as yfVersion
-if yfVersion == "0.2.28":
-    from yfinance.data import TickerData as YfData
-    class YFPricesMissingError(Exception):
-        pass
-    class YFInvalidPeriodError(Exception):
-        pass
-    class YFRateLimitError(Exception):
-        pass
-else:
-    from yfinance.data import YfData
-    from yfinance.exceptions import YFPricesMissingError, YFInvalidPeriodError, YFRateLimitError
+# from yfinance.version import version as yfVersion
+# if yfVersion == "0.2.28":
+#     from yfinance.data import TickerData as YfData
+#     class YFPricesMissingError(Exception):
+#         pass
+#     class YFInvalidPeriodError(Exception):
+#         pass
+#     class YFRateLimitError(Exception):
+#         pass
+# else:
+#     from yfinance.data import YfData
+#     from yfinance.exceptions import YFPricesMissingError, YFInvalidPeriodError, YFRateLimitError
 from concurrent.futures import ThreadPoolExecutor
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.ColorText import colorText
@@ -75,11 +75,11 @@ yf_limiter = Limiter(
     RequestRate(360*TRY_FACTOR, Duration.HOUR),       # Max 360 requests per hour
     RequestRate(8000*TRY_FACTOR, Duration.DAY)        # Max 8000 requests per day
 )
-yf_session = CachedLimiterSession(
-   limiter=yf_limiter,
-   bucket_class=MemoryQueueBucket,
-   backend=SQLiteCache(db_path=os.path.join(Archiver.get_user_data_dir(),"yfinance.cache")),
-)
+# yf_session = CachedLimiterSession(
+#    limiter=yf_limiter,
+#    bucket_class=MemoryQueueBucket,
+#    backend=SQLiteCache(db_path=os.path.join(Archiver.get_user_data_dir(),"yfinance.cache")),
+# )
 class screenerStockDataFetcher(nseStockDataFetcher):
     _tickersInfoDict={}
     def fetchStockDataWithArgs(self, *args):
@@ -99,7 +99,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
         return result
 
     def get_stats(self,ticker):
-        info = yf.Tickers(ticker).tickers[ticker].fast_info
+        info = None #yf.Tickers(ticker).tickers[ticker].fast_info
         screenerStockDataFetcher._tickersInfoDict[ticker] = {"marketCap":info.market_cap if info is not None else 0}
 
     def fetchAdditionalTickerInfo(self,ticker_list,exchangeSuffix=".NS"):
@@ -128,6 +128,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
         exchangeSuffix=".NS",
         attempt = 0
     ):
+        """
         if isinstance(stockCode,list):
             if len(exchangeSuffix) > 0:
                 stockCode = [(f"{x}{exchangeSuffix}" if (not x.endswith(exchangeSuffix) and not x.startswith("^")) else x) for x in stockCode]
@@ -146,7 +147,9 @@ class screenerStockDataFetcher(nseStockDataFetcher):
             end = None
             # if duration == "1m" and period == "1d":
             #     period = "5d" # Download 1m data for the last 5 days
+        """
         data = None
+        """
         with SuppressOutput(suppress_stdout=(not printCounter), suppress_stderr=(not printCounter)):
             try:
                 if yfVersion == "0.2.28":
@@ -262,10 +265,12 @@ class screenerStockDataFetcher(nseStockDataFetcher):
                 end="\r",
                 flush=True,
             )
+        """
         return data
 
     # Get Daily Nifty 50 Index:
     def fetchLatestNiftyDaily(self, proxyServer=None):
+        return None
         data = yf.download(
             tickers="^NSEI",
             period="5d",
@@ -278,6 +283,7 @@ class screenerStockDataFetcher(nseStockDataFetcher):
 
     # Get Data for Five EMA strategy
     def fetchFiveEmaData(self, proxyServer=None):
+        return None
         nifty_sell = yf.download(
             tickers="^NSEI",
             period="5d",

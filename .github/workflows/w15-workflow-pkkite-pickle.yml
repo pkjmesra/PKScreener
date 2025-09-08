@@ -1,0 +1,173 @@
+name: 0. Run PKBrokers pickle save
+on:
+  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    - cron: '0 10 * * 1-6'  # Run at 8 AM UTC every weekday (Monday-Friday)
+  push:
+    branches: [ actions-data-download ]
+
+jobs:
+  run-pkbrokers-kite:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.11'
+      PKDevTools_Default_Log_Level: ${{ github.event.inputs.logLevel || '20' }}
+      TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+    
+    steps:
+    - name: Checkout PKScreener repository
+      uses: actions/checkout@v4
+      with:
+        repository: pkjmesra/PKScreener
+        ref: actions-data-download
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Clone PKBrokers repository
+      run: |
+        git clone https://github.com/pkjmesra/PKBrokers.git PKBrokers
+
+    - name: Install Python dependencies
+      run: |
+        cd PKBrokers
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install .
+        cd ..
+        pip install pkbrokers
+
+    - name: List directory structure (for debugging)
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Contents:"
+        ls -la
+        echo "PKBrokers repo contents:"
+        ls -la PKBrokers/
+
+    - name: Check if the target script exists
+      run: |
+        if [ -f "PKBrokers/pkbrokers/kite/examples/pkkite.py" ]; then
+          echo "Script found at PKBrokers/pkbrokers/kite/examples/pkkite.py"
+        else
+          echo "Script not found. Available files in kite/examples:"
+          find PKBrokers/pkbrokers/kite -name "*.py" -type f 2>/dev/null || echo "No Python files found in kite directory"
+          exit 1
+        fi
+
+    # - name: Copy PKBrokers content to expected location
+    #   run: |
+    #     # Create the pkbrokers directory if it doesn't exist
+    #     mkdir -p pkbrokers
+    #     # Copy the entire PKBrokers repo content
+    #     cp -r PKBrokers/* pkbrokers/
+    #     cp -r PKBrokers/.* pkbrokers/ 2>/dev/null || true  # Ignore errors for hidden files
+
+    - name: Verify final directory structure
+      run: |
+        echo "Final directory structure:"
+        find . -name "pkkite.py" -type f
+        echo "PKBrokers kite examples directory:"
+        ls -la PKBrokers/pkbrokers/kite/examples/ || echo "Directory not found"
+
+    - name: Create .env.dev file with secrets
+      env:
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+        TOKEN: ${{ secrets.TOKEN }}
+        chat_idADMIN: ${{ secrets.chat_idADMIN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CI_PAT: ${{ secrets.CI_PAT }}
+        TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+        TDU: ${{ secrets.TDU }}
+        TAT: ${{ secrets.TAT }}
+        MCU: ${{ secrets.MCU }}
+        MCAP: ${{ secrets.MCAP }}
+        MCL: ${{ secrets.MCL }}
+        MS: ${{ secrets.MS }}
+        PKG: ${{ secrets.PKG }}
+        REPO_URL: ${{ secrets.REPO_URL }}
+        KUSER: ${{ secrets.KUSER }}
+        KPWD: ${{ secrets.KPWD }}
+        KTOTP: ${{ secrets.KTOTP }}
+        KTOKEN: ${{ secrets.KTOKEN }}
+        DB_TYPE: ${{ secrets.DB_TYPE }}
+        TBTOKEN: ${{ secrets.TBTOKEN }}
+        BBTOKEN: ${{ secrets.BBTOKEN }}
+        Tel_API_ID: ${{ secrets.Tel_API_ID }}
+        Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+        Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+        TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+      run: |
+        cat > .env.dev << EOF
+        CHAT_ID=$CHAT_ID
+        TOKEN=$TOKEN
+        chat_idADMIN=$chat_idADMIN
+        GITHUB_TOKEN=$GITHUB_TOKEN
+        CI_PAT=$CI_PAT
+        TURSO_TOKEN=$TURSO_TOKEN
+        TDU=$TDU
+        TAT=$TAT
+        MCU=$MCU
+        MCAP=$MCAP
+        MCL=$MCL
+        MS=$MS
+        PKG=$PKG
+        REPO_URL=$REPO_URL
+        KUSER=$KUSER
+        KPWD=$KPWD
+        KTOTP=$KTOTP
+        KTOKEN=$KTOKEN
+        DB_TYPE=$DB_TYPE
+        TBTOKEN=$TBTOKEN
+        BBTOKEN=$BBTOKEN
+        Tel_API_ID=$Tel_API_ID
+        Tel_API_Hash=$Tel_API_Hash
+        Tel_Phone_Number=$Tel_Phone_Number
+        TEL_SESSION_DATA=$TEL_SESSION_DATA
+        PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
+        EOF
+        
+        echo "Created .env.dev file with secrets"
+    - name: Create session file
+      run: |
+        echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
+        chmod 600 user_session.session
+        cp .env.dev PKBrokers/pkbrokers/kite/examples/.env.dev
+        cd PKBrokers/pkbrokers/kite/examples/
+        echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
+        chmod 600 user_session.session
+        cd ../../../..
+        pwd
+
+    - name: Execute pkkite.py script
+      env:
+        PYTHONUNBUFFERED: 1  # Force unbuffered output
+        PKDevTools_Default_Log_Level: ${{ env.PKDevTools_Default_Log_Level }}
+      run: |
+        python PKBrokers/pkbrokers/kite/examples/pkkite.py --pickle --verbose 2>&1 | while IFS= read -r line; do
+          # Print timestamp with each log line for better debugging
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+        done
+        EXIT_CODE=${PIPESTATUS[0]}
+        echo "pkkite exited with code $EXIT_CODE"
+
+    - name: Handle script output
+      run: |
+        echo "Script execution completed"
+        ls
+        ls -l results/Data/
+
+    - name: Upload artifacts (if script generates output files)
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: pkkite-output
+        path: |
+          results/Data/*.json
+          results/Data/*.db
+          results/Data/*.pkl
+        retention-days: 7
