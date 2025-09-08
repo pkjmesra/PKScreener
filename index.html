@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data Manager</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .url-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .data-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Stock Data Manager</h1>
+        
+        <div class="section">
+            <h2>Update Stock Data via URL</h2>
+            <p>Use this format in your URL:</p>
+            <div class="url-box">
+                https://yourusername.github.io/?symbol=SYMBOL&open=PRICE&high=PRICE&low=PRICE&close=PRICE&volume=NUMBER
+            </div>
+            <p>For multiple symbols, separate with commas:</p>
+            <div class="url-box">
+                https://yourusername.github.io/?symbol=RELIANCE,INFY&open=2650,1550&high=2680,1575&low=2645,1545&close=2675,1568&volume=1500000,850000
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Manual Data Entry</h2>
+            <div class="form-group">
+                <label for="symbols">Stock Symbols (comma separated):</label>
+                <input type="text" id="symbols" placeholder="RELIANCE,INFY,TCS">
+            </div>
+            
+            <div class="form-group">
+                <label for="open">Open Prices (comma separated):</label>
+                <input type="text" id="open" placeholder="2650.50,1550.25,3450.75">
+            </div>
+            
+            <div class="form-group">
+                <label for="high">High Prices (comma separated):</label>
+                <input type="text" id="high" placeholder="2680.75,1575.50,3480.25">
+            </div>
+            
+            <div class="form-group">
+                <label for="low">Low Prices (comma separated):</label>
+                <input type="text" id="low" placeholder="2645.25,1545.75,3440.50">
+            </div>
+            
+            <div class="form-group">
+                <label for="close">Close Prices (comma separated):</label>
+                <input type="text" id="close" placeholder="2675.00,1568.00,3465.00">
+            </div>
+            
+            <div class="form-group">
+                <label for="volume">Volumes (comma separated):</label>
+                <input type="text" id="volume" placeholder="1500000,850000,1200000">
+            </div>
+            
+            <button onclick="processManualEntry()">Update Data</button>
+            <button onclick="clearForm()" class="secondary">Clear Form</button>
+        </div>
+
+        <div class="section">
+            <h2>Current Data</h2>
+            <button onclick="loadTicksData()">Refresh Data</button>
+            <button onclick="downloadTicksJson()" class="secondary">Download ticks.json</button>
+            <button onclick="clearAllData()" class="secondary" style="background: #dc3545;">Clear All Data</button>
+            
+            <div id="data-preview" class="data-preview">
+                Loading data...
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Access Your Data</h2>
+            <p>Access your saved ticks.json file at:</p>
+            <div class="url-box" id="json-url">
+                https://yourusername.github.io/data/ticks.json
+            </div>
+            <button onclick="copyJsonUrl()">Copy URL</button>
+            <button onclick="openJsonUrl()">Open in New Tab</button>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script src="js/stock-manager.js"></script>
+    <script>
+        // Process query parameters on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            processQueryParams(urlParams);
+            loadTicksData();
+        });
+    </script>
+</body>
+</html>
