@@ -65,7 +65,7 @@ python-telegram-bot>=13.4,<20.0
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
-urllib3>=1.26.20
+urllib3>=2.6.0
 
 # Backtesting and trading
 vectorbt>=0.26.2
@@ -74,3 +74,5 @@ vectorbt>=0.26.2
 # which conflicts with tensorflow 2.16.1. TA-Lib should be used instead.
 # If you need pandas-ta functionality without TA-Lib, you'll need to
 # choose between tensorflow and pandas-ta-classic.
+requests>=2.32.4 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
