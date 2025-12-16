@@ -74,3 +74,5 @@ vectorbt>=0.26.2
 # which conflicts with tensorflow 2.16.1. TA-Lib should be used instead.
 # If you need pandas-ta functionality without TA-Lib, you'll need to
 # choose between tensorflow and pandas-ta-classic.
+fonttools>=4.61.0 # not directly required, pinned by Snyk to avoid a vulnerability
+tornado>=6.5.3 # not directly required, pinned by Snyk to avoid a vulnerability
