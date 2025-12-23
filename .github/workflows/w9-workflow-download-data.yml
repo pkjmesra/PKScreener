@@ -139,7 +139,10 @@ jobs:
         pwd
         sudo dpkg -i ta-lib_0.6.4_amd64.deb
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib==0.6.0
+        # Pin numpy<2.0 to avoid incompatibility with ta-lib 0.6.0
+        # ta-lib uses deprecated NumPy C API that was removed in NumPy 2.x
+        pip3 install "numpy<2.0" setuptools "cython<3.0"
+        pip3 install --no-build-isolation ta-lib==0.6.0
 
     - name: Environment setup to get latest EXE
       if: ${{ inputs.skipDownload == '' }}
@@ -175,13 +178,59 @@ jobs:
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
         rm -rf results/*.lck || true
-        ls -l results
-        cp results/*.pkl actions-data-download
-        ls -l actions-data-download
+        echo "=== Listing results directory ==="
+        ls -la results/ || echo "results/ not found"
+        echo "=== Listing results/Data directory ==="
+        ls -la results/Data/ || echo "results/Data/ not found"
+        echo "=== Copying pkl files ==="
+        # Copy pkl files from results/Data/ (where Archiver saves them)
+        cp results/Data/*.pkl actions-data-download/ 2>/dev/null && echo "Copied from results/Data/" || true
+        # Also try copying from results/ directly
+        cp results/*.pkl actions-data-download/ 2>/dev/null && echo "Copied from results/" || true
+        # List all pkl files found recursively
+        echo "=== All pkl files in results ==="
+        find results -name "*.pkl" -type f 2>/dev/null || echo "No pkl files found"
+        echo "=== Contents of actions-data-download ==="
+        ls -la actions-data-download/
         git status
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
         RUNNER : "GitHub_Actions"
+
+    - name: Fallback - Create pkl from ticks.json.zip
+      shell: bash
+      continue-on-error: true
+      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
+      run: |
+        PKL_COUNT=$(find actions-data-download -name "*.pkl" -size +100c 2>/dev/null | wc -l)
+        if [ "$PKL_COUNT" -gt 0 ]; then
+          echo "Found $PKL_COUNT valid pkl files, skipping ticks.json fallback"
+          exit 0
+        fi
+        
+        echo "No valid pkl files found, trying ticks.json.zip fallback..."
+        
+        TICKS_URL="https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json.zip"
+        curl -sL -o /tmp/ticks.json.zip "$TICKS_URL" || true
+        
+        TICKS_JSON_URL="https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json"
+        curl -sL -o /tmp/ticks.json "$TICKS_JSON_URL" || true
+        
+        if [ -f /tmp/ticks.json.zip ] && [ -s /tmp/ticks.json.zip ]; then
+          echo "Downloaded ticks.json.zip, extracting..."
+          unzip -o /tmp/ticks.json.zip -d /tmp/ 2>/dev/null || true
+        fi
+        
+        if [ -f /tmp/ticks.json ] && [ -s /tmp/ticks.json ]; then
+          echo "Converting ticks.json to pickle format..."
+          python3 .github/workflows/ticks_to_pickle.py --ticks /tmp/ticks.json --output actions-data-download
+        else
+          echo "Could not find ticks.json"
+        fi
+        
+        ls -la actions-data-download/*.pkl 2>/dev/null || echo "No pkl files created"
+      env:
+        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
     - name: Download 52 week Stock Data on Windows
       continue-on-error: true

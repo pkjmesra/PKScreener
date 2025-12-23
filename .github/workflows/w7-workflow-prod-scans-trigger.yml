@@ -48,7 +48,7 @@ jobs:
 
   Scans_Trigger:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -63,26 +63,35 @@ jobs:
     - name: Restore Dependencies from Cache
       uses: actions/cache@v4
       with:
-        path: ~\AppData\Local\pip\Cache
+        path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install TA-Lib on windows
-      if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
+    - name: Load Cache for Linux TA-Lib
+      uses: actions/cache@v4
+      continue-on-error: true
+      with:
+        path: |
+          /usr/include/ta-lib
+          /usr/bin/ta-lib-config
+          /usr/lib/libta_lib.la
+          /usr/lib/libta_lib.a
+        key: ${{ runner.os }}-talib
+        restore-keys: |
+          ${{ runner.os }}-talib
+
+    - name: Install TA-Lib on Linux
+      if: ${{ inputs.installtalib != 'N' }}
       shell: bash
       run: |
         python3 -m pip install --upgrade pip
         cd .github/dependencies/
-        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        fi
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
+        cd $GITHUB_WORKSPACE
+        # Pin numpy<2.0 to avoid incompatibility with ta-lib 0.6.0
+        pip3 install "numpy<2.0" setuptools "cython<3.0"
+        pip3 install --no-build-isolation ta-lib==0.6.0
 
     - name: Install Python Dependencies
       shell: bash

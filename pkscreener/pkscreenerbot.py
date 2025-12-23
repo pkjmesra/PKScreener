@@ -649,10 +649,10 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
     if bot_available:
         try:
             otpValue = 0
+            scannerJobsSubscribed = ""
             alertUser = None
             dbManager = DBManager()
             otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)
-            scannerJobsSubscribed = ""
             if alertUser is not None and len(alertUser.scannerJobs) > 0:
                 scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
                 if len(scannerJobsSubscribed) > 0:
@@ -975,8 +975,9 @@ def Level2(update: Update, context: CallbackContext) -> str:
         query.answer()
         for mnu in mns:
             activeInlineRow = getinlineMenuListRow(keyboardRows)
+            prefix = (selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] == "P" else selection[0]
             activeInlineRow.append(
-                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{(selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] in ["P"] else selection[0]}_{mnu.menuKey}")))
+                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{prefix}_{mnu.menuKey}")))
 
         keyboard = keyboardRows
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1318,7 +1319,8 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
         payingUsers = dbMgr.getPayingUsers()
         if payingUsers is not None and len(payingUsers) > 0:
             menuText = "Here are all the paying users:"
-            menuText = f"{menuText}\n{"UserID".ljust(10,'#')} : {"UserName".ljust(10,'#')} : {"Subs.".ljust(5,'#')} : {"Bal.".ljust(5,'#')}"
+            header = "UserID".ljust(10,'#') + " : " + "UserName".ljust(10,'#') + " : " + "Subs.".ljust(5,'#') + " : " + "Bal.".ljust(5,'#')
+            menuText = f"{menuText}\n{header}"
             for payingUser in payingUsers:
                 menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.username).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
     elif selection == "UUB":

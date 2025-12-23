@@ -43,7 +43,7 @@ on:
   schedule:
     # During market hours (IST 9:00-16:00 = UTC 3:30-10:30): every 5 minutes
     - cron: '*/5 3-10 * * 1-5'
-    # Outside market hours: every hour to ensure data freshness
+    # Outside market hours: every 2 hours to ensure data freshness
     - cron: '30 */2 * * *'
     
   workflow_dispatch:
@@ -84,18 +84,35 @@ jobs:
         run: |
           pip install requests pandas pytz
 
+      - name: List available data files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Root directory pkl files ==="
+          ls -la *.pkl 2>/dev/null || echo "No .pkl files in root"
+          echo ""
+          echo "=== actions-data-download directory ==="
+          ls -la actions-data-download/*.pkl 2>/dev/null || echo "No actions-data-download subdirectory or no .pkl files"
+          echo ""
+          echo "=== results directory ==="
+          ls -la results/*.pkl 2>/dev/null || echo "No results directory or no .pkl files"
+          echo ""
+          echo "=== All pkl files (recursive, first 20) ==="
+          find . -name "*.pkl" -type f 2>/dev/null | head -20 || echo "No .pkl files found"
+
       - name: Determine data source and publish
         id: publish
         env:
           FORCE_REFRESH: ${{ github.event.inputs.force_refresh || 'N' }}
         run: |
-          python << 'PYTHON_SCRIPT'
+          python3 << 'PYTHON_SCRIPT'
           import gzip
           import json
           import os
           import pickle
           import glob
-          from datetime import datetime
+          from datetime import datetime, timezone
           from urllib.request import urlopen, Request
           from urllib.error import URLError
           import pytz
@@ -105,6 +122,7 @@ jobs:
           
           ist = pytz.timezone('Asia/Kolkata')
           now = datetime.now(ist)
+          utc_now = datetime.now(timezone.utc)
           
           # Check if we're in market hours
           market_start = now.replace(hour=9, minute=15, second=0, microsecond=0)
@@ -138,50 +156,94 @@ jobs:
                       print(f"Error loading {ticks_path}: {e}")
           
           # Priority 2: Pickle files from w9 workflow (especially outside market hours)
+          # Note: We're on the actions-data-download branch, so pickle files are at root level
           if not data or os.environ.get('FORCE_REFRESH') == 'Y':
               print("Checking for pickle files...")
+              
+              # On actions-data-download branch, w9 saves files to:
+              # - actions-data-download/*.pkl (which is a subdirectory on that branch)
+              # - Root level files saved by copy command
               pickle_patterns = [
-                  "actions-data-download/stock_data_*.pkl",
-                  "results/stock_data_*.pkl",
-                  "stock_data_*.pkl",
+                  "*.pkl",  # Root level
+                  "actions-data-download/*.pkl",  # Subdirectory
+                  "results/*.pkl",
               ]
               
+              all_pkl_files = []
               for pattern in pickle_patterns:
-                  pkl_files = glob.glob(pattern)
-                  if pkl_files:
-                      # Get the most recent pickle file
-                      pkl_files.sort(key=os.path.getmtime, reverse=True)
-                      latest_pkl = pkl_files[0]
-                      print(f"Found pickle file: {latest_pkl}")
+                  found = glob.glob(pattern)
+                  if found:
+                      print(f"Pattern '{pattern}' found: {len(found)} files")
+                      all_pkl_files.extend(found)
+              
+              if all_pkl_files:
+                  # Get the most recent pickle file
+                  all_pkl_files.sort(key=lambda f: os.path.getmtime(f), reverse=True)
+                  latest_pkl = all_pkl_files[0]
+                  print(f"Using pickle file: {latest_pkl} (size: {os.path.getsize(latest_pkl)} bytes)")
+                  
+                  try:
+                      with open(latest_pkl, 'rb') as f:
+                          pkl_data = pickle.load(f)
                       
-                      try:
-                          with open(latest_pkl, 'rb') as f:
-                              pkl_data = pickle.load(f)
-                          
-                          if isinstance(pkl_data, dict) and len(pkl_data) > 0:
-                              # Convert pickle data to JSON-compatible format
-                              converted_data = {}
-                              for symbol, stock_df in pkl_data.items():
-                                  try:
-                                      if hasattr(stock_df, 'to_dict'):
-                                          # It's a DataFrame
+                      print(f"Pickle data type: {type(pkl_data)}")
+                      
+                      if isinstance(pkl_data, dict) and len(pkl_data) > 0:
+                          # Convert pickle data to JSON-compatible format
+                          converted_data = {}
+                          for symbol, stock_df in pkl_data.items():
+                              try:
+                                  if hasattr(stock_df, 'to_dict'):
+                                      # It's a DataFrame - extract summary
+                                      try:
+                                          df_dict = stock_df.to_dict('records')
+                                          if df_dict:
+                                              last_row = df_dict[-1] if df_dict else {}
+                                              converted_data[symbol] = {
+                                                  "symbol": symbol,
+                                                  "data_available": True,
+                                                  "source": "pickle",
+                                                  "records": len(df_dict),
+                                              }
+                                          else:
+                                              converted_data[symbol] = {
+                                                  "symbol": symbol,
+                                                  "data_available": True,
+                                                  "source": "pickle",
+                                              }
+                                      except Exception:
                                           converted_data[symbol] = {
                                               "symbol": symbol,
                                               "data_available": True,
                                               "source": "pickle",
                                           }
-                                      elif isinstance(stock_df, dict):
-                                          converted_data[symbol] = stock_df
-                                  except Exception:
-                                      pass
-                              
-                              if converted_data:
-                                  data = converted_data
-                                  data_source = "pickle"
-                                  print(f"Loaded {len(data)} instruments from pickle")
-                                  break
-                      except Exception as e:
-                          print(f"Error loading pickle {latest_pkl}: {e}")
+                                  elif isinstance(stock_df, dict):
+                                      converted_data[symbol] = stock_df
+                                  else:
+                                      converted_data[symbol] = {
+                                          "symbol": symbol,
+                                          "data_available": True,
+                                          "source": "pickle",
+                                      }
+                              except Exception as e:
+                                  converted_data[symbol] = {
+                                      "symbol": symbol,
+                                      "data_available": True,
+                                      "source": "pickle",
+                                  }
+                          
+                          if converted_data:
+                              data = converted_data
+                              data_source = "pickle"
+                              print(f"Loaded {len(data)} instruments from pickle")
+                      else:
+                          print(f"Pickle data is not a dict or is empty. Type: {type(pkl_data)}, Len: {len(pkl_data) if hasattr(pkl_data, '__len__') else 'N/A'}")
+                  except Exception as e:
+                      print(f"Error loading pickle {latest_pkl}: {e}")
+                      import traceback
+                      traceback.print_exc()
+              else:
+                  print("No pickle files found in any location")
           
           # Priority 3: Fetch from existing GitHub data
           if not data:
@@ -205,7 +267,7 @@ jobs:
           
           # Build metadata
           metadata = {
-              "last_update": datetime.utcnow().isoformat() + "Z",
+              "last_update": utc_now.isoformat().replace('+00:00', 'Z'),
               "last_update_ist": now.isoformat(),
               "is_market_hours": is_market_hours,
               "data_source": data_source,
@@ -238,6 +300,7 @@ jobs:
           else:
               metadata["health"] = {"status": "no_data"}
               print("WARNING: No data to publish!")
+              print("This is expected on first run. Run w9-workflow-download-data.yml first to populate pickle files.")
           
           # Always save metadata
           with open("results/Data/metadata.json", 'w') as f:
@@ -250,7 +313,7 @@ jobs:
       - name: Cleanup old snapshots
         if: github.event.inputs.cleanup == 'Y'
         run: |
-          python << 'EOF'
+          python3 << 'EOF'
           import os
           import shutil
           from datetime import datetime, timedelta

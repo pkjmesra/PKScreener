@@ -102,6 +102,39 @@ PKScreener provides stock data availability around the clock, enabling users to 
 
 See [Scalable Architecture](SCALABLE_ARCHITECTURE.md) for detailed implementation.
 
+## 24x7 Data Availability
+
+PKScreener provides stock data availability around the clock, enabling users to trigger scans anytime:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   24x7 DATA AVAILABILITY                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  MARKET HOURS (9:15 AM - 3:30 PM IST)                           │
+│  └── Real-time tick data, updated every 5 minutes               │
+│                                                                  │
+│  AFTER MARKET HOURS                                              │
+│  └── End-of-day OHLCV data from last trading session            │
+│                                                                  │
+│  WEEKENDS & HOLIDAYS                                             │
+│  └── Last available trading data, refreshed every 2 hours       │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Time Period | Data Source | Update Frequency |
+|-------------|-------------|------------------|
+| Market hours | Real-time ticks | Every 5 minutes |
+| After market | EOD pickle files | Every 2 hours |
+| Weekends/Holidays | Cached data | Every 2 hours |
+
+**Key Workflows:**
+- `w-data-publisher.yml` - Publishes data 24x7 to GitHub
+- `w9-workflow-download-data.yml` - Downloads 52-week historical data after market close
+
+See [Scalable Architecture](SCALABLE_ARCHITECTURE.md) for detailed implementation.
+
 ## Getting Started
 
 1. **Read the [Developer Guide](DEVELOPER_GUIDE.md)** for project setup
