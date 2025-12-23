@@ -73,6 +73,7 @@ artText = f"{getArtText()}\n"
 STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
 
 def marketStatus():
+    return ""
     # task = PKTask("Nifty 50 Market Status",MarketStatus().getMarketStatus)
     lngStatus = MarketStatus().marketStatus
     nseStatus = ""

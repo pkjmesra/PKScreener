@@ -22,13 +22,7 @@
     SOFTWARE.
 
 """
-from pkscreener.classes.Exchange.StockExchange import StockExchange
 
-class IndexOption:
-    def __init__(self,exchange:StockExchange):
-        self.exchange = exchange
-        
-    
-    def getIndices():
-        return
-    
+from pkscreener.classes.screening.signals import TradingSignals, SignalStrength
+
+__all__ = ['TradingSignals', 'SignalStrength']

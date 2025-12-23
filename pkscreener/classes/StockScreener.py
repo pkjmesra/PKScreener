@@ -492,7 +492,7 @@ class StockScreener:
                 # Must-run, but only at the end
                 try:
                     if executeOption != 7 or (executeOption == 7 and respChartPattern != 7):
-                    # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+                    # Only 'doji' and 'inside' is internally implemented by pandas_ta_classic.
                     # Otherwise, for the rest of the candle patterns, they also need
                     # TA-Lib. So if TA-Lib is not available, it will throw exception
                     # We can live with no-patterns if user has not installed ta-lib
@@ -646,7 +646,7 @@ class StockScreener:
                         or (executeOption == 9 and hasMinVolumeRatio)
                         or (executeOption == 10 and isPriceRisingByAtLeast2Percent)
                         or (executeOption == 11 and isShortTermBullish)
-                        or (executeOption in [12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43] and isValidityCheckMet)
+                        or (executeOption in [12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47] and isValidityCheckMet)
                         or (executeOption == 21 and (mfiStake > 0 and reversalOption in [3,5]))
                         or (executeOption == 21 and (mfiStake < 0 and reversalOption in [6,7]))
                         or (executeOption == 21 and (fairValueDiff > 0 and reversalOption in [8]))
@@ -694,7 +694,7 @@ class StockScreener:
                             screener.validateCCI(
                                 processedData, screeningDictionary, saveDictionary, minRSI, maxRSI
                             )
-                        if isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
+                        if configManager.enableAdditionalTrendFilters and isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
                             # We don't need to have MFI or fair value data for backtesting because those
                             # are anyways only available for days in the past.
                             # For executeOption 21, we'd have already got the mfiStake and fairValueDiff
@@ -731,28 +731,28 @@ class StockScreener:
             # Capturing Ctr+C Here isn't a great idea
             pass
         except StockDataEmptyException as e: # pragma: no cover
-            # if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
-            #     hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
+            if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
+                hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.EligibilityConditionNotMet as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotNewlyListed as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotAStageTwoStock as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotEnoughVolumeAsPerConfig as e: # pragma: no cover 
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.DownloadDataOnly as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
             try:
                 data = hostRef.objectDictionaryPrimary.get(stock)
                 if data is not None:
@@ -762,7 +762,7 @@ class StockScreener:
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
                 pass
             try:
                 screener.getFairValue(stock,hostData=data, force=True,exchangeName=exchangeName)
@@ -770,24 +770,24 @@ class StockScreener:
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
                 pass
             pass
         except ScreeningStatistics.LTPNotInConfiguredRange as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
             pass
         except KeyError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
             pass
         except OSError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
             pass
         except Exception as e:  # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
             if testbuild or printCounter:
                 import traceback
                 traceback.print_exc()
@@ -804,7 +804,7 @@ class StockScreener:
 
     def performValidityCheckForExecuteOptions(self,executeOption,screener,fullData,screeningDictionary,saveDictionary,processedData,configManager,subMenuOption=3,intraday_data=None):
         isValid = True
-        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43]:
+        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47]:
             return True
         if executeOption == 11:
             isValid = screener.validateShortTermBullish(
@@ -873,6 +873,14 @@ class StockScreener:
             isValid = screener.findSuperGainersLosers(fullData,subMenuOption)
         elif executeOption == 43:
             isValid = screener.findSuperGainersLosers(fullData,subMenuOption,gainer=False)
+        elif executeOption == 44:  # Strong Buy Signals
+            isValid = screener.findStrongBuySignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 45:  # Strong Sell Signals
+            isValid = screener.findStrongSellSignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 46:  # All Buy Signals
+            isValid = screener.findAllBuySignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 47:  # All Sell Signals
+            isValid = screener.findAllSellSignals(fullData, screeningDictionary, saveDictionary)
         return isValid        
                     
     def performBasicVolumeChecks(self, executeOption, volumeRatio, screeningDictionary, saveDictionary, processedData, configManager, screener):

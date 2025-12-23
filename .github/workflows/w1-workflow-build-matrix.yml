@@ -344,7 +344,7 @@ jobs:
 
       - name: Test Built Binary for ${{ matrix.TARGET }}
         shell: bash
-        timeout-minutes: 5
+        timeout-minutes: 1
         continue-on-error: true
         run: ${{ matrix.TEST_BUILD }}
 
@@ -392,6 +392,7 @@ jobs:
             v1=${{ needs.Build.outputs.oldVersion }}
             v2=${{ needs.Build.outputs.version }}
             python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t link
+            python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f ${{ needs.Build.outputs.oldVersion }} -r ${{ needs.Build.outputs.version }} -t text
             python3 .github/workflows/updateVersion.py -p pkscreener/release.md -f [v${{ needs.Build.outputs.oldVersion }}] -r [v${{ needs.Build.outputs.version }}] -t text
             python3 .github/workflows/updateVersion.py -p pkscreener/classes/__init__.py -f ${{ needs.Build.outputs.devVersion }} -r ${{ needs.Build.outputs.version }} -t text
             sed -i "s/$v1/$v2/g" README.md

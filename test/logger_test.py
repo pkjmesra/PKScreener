@@ -35,14 +35,14 @@ from pkscreener.pkscreenercli import setupLogger
 # Positive test case - should log when shouldLog is True
 def test_setupLogger_positive_shouldLogTrue():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True)
+        setupLogger(should_log=True)
         assert mock_logger.called
 
 
 # Negative test case - should not log when shouldLog is False
 def test_setupLogger_negative_shouldLogFalse():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=False)
+        setupLogger(should_log=False)
         assert not mock_logger.called
 
 
@@ -51,21 +51,21 @@ def test_setupLogger_positive_logFilePath():
     log_file_paths = [os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt"),
                       os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")]
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True)
+        setupLogger(should_log=True)
         assert mock_logger.call_args[1]["log_file_path"] in log_file_paths
 
 
 # Positive test case - should log with trace when testbuild is True
 def test_setupLogger_positive_traceTrue():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True, trace=True)
+        setupLogger(should_log=True, trace=True)
         assert mock_logger.call_args[1]["trace"] is True
 
 
 # Negative test case - should not log with trace when testbuild is False
 def test_setupLogger_negative_traceFalse():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True, trace=False)
+        setupLogger(should_log=True, trace=False)
         assert mock_logger.call_args[1]["trace"] is False
 
 
@@ -76,7 +76,7 @@ def test_setupLogger_positive_removeLogFile():
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value
             with patch("os.remove") as mock_remove:
-                setupLogger(shouldLog=True)
+                setupLogger(should_log=True)
                 mock_remove.assert_called() #_with(log_file_path)
 
 
@@ -86,7 +86,7 @@ def test_setupLogger_negative_doNotRemoveLogFile():
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = False
             with patch("os.remove") as mock_remove:
-                setupLogger(shouldLog=True)
+                setupLogger(should_log=True)
                 assert not mock_remove.called
 
 
@@ -94,7 +94,7 @@ def test_setupLogger_negative_doNotRemoveLogFile():
 def test_setupLogger_positive_printLogFilePath(capsys):
     # log_file_path = os.path.join(tempfile.gettempdir(), "pkscreener-logs.txt")
     with patch("PKDevTools.classes.log.setup_custom_logger"):
-        setupLogger(shouldLog=True)
+        setupLogger(should_log=True)
         captured = capsys.readouterr()
         assert captured.err == ""
         if captured.out != "":
@@ -104,7 +104,7 @@ def test_setupLogger_positive_printLogFilePath(capsys):
 # Negative test case - should not print log file path when shouldLog is False
 def test_setupLogger_negative_doNotPrintLogFilePath(capsys):
     with patch("PKDevTools.classes.log.setup_custom_logger"):
-        setupLogger(shouldLog=False)
+        setupLogger(should_log=False)
         captured = capsys.readouterr()
         assert captured.out == ""
 
@@ -112,12 +112,12 @@ def test_setupLogger_negative_doNotPrintLogFilePath(capsys):
 # Positive test case - should set log level to DEBUG
 def test_setupLogger_positive_logLevel():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True)
+        setupLogger(should_log=True)
         assert mock_logger.call_args[0][1] == logging.DEBUG
 
 
 # Positive test case - should set filter to None
 def test_setupLogger_positive_filter():
     with patch("PKDevTools.classes.log.setup_custom_logger") as mock_logger:
-        setupLogger(shouldLog=True)
+        setupLogger(should_log=True)
         assert mock_logger.call_args[1]["filter"] is None

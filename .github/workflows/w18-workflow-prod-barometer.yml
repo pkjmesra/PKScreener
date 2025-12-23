@@ -63,7 +63,7 @@ jobs:
     - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ inputs.targetPythonVersion || 3.11 }}
+        python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
     - name: Restore Dependencies from Cache
       uses: actions/cache@v4
@@ -72,6 +72,13 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+
+    - name: Activate virtualenv for MacOS
+      if: startsWith(runner.os, 'MacOS')
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
 
     - name: Load Cache for Linux Dependencies
       uses: actions/cache@v4
@@ -197,7 +204,7 @@ jobs:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
         TOKEN_DEV : ${{secrets.TOKEN_DEV}}
         CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        GITHUB_TOKEN: ${{secrets.PK_GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: Barometer alert on Linux
       if : ${{ startsWith(runner.os, 'Linux') }} # && (steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1') }}

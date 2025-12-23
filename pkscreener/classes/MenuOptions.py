@@ -129,8 +129,8 @@ level1_P_MenuDict = {
     "M": "Back to the Top/Main menu",
 }
 LEVEL_1_DATA_DOWNLOADS = {
-    "D": "Download Daily OHLC Data for the Past Year",
-    "I": "Download Intraday OHLC Data for the Last Trading Day",
+    "D": "Download Daily OHLCV Data for the Past Year",
+    "I": "Download Intraday OHLCV Data for the Last Trading Day",
     "N": "NSE Equity Symbols",
     "S": "NSE Symbols with Sector/Industry Details",
     "M": "Back to the Top/Main menu",
@@ -369,12 +369,16 @@ level2_X_MenuDict = {
     "41": "Pivot Points                             ",
     "42": "Super Gainers                            ",
     "43": "Super Losers                             ",
+    "44": "Strong Buy Signals (Multi-Indicator)     ",
+    "45": "Strong Sell Signals (Multi-Indicator)    ",
+    "46": "All Buy Signals (Any strength)           ",
+    "47": "All Sell Signals (Any strength)          ",
     "50": "Show Last Screened Results               ",
 
     "M": "Back to the Top/Main menu                 ",
     "Z": "Exit (Ctrl + C)                           ",
 }
-MAX_SUPPORTED_MENU_OPTION = 43
+MAX_SUPPORTED_MENU_OPTION = 47
 MAX_MENU_OPTION = 50
 
 level3_X_Reversal_MenuDict = {
@@ -902,7 +906,8 @@ class menus:
                                                          asList=asList, 
                                                          renderStyle=renderStyle, 
                                                          parent=selectedMenu,
-                                                         checkUpdate=False)
+                                                         checkUpdate=False,
+                                                         subOnly=["D","I"])
                 else:
                     # sub-menu of the top level main selected menu
                     return self.renderMenuFromDictionary(dict=level1_X_MenuDict,

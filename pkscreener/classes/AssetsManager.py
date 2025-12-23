@@ -32,7 +32,7 @@ import pandas as pd
 import numpy as np
 from halo import Halo
 from alive_progress import alive_bar
-from yfinance import shared
+# from yfinance import shared
 
 from PKDevTools.classes.log import default_logger
 from PKDevTools.classes import Archiver
@@ -189,7 +189,7 @@ class PKAssetsManager:
     def afterMarketStockDataExists(intraday=False, forceLoad=False):
         exists, cache_file = Archiver.afterMarketStockDataExists(intraday=intraday,
                                                                  forceLoad=forceLoad,
-                                                                 date_suffix=False)
+                                                                 date_suffix=True)
         return exists, cache_file
 
     @Halo(text='', spinner='dots')
@@ -248,8 +248,9 @@ class PKAssetsManager:
         return cache_file
 
     def had_rate_limit_errors():
+        return False
         """Checks if any stored errors are YFRateLimitError."""
-        err = ",".join(list(shared._ERRORS.values()))
+        err = "" #",".join(list(shared._ERRORS.values()))
         hitRateLimit = "YFRateLimitError" in err or "Too Many Requests" in err or "429" in err
         if hitRateLimit:
             OutputControls().printOutput(
@@ -324,7 +325,16 @@ class PKAssetsManager:
         initialLoadCount = len(stockDict)
         leftOutStocks = None
         recentDownloadFromOriginAttempted = False
+        srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
         isTrading = PKDateUtilities.isTradingTime() and (PKDateUtilities.wasTradedOn() or not PKDateUtilities.isTodayHoliday()[0])
+        if isTrading or not os.path.exists(srcFilePath):
+            try:
+                from pkbrokers.kite.examples.externals import kite_fetch_save_pickle
+                if kite_fetch_save_pickle():
+                    default_logger().info("pkl file update succeeded!")
+            except Exception as e:
+                default_logger().error(f"Error downloading latest file:{e}")
+            isTrading = False
         if userDownloadOption is not None and "B" in userDownloadOption: # Backtests
             isTrading = False
         # Check if NSEI data is requested
@@ -350,7 +360,6 @@ class PKAssetsManager:
         )
         stockDataLoaded = False
         # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
-        srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
         # if os.path.exists(copyFilePath):
         #     shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
         if os.path.exists(srcFilePath) and not forceRedownload:
@@ -469,7 +478,7 @@ class PKAssetsManager:
             MB = KB * 1024
             chunksize = MB if serverBytes >= MB else (KB if serverBytes >= KB else 1)
             filesize = int( serverBytes / chunksize)
-            if filesize > 40 and chunksize == MB: # Saved data can't be in KBs. Something definitely went wrong. It should be upward of 40MB
+            if filesize > 20 and chunksize == MB: # Saved data can't be in KBs. Something definitely went wrong. It should be upward of 40MB
                 bar, spinner = Utility.tools.getProgressbarStyle()
                 try:
                     f = open(

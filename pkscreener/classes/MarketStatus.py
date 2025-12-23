@@ -62,6 +62,7 @@ class MarketStatus(SingletonMixin, metaclass=SingletonType):
         self.attributes["marketStatus"] = status
 
     def getMarketStatus(self, progress=None, task_id=0, exchangeSymbol="^NSEI",namedOnly=False):
+        return "NA"
         lngStatus = ""
         try:
             # if not 'pytest' in sys.modules:

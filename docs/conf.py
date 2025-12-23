@@ -62,13 +62,18 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_toolbox.more_autodoc.autonamedtuple",
     "sphinx.ext.autodoc",
+    "myst_parser",  # Support for Markdown files
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+# Support both .rst and .md files
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -103,6 +108,22 @@ release = version
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ["_build"]
+
+# MyST Parser configuration for Markdown support
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "linkify",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
+myst_heading_anchors = 3
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 # default_role = None

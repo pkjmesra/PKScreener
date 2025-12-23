@@ -50,3 +50,6 @@ pkscreener/*.txt
 .github/
 *.cache
 !results/Data/yfinance.cache.zip
+*.session
+*_plan.md
+*.ini

@@ -47,6 +47,12 @@ on:
         description: 'Scan options for historical scans. cleanuphistoricalscans MUST to be left empty to run historical scans.'
         required: false
         default: '--runintradayanalysis -u -1001785195297'
+      
+      logLevel:
+        description: 'Log level for PKDevTools (default 20)'
+        required: false
+        default: 20
+        type: number
 
   # schedule:
   # - cron: '58 9 * * 0-6'
@@ -59,7 +65,11 @@ jobs:
 
     runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
     permissions: write-all
-      # actions: write
+
+    env:
+      PKDevTools_Default_Log_Level: ${{ github.event.inputs.logLevel || '20' }}
+      TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -143,6 +153,77 @@ jobs:
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
     
+    - name: Install PKBrokers dependencies
+      run: |
+        pip install -e .
+        pip install kiteconnect
+
+    - name: Create .env.dev file with secrets
+      env:
+        # Map all PKBrokers related secrets to environment variables
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+        TOKEN: ${{ secrets.TOKEN }}
+        chat_idADMIN: ${{ secrets.chat_idADMIN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CI_PAT: ${{ secrets.CI_PAT }}
+        TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+        TDU: ${{ secrets.TDU }}
+        TAT: ${{ secrets.TAT }}
+        MCU: ${{ secrets.MCU }}
+        MCAP: ${{ secrets.MCAP }}
+        MCL: ${{ secrets.MCL }}
+        MS: ${{ secrets.MS }}
+        PKG: ${{ secrets.PKG }}
+        REPO_URL: ${{ secrets.REPO_URL }}
+        KTOKEN: ${{ secrets.KTOKEN }}
+        KUSER: ${{ secrets.KUSER }}
+        KPWD: ${{ secrets.KPWD }}
+        KTOTP: ${{ secrets.KTOTP }}
+        DB_TYPE: "local"
+        TBTOKEN: ${{ secrets.TBTOKEN }}
+        BBTOKEN: ${{ secrets.BBTOKEN }}
+        Tel_API_ID: ${{ secrets.Tel_API_ID }}
+        Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+        Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+        TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+      run: |
+        cat > .env.dev << EOF
+        CHAT_ID=$CHAT_ID
+        TOKEN=$TOKEN
+        chat_idADMIN=$chat_idADMIN
+        GITHUB_TOKEN=$GITHUB_TOKEN
+        CI_PAT=$CI_PAT
+        TURSO_TOKEN=$TURSO_TOKEN
+        TDU=$TDU
+        TAT=$TAT
+        MCU=$MCU
+        MCAP=$MCAP
+        MCL=$MCL
+        MS=$MS
+        PKG=$PKG
+        REPO_URL=$REPO_URL
+        KTOKEN=$KTOKEN
+        KUSER=$KUSER
+        KPWD=$KPWD
+        KTOTP=$KTOTP
+        DB_TYPE=$DB_TYPE
+        TBTOKEN=$TBTOKEN
+        BBTOKEN=$BBTOKEN
+        Tel_API_ID=$Tel_API_ID
+        Tel_API_Hash=$Tel_API_Hash
+        Tel_Phone_Number=$Tel_Phone_Number
+        TEL_SESSION_DATA=$TEL_SESSION_DATA
+        PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
+        EOF
+        
+        echo "Created .env.dev file with secrets"
+        echo "Set PKDevTools_Default_Log_Level to ${{ env.PKDevTools_Default_Log_Level }}"
+
+    - name: Create session file
+      run: |
+        echo ${{ env.TEL_SESSION_DATA }} | base64 -d > user_session.session
+        chmod 600 user_session.session
+
     - name: Trigger workflow
       continue-on-error: true
       shell: bash

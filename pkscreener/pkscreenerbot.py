@@ -61,6 +61,7 @@ MINUTES_2_IN_SECONDS = 120
 OWNER_USER = "Itsonlypk"
 APOLOGY_TEXT = "Apologies! The @nse_pkscreener_bot is NOT available for the time being! We are working with our host GitHub and other data source providers to sort out pending invoices and restore the services soon! Thanks for your patience and support! 🙏"
 
+from pkscreener.classes import VERSION
 from PKDevTools.classes.Environment import PKEnvironment
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.ColorText import colorText
@@ -279,7 +280,7 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
         if len(args) > 0: # UTR
             matchedTran = PKGmailReader.matchUTR(utr=args[0])
             if matchedTran is not None:
-                updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\n\nYour subscription is being enabled soon!\n\nPlease check with /OTP in the next couple of minutes!\n\nThank you for trusting PKScreener!"
+                updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\nYour subscription is being enabled soon!\nPlease check with /OTP in the next couple of minutes!\nThank you for trusting PKScreener!"
                 try:
                     results = updateSubscription(user.id,int(float(matchedTran.get("amountPaid"))))
                     if results is not None:
@@ -289,15 +290,16 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
                     updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
                     pass
             else:
-                updatedResults = "We could not find any transaction details with the provided UTR.\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\n\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
+                updatedResults = "We could not find any transaction details with the provided UTR.\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
         else:
-            updatedResults = "Did you forget to include the UTR number with /Check ?\nYou should use it like this:\n\n/Check UTR_Here\n\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\n\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
+            updatedResults = "Did you forget to include the UTR number with /Check ?\nYou should use it like this:\n/Check UTR_Here\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
     update.message.reply_text(sanitiseTexts(updatedResults), reply_markup=default_markup(user=user),parse_mode="HTML")
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
 
 def editMessageText(query,editedText,reply_markup):
-    editedText = f"{PKDateUtilities.currentDateTime()}:\n{editedText}"
+    # .replace(microsecond=0).isoformat()
+    editedText = f"PKScreener <b>v{VERSION}</b>\n{PKDateUtilities.currentDateTime()}:\n{editedText}"
     if query is not None and hasattr(query, "edit_message_text"):
         query.edit_message_text(text=editedText, reply_markup=reply_markup,parse_mode="HTML")
 
@@ -360,7 +362,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
         menuText = f"{menuText}\nClick /start if you want to restart the session."
     else:
         if not isUserSubscribed(user):
-            updatedResults = f"Thank you for choosing Intraday Monitor!\n\nThis scan request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\n\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1"
+            updatedResults = f"Thank you for choosing Intraday Monitor!\nThis scan request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1"
             updatedResults = f"{updatedResults}\nClick /start if you want to restart the session."
         chosenBotMenuOption = f"{chosenBotMenuOption}\nInt. Monitor. MonitorIndex:{monitorIndex}\n{updatedResults}"
         menuText = updatedResults
@@ -666,7 +668,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
                     subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name} (Only Basic Scans are free)\n"
                 else:
                     subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name}"
-            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'><b>sponsor</b></a>\n\nPlease drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually or use \n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n"
+            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'><b>sponsor</b></a>\nPlease send\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n. If it is not auto-enabled, please drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually."
 
             subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
             if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
@@ -679,7 +681,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             if otpValue == 0:
                 updatedResults = f"We are having difficulty generating OTP for your {userText}. Please try again later or reach out to @ItsOnlyPK."
             else:
-                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\n\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
+                updatedResults = f"Please use the following to login to PKScreener:\n{userText}\n<b>OTP</b>     : <code>{otpValue}</code>\nCurrent subscription : <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         else:
             updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         
@@ -734,7 +736,7 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     menuText = ""
     requiredBalance = 40 if str(scanId).upper().startswith("P") else 31
     # upi://pay?pa=PKScreener@APL&pn=PKScreener&cu=INR
-    payWall = "Please pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>\n\nPlease drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually or use \n\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI.\nAfter that you can try re-subscribing!"
+    payWall = "Please pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>\nPlease use\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI.\nAfter that you can try re-subscribing!\nIf you still face any problem, please drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually."
     if alertUser is not None and alertUser.balance >= 0:
         # User has some balance
         if len(alertUser.scannerJobs) > 0:
@@ -1250,7 +1252,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
             )
             optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}".replace(" > >","").strip()
             expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
-            menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\n\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\n\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \n\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+            menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
 
             reply_markup = default_markup(user=user)
             options = ":".join(selection)
@@ -1446,7 +1448,7 @@ def launchScreener(options, user, context, optionChoices, update):
                     isBasicScanRequest = True
                     break
             if not isBasicScanRequest:
-                responseText = f"Thank you for choosing {scanRequest}!\n\nThis {'Backtest' if str(scanRequest).startswith('B') else 'Scan'} request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n\n/OTP\n\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
+                responseText = f"Thank you for choosing {scanRequest}!\nThis {'Backtest' if str(scanRequest).startswith('B') else 'Scan'} request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
                 if update is not None and update.message is not None:
                     update.message.reply_text(sanitiseTexts(responseText),reply_markup=default_markup(user=user),parse_mode="HTML")
                 else:
@@ -1462,10 +1464,10 @@ def launchScreener(options, user, context, optionChoices, update):
                 optionChoices = optionChoices[:-1]
             if str(optionChoices).split("_")[2] == "6" and str(optionChoices).split("_")[3] == "7":
                 optionChoices = f"{optionChoices}_3" # Lorenzian Any/All
-            responseText = f"Thank you for choosing {optionChoices}!\n\nHere are the results:\n\nInsights: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_Insights_DateSorted.html"
-            responseText = f"{responseText}\n\nSummary: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_Summary_StockSorted.html"
-            responseText = f"{responseText}\n\nStock-wise: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_backtest_result_StockSorted.html"
-            responseText = f"{responseText}\n\nOther Reports: https://pkjmesra.github.io/PKScreener/BacktestReports.html"
+            responseText = f"Thank you for choosing {optionChoices}!\nHere are the results:\nInsights: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_Insights_DateSorted.html"
+            responseText = f"{responseText}\nSummary: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_Summary_StockSorted.html"
+            responseText = f"{responseText}\nStock-wise: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_backtest_result_StockSorted.html"
+            responseText = f"{responseText}\nOther Reports: https://pkjmesra.github.io/PKScreener/BacktestReports.html"
             if update is not None and update.message is not None:
                 update.message.reply_text(sanitiseTexts(responseText),reply_markup=default_markup(user=user),parse_mode="HTML")
             else:
@@ -1536,7 +1538,7 @@ def BBacktests(update: Update, context: CallbackContext) -> str:
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    responseText = "Backtesting NOT implemented yet in this Bot!\n\n\nYou can use backtesting by downloading the software from https://github.com/pkjmesra/PKScreener/"
+    responseText = "Backtesting NOT implemented yet in this Bot!\nYou can use backtesting by downloading the software from https://github.com/pkjmesra/PKScreener/"
     responseText = f"{responseText}\nClick /start if you want to restart the session."
     editMessageText(query=query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(user=user))
     registerUser(user)
@@ -1572,7 +1574,7 @@ def end(update: Update, context: CallbackContext) -> str:
     """
     query = update.callback_query
     query.answer()
-    responseText = "See https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener. \n\n\nSee you next time!"
+    responseText = "See https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener. \nSee you next time!"
     responseText = f"{responseText}\nClick /start if you want to restart the session."
     editMessageText(query=query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(query.from_user))
     return ConversationHandler.END
@@ -1636,9 +1638,9 @@ def error_handler(update: object, context: CallbackContext) -> None:
     message = (
         f"An exception was raised while handling an update\n"
         f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
-        "</pre>\n\n"
-        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        "</pre>\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n"
         f"<pre>{html.escape(tb_string)}</pre>"
     )
 
@@ -2031,7 +2033,7 @@ def sendRequestSubmitted(optionChoices, update, context):
             return
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
-    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \n\nConsider donating to help keep this project going:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \nConsider donating to help keep this project going:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
     update.message.reply_text(sanitiseTexts(menuText),reply_markup=default_markup(user=user),parse_mode="HTML")
     # help_command(update=update, context=context)
     shareUpdateWithChannel(
@@ -2098,7 +2100,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     if update is not None and update.message is not None:
         update.message.reply_text(
-            sanitiseTexts(f"You can begin by typing in /start (Recommended) and hit send!\nOR\nChoose an option:\n{cmdText}\n\nWe recommend you start by clicking on this /start"),
+            sanitiseTexts(f"You can begin by typing in /start (Recommended) and hit send!\nOR\nChoose an option:\n{cmdText}\nWe recommend you start by clicking on this /start"),
             reply_markup=default_markup(user=user),parse_mode="HTML"
         )  #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
         query = update.message

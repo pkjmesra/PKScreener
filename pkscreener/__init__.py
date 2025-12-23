@@ -28,9 +28,9 @@ Imports = {
     "scipy": find_spec("scipy") is not None,
     "sklearn": find_spec("sklearn") is not None,
     "talib": find_spec("talib") is not None or find_spec("ta-lib") is not None,
-    "pandas_ta": find_spec("pandas_ta") is not None,
+    "pandas_ta_classic": find_spec("pandas_ta_classic") is not None,
     "tensorflow": find_spec("tensorflow") is not None,
     "keras": find_spec("keras") is not None,
-    "yfinance": find_spec("yfinance") is not None,
+    # "yfinance": find_spec("yfinance") is not None,
     "vectorbt": find_spec("vectorbt") is not None,
 }
