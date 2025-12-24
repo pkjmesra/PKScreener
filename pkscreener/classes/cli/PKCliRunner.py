@@ -551,6 +551,3 @@ class CliConfigManager:
                 return False
         
         return True
-
-
-
