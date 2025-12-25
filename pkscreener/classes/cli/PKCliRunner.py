@@ -101,7 +101,8 @@ class PKCliRunner:
                 self.args.progressstatus = f"  [+] {choices} => Running {choices}"
                 self.args.usertag = PREDEFINED_SCAN_MENU_TEXTS[index_num]
                 self.args.maxdisplayresults = 2000
-        except:
+        except Exception as e:
+            default_logger().debug(f"Error handling predefined scan: {e}")
             choices = ""
         
         return self.args, choices
@@ -215,8 +216,8 @@ class PKCliRunner:
                 if prev_output is not None and not prev_output.empty:
                     try:
                         prev_output.set_index("Stock", inplace=True)
-                    except:
-                        pass
+                    except Exception:
+                        pass  # Index may already be set or column may not exist
                     
                     prev_output_results = prev_output[~prev_output.index.duplicated(keep='first')]
                     prev_output_results = prev_output_results.index
@@ -411,8 +412,8 @@ class IntradayAnalysisRunner:
                         final_df = df_group[cols]
                     else:
                         final_df = pd.concat([final_df, df_group[cols]], axis=0)
-        except:
-            pass
+        except Exception as e:
+            default_logger().debug(f"Error processing intraday analysis: {e}")
         
         if final_df is None or final_df.empty:
             return
@@ -484,8 +485,8 @@ class CliConfigManager:
             if not file_to_delete.endswith(this_instance):
                 try:
                     os.remove(file_to_delete)
-                except:
-                    pass
+                except OSError:
+                    pass  # File may be in use or already deleted
     
     def validate_tos_acceptance(self):
         """

@@ -560,7 +560,8 @@ class PKScreenerMain:
             executeOption = None
             
             if self.user_passed_args is not None and self.user_passed_args.options is not None and len(self.user_passed_args.options.split(":")) >= 3:
-                stockOptions = self.user_passed_args.options.split(":")[2 if len(stockOptions)<=3 else 3]
+                optionParts = self.user_passed_args.options.split(":")
+                stockOptions = optionParts[2 if len(optionParts) <= 3 else 3]
                 self.data_manager.list_stock_codes = stockOptions.replace(".",",").split(",")
                 
             if self.data_manager.list_stock_codes is None or len(self.data_manager.list_stock_codes) == 0:

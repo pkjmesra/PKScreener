@@ -1,0 +1,91 @@
+# Local Candle Database Sync Workflow
+# ====================================
+# This workflow syncs candle data from Turso (or tick aggregation) to local SQLite
+# and commits the database files to the repository for offline scan support.
+
+name: Local Candle DB Sync
+
+on:
+  schedule:
+    # During market hours (IST 9:15-15:30 = UTC 3:45-10:00)
+    - cron: '*/30 4-9 * * 1-5'
+    # After market close (IST 15:35 = UTC 10:05)
+    - cron: '5 10 * * 1-5'
+    # Weekend maintenance
+    - cron: '0 10 * * 0,6'
+  workflow_dispatch:
+    inputs:
+      force_tick_fallback:
+        description: 'Force use tick data instead of Turso'
+        required: false
+        default: 'N'
+        type: choice
+        options:
+          - 'Y'
+          - 'N'
+
+permissions:
+  contents: write
+
+jobs:
+  Sync_Local_DB:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PKScreener
+      uses: actions/checkout@v4
+      with:
+        ref: actions-data-download
+        fetch-depth: 1
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-candle-sync
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy pytz requests
+        pip install libsql-experimental || pip install libsql || echo "libsql not available"
+        pip install PKBrokers PKDevTools || echo "Will use local modules"
+        
+    - name: Sync and Export Candle Data
+      env:
+        DB_URL: ${{ secrets.DB_URL }}
+        DB_AUTH_TOKEN: ${{ secrets.DB_AUTH_TOKEN }}
+        FORCE_TICK_FALLBACK: ${{ inputs.force_tick_fallback }}
+      run: |
+        python .github/workflows/sync_local_candles.py
+        
+    - name: List generated files
+      run: |
+        echo "=== Database Files ==="
+        ls -la results/Data/*.db 2>/dev/null || echo "No .db files"
+        echo ""
+        echo "=== Pickle Files ==="
+        ls -la results/Data/*.pkl 2>/dev/null | tail -10 || echo "No .pkl files"
+        
+    - name: Commit and Push
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        git add results/Data/*.db 2>/dev/null || true
+        git add results/Data/*.pkl 2>/dev/null || true
+        
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update local candle databases $(date +%Y-%m-%d)"
+          git push
+          echo "Successfully pushed database updates"
+        fi

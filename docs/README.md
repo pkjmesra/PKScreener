@@ -132,6 +132,7 @@ PKScreener provides stock data availability around the clock, enabling users to 
 **Key Workflows:**
 - `w-data-publisher.yml` - Publishes data 24x7 to GitHub
 - `w9-workflow-download-data.yml` - Downloads 52-week historical data after market close
+  - Includes fallback: converts `ticks.json.zip` to pickle if database is unavailable
 
 See [Scalable Architecture](SCALABLE_ARCHITECTURE.md) for detailed implementation.
 

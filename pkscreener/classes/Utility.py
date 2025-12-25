@@ -179,6 +179,19 @@ class tools:
             contentLength = resp.headers.get("content-length")
             filesize = int(contentLength) if contentLength is not None else 0
             # File size should be more than at least 10 MB
+        
+        # If dated file not found, try the undated stock_data.pkl as fallback
+        if (resp is None or resp.status_code != 200) and cache_file.startswith("stock_data_") and cache_file.endswith(".pkl"):
+            fallback_file = "stock_data.pkl"
+            if not hideOutput:
+                default_logger().info(f"Dated file {cache_file} not found, trying fallback: {fallback_file}")
+            fallback_url = f"https://raw.githubusercontent.com/{repoOwner}/{repoName}/{branchName}/{directory}/{fallback_file}"
+            headers['referer'] = f'https://github.com/{repoOwner}/{repoName}/blob/{branchName}/{directory}/{fallback_file}'
+            resp = fetcher.fetchURL(fallback_url, headers=headers, stream=True)
+            if resp is not None and resp.status_code == 200:
+                contentLength = resp.headers.get("content-length")
+                filesize = int(contentLength) if contentLength is not None else 0
+        
         if (resp is None or (resp is not None and resp.status_code != 200) or filesize <= 10*1024*1024) and (repoOwner=="pkjmesra" and directory=="actions-data-download"):
             return tools.tryFetchFromServer(cache_file,repoOwner=repoName)
         return resp

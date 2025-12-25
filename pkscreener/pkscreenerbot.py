@@ -646,10 +646,15 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         updatedResults = APOLOGY_TEXT
     
     reply_markup=default_markup(user=user)
+    # Initialize variables to avoid UnboundLocalError
+    scannerJobsSubscribed = ""
+    alertUser = None
+    subscriptionModelName = PKSubscriptionModel.No_Subscription.name
+    subscriptionModelNames = ""
+    
     if bot_available:
         try:
             otpValue = 0
-            scannerJobsSubscribed = ""
             alertUser = None
             dbManager = DBManager()
             otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)

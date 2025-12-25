@@ -502,8 +502,8 @@ def ensureMenusLoaded(menuOption=None,indexOption=None,executeOption=None):
             m2.renderForMenu(selectedMenu=m1.find(indexOption),asList=True)
         if len(m3.menuDict.keys()) == 0:
             m3.renderForMenu(selectedMenu=m2.find(executeOption),asList=True)
-    except:
-        pass
+    except Exception as e:
+        default_logger().debug(f"Error loading menus: {e}")
 
 def initExecution(menuOption=None):
     global selectedChoice, userPassedArgs
@@ -843,7 +843,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         )
         if should_return:
             if new_menu is None:
-                if predefinedOption == "3" and userPassedArgs.pipedmenus is not None:
+                # If pipedmenus exists and we're returning early, run the piped menus
+                if userPassedArgs.pipedmenus is not None:
                     return addOrRunPipedMenus()
                 return None, None
         if new_menu == "X":

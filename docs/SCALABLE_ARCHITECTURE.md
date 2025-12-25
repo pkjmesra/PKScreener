@@ -379,8 +379,9 @@ def publish_to_github(data, output_dir="data"):
         json.dump(data, f)
     
     # Update metadata
+    from datetime import timezone
     metadata = {
-        "last_update": datetime.utcnow().isoformat() + "Z",
+        "last_update": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
         "snapshot_count": len(os.listdir(candles_dir)),
         "instrument_count": len(data),
         "version": "2.0.0"
@@ -577,8 +578,74 @@ The system uses a layered approach to ensure data is always available:
 | 1 | Real-time ticks (InMemoryCandleStore) | Market hours, live tick collection | Instant |
 | 2 | GitHub ticks.json | Fresh data published during market | 2-5s |
 | 3 | Pickle files (w9 workflow) | After market, weekends, holidays | 2-5s |
-| 4 | Local disk cache | Network issues, fallback | Instant |
-| 5 | Stale cache data | All sources fail | Instant |
+| 4 | ticks.json.zip fallback | Database blocked (quota exceeded) | 2-5s |
+| 5 | Local disk cache | Network issues, fallback | Instant |
+| 6 | Stale cache data | All sources fail | Instant |
+
+### Fallback: ticks.json.zip to Pickle Conversion
+
+When the primary data sources fail (e.g., Turso database quota exceeded), the system uses `ticks.json.zip` as a fallback:
+
+```
++------------------------------------------------------------+
+|                   FALLBACK MECHANISM                        |
++------------------------------------------------------------+
+|                                                             |
+|  1. w9-workflow-download-data.yml runs                     |
+|     +-- pkscreenercli -d -a Y (downloads stock data)       |
+|     +-- If database blocked -> no pkl files created        |
+|                                                             |
+|  2. Fallback step activates                                 |
+|     +-- Downloads ticks.json.zip from GitHub               |
+|     +-- Extracts ticks.json                                |
+|     +-- Runs ticks_to_pickle.py                            |
+|     +-- Creates stock_data_YYMMDD.pkl                      |
+|                                                             |
+|  3. Result: pkl files available for scans                   |
++------------------------------------------------------------+
+```
+
+**Script: `.github/workflows/ticks_to_pickle.py`**
+
+Converts `ticks.json` to pickle format:
+- Reads instrument data from ticks.json
+- Converts each symbol's OHLCV data to pandas DataFrame
+- Saves as `stock_data_YYMMDD.pkl` and `intraday_stock_data_YYMMDD.pkl`
+
+### Local SQLite Database (Offline Support)
+
+For complete offline scan support, a local SQLite database system stores candle data:
+
+```
++------------------------------------------------------------+
+|               LOCAL SQLITE DATABASE SYSTEM                  |
++------------------------------------------------------------+
+|                                                             |
+|  DAILY CANDLES                                              |
+|  +-- candles_daily_YYMMDD.db                               |
+|  +-- Contains 1-year historical OHLCV data                 |
+|  +-- ~40MB compressed                                       |
+|                                                             |
+|  INTRADAY CANDLES                                          |
+|  +-- candles_YYMMDD_intraday.db                            |
+|  +-- Contains 1-minute candles for trading day             |
+|  +-- ~10MB per day                                         |
+|                                                             |
+|  SYNC WORKFLOW (w-local-candle-sync.yml)                   |
+|  +-- During market hours: Every 30 minutes                 |
+|  +-- After market: Once at 3:35 PM IST                     |
+|  +-- Commits SQLite files to repository                    |
+|                                                             |
++------------------------------------------------------------+
+```
+
+**Module: `pkbrokers.kite.localCandleDatabase.LocalCandleDatabase`**
+
+Features:
+- Syncs from Turso when available
+- Falls back to tick data aggregation
+- Exports to PKScreener-compatible pickle format
+- Thread-safe operations
 
 ### Workflow Schedule
 

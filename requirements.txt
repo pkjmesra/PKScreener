@@ -57,9 +57,9 @@ pefile>=2023.2.7,<2024.8.26
 Pillow>=9.5.0
 
 # PKScreener ecosystem packages
-PKDevTools>=0.13.20251223.308
-PKNSETools>=0.1.20251223.143
-PKBrokers>=0.1.20251223.38
+PKDevTools>=0.13.20251224.314
+PKNSETools>=0.1.20251224.145
+PKBrokers>=0.1.20251224.52
 
 # Browser automation
 pyppeteer>=2.0.0
