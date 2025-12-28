@@ -14,68 +14,68 @@ PKScreener is built as a modular, multi-process stock screening application with
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           PRESENTATION LAYER                                 │
+│                           PRESENTATION LAYER                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │   CLI Interface │  │  Telegram Bot   │  │  GitHub Actions │             │
-│  │ pkscreenercli.py│  │pkscreenerbot.py │  │   Workflows     │             │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐              │
+│  │   CLI Interface │  │  Telegram Bot   │  │  GitHub Actions │              │
+│  │ pkscreenercli.py│  │pkscreenerbot.py │  │   Workflows     │              │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘              │
 └───────────┼─────────────────────┼─────────────────────┼─────────────────────┘
             │                     │                     │
             ▼                     ▼                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           APPLICATION LAYER                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           APPLICATION LAYER                                │
+├────────────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        globals.py (Main Orchestrator)                │   │
+│  │                        globals.py (Main Orchestrator)               │   │
 │  │  • main() - Entry point for all screening operations                │   │
 │  │  • runScanners() - Multiprocessing coordinator                      │   │
 │  │  • getScannerMenuChoices() - Menu flow management                   │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
+│                                    │                                       │
 │  ┌──────────────────┬──────────────┼──────────────┬──────────────────┐     │
 │  ▼                  ▼              ▼              ▼                  ▼     │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌───────────┐│
-│  │MenuManager │ │MainLogic.py│ │BacktestHdlr│ │ResultsMgr  │ │ConfigMgr  ││
-│  │Navigation  │ │ExecuteOpts │ │BacktestUtil│ │ResultsLblr │ │           ││
-│  └────────────┘ └────────────┘ └────────────┘ └────────────┘ └───────────┘│
-└─────────────────────────────────────────────────────────────────────────────┘
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌───────────┐ │
+│  │MenuManager │ │MainLogic.py│ │BacktestHdlr│ │ResultsMgr  │ │ConfigMgr  │ │
+│  │Navigation  │ │ExecuteOpts │ │BacktestUtil│ │ResultsLblr │ │           │ │
+│  └────────────┘ └────────────┘ └────────────┘ └────────────┘ └───────────┘ │
+└────────────────────────────────────────────────────────────────────────────┘
             │                     │                     │
             ▼                     ▼                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           BUSINESS LOGIC LAYER                               │
-├─────────────────────────────────────────────────────────────────────────────┤
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           BUSINESS LOGIC LAYER                             │
+├────────────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                     StockScreener.screenStocks()                     │   │
+│  │                     StockScreener.screenStocks()                    │   │
 │  │  • Orchestrates the screening process per stock                     │   │
 │  │  • Manages parallel execution context                               │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│  ┌─────────────────────────────────┼─────────────────────────────────┐     │
-│  ▼                                 ▼                                 ▼     │
-│  ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐     │
-│  │ScreeningStatistics │ │  CandlePatterns    │ │     Pktalib        │     │
-│  │• 47+ validators    │ │• Pattern detection │ │• TA-Lib wrapper    │     │
-│  │• Technical calcs   │ │• Candlestick types │ │• EMA, SMA, RSI...  │     │
-│  └────────────────────┘ └────────────────────┘ └────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────────────┘
+│                                    │                                       │
+│  ┌─────────────────────────────────┼────────────────────────────┐          │
+│  ▼                                 ▼                            ▼          │
+│  ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐      │
+│  │ScreeningStatistics │ │  CandlePatterns    │ │     Pktalib        │      │
+│  │• 47+ validators    │ │• Pattern detection │ │• TA-Lib wrapper    │      │
+│  │• Technical calcs   │ │• Candlestick types │ │• EMA, SMA, RSI...  │      │
+│  └────────────────────┘ └────────────────────┘ └────────────────────┘      │
+└────────────────────────────────────────────────────────────────────────────┘
             │                     │                     │
             ▼                     ▼                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                             DATA LAYER                                       │
+│                             DATA LAYER                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐      │
-│  │     Fetcher.py     │ │   DataLoader.py    │ │  AssetsManager.py  │      │
-│  │• Yahoo Finance API │ │• Local caching     │ │• GitHub data sync  │      │
-│  │• NSE data sources  │ │• Pickle storage    │ │• Index constituents│      │
-│  └────────────────────┘ └────────────────────┘ └────────────────────┘      │
+│  ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐       │
+│  │     Fetcher.py     │ │   DataLoader.py    │ │  AssetsManager.py  │       │
+│  │• Yahoo Finance API │ │• Local caching     │ │• GitHub data sync  │       │
+│  │• NSE data sources  │ │• Pickle storage    │ │• Index constituents│       │
+│  └────────────────────┘ └────────────────────┘ └────────────────────┘       │
 │                                    │                                        │
-│  ┌─────────────────────────────────┼─────────────────────────────────┐     │
-│  ▼                                 ▼                                 ▼     │
-│  ┌────────────────────────────────────────────────────────────────────┐    │
-│  │                      External Data Sources                          │    │
-│  │  • Yahoo Finance  • NSE India  • Morning Star  • GitHub Actions    │    │
-│  └────────────────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────┼──────────────────────────────┐         │
+│  ▼                                 ▼                              ▼         │
+│  ┌────────────────────────────────────────────────────────────────────┐     │
+│  │                      External Data Sources                         │     │
+│  │  • Yahoo Finance  • NSE India  • Morning Star  • GitHub Actions    │     │
+│  └────────────────────────────────────────────────────────────────────┘     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -200,15 +200,15 @@ Contains 47+ validation methods:
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│                     Main Process                               │
+│                     Main Process                              │
 │  globals.py::runScanners()                                    │
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │  Pool = multiprocessing.Pool(processes=cpu_count)       │  │
-│  │                                                          │  │
+│  │                                                         │  │
 │  │  results = pool.imap_unordered(                         │  │
 │  │      StockScreener.screenStocks,                        │  │
 │  │      [(stock1, params), (stock2, params), ...]          │  │
-│  │  )                                                       │  │
+│  │  )                                                      │  │
 │  └─────────────────────────────────────────────────────────┘  │
 └───────────────────────────────────────────────────────────────┘
                               │
@@ -225,7 +225,7 @@ Contains 47+ validation methods:
                               │
                               ▼
 ┌───────────────────────────────────────────────────────────────┐
-│                  Result Aggregation                            │
+│                  Result Aggregation                           │
 │  processResults() → lstscreen, lstsave → DataFrame            │
 └───────────────────────────────────────────────────────────────┘
 ```
@@ -282,74 +282,74 @@ The system includes a high-performance, in-memory candle data system that provid
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        ZERODHA KITE WEBSOCKET API                            │
+│                        ZERODHA KITE WEBSOCKET API                           │
 │  Real-time tick data for all NSE/BSE instruments                            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      ZerodhaWebSocketClient (PKBrokers)                      │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  • Manages multiple WebSocket connections (500 instruments each)     │   │
-│  │  • Parses binary tick data into structured format                   │   │
-│  │  • Puts ticks into multiprocessing queue                            │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│                      ZerodhaWebSocketClient (PKBrokers)                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  • Manages multiple WebSocket connections (500 instruments each)    │    │
+│  │  • Parses binary tick data into structured format                   │    │
+│  │  • Puts ticks into multiprocessing queue                            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       KiteTokenWatcher (PKBrokers)                           │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  • Processes tick batches every 5 seconds                           │   │
-│  │  • Maintains only latest tick per instrument (deduplication)        │   │
-│  │  • Updates InMemoryCandleStore with each batch                      │   │
-│  │  • Sends data to JSON writer for persistence                        │   │
-│  │  • Optionally sends to database (Turso/SQLite)                      │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│                       KiteTokenWatcher (PKBrokers)                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  • Processes tick batches every 5 seconds                           │    │
+│  │  • Maintains only latest tick per instrument (deduplication)        │    │
+│  │  • Updates InMemoryCandleStore with each batch                      │    │
+│  │  • Sends data to JSON writer for persistence                        │    │
+│  │  • Optionally sends to database (Turso/SQLite)                      │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┴───────────────┐
                     ▼                               ▼
 ┌─────────────────────────────────┐ ┌─────────────────────────────────────────┐
-│    InMemoryCandleStore          │ │         JSONFileWriter                   │
+│    InMemoryCandleStore          │ │         JSONFileWriter                  │
 │    (PKBrokers - Singleton)      │ │  • Writes ticks.json every 5 seconds    │
-│  ┌─────────────────────────┐   │ │  • Maintains OHLCV per instrument        │
-│  │ • All intervals stored  │   │ └─────────────────────────────────────────┘
-│  │ • O(1) access time      │   │
-│  │ • Thread-safe (RLock)   │   │
-│  │ • Auto-aggregation      │   │
-│  │ • Rolling windows       │   │
-│  │ • 5-min auto-persist    │   │
-│  └─────────────────────────┘   │
+│  ┌─────────────────────────┐    │ │  • Maintains OHLCV per instrument       │
+│  │ • All intervals stored  │    │ └─────────────────────────────────────────┘
+│  │ • O(1) access time      │    │
+│  │ • Thread-safe (RLock)   │    │
+│  │ • Auto-aggregation      │    │
+│  │ • Rolling windows       │    │
+│  │ • 5-min auto-persist    │    │
+│  └─────────────────────────┘    │
 └─────────────────────────────────┘
                     │
                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       PKDataProvider (PKDevTools)                            │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                       PKDataProvider (PKDevTools)                          │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Unified Data Access Layer with Priority:                           │   │
 │  │    1. InMemoryCandleStore (real-time) ◄──── PRIMARY                 │   │
 │  │    2. Local pickle files (cached)                                   │   │
 │  │    3. Remote GitHub pickle files (fallback)                         │   │
-│  │                                                                      │   │
-│  │  Features:                                                           │   │
+│  │                                                                     │   │
+│  │  Features:                                                          │   │
 │  │    • Automatic source selection                                     │   │
 │  │    • In-memory caching with TTL                                     │   │
 │  │    • Statistics tracking                                            │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┴───────────────┐
                     ▼                               ▼
 ┌─────────────────────────────────┐ ┌─────────────────────────────────────────┐
-│  nseStockDataFetcher            │ │    screenerStockDataFetcher              │
-│     (PKNSETools)                │ │       (PKScreener)                       │
-│  ┌─────────────────────────┐   │ │  ┌─────────────────────────────────┐    │
-│  │ • fetchStockData()      │   │ │  │ • fetchStockData()              │    │
-│  │ • getLatestPrice()      │   │ │  │ • getLatestPrice()              │    │
-│  │ • getRealtimeOHLCV()    │   │ │  │ • getRealtimeOHLCV()            │    │
-│  │ • isRealtimeAvailable() │   │ │  │ • isRealtimeDataAvailable()     │    │
-│  └─────────────────────────┘   │ │  │ • getAllRealtimeData()          │    │
+│  nseStockDataFetcher            │ │    screenerStockDataFetcher             │
+│     (PKNSETools)                │ │       (PKScreener)                      │
+│  ┌─────────────────────────┐   │ │  ┌─────────────────────────────────┐     │
+│  │ • fetchStockData()      │   │ │  │ • fetchStockData()              │     │
+│  │ • getLatestPrice()      │   │ │  │ • getLatestPrice()              │     │
+│  │ • getRealtimeOHLCV()    │   │ │  │ • getRealtimeOHLCV()            │     │
+│  │ • isRealtimeAvailable() │   │ │  │ • isRealtimeDataAvailable()     │     │
+│  └─────────────────────────┘   │ │  │ • getAllRealtimeData()          │     │
 └─────────────────────────────────┘ │  │ • fetchFiveEmaData()            │    │
                                     │  │ • fetchLatestNiftyDaily()       │    │
                                     │  └─────────────────────────────────┘    │
@@ -357,20 +357,20 @@ The system includes a high-performance, in-memory candle data system that provid
                                                     │
                                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         PKScreener Scan Engine                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  • StockScreener.screenStocks() - Uses real-time data              │   │
-│  │  • ScreeningStatistics - Technical analysis on live data           │   │
-│  │  • CandlePatterns - Pattern detection on current candles           │   │
-│  │  • Multiprocessing pool - Parallel screening                       │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                              │
-│  Benefits:                                                                   │
-│    ✓ No database latency for real-time data                                │
-│    ✓ Instant access to any timeframe                                       │
-│    ✓ No Yahoo Finance dependency (removed)                                 │
-│    ✓ No rate limiting issues                                               │
-│    ✓ Automatic fallback to cached data                                     │
+│                         PKScreener Scan Engine                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  • StockScreener.screenStocks() - Uses real-time data               │    │
+│  │  • ScreeningStatistics - Technical analysis on live data            │    │
+│  │  • CandlePatterns - Pattern detection on current candles            │    │
+│  │  • Multiprocessing pool - Parallel screening                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                             │
+│  Benefits:                                                                  │
+│    ✓ No database latency for real-time data                                 │
+│    ✓ Instant access to any timeframe                                        │
+│    ✓ No Yahoo Finance dependency (removed)                                  │
+│    ✓ No rate limiting issues                                                │
+│    ✓ Automatic fallback to cached data                                      │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -404,19 +404,19 @@ The system includes a high-performance, in-memory candle data system that provid
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    TelegramNotifier                              │
+│                    TelegramNotifier                             │
 ├─────────────────────────────────────────────────────────────────┤
 │  send_quick_scan_result()                                       │
-│    │                                                             │
+│    │                                                            │
 │    ├── Generate HTML table                                      │
 │    ├── Create PNG image (optional)                              │
-│    ├── send_message() / send_photo() / send_document()         │
+│    ├── send_message() / send_photo() / send_document()          │
 │    └── send_media_group() for multiple attachments              │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                 PKDevTools.classes.Telegram                      │
+│                 PKDevTools.classes.Telegram                     │
 │  • is_token_telegram_configured()                               │
 │  • send_message()                                               │
 │  • send_photo()                                                 │

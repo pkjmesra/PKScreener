@@ -1,0 +1,121 @@
+name: Scan Worker Pool
+
+# Phase 5: Warm worker pool to reduce cold start latency by 20-40s
+# This workflow keeps workers warm and ready to process scan requests instantly.
+
+on:
+  schedule:
+    # Keep workers warm by running every 50 minutes
+    - cron: '*/50 * * * *'
+  workflow_dispatch:
+    inputs:
+      scan_params:
+        description: 'Scan parameters (e.g., -a Y -e -o X:12:9:2)'
+        required: false
+        default: ''
+      user_id:
+        description: 'Telegram user ID for results'
+        required: false
+        default: '-1001785195297'
+  repository_dispatch:
+    types: [scan-request]
+
+run-name: Scan Worker ${{ github.event.client_payload.params || 'keepalive' }}
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Environment setup
+        id: setup
+        run: |
+          pip3 install requests
+          python3 .github/workflows/githubutilities.py -d
+
+      - name: Cache PKScreener Binary
+        uses: actions/cache@v4
+        id: binary-cache
+        with:
+          path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          key: ${{ runner.os }}-pkscreener-bin-${{ steps.setup.outputs.VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pkscreener-bin-
+
+      - name: Download binary if not cached
+        if: steps.binary-cache.outputs.cache-hit != 'true'
+        env:
+          exe_path: ${{ steps.setup.outputs.DOWNLOAD_URL }}
+        run: |
+          curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
+          chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        # Validate binary format
+        if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+          file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          exit 1
+        fi
+
+      - name: Ensure binary executable
+        run: chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        # Validate binary format
+        if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+          file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          exit 1
+        fi
+
+      - name: Restore Stock Data Cache
+        uses: actions/cache@v4
+        with:
+          path: results/Data/
+          key: stock-data-
+          restore-keys: |
+            stock-data-
+
+      - name: Process scan request (repository_dispatch)
+        if: github.event_name == 'repository_dispatch'
+        env:
+          RUNNER: "GitHub_Actions"
+          SCAN_PARAMS: ${{ github.event.client_payload.params }}
+          USER_ID: ${{ github.event.client_payload.user }}
+        run: |
+          echo "Processing scan request for user: $USER_ID"
+          echo "Parameters: $SCAN_PARAMS"
+          if [ -n "$SCAN_PARAMS" ]; then
+            /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin $SCAN_PARAMS -u $USER_ID -l
+          else
+            echo "No scan parameters provided"
+          fi
+
+      - name: Process manual scan request
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.scan_params != ''
+        env:
+          RUNNER: "GitHub_Actions"
+        run: |
+          /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ github.event.inputs.scan_params }} -u ${{ github.event.inputs.user_id }} -l
+
+      - name: Keepalive (scheduled runs)
+        if: github.event_name == 'schedule'
+        run: |
+          echo "Worker pool keepalive at $(date)"
+          echo "Binary ready: $(test -x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin && echo 'YES' || echo 'NO')"
+          echo "Data cache status: $(ls -la results/Data/ 2>/dev/null | wc -l) files"

@@ -62,7 +62,7 @@ class MenuOptionHandler:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         m1.renderForMenu(selectedMenu)
         
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
         if selDownloadOption.upper() == "D":
@@ -114,7 +114,7 @@ class MenuOptionHandler:
         m2.renderForMenu(selectedMenu)
         PKAnalyticsService().send_event("D_N")
         
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -161,7 +161,7 @@ class MenuOptionHandler:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         m2.renderForMenu(selectedMenu, skip=["15"])
         
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -277,7 +277,7 @@ class MenuOptionHandler:
             )
         
         if predefinedOption is None:
-            predefinedOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
+            predefinedOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
         OutputControls().printOutput(colorText.END, end="")
         
         if predefinedOption not in ["1", "2", "3", "4"]:
@@ -312,7 +312,7 @@ class MenuOptionHandler:
         m2.renderForMenu(selectedMenu=selectedMenu, asList=(userPassedArgs is not None and userPassedArgs.options is not None))
         
         if selPredefinedOption is None:
-            selPredefinedOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
+            selPredefinedOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
         OutputControls().printOutput(colorText.END, end="")
         
         if selPredefinedOption not in PREDEFINED_SCAN_MENU_KEYS:
@@ -327,7 +327,7 @@ class MenuOptionHandler:
                 from pkscreener.classes.MenuOptions import m0 as menu0
                 m1.renderForMenu(menu0.find(key="X"), skip=["W", "N", "E", "S", "Z"],
                                asList=(userPassedArgs is not None and userPassedArgs.options is not None))
-                selIndexOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or str(configManager.defaultIndex)
+                selIndexOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or str(configManager.defaultIndex)
                 if str(selIndexOption).upper() == "M":
                     return (False, None, None, None, None)
             if selIndexOption is not None:
@@ -476,7 +476,7 @@ def _handle_download_menu(launcher, m0, m1, m2, configManager, fetcher) -> bool:
     selectedMenu = m0.find("D")
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     m1.renderForMenu(selectedMenu)
-    selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+    selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
     OutputControls().printOutput(colorText.END, end="")
     
     if selDownloadOption.upper() == "D":
@@ -520,7 +520,7 @@ def _handle_download_nse_indices(launcher, m1, m2, configManager, fetcher) -> bo
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     m2.renderForMenu(selectedMenu)
     PKAnalyticsService().send_event("D_N")
-    selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+    selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
     OutputControls().printOutput(colorText.END, end="")
     
     filePrefix = "Download"
@@ -558,7 +558,7 @@ def _handle_download_sector_info(m1, m2, configManager, fetcher) -> bool:
     selectedMenu = m1.find("S")
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     m2.renderForMenu(selectedMenu, skip=["15"])
-    selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+    selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
     OutputControls().printOutput(colorText.END, end="")
     
     filePrefix = "Download"
@@ -674,7 +674,7 @@ def handle_predefined_menu(
         )
     
     if predefinedOption is None:
-        predefinedOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
+        predefinedOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
     OutputControls().printOutput(colorText.END, end="")
     
     if predefinedOption not in ["1", "2", "3", "4"]:
@@ -713,7 +713,7 @@ def _handle_predefined_option_1_4(
     m2.renderForMenu(selectedMenu=selectedMenu, asList=(userPassedArgs is not None and userPassedArgs.options is not None))
     
     if selPredefinedOption is None:
-        selPredefinedOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
+        selPredefinedOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "1"
     OutputControls().printOutput(colorText.END, end="")
     
     if selPredefinedOption not in PREDEFINED_SCAN_MENU_KEYS:
@@ -727,7 +727,7 @@ def _handle_predefined_option_1_4(
         if selIndexOption is None and (userPassedArgs is None or userPassedArgs.answerdefault is None):
             m1.renderForMenu(m0.find(key="X"), skip=["W", "N", "E", "S", "Z"],
                            asList=(userPassedArgs is not None and userPassedArgs.options is not None))
-            selIndexOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or str(configManager.defaultIndex)
+            selIndexOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ") or str(configManager.defaultIndex)
             if str(selIndexOption).upper() == "M":
                 return (True, None, listStockCodes)
         if selIndexOption is not None:
@@ -871,12 +871,12 @@ def handle_strategy_menu(
         m1.strategyNames = PortfolioXRay.strategyNames()
         m1.renderForMenu(selectedMenu=selectedMenu)
         try:
-            userOption = input(colorText.FAIL + "  [+] Select option: ")
+            userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ")
             OutputControls().printOutput(colorText.END, end="")
             if userOption == "":
                 userOption = "37"  # NoFilter
             elif userOption == "38":
-                userOption = input(colorText.FAIL + "  [+] Enter Exact Pattern name:")
+                userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Enter Exact Pattern name:")
                 OutputControls().printOutput(colorText.END, end="")
                 if userOption == "":
                     userOption = "37"  # NoFilter
@@ -989,7 +989,7 @@ def _handle_period_menu(
     if userPassedArgs is None or userPassedArgs.options is None:
         selectedMenu = m0.find("T")
         m1.renderForMenu(selectedMenu=selectedMenu)
-        periodOption = input(colorText.FAIL + "  [+] Select option: ") or (
+        periodOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or (
             'L' if configManager.period == '1y' else 'S'
         )
         OutputControls().printOutput(colorText.END, end="")
@@ -1039,7 +1039,7 @@ def _handle_long_short_period(m1, m2, configManager, periodOption, toggle_config
     
     selectedMenu = m1.find(periodOption)
     m2.renderForMenu(selectedMenu=selectedMenu)
-    durationOption = input(colorText.FAIL + "  [+] Select option: ") or "1"
+    durationOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "1"
     OutputControls().printOutput(colorText.END, end="")
     
     if durationOption is None or durationOption.upper() not in ["1", "2", "3", "4", "5"]:
@@ -1066,7 +1066,7 @@ def _handle_backtest_period(configManager, userPassedArgs, resultsContentsEncode
     last_trading_date = PKDateUtilities.nthPastTradingDateStringFromFutureDate(
         n=(22 if configManager.period == '1y' else 15)
     )
-    backtest_days_ago = input(
+    backtest_days_ago = OutputControls().takeUserInput(
         f"{colorText.FAIL}  [+] Enter no. of days/candles in the past as starting candle\n"
         f"  [+] You can also enter a past date in {colorText.END}{colorText.GREEN}YYYY-MM-DD{colorText.END}"
         f"{colorText.FAIL} format\n"

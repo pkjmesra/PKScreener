@@ -10,50 +10,50 @@ The high-performance data system provides instant access to OHLCV candle data ac
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Zerodha Kite WebSocket API                            │
-│                    (Real-time tick data stream)                              │
+│                        Zerodha Kite WebSocket API                           │
+│                    (Real-time tick data stream)                             │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────────────-─┐
 │                           PKBrokers Layer                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  ZerodhaWebSocketClient → KiteTokenWatcher → InMemoryCandleStore    │   │
-│  │                                                                      │   │
-│  │  Features:                                                           │   │
-│  │    • Real-time tick aggregation into OHLCV candles                  │   │
-│  │    • All intervals: 1m, 2m, 3m, 4m, 5m, 10m, 15m, 30m, 60m, daily   │   │
-│  │    • O(1) access time for any candle                                │   │
-│  │    • Memory-efficient rolling windows                               │   │
-│  │    • Auto-persistence every 5 minutes                               │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  ZerodhaWebSocketClient → KiteTokenWatcher → InMemoryCandleStore    │     │
+│  │                                                                     │     │
+│  │  Features:                                                          │     │
+│  │    • Real-time tick aggregation into OHLCV candles                  │     │
+│  │    • All intervals: 1m, 2m, 3m, 4m, 5m, 10m, 15m, 30m, 60m, daily   │     │
+│  │    • O(1) access time for any candle                                │     │
+│  │    • Memory-efficient rolling windows                               │     │
+│  │    • Auto-persistence every 5 minutes                               │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
+└────────────────────────────────────────────────────────────────────────────-─┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          PKDevTools Layer                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  PKDataProvider - Unified data access with automatic fallback       │    │
+│  │                                                                     │    │
+│  │  Data Source Priority:                                              │    │
+│  │    1. InMemoryCandleStore (real-time) ◄── Primary                   │    │
+│  │    2. Local pickle files (cached)                                   │    │
+│  │    3. Remote GitHub pickle files (fallback)                         │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          PKDevTools Layer                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  PKDataProvider - Unified data access with automatic fallback       │   │
-│  │                                                                      │   │
-│  │  Data Source Priority:                                              │   │
-│  │    1. InMemoryCandleStore (real-time) ◄── Primary                   │   │
-│  │    2. Local pickle files (cached)                                   │   │
-│  │    3. Remote GitHub pickle files (fallback)                         │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          PKScreener Layer                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  screenerStockDataFetcher - Enhanced with real-time support         │   │
-│  │                                                                      │   │
-│  │  New Methods:                                                        │   │
-│  │    • getLatestPrice(symbol)                                         │   │
-│  │    • getRealtimeOHLCV(symbol)                                       │   │
-│  │    • isRealtimeDataAvailable()                                      │   │
-│  │    • getAllRealtimeData()                                           │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│                          PKScreener Layer                                   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  screenerStockDataFetcher - Enhanced with real-time support         │    │
+│  │                                                                     │    │
+│  │  New Methods:                                                       │    │
+│  │    • getLatestPrice(symbol)                                         │    │
+│  │    • getRealtimeOHLCV(symbol)                                       │    │
+│  │    • isRealtimeDataAvailable()                                      │    │
+│  │    • getAllRealtimeData()                                           │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -175,7 +175,7 @@ The system automatically selects the best available data source:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Data Request                                  │
+│                    Data Request                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -194,17 +194,17 @@ The system automatically selects the best available data source:
              │                              │
              │ Data Found?                  │ Data Found?
              │                              │
-        ┌────┴────┐                   ┌────┴────┐
+        ┌────┴────┐                   ┌────-┴───┐
         │Yes  │No │                   │Yes  │No │
         ▼     ▼   │                   ▼     ▼   │
-    ┌──────┐ │    │               ┌──────┐     │
-    │Return│ │    │               │Return│     ▼
+    ┌──────┐ │    │               ┌──────┐      │
+    │Return│ │    │               │Return│      ▼
     │Data  │ │    │               │Data  │  ┌──────────────┐
     └──────┘ │    │               └──────┘  │Remote GitHub │
              │    │                         │Pickle Files  │
              ▼    ▼                         └──────────────┘
          ┌────────────────────────────────────────────────┐
-         │              Fallback Chain                     │
+         │              Fallback Chain                    │
          │  Real-time → Local Pickle → Remote Pickle      │
          └────────────────────────────────────────────────┘
 ```
@@ -289,7 +289,7 @@ The high-performance data system is designed to work 24x7, ensuring stock data i
 ### Data Source Priority (24x7)
 
 ```
-+------------------------------------------------------------------+
++-------------------------------------------------------------------+
 | Priority 1: InMemoryCandleStore (Real-time)                       |
 |    -> Live tick data during market hours                          |
 |                                                                   |
@@ -301,7 +301,7 @@ The high-performance data system is designed to work 24x7, ensuring stock data i
 |                                                                   |
 | Priority 4: Remote GitHub Pickle Files                            |
 |    -> 52-week historical data from w9-workflow                    |
-+------------------------------------------------------------------+
++-------------------------------------------------------------------+
 ```
 
 ### How It Works
@@ -318,4 +318,4 @@ See [Scalable Architecture](SCALABLE_ARCHITECTURE.md) for detailed 24x7 implemen
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
 - [Scalable Architecture](SCALABLE_ARCHITECTURE.md) - 24x7 data availability, GitHub-based data layer
 - [API_REFERENCE.md](API_REFERENCE.md) - API documentation
-- [PKBrokers HIGH_PERFORMANCE_CANDLES.md](../../PKBrokers/pkbrokers/kite/HIGH_PERFORMANCE_CANDLES.md) - PKBrokers documentation
+- [PKBrokers Documentation](https://github.com/pkjmesra/PKBrokers) - PKBrokers high performance candles documentation

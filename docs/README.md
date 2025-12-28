@@ -32,37 +32,37 @@ PKScreener is a stock screening and analysis tool that provides:
 \`\`\`
 +-------------------------------------------------------------+
 |                    User Interfaces                          |
-|     CLI (pkscreenercli.py) | Bot (pkscreenerbot.py)        |
+|     CLI (pkscreenercli.py) | Bot (pkscreenerbot.py)         |
 +-------------------------------------------------------------+
                               |
 +-------------------------------------------------------------+
-|              GitHub Actions Workflow Layer                   |
+|              GitHub Actions Workflow Layer                  |
 |   w7-workflow-prod-scans-trigger.yml (Scheduler)            |
 |   w8-workflow-alert-scan_generic.yml (Scan Runner)          |
 |   w-data-publisher.yml (Data Publisher - 24x7)              |
 +-------------------------------------------------------------+
                               |
 +-------------------------------------------------------------+
-|                  Core Orchestration                          |
-|                     globals.py                               |
-|   main() -> getScannerMenuChoices() -> runScanners()          |
+|                  Core Orchestration                         |
+|                     globals.py                              |
+|   main() -> getScannerMenuChoices() -> runScanners()        |
 +-------------------------------------------------------------+
                               |
 +-------------------------------------------------------------+
-|                   Screening Engine                           |
-|   StockScreener -> ScreeningStatistics -> Pktalib            |
-|              (47+ validation methods)                        |
+|                   Screening Engine                          |
+|   StockScreener -> ScreeningStatistics -> Pktalib           |
+|              (47+ validation methods)                       |
 +-------------------------------------------------------------+
                               |
 +-------------------------------------------------------------+
-|                High-Performance Data Layer                   |
-|  +-------------------------------------------------------+ |
-|  | Priority 1: PKBrokers InMemoryCandleStore (Real-time) | |
-|  | Priority 2: PKScalableDataFetcher (GitHub Raw)        | |
-|  | Priority 3: PKDataProvider (Local Cache)              | |
-|  | Priority 4: Remote Pickle Files (Fallback)            | |
-|  +-------------------------------------------------------+ |
-|  Intervals: 1m, 2m, 3m, 4m, 5m, 10m, 15m, 30m, 60m, daily  |
+|                High-Performance Data Layer                  |
+|  +-------------------------------------------------------+  |
+|  | Priority 1: PKBrokers InMemoryCandleStore (Real-time) |  |
+|  | Priority 2: PKScalableDataFetcher (GitHub Raw)        |  |
+|  | Priority 3: PKDataProvider (Local Cache)              |  |
+|  | Priority 4: Remote Pickle Files (Fallback)            |  |
+|  +-------------------------------------------------------+  |
+|  Intervals: 1m, 2m, 3m, 4m, 5m, 10m, 15m, 30m, 60m, daily   |
 +-------------------------------------------------------------+
 \`\`\`
 
@@ -108,18 +108,18 @@ PKScreener provides stock data availability around the clock, enabling users to 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   24x7 DATA AVAILABILITY                         │
+│                   24x7 DATA AVAILABILITY                        │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
+│                                                                 │
 │  MARKET HOURS (9:15 AM - 3:30 PM IST)                           │
 │  └── Real-time tick data, updated every 5 minutes               │
-│                                                                  │
-│  AFTER MARKET HOURS                                              │
+│                                                                 │
+│  AFTER MARKET HOURS                                             │
 │  └── End-of-day OHLCV data from last trading session            │
-│                                                                  │
-│  WEEKENDS & HOLIDAYS                                             │
+│                                                                 │
+│  WEEKENDS & HOLIDAYS                                            │
 │  └── Last available trading data, refreshed every 2 hours       │
-│                                                                  │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

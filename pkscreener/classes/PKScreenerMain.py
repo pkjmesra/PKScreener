@@ -581,7 +581,7 @@ class PKScreenerMain:
         selectedMenu = self.menu_manager.m0.find("D")
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m1.renderForMenu(selectedMenu)
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
         if selDownloadOption.upper() == "D":
@@ -611,7 +611,7 @@ class PKScreenerMain:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m2.renderForMenu(selectedMenu)
         PKAnalyticsService().send_event(f"D_{selDownloadOption.upper()}")
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -657,7 +657,7 @@ class PKScreenerMain:
         selectedMenu = self.menu_manager.m1.find(selDownloadOption.upper())
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m2.renderForMenu(selectedMenu, skip=["15"])
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -717,13 +717,13 @@ class PKScreenerMain:
             self.menu_manager.m1.renderForMenu(selectedMenu=selectedMenu)
             
             try:
-                userOption = input(colorText.FAIL + "  [+] Select option: ")
+                userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ")
                 OutputControls().printOutput(colorText.END, end="")
                 
                 if userOption == "":
                     userOption = "37"  # NoFilter
                 elif userOption == "38":
-                    userOption = input(colorText.FAIL + "  [+] Enter Exact Pattern name:")
+                    userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Enter Exact Pattern name:")
                     OutputControls().printOutput(colorText.END, end="")
                     
                     if userOption == "":
@@ -876,7 +876,7 @@ class PKScreenerMain:
                         monitorOption = (f"{monitorOption}:" if len(monitorOption) > 0 else '') + f"{self.menu_manager.selected_choice[choice]}"
                         
                 self.menu_manager.m0.renderPinnedMenu(substitutes=[monitorOption, len(prevOutput_results), monitorOption, monitorOption, monitorOption], skip=(["1","2","4","5"] if self.menu_manager.selected_choice["0"] in ["F"] else []))
-                pinOption = input(colorText.FAIL + "  [+] Select option: ") or 'M'
+                pinOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or 'M'
                 OutputControls().printOutput(colorText.END, end="")
                 
                 self.menu_manager.ensureMenusLoaded(self.menu_manager.selected_choice["0"], self.menu_manager.selected_choice["1"], self.menu_manager.selected_choice["2"])

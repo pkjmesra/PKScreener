@@ -184,7 +184,11 @@ def read_screen_results_decoded(filename: str = None, output_dir: str = None) ->
 
 
 def show_option_error_message():
-    """Show option error message"""
+    """Show option error message - only in interactive mode"""
+    # Only show error message and wait if in interactive mode
+    if not OutputControls().enableUserInput:
+        return  # Skip error message in non-interactive/bot mode
+    
     from time import sleep
     OutputControls().printOutput(
         f"{colorText.FAIL}\n  [+] Please enter a valid option & Try Again!{colorText.END}"

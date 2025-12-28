@@ -146,6 +146,12 @@ jobs:
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        # Validate binary format
+        if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+          file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          exit 1
+        fi
 
     - name: Install Python Dependencies
       run: |

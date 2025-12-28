@@ -1,0 +1,51 @@
+name: Data Warmup - Pre-cache Stock Data
+
+on:
+  schedule:
+    - cron: '*/3 3-10 * * 1-5'
+    - cron: '0,30 11-23,0-2 * * *'
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 'Force refresh data (Y/N)'
+        required: false
+        default: 'N'
+
+jobs:
+  Warmup_Data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: actions-data-download
+          fetch-depth: 1
+
+      - name: Create data directory
+        run: mkdir -p results/Data
+
+      - name: Restore data cache
+        uses: actions/cache@v4
+        id: data-cache
+        with:
+          path: results/Data/
+          key: stock-data-${{ github.run_id }}
+          restore-keys: |
+            stock-data-
+
+      - name: Fetch latest stock data
+        if: steps.data-cache.outputs.cache-hit != 'true' || github.event.inputs.force_refresh == 'Y'
+        run: |
+          curl -sL -o results/Data/candles_latest.json.gz \
+            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/candles_latest.json.gz" || true
+          curl -sL -o results/Data/ticks.json \
+            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json" || true
+          curl -sL -o results/Data/metadata.json \
+            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/metadata.json" || true
+          ls -la results/Data/
+
+      - name: Save data cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: results/Data/
+          key: stock-data-${{ github.run_id }}

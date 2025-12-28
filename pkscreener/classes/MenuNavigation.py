@@ -294,7 +294,7 @@ class MenuNavigator:
         if user_passed_args is None or user_passed_args.options is None:
             selected_menu = self.m0.find("T")
             self.m1.renderForMenu(selectedMenu=selected_menu)
-            period_option = input(
+            period_option = OutputControls().takeUserInput(
                 colorText.FAIL + "  [+] Select option: "
             ) or ('L' if self.config_manager.period == '1y' else 'S')
             OutputControls().printOutput(colorText.END, end="")
@@ -334,7 +334,7 @@ class MenuNavigator:
         """Handle period/duration selection"""
         selected_menu = self.m1.find(period_option)
         self.m2.renderForMenu(selectedMenu=selected_menu)
-        duration_option = input(colorText.FAIL + "  [+] Select option: ") or "1"
+        duration_option = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "1"
         OutputControls().printOutput(colorText.END, end="")
         
         if duration_option is None or duration_option.upper() not in ["1", "2", "3", "4", "5"]:
@@ -366,7 +366,7 @@ class MenuNavigator:
         last_trading_date = PKDateUtilities.nthPastTradingDateStringFromFutureDate(
             n=(22 if self.config_manager.period == '1y' else 15)
         )
-        backtest_days_ago = input(
+        backtest_days_ago = OutputControls().takeUserInput(
             f"{colorText.FAIL}  [+] Enter no. of days/candles in the past as starting candle\n"
             f"  [+] You can also enter a past date in {colorText.END}{colorText.GREEN}YYYY-MM-DD{colorText.END}"
             f"{colorText.FAIL} format\n"

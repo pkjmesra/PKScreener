@@ -651,7 +651,7 @@ class BacktestHandler:
         )
         
         if default_answer is None:
-            choice = input(colorText.FAIL + "  [+] Select option:")
+            choice = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option:")
             OutputControls().printOutput(colorText.END, end="")
             
             if choice.upper() in sort_keys.keys():

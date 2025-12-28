@@ -240,12 +240,12 @@ def _configure_vcp_filters(configManager, ConfigManager):
     configManager.enableAdditionalVCPFilters = "y" in userInput
     
     if configManager.enableAdditionalVCPFilters:
-        configManager.vcpRangePercentageFromTop = input(
+        configManager.vcpRangePercentageFromTop = OutputControls().takeUserInput(
             f"  [+] Range percentage from top: [Recommended: 20] "
             f"(Current: {colorText.FAIL}{configManager.vcpRangePercentageFromTop}{colorText.END}): "
         ) or configManager.vcpRangePercentageFromTop
         
-        configManager.vcpLegsToCheckForConsolidation = input(
+        configManager.vcpLegsToCheckForConsolidation = OutputControls().takeUserInput(
             f"  [+] Number of consolidation legs [Recommended: 3] "
             f"(Current: {colorText.FAIL}{configManager.vcpLegsToCheckForConsolidation}{colorText.END}): "
         ) or configManager.vcpLegsToCheckForConsolidation
@@ -264,17 +264,17 @@ def _configure_vcp_filters(configManager, ConfigManager):
 def _configure_super_confluence(options, userPassedArgs, configManager, ConfigManager):
     """Configure super confluence settings"""
     if len(options) <= 5 and not userPassedArgs.systemlaunched:
-        configManager.superConfluenceMaxReviewDays = input(
+        configManager.superConfluenceMaxReviewDays = OutputControls().takeUserInput(
             f"  [+] Max review days ({colorText.GREEN}Optimal = 3-7{colorText.END}, "
             f"Current: {colorText.FAIL}{configManager.superConfluenceMaxReviewDays}{colorText.END}): "
         ) or configManager.superConfluenceMaxReviewDays
         
-        configManager.superConfluenceEMAPeriods = input(
+        configManager.superConfluenceEMAPeriods = OutputControls().takeUserInput(
             f"  [+] EMA periods ({colorText.GREEN}Optimal = 8,21,55{colorText.END}, "
             f"Current: {colorText.FAIL}{configManager.superConfluenceEMAPeriods}{colorText.END}): "
         ) or configManager.superConfluenceEMAPeriods
         
-        enable200SMA = input(
+        enable200SMA = OutputControls().takeUserInput(
             f"  [+] Enable SMA-200 check? [Y/N, Current: "
             f"{colorText.FAIL}{'y' if configManager.superConfluenceEnforce200SMA else 'n'}{colorText.END}]: "
         ) or ('y' if configManager.superConfluenceEnforce200SMA else 'n')
@@ -288,7 +288,7 @@ def _handle_candlestick_patterns(userPassedArgs, m0, selectedChoice):
     maLength = "0"
     if userPassedArgs is None or userPassedArgs.answerdefault is None:
         m0.renderCandleStickPatterns()
-        filterOption = input(colorText.FAIL + "  [+] Select option: ") or "0"
+        filterOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "0"
         cupnHandleIndex = str(CandlePatterns.reversalPatternsBullish.index("Cup and Handle") + 1)
         
         if filterOption == cupnHandleIndex:
@@ -421,19 +421,19 @@ def handle_execute_option_30(userPassedArgs, configManager, screener) -> None:
     
     if userPassedArgs.options is None:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
-        atrSensitivity = input(
+        atrSensitivity = OutputControls().takeUserInput(
             f"{colorText.WARN}Enter the ATR Trailing Stop Sensitivity "
             f"({colorText.GREEN}Optimal:1{colorText.END}, Current={configManager.atrTrailingStopSensitivity}):"
         ) or configManager.atrTrailingStopSensitivity
         configManager.atrTrailingStopSensitivity = atrSensitivity
         
-        atrPeriod = input(
+        atrPeriod = OutputControls().takeUserInput(
             f"{colorText.WARN}Enter the ATR Period value "
             f"({colorText.GREEN}Optimal:10{colorText.END}, Current={configManager.atrTrailingStopPeriod}):"
         ) or configManager.atrTrailingStopPeriod
         configManager.atrTrailingStopPeriod = atrPeriod
         
-        atrEma = input(
+        atrEma = OutputControls().takeUserInput(
             f"{colorText.WARN}Enter the ATR EMA period "
             f"({colorText.GREEN}Optimal:200{colorText.END}, Current={configManager.atrTrailingStopEMAPeriod}):"
         ) or configManager.atrTrailingStopEMAPeriod
@@ -449,7 +449,7 @@ def handle_execute_option_31(userPassedArgs) -> int:
     """Handle execute option 31 - DEEL Momentum. Returns maLength."""
     maLength = 0
     if userPassedArgs.options is None:
-        beStrict = input(
+        beStrict = OutputControls().takeUserInput(
             f"{colorText.WARN}Strictly show only high momentum stocks? "
             f"({colorText.GREEN}Optimal:N{colorText.END}, Default=Y). Choose Y or N:"
         ) or "N"
@@ -491,7 +491,7 @@ def handle_execute_option_34(userPassedArgs, configManager) -> None:
     import pkscreener.classes.ConfigManager as ConfigManager
     
     if userPassedArgs.options is None:
-        configManager.anchoredAVWAPPercentage = input(
+        configManager.anchoredAVWAPPercentage = OutputControls().takeUserInput(
             f"{colorText.WARN}Enter the anchored-VWAP percentage gap "
             f"({colorText.GREEN}Optimal:1{colorText.END}, Current={configManager.anchoredAVWAPPercentage}):"
         ) or configManager.anchoredAVWAPPercentage
@@ -503,7 +503,7 @@ def handle_execute_option_42_43(executeOption: int, userPassedArgs) -> float:
     if executeOption == 42:
         maLength = 10
         if userPassedArgs.options is None:
-            maLength = input(
+            maLength = OutputControls().takeUserInput(
                 f"{colorText.WARN}Minimum Percent change for super gainers? "
                 f"({colorText.GREEN}Optimal:15{colorText.END}, Default=10):"
             ) or 10
@@ -514,7 +514,7 @@ def handle_execute_option_42_43(executeOption: int, userPassedArgs) -> float:
     else:  # executeOption == 43
         maLength = -10
         if userPassedArgs.options is None:
-            maLength = input(
+            maLength = OutputControls().takeUserInput(
                 f"{colorText.WARN}Minimum Percent change for super losers? "
                 f"({colorText.GREEN}Optimal:-10{colorText.END}, Default=-10):"
             ) or -10
@@ -551,7 +551,7 @@ def handle_execute_option_40(
         smaEMA = options[3]
         smaEMA = "2" if smaEMA == "D" else smaEMA
     else:
-        smaEMA = input(colorText.FAIL + "  [+] Select option: ") or "2"
+        smaEMA = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "2"
     
     if smaEMA == "0":
         return None, None, None
@@ -567,7 +567,7 @@ def handle_execute_option_40(
         smaDirection = options[4]
         smaDirection = "2" if smaDirection == "D" else smaDirection
     else:
-        smaDirection = input(colorText.FAIL + "  [+] Select option: ") or "2"
+        smaDirection = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "2"
     
     if smaDirection == "0":
         return None, None, None
@@ -581,7 +581,7 @@ def handle_execute_option_40(
         smas = options[5]
         smas = "200" if smas == "D" else smas
     else:
-        smas = input(
+        smas = OutputControls().takeUserInput(
             f"{colorText.FAIL}  [+] Price should cross which EMA/SMA(s) "
             f"(e.g. 200 or 8,9,21,55,200) [Default: 200]:"
         ) or "200"
@@ -615,7 +615,7 @@ def handle_execute_option_41(
         pivotPoint = options[3]
         pivotPoint = "1" if pivotPoint == "D" else pivotPoint
     else:
-        pivotPoint = input(colorText.FAIL + "  [+] Select option: ") or "1"
+        pivotPoint = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "1"
     
     if pivotPoint == "0" or not str(pivotPoint).isnumeric():
         return None, None
@@ -631,7 +631,7 @@ def handle_execute_option_41(
         priceDirection = options[4]
         priceDirection = "2" if priceDirection == "D" else priceDirection
     else:
-        priceDirection = input(colorText.FAIL + "  [+] Select option: ") or "2"
+        priceDirection = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "2"
     
     if priceDirection == "0" or not str(priceDirection).isnumeric():
         return None, None

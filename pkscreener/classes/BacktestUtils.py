@@ -221,7 +221,7 @@ def take_backtest_inputs(
     
     if default_answer is None:
         try:
-            period_input = input(
+            period_input = OutputControls().takeUserInput(
                 f"{colorText.WARN}Enter backtest period in days (default=30): {colorText.END}"
             ) or "30"
             backtest_period = int(period_input)
@@ -771,7 +771,7 @@ def show_sorted_backtest_data_impl(
     
     sorting = True
     if default_answer is None:
-        choice = input(colorText.FAIL + "  [+] Select option:")
+        choice = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option:")
         OutputControls().printOutput(colorText.END, end="")
         
         if choice.upper() in sort_keys.keys():

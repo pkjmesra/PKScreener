@@ -135,3 +135,56 @@ def run_workflow(command=None, user=None, options=None, workflowType="B",repo=No
 
 
 # resp = run_workflow("B_12_1","-1001785195297","B:12:1")
+
+
+def dispatch_to_worker_pool(user=None, params=None, owner=None, repo=None, ghp_token=None):
+    """
+    Phase 5 Optimization: Use repository_dispatch to trigger warm worker pool
+    for faster scan execution (20-40s latency reduction).
+    
+    Args:
+        user: Telegram user ID for results
+        params: Scan parameters (e.g., "-a Y -e -o X:12:9:2")
+        owner: GitHub repo owner (default: pkjmesra)
+        repo: GitHub repo name (default: PKScreener)
+        ghp_token: GitHub personal access token
+    
+    Returns:
+        Response from GitHub API
+    """
+    if owner is None:
+        owner = "pkjmesra"
+    if repo is None:
+        repo = "PKScreener"
+    
+    if ghp_token is None:
+        _, _, _, ghp_token = PKEnvironment().secrets
+    
+    # Build repository_dispatch payload
+    import json
+    data = json.dumps({
+        "event_type": "scan-request",
+        "client_payload": {
+            "user": user or "-1001785195297",
+            "params": params or "",
+            "timestamp": int(PKDateUtilities.currentDateTimestamp())
+        }
+    })
+    
+    url = f"https://api.github.com/repos/{owner}/{repo}/dispatches"
+    
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {ghp_token}",
+        "Content-Type": "application/json",
+    }
+    
+    fetcher = screenerStockDataFetcher(configManager)
+    resp = fetcher.postURL(url, data=data, headers=headers)
+    
+    if resp.status_code == 204:
+        OutputControls().printOutput("Scan dispatched to worker pool!")
+    else:
+        OutputControls().printOutput(f"Worker pool dispatch failed: {resp.status_code}")
+    
+    return resp

@@ -47,7 +47,6 @@ results
 pkscreener/*.txt
 *ta-lib*
 *.sh
-.github/
 *.cache
 !results/Data/yfinance.cache.zip
 *.session

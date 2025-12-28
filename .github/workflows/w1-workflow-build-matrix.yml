@@ -269,13 +269,21 @@ jobs:
           GITHUB_REF=${GITHUB_REF#refs/tags/}
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          DEV_VERSION=`grep -o "'.*'" pkscreener/classes/__init__.py | sed "s/'//g"`
+          DEV_VERSION=`grep "^VERSION" pkscreener/classes/__init__.py | grep -o "'[0-9.]*'" | sed "s/'//g" | head -1`
           VERSION_ARR=(${DEV_VERSION//./ })
           MAJOR_MINOR=${VERSION_ARR[0]}.${VERSION_ARR[1]}
           TODAY=`date +%Y%m%d`
           THIS_VERSION=${MAJOR_MINOR}.${TODAY}.${{github.run_number}}
-          rm -rf pkscreener/classes/__init__.py
-          echo VERSION=\'`echo ${THIS_VERSION}`\' >> pkscreener/classes/__init__.py
+          # Update VERSION in __init__.py without destroying other content
+          # Use Python for cross-platform compatibility (BSD sed vs GNU sed differ)
+          python3 -c "
+          import re
+          with open('pkscreener/classes/__init__.py', 'r') as f:
+              content = f.read()
+          content = re.sub(r\"^VERSION = '.*'\", \"VERSION = '${THIS_VERSION}'\", content, flags=re.MULTILINE)
+          with open('pkscreener/classes/__init__.py', 'w') as f:
+              f.write(content)
+          "
           echo "##[set-output name=THIS_VERSION;]$(echo ${THIS_VERSION})"
           echo "##[set-output name=CURRENT_VERSION;]$(echo ${CURRENT_VERSION})"
           echo "##[set-output name=DEV_VERSION;]$(echo ${DEV_VERSION})"

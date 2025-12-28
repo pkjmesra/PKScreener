@@ -144,7 +144,7 @@ class MenuHandler:
         """Handle download-specific menu options"""
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         m1.renderForMenu(selectedMenu)
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
         if selDownloadOption.upper() == "D":
@@ -337,13 +337,13 @@ class StrategyHandler:
             m1.renderForMenu(selectedMenu=selectedMenu)
             
             try:
-                userOption = input(colorText.FAIL + "  [+] Select option: ")
+                userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ")
                 OutputControls().printOutput(colorText.END, end="")
                 
                 if userOption == "":
                     userOption = "37"  # NoFilter
                 elif userOption == "38":
-                    userOption = input(colorText.FAIL + "  [+] Enter Exact Pattern name:")
+                    userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Enter Exact Pattern name:")
                     OutputControls().printOutput(colorText.END, end="")
                     
                     if userOption == "":

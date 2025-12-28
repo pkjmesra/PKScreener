@@ -526,7 +526,7 @@ def initExecution(menuOption=None):
                 OutputControls().printOutput(colorText.FAIL + "\n      [+] Logs will be written to:"+colorText.END)
                 OutputControls().printOutput(colorText.GREEN + f"      [+] {log_file_path}"+colorText.END)
                 OutputControls().printOutput(colorText.FAIL + "      [+] If you need to share,run through the menus that are causing problems. At the end, open this folder, zip the log file to share at https://github.com/pkjmesra/PKScreener/issues .\n" + colorText.END)
-            menuOption = input(colorText.FAIL + f"{pastDate}  [+] Select option: ") or "P"
+            menuOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ", defaultInput="P")
             OutputControls().printOutput(colorText.END, end="")
         if menuOption == "" or menuOption is None:
             menuOption = "X"
@@ -651,7 +651,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                     PKAnalyticsService().send_event("app_exit")
                     sys.exit(0)
                 indexKeys = level1_index_options_sectoral.keys()
-                stockIndexCode = input(
+                stockIndexCode = OutputControls().takeUserInput(
                     colorText.FAIL + "  [+] Select option: "
                 ) or str(len(indexKeys))
                 OutputControls().printOutput(colorText.END, end="")
@@ -670,7 +670,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
         pastDate = f"  [+] [ Running in Quick Backtest Mode for {colorText.WARN}{PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago) if needsCalc else 0)}{colorText.END} ]\n" if needsCalc else ""
         if indexOption is not None and indexOption != "W":
             if executeOption is None:
-                executeOption = input(
+                executeOption = OutputControls().takeUserInput(
                     colorText.FAIL + f"{pastDate}  [+] Select option: "
                 ) or "9"
                 OutputControls().printOutput(colorText.END, end="")
@@ -1127,6 +1127,13 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 if stockDictPrimary is None or (len(stockDictPrimary.keys()) == 0):
                     stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=["NIFTY 50"], menuOption=menuOption,indexOption=indexOption)
                 hostData = stockDictPrimary.get("NIFTY 50") if (stockDictPrimary is not None and len(stockDictPrimary) > 0) else None
+                if hostData is None:
+                    messageToUser = "Nifty AI prediction NOT available right now! No data available. Please try again later."
+                    OutputControls().printOutput(messageToUser)
+                    sendMessageToTelegramChannel(message=messageToUser,user=user)
+                    if defaultAnswer is None:
+                        input("\nPress <Enter> to Continue...\n")
+                    return None, None
                 columns = hostData["columns"]
                 data = pd.DataFrame(
                         hostData["data"], columns=columns, index=hostData["index"]
@@ -1519,7 +1526,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 for choice in selectedChoice.keys():
                     monitorOption = (f"{monitorOption}:" if len(monitorOption) > 0  else '') + f"{selectedChoice[choice]}"
             m0.renderPinnedMenu(substitutes=[monitorOption,len(prevOutput_results),monitorOption,monitorOption,monitorOption],skip=(["1","2","4","5"] if menuOption in ["F"] else []))
-            pinOption = input(
+            pinOption = OutputControls().takeUserInput(
                     colorText.FAIL + "  [+] Select option: "
                 ) or 'M'
             OutputControls().printOutput(colorText.END, end="")
@@ -1795,14 +1802,14 @@ def addOrRunPipedMenus():
         )
     shouldAddMoreIntoPipe = 'n'
     if userPassedArgs is None or (userPassedArgs is not None and userPassedArgs.answerdefault is None):
-        shouldAddMoreIntoPipe = input(colorText.FAIL + "  [+] Select [Y/N] (Default:N): " + colorText.END) or 'n'
+        shouldAddMoreIntoPipe = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select [Y/N] (Default:N): " + colorText.END) or 'n'
     if shouldAddMoreIntoPipe.lower() != 'y':
         OutputControls().printOutput(
             colorText.GREEN
             + f"  [+] Would you also like to run morning vs day close intraday analysis for this selection ?"
             + colorText.END
         )
-        shouldRunIntradayAnalysis = input(colorText.FAIL + "  [+] Select [Y/N] (Default:N): " + colorText.END) or 'n'
+        shouldRunIntradayAnalysis = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select [Y/N] (Default:N): " + colorText.END) or 'n'
         shouldRunIntradayAnalysis = shouldRunIntradayAnalysis.lower() == 'y'
         if shouldRunIntradayAnalysis:
             analysisOptions = userPassedArgs.pipedmenus.split("|")
@@ -3187,13 +3194,13 @@ def cleanupLocalResults():
     shouldPrompt = (launcher.endswith(".py\"") or launcher.endswith(".py")) and (userPassedArgs is None or userPassedArgs.answerdefault is None)
     response = "N"
     if shouldPrompt:
-        response = input(f"  [+] {colorText.WARN}Clean up local non-essential system generated data?{colorText.END}{colorText.FAIL}[Default: {response}]{colorText.END}\n    (User generated reports won't be deleted.)        :") or response
+        response = OutputControls().takeUserInput(f"  [+] {colorText.WARN}Clean up local non-essential system generated data?{colorText.END}{colorText.FAIL}[Default: {response}]{colorText.END}\n    (User generated reports won't be deleted.)        :") or response
     if "y" in response.lower():
         dirs = [Archiver.get_user_data_dir(), Archiver.get_user_cookies_dir(), 
                 Archiver.get_user_temp_dir(), Archiver.get_user_indices_dir()]
         for dir in dirs:
             configManager.deleteFileWithPattern(rootDir=dir, pattern="*")
-        response = input(f"\n  [+] {colorText.WARN}Clean up local user generated reports as well?{colorText.END} {colorText.FAIL}[Default: N]{colorText.END} :") or "n"
+        response = OutputControls().takeUserInput(f"\n  [+] {colorText.WARN}Clean up local user generated reports as well?{colorText.END} {colorText.FAIL}[Default: N]{colorText.END} :") or "n"
         if "y" in response.lower():
             configManager.deleteFileWithPattern(rootDir=Archiver.get_user_reports_dir(), pattern="*.*")
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)

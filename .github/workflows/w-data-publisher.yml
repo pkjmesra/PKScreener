@@ -336,15 +336,35 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
           
-          git add results/Data/
+          # Use -f flag to force add files that may be in .gitignore
+          git add -f results/Data/ 2>/dev/null || true
           
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Data update $(date -u +%Y-%m-%dT%H:%M:%SZ) - 24x7"
-            git push
-            echo "Data published successfully"
+            
+            # Handle race condition with retries
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push; then
+                echo "Data published successfully"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "Push failed, attempt $RETRY_COUNT of $MAX_RETRIES"
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Pulling latest changes and retrying..."
+                  git pull --rebase origin actions-data-download || true
+                  sleep 2
+                else
+                  echo "Max retries reached. Push failed."
+                  exit 1
+                fi
+              fi
+            done
           fi
 
   Notify_Status:

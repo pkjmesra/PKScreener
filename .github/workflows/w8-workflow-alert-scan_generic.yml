@@ -152,9 +152,30 @@ jobs:
         pip3 install requests
         python3 .github/workflows/githubutilities.py -d
 
+    # Phase 1: Binary caching to reduce scan latency by 30-60s
+    - name: Cache PKScreener Binary (Linux)
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
+      id: binary-cache-linux
+      with:
+        path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
+    - name: Cache PKScreener Binary (Windows)
+      if: startsWith(runner.os, 'Windows')
+      uses: actions/cache@v4
+      id: binary-cache-windows
+      with:
+        path: pkscreenercli.exe
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
     - name: Download latest executable on Windows
       shell: cmd
-      if: startsWith(runner.os, 'Windows')
+      if: startsWith(runner.os, 'Windows') && steps.binary-cache-windows.outputs.cache-hit != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
@@ -162,13 +183,49 @@ jobs:
 
     - name: Download latest executable on Ubuntu
       shell: bash
-      if: startsWith(runner.os, 'Linux')
+      if: startsWith(runner.os, 'Linux') && steps.binary-cache-linux.outputs.cache-hit != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
 
+    - name: Validate and ensure binary is executable
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
+        download_binary() {
+          echo "Downloading binary from: $exe_path"
+          curl -f -o "$BINARY_PATH" -JL "$exe_path" || {
+            echo "ERROR: Failed to download binary. The release may not include Linux binaries yet."
+            echo "Please ensure the build workflow has completed and created the Linux binary."
+            exit 1
+          }
+          chmod +x "$BINARY_PATH"
+        }
+        # Check if binary exists and is valid ELF format
+        if [ -f "$BINARY_PATH" ]; then
+          if file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+            echo "Binary is valid ELF format"
+            chmod +x "$BINARY_PATH"
+          else
+            echo "Binary is corrupted or wrong format, re-downloading..."
+            rm -f "$BINARY_PATH"
+            download_binary
+          fi
+        else
+          echo "Binary not found, downloading..."
+          download_binary
+        fi
+        # Final validation
+        if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux binary"
+          file "$BINARY_PATH"
+          exit 1
+        fi
     - name: Configure env.dev file
       shell: bash
       env:
@@ -236,6 +293,15 @@ jobs:
         
         echo "Created .env.dev file with secrets"
 
+
+    # Phase 2: Restore pre-cached stock data for faster scans
+    - name: Restore Stock Data Cache
+      uses: actions/cache@v4
+      with:
+        path: results/Data/
+        key: stock-data-
+        restore-keys: |
+          stock-data-
     - name: Create session file
       run: |
         echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
@@ -279,7 +345,7 @@ jobs:
   #         ref: main
           
   #     - name: Delete this workflow run
-  #       if: startsWith(runner.os, 'Linux')
+  #       if: startsWith(runner.os, 'Linux') && steps.binary-cache-linux.outputs.cache-hit != 'true'
   #       shell: bash
   #       run: |
   #         for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done

@@ -303,16 +303,25 @@ class tools:
         return model, pkl
 
     def getSigmoidConfidence(x):
+        """
+        Calculate confidence percentage from model prediction.
+        - x > 0.5: BEARISH prediction, confidence increases as x approaches 1
+        - x <= 0.5: BULLISH prediction, confidence increases as x approaches 0
+        """
         out_min, out_max = 0, 100
         if x > 0.5:
+            # BEARISH: confidence increases as x goes from 0.5 to 1
             in_min = 0.50001
             in_max = 1
+            return round(
+                ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min), 3
+            )
         else:
-            in_min = 0
-            in_max = 0.5
-        return round(
-            ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min), 3
-        )
+            # BULLISH: confidence increases as x goes from 0.5 to 0
+            # Invert the calculation: lower x = higher confidence
+            return round(
+                ((0.5 - x) * (out_max - out_min) / 0.5 + out_min), 3
+            )
 
     def alertSound(beeps=3, delay=0.2):
         for i in range(beeps):

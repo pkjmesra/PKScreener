@@ -1,0 +1,55 @@
+# CI Tests workflow - runs on every push
+name: 0. CI Tests (Every Push)
+
+on:
+  push:
+    branches: [main, new-features]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch-name:
+        description: 'Branch name'
+        required: false
+        default: 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          pip3 install flake8
+          # Only check for syntax errors, report others without failing
+          flake8 . --count --select=E9 --show-source --statistics || true
+
+  unit-tests:
+    name: Menu Validation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install TA-Lib
+        run: |
+          cd .github/dependencies/
+          sudo dpkg -i ta-lib_0.6.4_amd64.deb
+          pip3 install ta-lib==0.6.4
+      - name: Install dependencies
+        run: |
+          pip3 install -r requirements.txt
+          pip3 install -r requirements-dev.txt
+          pip3 install .
+      - name: Run menu validation tests
+        run: python3 -m pytest test/tick_data_freshness_test.py test/bot_menu_integration_test.py test/console_menu_integration_test.py -v --tb=short
+        env:
+          RUNNER: "GitHub_Actions"
