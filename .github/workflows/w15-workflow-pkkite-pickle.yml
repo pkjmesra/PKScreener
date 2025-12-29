@@ -170,4 +170,36 @@ jobs:
           results/Data/*.json
           results/Data/*.db
           results/Data/*.pkl
-        retention-days: 7
+        retention-days: 1
+
+    - name: Copy pkl files to actions-data-download directory
+      run: |
+        mkdir -p actions-data-download
+        echo "=== Copying pkl files ==="
+        cp results/Data/*.pkl actions-data-download/ 2>/dev/null && echo "Copied pkl files from results/Data/" || echo "No pkl files in results/Data/"
+        cp results/Data/*.json actions-data-download/ 2>/dev/null && echo "Copied json files" || true
+        echo "=== Files in actions-data-download ==="
+        ls -la actions-data-download/ || echo "Directory empty or not found"
+
+    - name: Push pkl files to repository
+      if: success()
+      run: |
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git remote update
+        git fetch
+        # Check if there are any pkl files to commit
+        PKL_COUNT=$(find actions-data-download -name "*.pkl" -type f 2>/dev/null | wc -l)
+        if [ "$PKL_COUNT" -gt 0 ]; then
+          echo "Found $PKL_COUNT pkl files to commit"
+          git add actions-data-download/*.pkl --force
+          git add actions-data-download/*.json --force 2>/dev/null || true
+          git commit -m "GitHub-Action-Workflow-PKBrokers-Pickle-Save-$(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push -v -u origin +actions-data-download
+          echo "Successfully pushed pkl files to repository"
+        else
+          echo "No pkl files found to commit"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

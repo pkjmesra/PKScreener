@@ -279,6 +279,80 @@ class PKAssetsManager:
         return stockDict
 
     @staticmethod
+    def download_fresh_pkl_from_github() -> tuple:
+        """
+        Download the latest pkl file from GitHub actions-data-download branch.
+        
+        This method tries multiple URLs and date formats to find the most recent
+        stock_data_DDMMYYYY.pkl file.
+        
+        Returns:
+            tuple: (success, file_path, num_instruments)
+        """
+        import requests
+        import pickle
+        from datetime import datetime, timedelta
+        
+        try:
+            today = datetime.now()
+            data_dir = Archiver.get_user_data_dir()
+            
+            # URLs and date formats to try
+            urls_to_try = []
+            
+            for days_ago in range(0, 10):
+                check_date = today - timedelta(days=days_ago)
+                date_str_full = check_date.strftime('%d%m%Y')
+                date_str_short = check_date.strftime('%-d%m%y') if hasattr(check_date, 'strftime') else check_date.strftime('%d%m%y').lstrip('0')
+                
+                for date_str in [date_str_full, date_str_short]:
+                    urls_to_try.extend([
+                        f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/stock_data_{date_str}.pkl",
+                        f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/stock_data_{date_str}.pkl",
+                    ])
+            
+            # Also try generic names
+            urls_to_try.extend([
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/daily_candles.pkl",
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/daily_candles.pkl",
+            ])
+            
+            output_path = os.path.join(data_dir, "stock_data_github.pkl")
+            
+            for url in urls_to_try:
+                try:
+                    default_logger().debug(f"Trying to download pkl from: {url}")
+                    response = requests.get(url, timeout=60)
+                    
+                    if response.status_code == 200 and len(response.content) > 10000:
+                        with open(output_path, 'wb') as f:
+                            f.write(response.content)
+                        
+                        # Verify it's a valid pkl
+                        with open(output_path, 'rb') as f:
+                            data = pickle.load(f)
+                        
+                        if data and len(data) > 0:
+                            default_logger().info(f"Downloaded pkl from GitHub: {url} ({len(data)} instruments)")
+                            OutputControls().printOutput(
+                                colorText.GREEN
+                                + f"  [+] Downloaded fresh data from GitHub ({len(data)} instruments)"
+                                + colorText.END
+                            )
+                            return True, output_path, len(data)
+                            
+                except Exception as e:
+                    default_logger().debug(f"Failed to download from {url}: {e}")
+                    continue
+            
+            default_logger().warning("Could not download pkl from GitHub")
+            return False, None, 0
+            
+        except Exception as e:
+            default_logger().debug(f"Error downloading pkl from GitHub: {e}")
+            return False, None, 0
+
+    @staticmethod
     def trigger_history_download_workflow(missing_days: int = 1) -> bool:
         """
         Trigger the PKBrokers w1-workflow-history-data-child.yml workflow to download missing OHLCV data.
