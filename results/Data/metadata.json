@@ -1,7 +1,7 @@
 {
-  "last_update": "2025-12-29T02:38:58.778289Z",
-  "last_update_ist": "2025-12-29T08:08:58.778278+05:30",
-  "is_market_hours": false,
+  "last_update": "2025-12-29T04:05:57.055639Z",
+  "last_update_ist": "2025-12-29T09:35:57.055628+05:30",
+  "is_market_hours": true,
   "data_source": "none",
   "instrument_count": 0,
   "version": "2.0.0",
