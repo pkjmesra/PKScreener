@@ -59,7 +59,7 @@ Pillow>=9.5.0
 # PKScreener ecosystem packages
 PKDevTools>=0.13.20251226.320
 PKNSETools>=0.1.20251226.148
-PKBrokers>=0.1.20251226.59
+PKBrokers>=0.1.20251229.60
 
 # Browser automation
 pyppeteer>=2.0.0

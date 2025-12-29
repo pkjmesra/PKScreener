@@ -278,6 +278,125 @@ class PKAssetsManager:
         
         return stockDict
 
+    @staticmethod
+    def trigger_history_download_workflow(missing_days: int = 1) -> bool:
+        """
+        Trigger the PKBrokers w1-workflow-history-data-child.yml workflow to download missing OHLCV data.
+        
+        When pkl data from actions-data-download is stale (latest date < last trading date),
+        this method triggers a GitHub Actions workflow to download the missing history.
+        
+        Args:
+            missing_days: Number of trading days of historical data to fetch
+            
+        Returns:
+            True if workflow was triggered successfully
+        """
+        import requests
+        import os
+        
+        try:
+            github_token = os.environ.get('GITHUB_TOKEN') or os.environ.get('CI_PAT')
+            if not github_token:
+                default_logger().warning("GITHUB_TOKEN or CI_PAT not found. Cannot trigger history download workflow.")
+                return False
+            
+            # Trigger PKBrokers history workflow
+            url = "https://api.github.com/repos/pkjmesra/PKBrokers/actions/workflows/w1-workflow-history-data-child.yml/dispatches"
+            
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            payload = {
+                "ref": "main",
+                "inputs": {
+                    "period": "day",
+                    "pastoffset": str(missing_days),
+                    "logLevel": "20"
+                }
+            }
+            
+            default_logger().info(f"Triggering history download workflow with past_offset={missing_days}")
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 204:
+                default_logger().info("Successfully triggered history download workflow")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Triggered history download for {missing_days} missing trading days."
+                    + colorText.END
+                )
+                return True
+            else:
+                default_logger().warning(f"Failed to trigger history workflow: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            default_logger().debug(f"Error triggering history download workflow: {e}")
+            return False
+
+    @staticmethod
+    def ensure_data_freshness(stockDict, trigger_download: bool = True) -> tuple:
+        """
+        Ensure downloaded pkl data is fresh. If stale, optionally trigger history download.
+        
+        This should be called after downloading data from actions-data-download to ensure
+        the data is up-to-date before using it for scans.
+        
+        Args:
+            stockDict: Dictionary of stock data
+            trigger_download: If True, trigger history download workflow when data is stale
+            
+        Returns:
+            tuple: (is_fresh, missing_trading_days)
+        """
+        try:
+            from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+            from datetime import datetime
+            
+            if not stockDict:
+                return True, 0
+            
+            # Get the last trading date
+            last_trading_date = PKDateUtilities.tradingDate()
+            if hasattr(last_trading_date, 'date'):
+                last_trading_date = last_trading_date.date()
+            
+            # Find the latest date across all stocks
+            latest_data_date = None
+            for stock, data in stockDict.items():
+                is_fresh, data_date, _ = PKAssetsManager.is_data_fresh(data)
+                if data_date and (latest_data_date is None or data_date > latest_data_date):
+                    latest_data_date = data_date
+            
+            if latest_data_date is None:
+                return True, 0
+            
+            # Check if data is fresh
+            if latest_data_date >= last_trading_date:
+                return True, 0
+            
+            # Calculate missing trading days
+            missing_days = PKDateUtilities.trading_days_between(latest_data_date, last_trading_date)
+            
+            if missing_days > 0:
+                default_logger().warning(
+                    f"Data is stale by {missing_days} trading days. "
+                    f"Latest data: {latest_data_date}, Last trading date: {last_trading_date}"
+                )
+                
+                if trigger_download:
+                    # Trigger history download workflow
+                    PKAssetsManager.trigger_history_download_workflow(missing_days)
+            
+            return missing_days <= 0, missing_days
+            
+        except Exception as e:
+            default_logger().debug(f"Error ensuring data freshness: {e}")
+            return True, 0
+
     def make_hyperlink(value):
         url = "https://in.tradingview.com/chart?symbol=NSE:{}"
         return '=HYPERLINK("%s", "%s")' % (url.format(ImageUtility.PKImageTools.stockNameFromDecoratedName(value)), value)
@@ -788,6 +907,13 @@ class PKAssetsManager:
                                     f"[DATA-FRESHNESS] Server data has {stale_count} stale stocks. "
                                     f"Oldest: {oldest_date}. Fresh ticks recommended."
                                 )
+                                # Trigger history download workflow if data is stale
+                                is_fresh, missing_days = PKAssetsManager.ensure_data_freshness(
+                                    stockDict, trigger_download=True
+                                )
+                                if not is_fresh and missing_days > 0:
+                                    # Try to apply fresh tick data while history download is in progress
+                                    stockDict = PKAssetsManager._apply_fresh_ticks_to_data(stockDict)
                         # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
                         # srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
                         # if os.path.exists(copyFilePath) and os.path.exists(srcFilePath):

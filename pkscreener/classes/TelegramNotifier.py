@@ -400,3 +400,7 @@ class TelegramNotifier:
             caption: Caption text
         """
         self.media_group_dict["CAPTION"] = caption
+
+
+
+

@@ -526,7 +526,10 @@ def initExecution(menuOption=None):
                 OutputControls().printOutput(colorText.FAIL + "\n      [+] Logs will be written to:"+colorText.END)
                 OutputControls().printOutput(colorText.GREEN + f"      [+] {log_file_path}"+colorText.END)
                 OutputControls().printOutput(colorText.FAIL + "      [+] If you need to share,run through the menus that are causing problems. At the end, open this folder, zip the log file to share at https://github.com/pkjmesra/PKScreener/issues .\n" + colorText.END)
-            menuOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ", defaultInput="P")
+            # In non-interactive mode (bot/systemlaunched), default to X (Scanners) not P (Piped Scanners)
+            # to avoid infinite loops where P triggers another P selection
+            defaultMenuOption = "X" if (userPassedArgs is not None and (userPassedArgs.systemlaunched or userPassedArgs.answerdefault is not None or userPassedArgs.telegram)) else "P"
+            menuOption = OutputControls().takeUserInput(colorText.FAIL + f"{pastDate}  [+] Select option: ", defaultInput=defaultMenuOption)
             OutputControls().printOutput(colorText.END, end="")
         if menuOption == "" or menuOption is None:
             menuOption = "X"
