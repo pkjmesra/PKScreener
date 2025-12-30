@@ -743,3 +743,198 @@ class TestAssetsManager(unittest.TestCase):
         self.assertFalse(stockDataLoaded)
         # mock_open.assert_called()
         mock_tryFetchFromServer.assert_called_once_with(cache_file)
+
+
+class TestDataFreshness(unittest.TestCase):
+    """Tests for data freshness validation methods in PKAssetsManager."""
+
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.tradingDate')
+    def test_is_data_fresh_with_fresh_data(self, mock_trading_date):
+        """Test is_data_fresh returns True for fresh data."""
+        from datetime import datetime, date
+        import pandas as pd
+        
+        # Mock trading date to be today
+        today = date.today()
+        mock_trading_date.return_value = today
+        
+        # Create stock data with today's date - use DataFrame directly
+        stock_data = pd.DataFrame({'Close': [150]}, index=[pd.Timestamp(today)])
+        
+        is_fresh, data_date, days_old = PKAssetsManager.is_data_fresh(stock_data)
+        
+        self.assertTrue(is_fresh)
+        self.assertEqual(days_old, 0)
+
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.tradingDate')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.trading_days_between')
+    def test_is_data_fresh_with_stale_data(self, mock_days_between, mock_trading_date):
+        """Test is_data_fresh returns False for stale data."""
+        from datetime import datetime, date, timedelta
+        import pandas as pd
+        
+        today = date.today()
+        old_date = today - timedelta(days=10)  # Make it clearly old
+        mock_trading_date.return_value = today
+        mock_days_between.return_value = 5  # 5 trading days old (> max_stale_trading_days)
+        
+        # The function expects either a DataFrame or a dict with 'index' key (from to_dict("split"))
+        # Create a DataFrame directly for testing
+        stock_data = pd.DataFrame({'Close': [150]}, index=[pd.Timestamp(old_date)])
+        
+        is_fresh, data_date, days_old = PKAssetsManager.is_data_fresh(stock_data, max_stale_trading_days=1)
+        
+        # With stale data (5 days old > 1 max allowed), should not be fresh
+        self.assertFalse(is_fresh)
+        self.assertIsNotNone(data_date)
+        self.assertEqual(days_old, 5)
+
+    def test_is_data_fresh_with_empty_data(self):
+        """Test is_data_fresh handles empty stock data."""
+        is_fresh, data_date, days_old = PKAssetsManager.is_data_fresh({})
+        
+        self.assertTrue(is_fresh)  # Empty data is considered fresh (nothing to validate)
+        self.assertIsNone(data_date)
+        self.assertEqual(days_old, 0)
+
+    def test_is_data_fresh_with_none_data(self):
+        """Test is_data_fresh handles None stock data."""
+        is_fresh, data_date, days_old = PKAssetsManager.is_data_fresh(None)
+        
+        self.assertTrue(is_fresh)
+        self.assertIsNone(data_date)
+        self.assertEqual(days_old, 0)
+
+    @patch('requests.get')
+    @patch('PKDevTools.classes.Archiver.get_user_data_dir', return_value='/tmp/test')
+    def test_download_fresh_pkl_success(self, mock_data_dir, mock_get):
+        """Test download_fresh_pkl_from_github successfully downloads pkl file."""
+        import pickle
+        import pandas as pd
+        
+        # Create real pkl data (not MagicMock which can't be pickled)
+        mock_data = {
+            'AAPL': pd.DataFrame({'Close': [150, 151, 152]}, index=pd.date_range('2025-01-01', periods=3)),
+            'GOOGL': pd.DataFrame({'Close': [2800, 2810, 2820]}, index=pd.date_range('2025-01-01', periods=3))
+        }
+        pkl_bytes = pickle.dumps(mock_data)
+        
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = pkl_bytes
+        mock_get.return_value = mock_response
+        
+        with patch('builtins.open', mock_open()):
+            success, file_path, num_instruments = PKAssetsManager.download_fresh_pkl_from_github()
+        
+        # Should attempt to download
+        self.assertTrue(mock_get.called)
+
+    @patch('requests.get')
+    def test_download_fresh_pkl_failure(self, mock_get):
+        """Test download_fresh_pkl_from_github handles download failure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_get.return_value = mock_response
+        
+        success, file_path, num_instruments = PKAssetsManager.download_fresh_pkl_from_github()
+        
+        self.assertFalse(success)
+        self.assertIsNone(file_path)
+        self.assertEqual(num_instruments, 0)
+
+    @patch('requests.post')
+    @patch.dict('os.environ', {'GITHUB_TOKEN': 'test_token'})
+    def test_trigger_history_download_workflow_success(self, mock_post):
+        """Test trigger_history_download_workflow successfully triggers workflow."""
+        mock_response = MagicMock()
+        mock_response.status_code = 204
+        mock_post.return_value = mock_response
+        
+        result = PKAssetsManager.trigger_history_download_workflow(missing_days=5)
+        
+        self.assertTrue(result)
+        mock_post.assert_called_once()
+        
+        # Verify the correct URL and payload
+        call_args = mock_post.call_args
+        self.assertIn('pkjmesra/PKBrokers', call_args[0][0])
+
+    @patch('requests.post')
+    def test_trigger_history_download_workflow_no_token(self, mock_post):
+        """Test trigger_history_download_workflow fails gracefully without token."""
+        with patch.dict('os.environ', {}, clear=True):
+            # Remove GITHUB_TOKEN and CI_PAT
+            import os
+            os.environ.pop('GITHUB_TOKEN', None)
+            os.environ.pop('CI_PAT', None)
+            
+            result = PKAssetsManager.trigger_history_download_workflow(missing_days=5)
+        
+        self.assertFalse(result)
+        mock_post.assert_not_called()
+
+    @patch('requests.post')
+    @patch.dict('os.environ', {'GITHUB_TOKEN': 'test_token'})
+    def test_trigger_history_download_workflow_api_failure(self, mock_post):
+        """Test trigger_history_download_workflow handles API failure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_post.return_value = mock_response
+        
+        result = PKAssetsManager.trigger_history_download_workflow(missing_days=5)
+        
+        self.assertFalse(result)
+
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.tradingDate')
+    def test_ensure_data_freshness_with_fresh_data(self, mock_trading_date):
+        """Test ensure_data_freshness with fresh data."""
+        from datetime import date
+        import pandas as pd
+        
+        today = date.today()
+        mock_trading_date.return_value = today
+        
+        # stockDict is a dict of stock symbols -> DataFrames
+        stock_data = {
+            'AAPL': pd.DataFrame({'Close': [150]}, index=[pd.Timestamp(today)]),
+            'GOOGL': pd.DataFrame({'Close': [2800]}, index=[pd.Timestamp(today)])
+        }
+        
+        is_fresh, missing_days = PKAssetsManager.ensure_data_freshness(stock_data, trigger_download=False)
+        
+        self.assertTrue(is_fresh)
+        self.assertEqual(missing_days, 0)
+
+    def test_ensure_data_freshness_with_empty_data(self):
+        """Test ensure_data_freshness handles empty data."""
+        is_fresh, missing_days = PKAssetsManager.ensure_data_freshness({}, trigger_download=False)
+        
+        self.assertTrue(is_fresh)
+        self.assertEqual(missing_days, 0)
+
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.tradingDate')
+    @patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.trading_days_between')
+    @patch('pkscreener.classes.AssetsManager.PKAssetsManager.trigger_history_download_workflow')
+    def test_ensure_data_freshness_triggers_download_when_stale(self, mock_trigger, mock_days_between, mock_trading_date):
+        """Test ensure_data_freshness triggers download when data is stale."""
+        from datetime import date, timedelta
+        import pandas as pd
+        
+        today = date.today()
+        old_date = today - timedelta(days=10)
+        mock_trading_date.return_value = today
+        mock_days_between.return_value = 5  # 5 trading days old
+        mock_trigger.return_value = True
+        
+        # stockDict is a dict of stock symbols -> DataFrames
+        stock_data = {
+            'AAPL': pd.DataFrame({'Close': [150]}, index=[pd.Timestamp(old_date)]),
+            'GOOGL': pd.DataFrame({'Close': [2800]}, index=[pd.Timestamp(old_date)])
+        }
+        
+        is_fresh, missing_days = PKAssetsManager.ensure_data_freshness(stock_data, trigger_download=True)
+        
+        self.assertFalse(is_fresh)
+        self.assertEqual(missing_days, 5)
+        mock_trigger.assert_called_once_with(5)

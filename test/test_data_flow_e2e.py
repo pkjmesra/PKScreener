@@ -221,12 +221,14 @@ class TestTradingDayUtilities:
         """Test PKDateUtilities trading date functions."""
         try:
             from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+            from datetime import date
             
             # Get trading date
             trading_date = PKDateUtilities.tradingDate()
             
             assert trading_date is not None
-            assert isinstance(trading_date, (datetime, type(None)))
+            # Can return datetime, date, or None
+            assert isinstance(trading_date, (datetime, date, type(None)))
         except ImportError:
             pytest.skip("PKDevTools not installed")
     
@@ -306,8 +308,8 @@ class TestCompleteDataFlow:
         
         assert len(stock_data) > 0
         
-        # Step 3: Check freshness
-        is_fresh, stale_count = PKAssetsManager.is_data_fresh(stock_data)
+        # Step 3: Check freshness (returns tuple of 3 values: is_fresh, data_date, trading_days_old)
+        is_fresh, data_date, trading_days_old = PKAssetsManager.is_data_fresh(stock_data)
         
         # Step 4: Apply fresh ticks if stale
         if not is_fresh:
@@ -316,7 +318,7 @@ class TestCompleteDataFlow:
         # Verify data is still valid
         assert len(stock_data) > 0
         
-        print(f"Complete flow test: {num_instruments} instruments, fresh={is_fresh}, stale={stale_count}")
+        print(f"Complete flow test: {num_instruments} instruments, fresh={is_fresh}, days_old={trading_days_old}")
 
 
 if __name__ == "__main__":

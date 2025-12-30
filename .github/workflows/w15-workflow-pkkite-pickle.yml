@@ -3,8 +3,9 @@ on:
   workflow_dispatch:  # Allows manual triggering
   schedule:
     - cron: '0 10 * * 1-6'  # Run at 8 AM UTC every weekday (Monday-Friday)
-  push:
-    branches: [ actions-data-download ]
+  # Removed push trigger to prevent overwriting good pkl files from History Data Child workflow
+  # push:
+  #   branches: [ actions-data-download ]
 
 jobs:
   run-pkbrokers-kite:
@@ -162,6 +163,7 @@ jobs:
         ls -l results/Data/
 
     - name: Upload artifacts (if script generates output files)
+      timeout-minutes: 5
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -182,6 +184,7 @@ jobs:
         ls -la actions-data-download/ || echo "Directory empty or not found"
 
     - name: Push pkl files to repository
+      timeout-minutes: 5
       if: success()
       run: |
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -196,7 +199,12 @@ jobs:
           git add actions-data-download/*.pkl --force
           git add actions-data-download/*.json --force 2>/dev/null || true
           git commit -m "GitHub-Action-Workflow-PKBrokers-Pickle-Save-$(date +%Y-%m-%d)" || echo "No changes to commit"
-          git push -v -u origin +actions-data-download
+          # Pull and rebase before pushing to avoid overwriting good commits from other workflows
+          for i in 1 2 3; do
+            git pull --rebase origin actions-data-download || true
+            git push -v -u origin actions-data-download && break || echo "Push failed, retry $i..."
+            sleep 5
+          done
           echo "Successfully pushed pkl files to repository"
         else
           echo "No pkl files found to commit"

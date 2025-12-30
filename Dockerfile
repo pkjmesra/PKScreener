@@ -26,8 +26,8 @@
 # docker buildx build --load --platform linux/arm64/v8,linux/amd64 --tag pkjmesra/pkscreener:latest . --no-cache
 # docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag pkjmesra/pkscreener:latest . --no-cache
 
-FROM pkjmesra/pkscreener:base as base
-ENV PYTHONUNBUFFERED 1
+FROM pkjmesra/pkscreener:base AS base
+ENV PYTHONUNBUFFERED=1
 WORKDIR /
 RUN rm -rf /PKScreener-main main.zip* && \
     curl -JL https://github.com/pkjmesra/PKScreener/archive/refs/heads/main.zip -o main.zip && \
@@ -35,10 +35,25 @@ RUN rm -rf /PKScreener-main main.zip* && \
     rm -rf main.zip*
 WORKDIR /PKScreener-main
 COPY requirements.txt .
+
+# Install libsql FIRST based on architecture using pre-built wheels
+# This prevents pip from trying to build libsql from source on ARM
+RUN ARCH=$(uname -m) && \
+    echo "Installing libsql for architecture: $ARCH" && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || echo "libsql x86_64 wheel not found, will use SQLite fallback"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl || echo "libsql ARM wheel not found, will use SQLite fallback"; \
+    else \
+        echo "libsql not available for architecture: $ARCH, using SQLite fallback"; \
+    fi
+
+# Install requirements, excluding libsql since we handled it above
+# The --no-deps on pkbrokers prevents re-installing libsql
 RUN pip3 install --upgrade pip && \
-    pip3 uninstall pkscreener PKNSETools PKDevTools -y && \
-    pip3 install --no-cache-dir -r requirements.txt && \
-    pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl && \
+    pip3 uninstall pkscreener PKNSETools PKDevTools pkbrokers -y || true && \
+    grep -v "^libsql" requirements.txt > requirements_no_libsql.txt || cp requirements.txt requirements_no_libsql.txt && \
+    pip3 install --no-cache-dir -r requirements_no_libsql.txt && \
     pip3 install . && \
     mv /PKScreener-main/pkscreener/pkscreenercli.py /pkscreenercli.py && \
     rm -rf /PKScreener-main && \
