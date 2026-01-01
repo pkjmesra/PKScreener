@@ -1,7 +1,7 @@
 {
   "source": "PKBrokers-orchestrator",
-  "synced_at": "2026-01-01T02:53:04Z",
+  "synced_at": "2026-01-01T08:55:11Z",
   "workflow": "w0-workflow-ticks-update.yml",
-  "files_copied": 2,
+  "files_copied": 4,
   "date_suffix": "01012026"
 }
