@@ -74,7 +74,7 @@ python-telegram-bot>=13.4,<20.0
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
-urllib3>=1.26.20
+urllib3>=2.6.3
 
 # Backtesting and trading
 vectorbt>=0.26.2
@@ -82,3 +82,4 @@ vectorbt>=0.26.2
 # Note: pandas-ta-classic is excluded due to numpy>=2.0.0 requirement
 # which conflicts with tensorflow 2.16.1. A fallback VWAP implementation
 # is provided in Pktalib.py. TA-Lib should be used for full functionality.
+filelock>=3.20.3 # not directly required, pinned by Snyk to avoid a vulnerability
