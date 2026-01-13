@@ -21,3 +21,4 @@ setuptools
 # out of the default package and now is only 
 # available through the tf-nightly install.
 # tf-nightly
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
