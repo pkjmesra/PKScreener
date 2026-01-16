@@ -1,7 +1,7 @@
 {
-  "last_update": "2026-01-16T09:56:08.651199Z",
-  "last_update_ist": "2026-01-16T15:26:08.651186+05:30",
-  "is_market_hours": true,
+  "last_update": "2026-01-16T10:13:01.460834Z",
+  "last_update_ist": "2026-01-16T15:43:01.460823+05:30",
+  "is_market_hours": false,
   "data_source": "ticks_json",
   "instrument_count": 2363,
   "version": "2.0.0",
