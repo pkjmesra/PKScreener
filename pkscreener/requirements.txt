@@ -38,9 +38,9 @@ joblib>=1.4.2
 # Install numpy first, then scipy, then sklearn to avoid version conflicts
 numpy==1.26.4  # CRITICAL: Must be exactly 1.26.4 for tensorflow/scipy compatibility
 scipy==1.12.0  # CRITICAL: Must be exactly 1.12.0 (compiled with numpy 1.x)
-scikit-learn==1.4.2  # Compatible with scipy 1.12.0 and numpy 1.26.4
+scikit-learn==1.5.0  # Compatible with scipy 1.12.0 and numpy 1.26.4
 pandas>=2.2.3,<2.3  # Avoid pandas 2.3+ which may require numpy 2.x
-keras==3.6.0  # Compatible with tensorflow 2.16.1
+keras==3.13.1  # Compatible with tensorflow 2.16.1
 tensorflow==2.16.1  # https://github.com/tensorflow/tensorflow/issues/62075
 
 # Data formats and file handling
