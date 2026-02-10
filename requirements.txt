@@ -82,3 +82,4 @@ vectorbt>=0.26.2
 # Note: pandas-ta-classic is excluded due to numpy>=2.0.0 requirement
 # which conflicts with tensorflow 2.16.1. A fallback VWAP implementation
 # is provided in Pktalib.py. TA-Lib should be used for full functionality.
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
