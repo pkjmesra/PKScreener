@@ -357,7 +357,14 @@ def _update_criteria_datetime(result, save_results, user_passed_args, criteria_d
     if save_results is not None and len(save_results) > 0 and "Date" not in save_results.columns:
         temp_df = result[2].copy()
         temp_df.reset_index(inplace=True)
-        temp_df = temp_df.tail(1)
+        # Ensure data is sorted to get the latest date
+        if not temp_df.empty and hasattr(temp_df.index, 'sort_values'):
+            try:
+                temp_df = temp_df.sort_index(ascending=False)  # Latest first
+            except:
+                pass
+        # Use head(1) to get the most recent date (since we sorted latest first)
+        temp_df = temp_df.head(1)
         temp_df.rename(columns={"index": "Date"}, inplace=True)
         
         target_date = (temp_df["Date"].iloc[0] if "Date" in temp_df.columns 

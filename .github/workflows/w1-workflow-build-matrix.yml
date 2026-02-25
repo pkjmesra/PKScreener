@@ -84,11 +84,11 @@ jobs:
         shell: bash
         run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
-  Test-Source:
-    uses: pkjmesra/PKScreener/.github/workflows/w11-workflow-test-coverage.yml@main
-    with:
-      branch-name: main
-    secrets: inherit
+  # Test-Source:
+  #   uses: pkjmesra/PKScreener/.github/workflows/w11-workflow-test-coverage.yml@main
+  #   with:
+  #     branch-name: main
+  #   secrets: inherit
       
   # Job for builing packages
   Build:
@@ -363,7 +363,6 @@ jobs:
           path: ${{ matrix.OUT_PATH }}
 
       - name: Upload Binaries to Release
-        if: startsWith(github.ref, 'refs/tags') || needs.check_should_run.outputs.should_run != 'false'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}

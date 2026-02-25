@@ -1710,6 +1710,14 @@ def tryLoadDataOnBackgroundThread():
     loadDatabaseOrFetch(downloadOnly=True,listStockCodes=listStockCodes,menuOption="X",indexOption=int(configManager.defaultIndex))            
 
 def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption): 
+    # #region agent log
+    import json
+    log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+    try:
+        with open(log_path, 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1712","message":"loadDatabaseOrFetch entry","data":{"menuOption":menuOption,"listStockCodes_len":len(listStockCodes) if listStockCodes else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+    except: pass
+    # #endregion
     global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
     if menuOption not in ["C"]:
         stockDictPrimary = AssetsManager.PKAssetsManager.loadStockData(
@@ -1756,6 +1764,14 @@ def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption):
         configManager.period = prevPeriod
         configManager.setConfig(ConfigManager.parser,default=True,showFileCreatedText=False)
     loadedStockData = True
+    # #region agent log
+    try:
+        sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
+        sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
+        with open(log_path, 'a') as f:
+            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1758","message":"loadDatabaseOrFetch exit","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+    except: pass
+    # #endregion
     Utility.tools.loadLargeDeals()
     return stockDictPrimary, stockDictSecondary
 
@@ -2897,8 +2913,15 @@ def runScanners(
             criteria_dateTime = PKDateUtilities.utc_to_ist(criteria_dateTime,localTz=localtz)
     if result is not None and len(result) >=1 and "Date" not in saveResults.columns:
         temp_df = result[2].copy()
+        # Ensure data is sorted to get the latest date
+        if not temp_df.empty and hasattr(temp_df.index, 'sort_values'):
+            try:
+                temp_df = temp_df.sort_index(ascending=False)  # Latest first
+            except:
+                pass
         temp_df.reset_index(inplace=True)
-        temp_df = temp_df.tail(1)
+        # Use head(1) to get the most recent date (since we sorted latest first)
+        temp_df = temp_df.head(1)
         temp_df.rename(columns={"index": "Date"}, inplace=True)
         targetDate = (
             temp_df["Date"].iloc[0]

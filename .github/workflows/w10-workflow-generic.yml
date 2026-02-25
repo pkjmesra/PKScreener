@@ -230,6 +230,12 @@ jobs:
         echo ${{ env.TEL_SESSION_DATA }} | base64 -d > user_session.session
         chmod 600 user_session.session
 
+    - name: Fetch fresh market data (if market hours)
+      continue-on-error: true
+      run: |
+        pip3 install requests
+        python3 .github/workflows/fetch-fresh-data.py || echo "Fresh data fetch skipped"
+
     - name: Trigger workflow
       continue-on-error: true
       shell: bash

@@ -18,6 +18,9 @@ except ImportError:
     import pandas as pd
     import pytz
 
+# Maximum rows to keep for daily stock data (approximately 1 year of trading data)
+MAX_DAILY_ROWS = 251
+
 
 def convert_ticks_to_pickle(ticks_path, output_dir):
     try:
@@ -59,11 +62,26 @@ def convert_ticks_to_pickle(ticks_path, output_dir):
                 continue
         
         if stock_data:
+            # Trim daily data to most recent 251 rows per stock
+            trimmed_count = 0
+            for symbol in list(stock_data.keys()):
+                try:
+                    df = stock_data[symbol]
+                    if hasattr(df, '__len__') and len(df) > MAX_DAILY_ROWS:
+                        stock_data[symbol] = df.sort_index().tail(MAX_DAILY_ROWS)
+                        trimmed_count += 1
+                except Exception:
+                    continue
+            
+            if trimmed_count > 0:
+                print(f"Trimmed {trimmed_count} stocks to {MAX_DAILY_ROWS} rows each")
+            
             output_path = f"{output_dir}/stock_data_{today}.pkl"
             with open(output_path, 'wb') as f:
                 pickle.dump(stock_data, f)
             print(f"Saved {len(stock_data)} symbols to {output_path}")
             
+            # Intraday data is separate - keep all 1-min candles for today only
             intraday_path = f"{output_dir}/intraday_stock_data_{today}.pkl"
             with open(intraday_path, 'wb') as f:
                 pickle.dump(stock_data, f)

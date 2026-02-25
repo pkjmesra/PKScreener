@@ -285,6 +285,16 @@ class PKScanRunner:
         return f'{choices.strip()}{"_IA" if userArgs is not None and userArgs.runintradayanalysis else ""}'
 
     def refreshDatabase(consumers,stockDictPrimary,stockDictSecondary):
+        # #region agent log
+        import json
+        log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        try:
+            sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
+            sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
+            with open(log_path, 'a') as f:
+                f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"PKScanRunner.py:refreshDatabase:287","message":"refreshDatabase - copying stockDictPrimary to workers","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"num_consumers":len(consumers) if consumers else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        except: pass
+        # #endregion
         for worker in consumers:
             worker.objectDictionaryPrimary = stockDictPrimary
             worker.objectDictionarySecondary = stockDictSecondary

@@ -283,6 +283,12 @@ class PKScreenerMain:
                     self.scan_executor.screen_results, self.scan_executor.save_results = self.result_processor.remove_unknowns(
                         self.scan_executor.screen_results, self.scan_executor.save_results
                     )
+                
+                # Filter out rows with stale Time data (not from current trading date)
+                if self.scan_executor.screen_results is not None and len(self.scan_executor.screen_results) > 0:
+                    self.scan_executor.screen_results, self.scan_executor.save_results = self.result_processor.filter_stale_time_data(
+                        self.scan_executor.screen_results, self.scan_executor.save_results
+                    )
                     
         # Finish screening process
         self.finishScreening(

@@ -55,15 +55,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pandas numpy pytz requests
-        pip install libsql-experimental || pip install libsql || echo "libsql not available"
+        # libsql is optional - try to install but don't fail if unavailable
+        pip install libsql-experimental || pip install libsql || echo "libsql not available (will use SQLite fallback)"
+        # PKBrokers should handle missing libsql gracefully
         pip install PKBrokers PKDevTools || echo "Will use local modules"
         
     - name: Sync and Export Candle Data
       env:
         DB_URL: ${{ secrets.DB_URL }}
         DB_AUTH_TOKEN: ${{ secrets.DB_AUTH_TOKEN }}
+        DB_TYPE: ${{ secrets.DB_TYPE || 'local' }}
         FORCE_TICK_FALLBACK: ${{ inputs.force_tick_fallback }}
       run: |
+        echo "DB_TYPE is set to: $DB_TYPE"
         python .github/workflows/sync_local_candles.py
         
     - name: List generated files

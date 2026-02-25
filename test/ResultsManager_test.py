@@ -943,3 +943,117 @@ class TestApplySortingMoreCoverage:
             pass
 
 
+class TestFilterStaleTimeData:
+    """Test cases for filter_stale_time_data method."""
+    
+    @pytest.fixture
+    def manager(self):
+        """Create a ResultsManager instance."""
+        from pkscreener.classes.ResultsManager import ResultsManager
+        mock_config = MagicMock()
+        return ResultsManager(mock_config)
+    
+    def test_filter_stale_time_data_with_none_results(self, manager):
+        """Test with None results."""
+        screen, save = manager.filter_stale_time_data(None, None)
+        assert screen is None
+        assert save is None
+    
+    def test_filter_stale_time_data_with_empty_results(self, manager):
+        """Test with empty dataframes."""
+        screen = pd.DataFrame()
+        save = pd.DataFrame()
+        result_screen, result_save = manager.filter_stale_time_data(screen, save)
+        assert len(result_screen) == 0
+        assert len(result_save) == 0
+    
+    def test_filter_stale_time_data_without_time_column(self, manager):
+        """Test when Time column doesn't exist."""
+        screen = pd.DataFrame({'Stock': ['A', 'B'], 'LTP': [100, 200]})
+        save = pd.DataFrame({'Stock': ['A', 'B'], 'LTP': [100, 200]})
+        result_screen, result_save = manager.filter_stale_time_data(screen, save)
+        assert len(result_screen) == 2
+        assert len(result_save) == 2
+    
+    def test_filter_stale_time_data_filters_old_dates(self, manager):
+        """Test that old dates are filtered out."""
+        from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+        
+        trading_date = PKDateUtilities.tradingDate()
+        current_pattern = f"{trading_date.day}/{trading_date.month}"
+        
+        screen = pd.DataFrame({
+            'Time': [f'{current_pattern} 10:27', '17/11 4:47', f'{current_pattern} 11:30', '15/10 9:15'],
+            'LTP': [100, 200, 300, 400]
+        }, index=['SBIN', 'ICICI', 'HDFC', 'AXIS'])
+        
+        save = screen.copy()
+        
+        result_screen, result_save = manager.filter_stale_time_data(screen, save)
+        
+        # Only rows with current trading date should remain
+        assert len(result_save) == 2
+        assert 'SBIN' in result_save.index
+        assert 'HDFC' in result_save.index
+        assert 'ICICI' not in result_save.index
+        assert 'AXIS' not in result_save.index
+    
+    def test_filter_stale_time_data_keeps_all_current_dates(self, manager):
+        """Test that all current date rows are kept."""
+        from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+        
+        trading_date = PKDateUtilities.tradingDate()
+        current_pattern = f"{trading_date.day}/{trading_date.month}"
+        
+        screen = pd.DataFrame({
+            'Time': [f'{current_pattern} 10:27', f'{current_pattern} 11:30', f'{current_pattern} 14:45'],
+            'LTP': [100, 200, 300]
+        }, index=['A', 'B', 'C'])
+        
+        save = screen.copy()
+        
+        result_screen, result_save = manager.filter_stale_time_data(screen, save)
+        
+        assert len(result_save) == 3
+    
+    def test_filter_stale_time_data_handles_exception(self, manager):
+        """Test exception handling."""
+        screen = pd.DataFrame({'Time': ['invalid'], 'LTP': [100]}, index=['A'])
+        save = screen.copy()
+        
+        with patch('PKDevTools.classes.PKDateUtilities.PKDateUtilities.tradingDate', side_effect=Exception("Test error")):
+            result_screen, result_save = manager.filter_stale_time_data(screen, save)
+            # Should return original dataframes on exception
+            assert len(result_save) == 1
+
+
+class TestResultsLabelerFilterStaleTimeData:
+    """Test filter_stale_time_data in ResultsLabeler."""
+    
+    @pytest.fixture
+    def labeler(self):
+        """Create a ResultsLabeler instance."""
+        from pkscreener.classes.ResultsLabeler import ResultsLabeler
+        mock_config = MagicMock()
+        return ResultsLabeler(mock_config)
+    
+    def test_filter_stale_time_data_basic(self, labeler):
+        """Test basic filtering."""
+        from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+        
+        trading_date = PKDateUtilities.tradingDate()
+        current_pattern = f"{trading_date.day}/{trading_date.month}"
+        
+        screen = pd.DataFrame({
+            'Time': [f'{current_pattern} 10:27', '1/11 4:47'],
+            'LTP': [100, 200]
+        }, index=['A', 'B'])
+        
+        save = screen.copy()
+        
+        result_screen, result_save = labeler.filter_stale_time_data(screen, save)
+        
+        assert len(result_save) == 1
+        assert 'A' in result_save.index
+
+

@@ -1870,13 +1870,20 @@ class ScreeningStatistics:
         if rsiKey not in df.columns:
             return False
         data = df.copy()
-        data = data[::-1]
-        data = data.tail(3)
-        if len(data) < 3:
+        # Ensure data is sorted with latest date first (descending)
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        # Get the 3 most recent rows (latest date first, so head(3) gets newest 3)
+        recent = data.head(3)
+        if len(recent) < 3:
             return False
-        dayMinus2RSI = data["RSI"].iloc[0]
-        dayMinus1RSI = data["RSI"].iloc[1]
-        dayRSI = data["RSI"].iloc[2]
+        # recent.iloc[0] = today (most recent), iloc[1] = yesterday, iloc[2] = day before yesterday
+        dayRSI = recent["RSI"].iloc[0]  # Today's RSI
+        dayMinus1RSI = recent["RSI"].iloc[1]  # Yesterday's RSI
+        dayMinus2RSI = recent["RSI"].iloc[2]  # Day before yesterday's RSI
         returnValue = (dayMinus2RSI <= 35 and dayMinus1RSI > dayMinus2RSI and dayRSI > dayMinus1RSI) or \
                 (dayMinus1RSI <= 35 and dayRSI > dayMinus1RSI)
         if rsiKey == "RSI":
@@ -2919,6 +2926,15 @@ class ScreeningStatistics:
         data = df.copy()
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
+        # Need at least 20 rows for SMA20 calculation
+        if len(data) < 20:
+            return False
+        # Ensure data is sorted with oldest date first for SMA calculation
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=True)
+            except:
+                pass
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
         data["SMA20"] = pktalib.SMA(data["close"], 20)
         data["SMA20V"] = pktalib.SMA(data["volume"], 20)
@@ -3625,6 +3641,12 @@ class ScreeningStatistics:
             maxLTP = self.configManager.maxLTP
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
+        # Ensure data is sorted with latest date first (in case it wasn't sorted during load)
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
         recent = data.head(1)
 
         pct_change = (data[::-1]["close"].pct_change() * 100).iloc[-1]
@@ -3655,20 +3677,46 @@ class ScreeningStatistics:
             saveDict["LTP"] = round(ltp, 2)
             screenDict["LTP"] = (colorText.GREEN if ltpValid else colorText.FAIL) + ("%.2f" % ltp) + colorText.END
             try:
-                dateTimePart = str(recent.index[0]).split(" ")
-                if len(dateTimePart) == 1:
-                    indexDate = PKDateUtilities.dateFromYmdString(dateTimePart[0])
-                    dayDate = f"{indexDate.day}/{indexDate.month}"
-                elif len(dateTimePart) == 2:
-                    today = PKDateUtilities.currentDateTime()
-                    try:
-                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
-                    except: # pragma: no cover
-                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S%z").replace(tzinfo=today.tzinfo)
-                        pass
-                    dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
-                    screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
-                    saveDict["Time"] = str(dayDate)
+                # Use the latest date from the full dataset (data.index[0] after sorting)
+                # This ensures we always show the most recent trading date
+                latest_date_index = data.index[0] if not data.empty else (recent.index[0] if not recent.empty else None)
+                if latest_date_index is None:
+                    # Fallback to recent if data is empty
+                    latest_date_index = recent.index[0] if not recent.empty else None
+                
+                # #region agent log
+                import json
+                log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+                with open(log_path, 'a') as f:
+                    f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"ScreeningStatistics.py:validateLTP:3687","message":"Setting Time column from latest_date_index","data":{"latest_date_index":str(latest_date_index) if latest_date_index else None,"data_empty":data.empty,"data_index_0":str(data.index[0]) if not data.empty else None,"data_index_len":len(data.index) if not data.empty else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # #endregion
+                
+                if latest_date_index is not None:
+                    dateTimePart = str(latest_date_index).split(" ")
+                    if len(dateTimePart) == 1:
+                        indexDate = PKDateUtilities.dateFromYmdString(dateTimePart[0])
+                        dayDate = f"{indexDate.day}/{indexDate.month}"
+                    elif len(dateTimePart) == 2:
+                        today = PKDateUtilities.currentDateTime()
+                        try:
+                            indexDate = datetime.datetime.strptime(str(latest_date_index),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
+                        except: # pragma: no cover
+                            try:
+                                indexDate = datetime.datetime.strptime(str(latest_date_index),"%Y-%m-%d %H:%M:%S%z").replace(tzinfo=today.tzinfo)
+                            except:
+                                # Try parsing with pd.to_datetime as fallback
+                                try:
+                                    indexDate = pd.to_datetime(str(latest_date_index), format='mixed', utc=True)
+                                    if hasattr(indexDate, 'tz') and indexDate.tz is not None:
+                                        indexDate = indexDate.tz_convert(today.tzinfo)
+                                    else:
+                                        indexDate = indexDate.replace(tzinfo=today.tzinfo)
+                                except:
+                                    indexDate = today
+                            pass
+                        dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
+                        screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
+                        saveDict["Time"] = str(dayDate)
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as e: # pragma: no cover

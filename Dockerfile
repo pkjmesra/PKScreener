@@ -36,24 +36,27 @@ RUN rm -rf /PKScreener-main main.zip* && \
 WORKDIR /PKScreener-main
 COPY requirements.txt .
 
-# Install libsql FIRST based on architecture using pre-built wheels
+# Try to install libsql OPTIONALLY based on architecture using pre-built wheels
+# This is optional - if it fails, the code will use SQLite fallback
 # This prevents pip from trying to build libsql from source on ARM
 RUN ARCH=$(uname -m) && \
-    echo "Installing libsql for architecture: $ARCH" && \
+    echo "Attempting optional libsql installation for architecture: $ARCH" && \
     if [ "$ARCH" = "x86_64" ]; then \
-        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || echo "libsql x86_64 wheel not found, will use SQLite fallback"; \
+        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl 2>&1 | grep -v "ERROR" || echo "libsql x86_64 wheel not available, will use SQLite fallback (this is OK)"; \
     elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl || echo "libsql ARM wheel not found, will use SQLite fallback"; \
+        pip3 install https://github.com/pkjmesra/libsql-python/releases/download/released/libsql-0.1.6-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl 2>&1 | grep -v "ERROR" || echo "libsql ARM wheel not available, will use SQLite fallback (this is OK)"; \
     else \
-        echo "libsql not available for architecture: $ARCH, using SQLite fallback"; \
-    fi
+        echo "libsql not available for architecture: $ARCH, using SQLite fallback (this is OK)"; \
+    fi || echo "libsql installation failed, continuing with SQLite fallback (this is OK)"
 
-# Install requirements, excluding libsql since we handled it above
-# The --no-deps on pkbrokers prevents re-installing libsql
+# Install requirements, excluding libsql since it's optional
+# Use --no-deps for pkbrokers to prevent it from requiring libsql if not available
 RUN pip3 install --upgrade pip && \
     pip3 uninstall pkscreener PKNSETools PKDevTools pkbrokers -y || true && \
     grep -v "^libsql" requirements.txt > requirements_no_libsql.txt || cp requirements.txt requirements_no_libsql.txt && \
     pip3 install --no-cache-dir -r requirements_no_libsql.txt && \
+    # Try to install pkbrokers without libsql dependency (it should handle missing libsql gracefully)
+    pip3 install --no-deps pkbrokers || pip3 install pkbrokers || echo "pkbrokers installation failed, continuing..." && \
     pip3 install . && \
     mv /PKScreener-main/pkscreener/pkscreenercli.py /pkscreenercli.py && \
     rm -rf /PKScreener-main && \
@@ -64,6 +67,8 @@ ENV TERM=xterm
 COPY cve-fixes.txt .
 RUN pip3 install -r cve-fixes.txt
 ENV PKSCREENER_DOCKER=1
+# Set GitPython to quiet mode to avoid errors if git is not available
+ENV GIT_PYTHON_REFRESH=quiet
 ENTRYPOINT ["python3","pkscreener/pkscreenercli.py"]
 # Run with 
 # docker run -it pkjmesra/pkscreener:latest

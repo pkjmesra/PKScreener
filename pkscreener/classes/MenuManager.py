@@ -778,6 +778,14 @@ class ScanExecutor:
     def run_scanners(self, menu_option, items, tasks_queue, results_queue, num_stocks,
                     backtest_period, iterations, consumers, screen_results, save_results,
                     backtest_df, testing=False):
+        # #region agent log
+        import json
+        log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        try:
+            with open(log_path, 'a') as f:
+                f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"MenuManager.py:run_scanners:778","message":"run_scanners entry - scan starting","data":{"menu_option":menu_option,"num_stocks":num_stocks},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        except: pass
+        # #endregion
         """
         Execute scanning operations with the given parameters.
         
@@ -919,8 +927,15 @@ class ScanExecutor:
                 
         if result is not None and len(result) >=1 and "Date" not in save_results.columns:
             temp_df = result[2].copy()
+            # Ensure data is sorted to get the latest date
+            if not temp_df.empty and hasattr(temp_df.index, 'sort_values'):
+                try:
+                    temp_df = temp_df.sort_index(ascending=False)  # Latest first
+                except:
+                    pass
             temp_df.reset_index(inplace=True)
-            temp_df = temp_df.tail(1)
+            # Use head(1) to get the most recent date (since we sorted latest first)
+            temp_df = temp_df.head(1)
             temp_df.rename(columns={"index": "Date"}, inplace=True)
             target_date = (
                 temp_df["Date"].iloc[0]

@@ -190,8 +190,19 @@ jobs:
       continue-on-error: true
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
       run: |
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
+        # Use Python directly to test latest code with fix, fallback to binary if Python fails
+        if python3 pkscreener/pkscreenercli.py -d -a Y 2>&1; then
+          echo "✓ Used Python directly for daily data download"
+        else
+          echo "⚠ Python failed, falling back to binary"
+          /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
+        fi
+        if python3 pkscreener/pkscreenercli.py -d -a Y -i 1m 2>&1; then
+          echo "✓ Used Python directly for intraday data download"
+        else
+          echo "⚠ Python failed, falling back to binary"
+          /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
+        fi
         rm -rf results/*.lck || true
         echo "=== Listing results directory ==="
         ls -la results/ || echo "results/ not found"

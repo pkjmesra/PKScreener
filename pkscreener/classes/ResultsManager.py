@@ -247,6 +247,81 @@ class ResultsManager:
             ]
         return screen_results, save_results
     
+    def filter_stale_time_data(self, screen_results, save_results):
+        """
+        Filter out rows where 'Time' column doesn't contain the most recent trading date.
+        
+        The Time column format is expected to be like "1/1 10:27" or "17/12 4:47" (d/m HH:MM).
+        Only rows with the current trading date are kept.
+        
+        Args:
+            screen_results: Screen results dataframe
+            save_results: Save results dataframe
+            
+        Returns:
+            tuple: (screen_results, save_results) filtered dataframes
+        """
+        if screen_results is None or save_results is None:
+            return screen_results, save_results
+            
+        if len(screen_results) == 0 or len(save_results) == 0:
+            return screen_results, save_results
+            
+        # Check if Time column exists
+        if "Time" not in save_results.columns:
+            return screen_results, save_results
+            
+        try:
+            # Get the most recent trading date
+            trading_date = PKDateUtilities.tradingDate()
+            
+            # Format as d/m (e.g., "1/1" or "17/12") - no leading zeros
+            current_date_pattern = f"{trading_date.day}/{trading_date.month}"
+            
+            # Also handle the case where the date might have leading zeros in the data
+            current_date_pattern_padded = trading_date.strftime("%-d/%-m") if hasattr(trading_date, 'strftime') else current_date_pattern
+            
+            default_logger().debug(f"Filtering Time column for trading date pattern: {current_date_pattern}")
+            
+            # Filter save_results first (it has the raw data)
+            # The Time column may have color codes in screen_results, so we filter based on save_results
+            original_count = len(save_results)
+            
+            # Create a mask for rows that have the current trading date in the Time column
+            # The Time format is "d/m HH:MM" so we check if it starts with the date pattern
+            time_col = save_results["Time"].astype(str)
+            
+            # Match rows where Time starts with the current date pattern (with space after for time)
+            mask = time_col.str.match(f"^{current_date_pattern}\\s") | time_col.str.match(f"^{current_date_pattern_padded}\\s")
+            
+            # Also handle cases where color codes might be present
+            # Strip any color codes first for matching
+            time_col_clean = time_col.apply(lambda x: ImageUtility.PKImageTools.removeAllColorStyles(str(x)) if x else "")
+            mask = mask | time_col_clean.str.match(f"^{current_date_pattern}\\s") | time_col_clean.str.match(f"^{current_date_pattern_padded}\\s")
+            
+            # Apply the filter
+            save_results_filtered = save_results[mask]
+            
+            # Get the indices to keep
+            valid_indices = save_results_filtered.index
+            
+            # Filter screen_results to keep only matching indices
+            screen_results_filtered = screen_results[screen_results.index.isin(valid_indices)]
+            
+            filtered_count = len(save_results_filtered)
+            
+            if filtered_count < original_count:
+                default_logger().debug(
+                    f"Filtered out {original_count - filtered_count} rows with stale Time data. "
+                    f"Kept {filtered_count} rows with date {current_date_pattern}."
+                )
+                
+            return screen_results_filtered, save_results_filtered
+            
+        except Exception as e:
+            default_logger().debug(f"Error filtering stale time data: {e}", exc_info=True)
+            return screen_results, save_results
+    
     def remove_unused_columns(self, screen_results, save_results, drop_additional_columns=None):
         """
         Remove unused columns from results.
@@ -478,6 +553,11 @@ class ResultsManager:
             pass
             
         return last_trade_date, last_trade_time
+
+
+
+
+
 
 
 

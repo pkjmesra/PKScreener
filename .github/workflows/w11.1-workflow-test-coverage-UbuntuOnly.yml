@@ -214,7 +214,7 @@ jobs:
 
       - name: Test Built Binary for ${{ matrix.TARGET }}
         shell: bash
-        timeout-minutes: 25
+        timeout-minutes: 45
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

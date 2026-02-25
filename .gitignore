@@ -52,3 +52,5 @@ pkscreener/*.txt
 *.session
 *_plan.md
 *.ini
+pkscreener.ini
+*.sql
