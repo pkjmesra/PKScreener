@@ -1,9 +1,9 @@
 {
-  "last_update": "2026-02-26T15:12:19.194182Z",
-  "last_update_ist": "2026-02-26T20:42:19.194168+05:30",
+  "last_update": "2026-02-26T17:35:19.105435Z",
+  "last_update_ist": "2026-02-26T23:05:19.105424+05:30",
   "is_market_hours": false,
-  "data_source": "pickle",
-  "instrument_count": 2378,
+  "data_source": "ticks_json",
+  "instrument_count": 2384,
   "version": "2.0.0",
   "publisher": "w-data-publisher.yml",
   "availability": "24x7",
