@@ -499,26 +499,116 @@ class PKAssetsManager:
         # #endregion
         return stockDict
 
+    # Helper method to download and validate a PKL file
     @staticmethod
-    def download_fresh_pkl_from_github() -> tuple:
+    def _download_and_validate_pkl(url: str, output_path: str, min_rows_required: int = 100) -> tuple:
+        import requests
+        import pickle
+        import shutil
+        import pandas as pd
+        
+        try:
+            default_logger().debug(f"Attempting to download from: {url}")
+            response = requests.get(url, timeout=60)
+            
+            if response.status_code == 200 and len(response.content) > 10000:
+                temp_path = output_path + ".tmp"
+                with open(temp_path, 'wb') as f:
+                    f.write(response.content)
+                
+                with open(temp_path, 'rb') as f:
+                    data = pickle.load(f)
+                
+                default_logger().debug(f"Loaded PKL file. Total items: {len(data) if data else 0}")
+                if data:
+                    default_logger().debug(f"Sample keys from PKL: {list(data.keys())[:5]}")
+
+                if data and len(data) > 0:
+                    rows_count = []
+                    sample_symbols = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN']
+                    for sym in sample_symbols:
+                        if sym in data:
+                            item = data[sym]
+                            current_rows = 0
+                            if isinstance(item, pd.DataFrame):
+                                current_rows = len(item)
+                            elif isinstance(item, dict) and 'data' in item:
+                                current_rows = len(item['data'])
+                            
+                            rows_count.append(current_rows)
+                            default_logger().debug(f"Symbol {sym}: Found {current_rows} rows.")
+                    
+                    avg_rows = sum(rows_count) / len(rows_count) if rows_count else 0
+                    
+                    if avg_rows >= min_rows_required:
+                        shutil.move(temp_path, output_path)
+                        return True, output_path, len(data), avg_rows
+                    else:
+                        default_logger().debug(f"Downloaded PKL has insufficient rows (avg {avg_rows:.1f} < {min_rows_required}). Discarding. Sampled symbols rows: {rows_count}")
+                        os.remove(temp_path)
+            
+            return False, None, 0, 0
+        except Exception as e:
+            default_logger().debug(f"Failed to download or validate {url}: {e}")
+            return False, None, 0, 0
+
+    @staticmethod
+    def download_fresh_pkl_from_github(intraday=False) -> tuple: # Added intraday parameter
         """
         Download the latest pkl file from GitHub actions-data-download branch.
         
         This method tries multiple URLs and date formats to find the most recent
-        stock_data_DDMMYYYY.pkl file.
+        stock_data_DDMMYYYY.pkl file. It prioritizes the exact filename
+        returned by Archiver.afterMarketStockDataExists().
         
+        Args:
+            intraday (bool): Whether to look for intraday data.
+            
         Returns:
             tuple: (success, file_path, num_instruments)
         """
-        import requests
-        import pickle
         from datetime import datetime, timedelta
         
         try:
-            today = datetime.now()
             data_dir = Archiver.get_user_data_dir()
+            MIN_ROWS_REQUIRED = 100 # Consistent with the existing logic
             
-            # URLs and date formats to try
+            # 1. First, try to download the exact file name expected by Archiver.afterMarketStockDataExists()
+            _, expected_cache_file_name = Archiver.afterMarketStockDataExists(intraday=intraday)
+            output_path = os.path.join(data_dir, expected_cache_file_name)
+            expected_url_primary = f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{expected_cache_file_name}"
+            expected_url_fallback = f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{expected_cache_file_name}"
+
+            # Try primary URL first
+            success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                expected_url_primary, output_path, MIN_ROWS_REQUIRED
+            )
+            if success:
+                default_logger().info(f"Downloaded expected pkl from GitHub (primary URL): {expected_url_primary} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Downloaded fresh data from GitHub ({num_instruments} instruments, {avg_rows:.0f} rows/stock)"
+                    + colorText.END
+                )
+                return True, downloaded_path, num_instruments
+            
+            # If primary failed, try fallback URL
+            success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                expected_url_fallback, output_path, MIN_ROWS_REQUIRED
+            )
+            if success:
+                default_logger().info(f"Downloaded expected pkl from GitHub (fallback URL): {expected_url_fallback} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Downloaded fresh data from GitHub ({num_instruments} instruments, {avg_rows:.0f} rows/stock)"
+                    + colorText.END
+                )
+                return True, downloaded_path, num_instruments
+
+            # 2. If the exact file is not found or valid, fall back to existing logic (trying multiple dated files and generic names)
+            default_logger().info("Expected pkl not found or valid. Falling back to broader search.")
+
+            today = datetime.now()
             urls_to_try = []
             
             for days_ago in range(0, 10):
@@ -527,10 +617,22 @@ class PKAssetsManager:
                 date_str_short = check_date.strftime('%-d%m%y') if hasattr(check_date, 'strftime') else check_date.strftime('%d%m%y').lstrip('0')
                 
                 for date_str in [date_str_full, date_str_short]:
-                    urls_to_try.extend([
-                        f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/stock_data_{date_str}.pkl",
-                        f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/stock_data_{date_str}.pkl",
-                    ])
+                    # Ensure we don't try the expected file again, if it was included in the date_str loop
+                    current_file_name_full = f"stock_data_{date_str}.pkl"
+                    current_file_name_intraday = f"stock_data_{date_str}_intraday.pkl"
+                    
+                    if intraday:
+                        if current_file_name_intraday != expected_cache_file_name:
+                            urls_to_try.extend([
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{current_file_name_intraday}",
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{current_file_name_intraday}",
+                            ])
+                    else:
+                        if current_file_name_full != expected_cache_file_name:
+                            urls_to_try.extend([
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{current_file_name_full}",
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{current_file_name_full}",
+                            ])
             
             # Also try generic names
             urls_to_try.extend([
@@ -538,72 +640,35 @@ class PKAssetsManager:
                 "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/daily_candles.pkl",
             ])
             
-            output_path = os.path.join(data_dir, "stock_data_github.pkl")
-            
-            # Track best file (most rows per stock)
             best_file = None
             best_url = None
             best_rows_per_stock = 0
             best_num_instruments = 0
             
             for url in urls_to_try:
-                try:
-                    default_logger().debug(f"Trying to download pkl from: {url}")
-                    response = requests.get(url, timeout=60)
-                    
-                    if response.status_code == 200 and len(response.content) > 10000:
-                        # Check data quality before accepting
-                        temp_path = output_path + ".tmp"
-                        with open(temp_path, 'wb') as f:
-                            f.write(response.content)
-                        
-                        # Verify it's a valid pkl and check quality
-                        with open(temp_path, 'rb') as f:
-                            data = pickle.load(f)
-                        
-                        if data and len(data) > 0:
-                            # Check average rows per stock (quality indicator)
-                            sample_symbols = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN']
-                            rows_count = []
-                            for sym in sample_symbols:
-                                if sym in data:
-                                    item = data[sym]
-                                    if isinstance(item, pd.DataFrame):
-                                        rows_count.append(len(item))
-                                    elif isinstance(item, dict) and 'data' in item:
-                                        rows_count.append(len(item['data']))
-                            
-                            avg_rows = sum(rows_count) / len(rows_count) if rows_count else 0
-                            
-                            # Prefer files with more rows (full history = ~251 rows, incomplete = 1-10 rows)
-                            if avg_rows > best_rows_per_stock:
-                                best_file = temp_path
-                                best_url = url
-                                best_rows_per_stock = avg_rows
-                                best_num_instruments = len(data)
-                                default_logger().debug(f"Found better file: {url} ({len(data)} instruments, avg {avg_rows:.1f} rows/stock)")
-                            
-                except Exception as e:
-                    default_logger().debug(f"Failed to download from {url}: {e}")
-                    continue
-            
+                success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                    url, output_path, MIN_ROWS_REQUIRED
+                )
+                
+                if success:
+                    if avg_rows > best_rows_per_stock:
+                        best_file = downloaded_path
+                        best_url = url
+                        best_rows_per_stock = avg_rows
+                        best_num_instruments = num_instruments
+                        default_logger().debug(f"Found better file: {url} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                    else: # Clean up less optimal download
+                        os.remove(downloaded_path) # _download_and_validate_pkl already moves temp_path to output_path if successful
+                
             # Use the best file found
-            if best_file and best_rows_per_stock >= 100:  # Require at least 100 rows per stock (full history)
-                import shutil
-                shutil.move(best_file, output_path)
+            if best_file:
                 default_logger().info(f"Downloaded best pkl from GitHub: {best_url} ({best_num_instruments} instruments, avg {best_rows_per_stock:.1f} rows/stock)")
                 OutputControls().printOutput(
                     colorText.GREEN
                     + f"  [+] Downloaded fresh data from GitHub ({best_num_instruments} instruments, {best_rows_per_stock:.0f} rows/stock)"
                     + colorText.END
                 )
-                return True, output_path, best_num_instruments
-            elif best_file:
-                # Even if not ideal, use it if it's the best we found
-                import shutil
-                shutil.move(best_file, output_path)
-                default_logger().warning(f"Downloaded pkl with limited history: {best_url} ({best_num_instruments} instruments, avg {best_rows_per_stock:.1f} rows/stock)")
-                return True, output_path, best_num_instruments
+                return True, best_file, best_num_instruments
             
             default_logger().warning("Could not download pkl from GitHub")
             return False, None, 0
@@ -1100,7 +1165,7 @@ class PKAssetsManager:
                 stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
             else:
                 # Try to download fresh data from GitHub first
-                success, github_path, num_instruments = PKAssetsManager.download_fresh_pkl_from_github()
+                success, github_path, num_instruments = PKAssetsManager.download_fresh_pkl_from_github(intraday=isIntraday)
                 if success and github_path:
                     # Replace local cache with fresh GitHub data
                     import shutil

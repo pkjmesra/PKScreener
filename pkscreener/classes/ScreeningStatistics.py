@@ -3714,7 +3714,12 @@ class ScreeningStatistics:
                                 except:
                                     indexDate = today
                             pass
-                        dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
+                        
+                        # If the time is 00:00, assume market close (15:30) for that day
+                        if indexDate.hour == 0 and indexDate.minute == 0:
+                            indexDate = indexDate.replace(hour=15, minute=30, second=0, microsecond=0)
+                        
+                        dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}"
                         screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
                         saveDict["Time"] = str(dayDate)
             except KeyboardInterrupt: # pragma: no cover
