@@ -1,13 +1,13 @@
 {
-  "last_update": "2026-03-01T10:50:19.320150Z",
-  "last_update_ist": "2026-03-01T16:20:19.320140+05:30",
+  "last_update": "2026-03-01T13:14:43.761718Z",
+  "last_update_ist": "2026-03-01T18:44:43.761705+05:30",
   "is_market_hours": false,
-  "data_source": "none",
-  "instrument_count": 0,
+  "data_source": "ticks_json",
+  "instrument_count": 2376,
   "version": "2.0.0",
   "publisher": "w-data-publisher.yml",
   "availability": "24x7",
   "health": {
-    "status": "no_data"
+    "status": "healthy"
   }
 }
