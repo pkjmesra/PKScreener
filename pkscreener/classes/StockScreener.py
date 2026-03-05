@@ -933,11 +933,12 @@ class StockScreener:
 
     def updateStock(self, stock, screeningDictionary, saveDictionary, executeOption=0,exchangeName='INDIA',userArgs=None):
         doNotAnchorText = executeOption == 26 or (userArgs is not None and userArgs.systemlaunched)
-        screeningDictionary["Stock"] = (
-                    colorText.WHITE
-                    + (f"\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
-                    + colorText.END
-                ) if not doNotAnchorText else stock
+        screeningDictionary["Stock"] = stock
+                # (
+                #     colorText.WHITE
+                #     + (f"\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
+                #     + colorText.END
+                # ) if not doNotAnchorText else stock
         saveDictionary["Stock"] = stock
 
     def getCleanedDataForDuration(self, backtestDuration, portfolio, screeningDictionary, saveDictionary, configManager, screener, data):
@@ -1057,7 +1058,7 @@ class StockScreener:
                 #     )
                 # #region agent log
                 import json
-                log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+                log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
                 try:
                     hostData_type = type(hostData).__name__ if hostData is not None else None
                     hostData_keys = list(hostData.keys())[:3] if hostData and isinstance(hostData, dict) else None
@@ -1148,7 +1149,7 @@ class StockScreener:
             data = data.sort_index(ascending=False)
             # #region agent log
             import json
-            log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+            log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
             try:
                 with open(log_path, 'a') as f:
                     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"D","location":"StockScreener.py:getRelevantDataForStock:1119","message":"DataFrame sorted, checking index[0]","data":{"stock":stock,"index_0":str(data.index[0]) if not data.empty else None,"index_len":len(data.index) if not data.empty else 0,"index_first_3":[str(x) for x in list(data.index[:3])] if not data.empty and len(data.index) >= 3 else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')

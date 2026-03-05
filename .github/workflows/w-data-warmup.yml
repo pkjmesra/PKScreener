@@ -36,9 +36,9 @@ jobs:
         if: steps.data-cache.outputs.cache-hit != 'true' || github.event.inputs.force_refresh == 'Y'
         run: |
           curl -sL -o results/Data/candles_latest.json.gz \
-            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/candles_latest.json.gz" || true
+            "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json" || true
           curl -sL -o results/Data/ticks.json \
-            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json" || true
+            "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/candles_latest.json.gz", || true
           curl -sL -o results/Data/metadata.json \
             "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/metadata.json" || true
           ls -la results/Data/

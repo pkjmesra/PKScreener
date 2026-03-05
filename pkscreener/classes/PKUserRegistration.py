@@ -116,7 +116,7 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
             username = OutputControls().takeUserInput(f"[+] Your UserID from telegram: (Default: {colorText.GREEN}{configManager.userID}{colorText.END}): ") or configManager.userID
         else:
             username = OutputControls().takeUserInput(f"[+] {colorText.GREEN}Your UserID from telegram: {colorText.END}")
-        if username is None or len(username) <= 0:
+        if username is None or not username or len(username.strip()) <= 0:
             OutputControls().printOutput(f"{colorText.WARN}[+] We urge you to register on telegram (/OTP on @nse_pkscreener_bot) and then login to use PKScreener!{colorText.END}\n")
             OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.WARN}[+] Maybe try entering the {colorText.END}{colorText.GREEN}UserID{colorText.END}{colorText.WARN} instead of username?{colorText.END}\n[+] {colorText.WARN}If you have purchased a subscription and are still not able to login, please reach out to {colorText.END}{colorText.GREEN}@ItsOnlyPK{colorText.END} {colorText.WARN}on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
             sleep(5)

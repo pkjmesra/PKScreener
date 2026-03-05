@@ -48,7 +48,7 @@ from PKDevTools.classes import Archiver
 
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
-from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
+from requests_ratelimiter import LimiterMixin
 from pyrate_limiter import Duration, RequestRate, Limiter
 
 # Import high-performance data provider (replaces Yahoo Finance)

@@ -41,8 +41,8 @@ def is_market_hours():
 def download_fresh_ticks():
     """Download fresh ticks from multiple sources."""
     sources = [
-        "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
         "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json",
+        "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
     ]
     
     for url in sources:

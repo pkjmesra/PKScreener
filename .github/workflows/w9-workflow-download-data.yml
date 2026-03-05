@@ -75,18 +75,6 @@ jobs:
       with:
         ref: actions-data-download
 
-    # - name: Take pull from main
-    #   shell: bash
-    #   run: |
-    #     git config user.name github-actions >/dev/null 2>&1
-    #     git config user.email github-actions@github.com >/dev/null 2>&1
-    #     git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' >/dev/null 2>&1
-    #     git remote update >/dev/null 2>&1
-    #     git fetch >/dev/null 2>&1
-    #     git config pull.rebase false >/dev/null 2>&1
-    #     git pull origin main
-    #     git push -v -u origin +actions-data-download >/dev/null 2>&1
-
     - name: Set up Python 
       uses: actions/setup-python@v5
       with:
@@ -185,71 +173,202 @@ jobs:
           exit 1
         fi
           
-    - name: Download 52 week Stock Data on Ubuntu
+    - name: Download and Validate 52 week Stock Data on Ubuntu
       shell: bash
       continue-on-error: true
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
       run: |
-        # Use Python directly to test latest code with fix, fallback to binary if Python fails
+        # Define size thresholds (in bytes)
+        DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
+        INTRADAY_PKL_MIN_SIZE=1000000  # 1 MB minimum for intraday pkl
+        
+        # Function to validate pkl files
+        validate_pkl_files() {
+          local period=$1
+          local min_size=$2
+          local files_found=0
+          local valid_files=0
+          
+          echo "=== Validating $period pkl files (min: $((min_size/1024/1024)) MB) ==="
+          
+          for pkl_file in actions-data-download/*.pkl; do
+            if [ -f "$pkl_file" ]; then
+              files_found=$((files_found + 1))
+              file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+              size_mb=$((file_size/1024/1024))
+              
+              # Check if this file matches the period pattern
+              if [[ "$pkl_file" == *"$period"* ]] || [[ "$period" == "daily" && "$pkl_file" != *"intraday"* ]] || [[ "$period" == "intraday" && "$pkl_file" == *"intraday"* ]]; then
+                if [ "$file_size" -ge "$min_size" ]; then
+                  echo "  ✅ Valid $period pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  valid_files=$((valid_files + 1))
+                else
+                  echo "  ⚠️ Undersized $period pkl: $(basename "$pkl_file") - ${size_mb} MB (min: $((min_size/1024/1024)) MB)"
+                fi
+              fi
+            fi
+          done
+          
+          echo "Found $files_found total files, $valid_files valid $period files"
+          return $valid_files
+        }
+        
+        # Download daily data
+        echo "=== Downloading Daily Stock Data ==="
         if python3 pkscreener/pkscreenercli.py -d -a Y 2>&1; then
           echo "✓ Used Python directly for daily data download"
         else
           echo "⚠ Python failed, falling back to binary"
           /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y
         fi
+        
+        # Download intraday data
+        echo ""
+        echo "=== Downloading Intraday Stock Data ==="
         if python3 pkscreener/pkscreenercli.py -d -a Y -i 1m 2>&1; then
           echo "✓ Used Python directly for intraday data download"
         else
           echo "⚠ Python failed, falling back to binary"
           /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -d -a Y -i 1m
         fi
+        
+        # Clean up lock files
         rm -rf results/*.lck || true
+        
+        # List and validate files
+        echo ""
         echo "=== Listing results directory ==="
         ls -la results/ || echo "results/ not found"
+        
+        echo ""
         echo "=== Listing results/Data directory ==="
         ls -la results/Data/ || echo "results/Data/ not found"
-        echo "=== Copying pkl files ==="
-        # Copy pkl files from results/Data/ (where Archiver saves them)
-        cp results/Data/*.pkl actions-data-download/ 2>/dev/null && echo "Copied from results/Data/" || true
+        
+        # Create actions-data-download directory if it doesn't exist
+        mkdir -p actions-data-download
+        
+        # Copy and validate pkl files
+        echo ""
+        echo "=== Copying and Validating PKL Files ==="
+        
+        # Copy from results/Data/ (where Archiver saves them)
+        if [ -d "results/Data" ]; then
+          cp results/Data/*.pkl actions-data-download/ 2>/dev/null && echo "Copied from results/Data/" || true
+        fi
+        
         # Also try copying from results/ directly
         cp results/*.pkl actions-data-download/ 2>/dev/null && echo "Copied from results/" || true
-        # List all pkl files found recursively
-        echo "=== All pkl files in results ==="
-        find results -name "*.pkl" -type f 2>/dev/null || echo "No pkl files found"
+        
+        # Validate daily pkl files
+        echo ""
+        validate_pkl_files "daily" $DAILY_PKL_MIN_SIZE
+        DAILY_VALID=$?
+        
+        # Validate intraday pkl files
+        echo ""
+        validate_pkl_files "intraday" $INTRADAY_PKL_MIN_SIZE
+        INTRADAY_VALID=$?
+        
+        # Create validation metadata
+        cat > actions-data-download/download_metadata.json << EOF
+        {
+          "download_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "download_time_ist": "$(TZ='Asia/Kolkata' date +%Y-%m-%dT%H:%M:%S%:z)",
+          "daily_valid": $DAILY_VALID,
+          "intraday_valid": $INTRADAY_VALID,
+          "size_thresholds": {
+            "daily_mb": $((DAILY_PKL_MIN_SIZE/1024/1024)),
+            "intraday_mb": $((INTRADAY_PKL_MIN_SIZE/1024/1024))
+          }
+        }
+        EOF
+        
+        echo ""
+        echo "=== Validation Summary ==="
+        if [ "$DAILY_VALID" -gt 0 ] || [ "$INTRADAY_VALID" -gt 0 ]; then
+          echo "✅ Found valid pkl files - daily: $DAILY_VALID, intraday: $INTRADAY_VALID"
+        else
+          echo "⚠️ No valid pkl files found"
+        fi
+        
+        echo ""
         echo "=== Contents of actions-data-download ==="
         ls -la actions-data-download/
         git status
+        
+        # Export validation status for later steps
+        echo "DAILY_VALID=$DAILY_VALID" >> $GITHUB_ENV
+        echo "INTRADAY_VALID=$INTRADAY_VALID" >> $GITHUB_ENV
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
         RUNNER : "GitHub_Actions"
 
-    - name: Fallback - Create pkl from ticks.json.zip
+    - name: Fallback - Create pkl from ticks.json.zip with validation
       shell: bash
       continue-on-error: true
-      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) }}
+      if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) && env.DAILY_VALID == '0' && env.INTRADAY_VALID == '0' }}
       run: |
-        PKL_COUNT=$(find actions-data-download -name "*.pkl" -size +100c 2>/dev/null | wc -l)
-        if [ "$PKL_COUNT" -gt 0 ]; then
-          echo "Found $PKL_COUNT valid pkl files, skipping ticks.json fallback"
-          exit 0
-        fi
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=1000000
         
         echo "No valid pkl files found, trying ticks.json.zip fallback..."
         
+        # Download ticks.json.zip
         TICKS_URL="https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json.zip"
         curl -sL -o /tmp/ticks.json.zip "$TICKS_URL" || true
         
-        TICKS_JSON_URL="https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json"
+        # Download ticks.json directly as fallback
+        TICKS_JSON_URL="https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json"
         curl -sL -o /tmp/ticks.json "$TICKS_JSON_URL" || true
         
+        # Check zip file size
         if [ -f /tmp/ticks.json.zip ] && [ -s /tmp/ticks.json.zip ]; then
-          echo "Downloaded ticks.json.zip, extracting..."
-          unzip -o /tmp/ticks.json.zip -d /tmp/ 2>/dev/null || true
+          ZIP_SIZE=$(stat -c%s /tmp/ticks.json.zip 2>/dev/null || stat -f%z /tmp/ticks.json.zip)
+          echo "Downloaded ticks.json.zip - size: $((ZIP_SIZE/1024/1024)) MB"
+          
+          if [ "$ZIP_SIZE" -gt 1000000 ]; then  # At least 1MB
+            echo "Extracting ticks.json.zip..."
+            unzip -o /tmp/ticks.json.zip -d /tmp/ 2>/dev/null || true
+          else
+            echo "⚠️ ticks.json.zip too small, skipping extraction"
+          fi
         fi
         
+        # Check JSON file size
         if [ -f /tmp/ticks.json ] && [ -s /tmp/ticks.json ]; then
-          echo "Converting ticks.json to pickle format..."
-          python3 .github/workflows/ticks_to_pickle.py --ticks /tmp/ticks.json --output actions-data-download
+          JSON_SIZE=$(stat -c%s /tmp/ticks.json 2>/dev/null || stat -f%z /tmp/ticks.json)
+          echo "Found ticks.json - size: $((JSON_SIZE/1024/1024)) MB"
+          
+          if [ "$JSON_SIZE" -gt 1000000 ]; then  # At least 1MB
+            echo "Converting ticks.json to pickle format..."
+            python3 .github/workflows/ticks_to_pickle.py --ticks /tmp/ticks.json --output actions-data-download
+            
+            # Validate generated pkl files
+            echo ""
+            echo "=== Validating generated pkl files ==="
+            for pkl_file in actions-data-download/*.pkl; do
+              if [ -f "$pkl_file" ]; then
+                file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+                size_mb=$((file_size/1024/1024))
+                
+                if [[ "$pkl_file" == *"intraday"* ]]; then
+                  if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                    echo "✅ Valid intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  else
+                    echo "⚠️ Undersized intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  fi
+                else
+                  if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                    echo "✅ Valid daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  else
+                    echo "⚠️ Undersized daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  fi
+                fi
+              fi
+            done
+          else
+            echo "⚠️ ticks.json too small, skipping conversion"
+          fi
         else
           echo "Could not find ticks.json"
         fi
@@ -258,7 +377,7 @@ jobs:
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
 
-    - name: Download 52 week Stock Data on Windows
+    - name: Download and Validate 52 week Stock Data on Windows
       continue-on-error: true
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Windows' ) }}
       shell: cmd
@@ -284,15 +403,59 @@ jobs:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
         RUNNER : "GitHub_Actions"
 
-    - name: Copy Stock Data Pickles on Windows
+    - name: Copy and Validate Stock Data Pickles on Windows
       continue-on-error: true
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Windows' ) }}
-      shell: cmd
+      shell: bash
       run: |
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=1000000
+        
+        # Copy files
         copy results\*DB.pkl actions-data-download
         copy results\stock_data_*.pkl actions-data-download
         
-    - name: Push Pickle Data for stock data
+        # Validate files
+        echo ""
+        echo "=== Validating PKL Files (Windows) ==="
+        
+        DAILY_VALID=0
+        INTRADAY_VALID=0
+        
+        for pkl_file in actions-data-download/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            # Use PowerShell to get file size on Windows
+            file_size=$(powershell -Command "(Get-Item '$pkl_file').Length" 2>/dev/null || echo "0")
+            size_mb=$((file_size/1024/1024))
+            
+            if [[ "$pkl_file" == *"intraday"* ]]; then
+              if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                echo "✅ Valid intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                INTRADAY_VALID=$((INTRADAY_VALID + 1))
+              else
+                echo "⚠️ Undersized intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+              fi
+            else
+              if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                echo "✅ Valid daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                DAILY_VALID=$((DAILY_VALID + 1))
+              else
+                echo "⚠️ Undersized daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+              fi
+            fi
+          fi
+        done
+        
+        echo ""
+        echo "=== Validation Summary (Windows) ==="
+        echo "Daily valid files: $DAILY_VALID"
+        echo "Intraday valid files: $INTRADAY_VALID"
+        
+        # Export validation status
+        echo "DAILY_VALID=$DAILY_VALID" >> $GITHUB_ENV
+        echo "INTRADAY_VALID=$INTRADAY_VALID" >> $GITHUB_ENV
+        
+    - name: Push Validated Pickle Data for stock data
       if: ${{ inputs.skipDownload == '' }}
       continue-on-error: true
       shell: bash
@@ -302,9 +465,52 @@ jobs:
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git remote update
         git fetch
-        git add actions-data-download/*.pkl --force
-        git commit -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
-        git push -v -u origin +actions-data-download
+        
+        # Count files to commit
+        FILES_TO_COMMIT=0
+        
+        # Add only files that meet size requirements
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=1000000
+        
+        for pkl_file in actions-data-download/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+            
+            if [[ "$pkl_file" == *"intraday"* ]]; then
+              if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                git add -f "$pkl_file"
+                FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+              fi
+            else
+              if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                git add -f "$pkl_file"
+                FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+              fi
+            fi
+          fi
+        done
+        
+        # Add metadata file if it exists
+        if [ -f "actions-data-download/download_metadata.json" ]; then
+          git add -f actions-data-download/download_metadata.json
+          FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+        fi
+        
+        if [ "$FILES_TO_COMMIT" -gt 0 ]; then
+          # Get sizes for commit message
+          DAILY_SIZE=$(ls -l actions-data-download/*.pkl 2>/dev/null | grep -v intraday | head -1 | awk '{print $5}' || echo "0")
+          DAILY_MB=$((DAILY_SIZE/1024/1024))
+          
+          INTRADAY_SIZE=$(ls -l actions-data-download/intraday*.pkl 2>/dev/null | head -1 | awk '{print $5}' || echo "0")
+          INTRADAY_MB=$((INTRADAY_SIZE/1024/1024))
+          
+          git commit -m "GitHub-Action-Workflow-Market-Data-Download - daily:${DAILY_MB}MB intraday:${INTRADAY_MB}MB [files:$FILES_TO_COMMIT]"
+          git push -v -u origin +actions-data-download
+          echo "✅ Pushed $FILES_TO_COMMIT validated files"
+        else
+          echo "No valid files to commit (all files below size thresholds)"
+        fi
       env:
         GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
     
@@ -327,27 +533,3 @@ jobs:
         gh run list --status cancelled --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
       env:
         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
-  # || '--reScanForZeroSize --scans --local --scanDaysInPast 3 -s2 0,22,29,42,50,M,Z -s0 S,T,E,U,Z,F,H,Y,B,G,C,M,D,I,L,P -s1 W,N,E,M,Z,S,0,2,3,4,6,7,9,10,13,14,15 -s3 "0" -s4 "0" --branchname actions-data-download -f' }}
-  # Delete_Workflow_Run:
-  #   runs-on: ubuntu-latest
-  #   needs: [Download_Stock_Data]
-  #   if: ${{ needs.Download_Stock_Data.outputs.should_clean == ''}}
-  #   name: Delete workflow run
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: main
-          
-  #     - name: Delete this workflow run
-  #       if: startsWith(runner.os, 'Linux')
-  #       shell: bash
-  #       run: |
-  #         gh run list --status success --limit 100 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-  #         gh run list --status cancelled --limit 100 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
-  #         # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
-  #       env:
-  #         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

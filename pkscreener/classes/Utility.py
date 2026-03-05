@@ -108,8 +108,9 @@ class tools:
         return colorText.FAIL + (f"{ratio}x" if pd.notna(ratio) else "") + colorText.END
     
     def stockDecoratedName(stockName,exchangeName):
-        decoratedName = f"{colorText.WHITE}\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stockName}\x1B\\{stockName}\x1B]8;;\x1B\\{colorText.END}"
-        return decoratedName
+        return stockName
+        # decoratedName = f"{colorText.WHITE}\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stockName}\x1B\\{stockName}\x1B]8;;\x1B\\{colorText.END}"
+        # return decoratedName
 
     def set_github_output(name, value):
         if "GITHUB_OUTPUT" in os.environ.keys():

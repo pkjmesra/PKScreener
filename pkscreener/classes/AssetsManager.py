@@ -193,7 +193,7 @@ class PKAssetsManager:
         """
         # #region agent log
         import json
-        log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+        log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
         try:
             with open(log_path, 'a') as f:
                 f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:_apply_fresh_ticks_to_data:181","message":"Function entry","data":{"stockDict_keys":list(stockDict.keys())[:5] if stockDict else [],"stockDict_len":len(stockDict) if stockDict else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -209,8 +209,8 @@ class PKAssetsManager:
         try:
             # Try to download fresh ticks from multiple sources
             ticks_sources = [
-                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
                 "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json",
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
             ]
             
             ticks_data = None
@@ -229,7 +229,7 @@ class PKAssetsManager:
             if not ticks_data:
                 # #region agent log
                 import json
-                log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+                log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
                 try:
                     with open(log_path, 'a') as f:
                         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:229","message":"No ticks data available, will update timestamps to market close","data":{},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -332,7 +332,7 @@ class PKAssetsManager:
                     # After market hours: always use market close time (15:30)
                     # #region agent log
                     import json
-                    log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+                    log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
                     try:
                         with open(log_path, 'a') as f:
                             f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:327","message":"Determining timestamp for symbol","data":{"symbol":symbol,"is_trading_hours":is_trading_hours,"tick_info_keys":list(tick_info.keys())[:5] if isinstance(tick_info, dict) else None,"has_last_update":"last_update" in tick_info if isinstance(tick_info, dict) else False},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -452,7 +452,7 @@ class PKAssetsManager:
                     
                     # #region agent log
                     import json
-                    log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+                    log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
                     try:
                         with open(log_path, 'a') as f:
                             f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:320","message":"Setting timestamp for symbol","data":{"symbol":symbol,"timestamp_str":timestamp_str,"is_trading_hours":is_trading_hours,"new_index_last":new_index[-1] if new_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -479,7 +479,7 @@ class PKAssetsManager:
         except Exception as e:
             # #region agent log
             import json
-            log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+            log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
             try:
                 with open(log_path, 'a') as f:
                     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:343","message":"Exception in _apply_fresh_ticks_to_data","data":{"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -489,7 +489,7 @@ class PKAssetsManager:
         
         # #region agent log
         import json
-        log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+        log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
         try:
             sample_symbol = list(stockDict.keys())[0] if stockDict else None
             sample_index = stockDict[sample_symbol]['index'][-1] if sample_symbol and stockDict.get(sample_symbol, {}).get('index') else None
@@ -1061,7 +1061,7 @@ class PKAssetsManager:
     ):
         # #region agent log
         import json
-        log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+        log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
         try:
             with open(log_path, 'a') as f:
                 f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadStockData:842","message":"loadStockData entry","data":{"stockCodes_len":len(stockCodes) if stockCodes else 0,"downloadOnly":downloadOnly,"isTrading":PKDateUtilities.isTradingTime()},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -1213,7 +1213,7 @@ class PKAssetsManager:
     def loadDataFromLocalPickle(stockDict, configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading):
         # #region agent log
         import json
-        log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+        log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
         try:
             with open(log_path, 'a') as f:
                 f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:930","message":"loadDataFromLocalPickle entry","data":{"isTrading":isTrading,"stockDict_len":len(stockDict) if stockDict else 0,"cache_file":cache_file},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -1287,7 +1287,7 @@ class PKAssetsManager:
             # After market hours: update today's data to market close time (15:30) if it has early morning timestamps
             # #region agent log
             import json
-            log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+            log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
             try:
                 with open(log_path, 'a') as f:
                     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1030","message":"Checking if should apply fresh ticks","data":{"isTrading":isTrading,"stockDict_len":len(stockDict) if stockDict else 0,"stockDict_keys_sample":list(stockDict.keys())[:3] if stockDict else []},"timestamp":int(__import__('time').time()*1000)}) + '\n')
@@ -1297,7 +1297,7 @@ class PKAssetsManager:
                         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1030","message":"Error logging","data":{"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
                 except: pass
             # #endregion
-            if stockDict:
+            if stockDict and isTrading:
                 # #region agent log
                 try:
                     with open(log_path, 'a') as f:
@@ -1499,7 +1499,7 @@ class PKAssetsManager:
                 
         # #region agent log
         import json
-        log_path = '/Users/praveen.jha1/Downloads/codes/PKScreener-main/.cursor/debug.log'
+        log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
         try:
             sample_stock = list(stockDict.keys())[0] if stockDict else None
             sample_index = stockDict[sample_stock]['index'][-1] if sample_stock and stockDict.get(sample_stock, {}).get('index') else None

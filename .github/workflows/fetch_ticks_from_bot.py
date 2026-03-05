@@ -186,7 +186,7 @@ def main():
     print("\nFalling back to GitHub raw data...")
     try:
         urls = [
-            "https://raw.githubusercontent.com/pkjmesra/PKBrokers/actions-data-download/ticks.json",
+            "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json",
             "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
         ]
         
