@@ -1,9 +1,9 @@
 {
-  "last_update": "2026-03-10T08:23:47.440147Z",
-  "last_update_ist": "2026-03-10T13:53:47.440132+05:30",
+  "last_update": "2026-03-10T08:58:24.105340Z",
+  "last_update_ist": "2026-03-10T14:28:24.105328+05:30",
   "is_market_hours": true,
   "data_source": "ticks_json",
-  "instrument_count": 2406,
+  "instrument_count": 2388,
   "version": "2.0.0",
   "publisher": "w-data-publisher.yml",
   "availability": "24x7",
@@ -15,12 +15,12 @@
       "ticks.json: 0.88 MB \u2713"
     ],
     "saved_files": {
-      "ticks_json_mb": 0.880640983581543,
-      "gzip_mb": 0.12982177734375
+      "ticks_json_mb": 0.8849153518676758,
+      "gzip_mb": 0.1377420425415039
     }
   },
   "health": {
     "status": "healthy",
-    "data_size_mb": 0.880640983581543
+    "data_size_mb": 0.8849153518676758
   }
 }
