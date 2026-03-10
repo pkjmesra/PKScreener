@@ -1,5 +1,14 @@
 {
-  "source": "PKBrokers",
-  "synced_at": "2026-03-10T05:37:21Z",
-  "workflow": "w-sync-ticks-to-screener.yml"
+  "sync_time": "2026-03-10T06:06:18Z",
+  "sync_time_ist": "2026-03-10T11:36:18+05:30",
+  "validation_passed": false,
+  "db_files_found": 2,
+  "size_thresholds": {
+    "daily_pkl_mb": 23,
+    "intraday_pkl_mb": 0,
+    "database_mb": 47
+  },
+  "validation_results": [
+    "✗ intraday: intraday_stock_data_09032026.pkl (0 MB)","✗ daily: stock_data_09032026.pkl (0 MB)","✗ db: candles_09032026_intraday.db (0 MB)","✗ db: candles_daily_09032026.db (0 MB)"
+  ]
 }
