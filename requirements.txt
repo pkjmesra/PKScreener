@@ -75,7 +75,7 @@ requests>=2.32.4
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
-urllib3>=1.26.20
+urllib3>=2.6.3
 
 # Backtesting and trading
 vectorbt>=0.26.2
