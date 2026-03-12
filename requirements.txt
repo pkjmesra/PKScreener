@@ -54,7 +54,7 @@ xlsxwriter>=3.2.0
 pefile>=2023.2.7,<2024.8.26
 
 # Image processing
-Pillow>=9.5.0
+Pillow>=10.3.0
 
 # PKScreener ecosystem packages
 PKDevTools>=0.13.20260311.329
@@ -75,7 +75,7 @@ requests>=2.32.4
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
-urllib3>=1.26.20
+urllib3>=2.6.3
 
 # Backtesting and trading
 vectorbt>=0.26.2
@@ -89,5 +89,5 @@ cryptography>=46.0.5
 filelock>=3.20.3
 protobuf>=5.29.6
 pyasn1>=0.6.2
-tornado>=6.5.3
+tornado>=6.5.5
 zipp>=3.19.1
