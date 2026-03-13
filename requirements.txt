@@ -91,3 +91,4 @@ protobuf>=5.29.6
 pyasn1>=0.6.2
 tornado>=6.5.3
 zipp>=3.19.1
+pyjwt>=2.12.0 # not directly required, pinned by Snyk to avoid a vulnerability
