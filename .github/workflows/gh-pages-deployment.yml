@@ -91,20 +91,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4.0.5
-
-      # - name: Configure .env.dev file
-      #   shell: bash
-      #   env:
-      #     CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
-      #     TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-      #     CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-      #   run: |
-      #       python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
-    
-      # - name: Send notification about deployment
-      #   shell: bash
-      #   env:
-      #     NOTIFY_USER : '-1001785195297'
-      #   run: |
-      #       pip3 install PKDevTools
-      #       python3 -c "import os; from PKDevTools.classes.Telegram import send_message; send_message(message='Hello! The gh-pages has been deployed.', userID=os.environ['NOTIFY_USER']);"

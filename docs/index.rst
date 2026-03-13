@@ -65,7 +65,7 @@ Installing the latest version from PyPi.
 ----------------------------------------
 * Go ahead and install using ``pip install pkscreener``
 * This should install all of the major dependencies, except maybe, TA-Lib. 
-* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from ``pandas_ta`` in the absence of TA-Lib), you can do this: Head to ``.github/dependencies/`` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
+* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from ``pandas_ta_classic`` in the absence of TA-Lib), you can do this: Head to ``.github/dependencies/`` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
 * Now launch your favorite command line CLI and issue ``pkscreener``. This will launch the pkscreener executable.
 
 Building from source repo
@@ -260,3 +260,56 @@ Troubleshooting and Logs
 If you are having issues running the program, you can just launch a command line interface (On windows> Start > Run > cmd) and then launch PKScreener with a command line option of ``-l``. For example, ``python pkscreenercli.py -l``. This will show you the path where the program will save all the log outputs from this run. Copy that path and go ahead and run the application. Altenatively, you can just go ahead and modify the ``logsEnabled`` value to ``y``, save & close it and then run ``python pkscreenercli.py``.
 
 After you have finished the run, go to that copied path, zip the contents of the file ``pkscreener-logs.txt`` and create an issue at https://github.com/pkjmesra/PKScreener/issues. Please do not forget to attach the log files in the issue.
+
+Developer Documentation
+-----------------------
+
+For developers looking to contribute to PKScreener, comprehensive documentation is available:
+
+.. list-table:: Developer Documentation
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Document
+     - Description
+   * - :doc:`Developer Guide <DEVELOPER_GUIDE>`
+     - Getting started, project structure, development workflow
+   * - :doc:`Architecture <ARCHITECTURE>`
+     - System architecture, component details, data flow diagrams
+   * - :doc:`Scan Workflows <SCAN_WORKFLOWS>`
+     - Detailed documentation for all 47+ scan categories and options
+   * - :doc:`API Reference <API_REFERENCE>`
+     - Key classes, methods, and function signatures
+   * - :doc:`Testing Guide <TESTING>`
+     - Writing and running tests, mocking guidelines, coverage targets
+
+Contributing
+------------
+
+We welcome contributions! Please see our `Contributing Guide <https://github.com/pkjmesra/PKScreener/blob/main/CONTRIBUTING.md>`_ for:
+
+* Code style guidelines
+* Pull request process
+* Testing requirements
+* Issue reporting
+
+Quick links for developers:
+
+* **GitHub Issues**: https://github.com/pkjmesra/PKScreener/issues
+* **GitHub Discussions**: https://github.com/pkjmesra/PKScreener/discussions
+* **Source Code**: https://github.com/pkjmesra/PKScreener
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Developer Documentation
+
+   DEVELOPER_GUIDE
+   ARCHITECTURE
+   HIGH_PERFORMANCE_DATA
+   SCALABLE_ARCHITECTURE
+   SCAN_WORKFLOWS
+   API_REFERENCE
+   TESTING
+   RELEASE_PROCESS
+   README

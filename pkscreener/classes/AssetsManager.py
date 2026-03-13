@@ -55,6 +55,747 @@ class PKAssetsManager:
     configManager = ConfigManager.tools()
     configManager.getConfig(ConfigManager.parser)
 
+    @staticmethod
+    def is_data_fresh(stock_data, max_stale_trading_days=1):
+        """
+        Check if stock data is fresh (within max_stale_trading_days).
+        
+        Uses PKDateUtilities to account for weekends and market holidays.
+        Data is considered fresh if its date >= the last trading day.
+        
+        Args:
+            stock_data: DataFrame or dict with stock data
+            max_stale_trading_days: Maximum acceptable age in TRADING days (not calendar days)
+            
+        Returns:
+            tuple: (is_fresh: bool, data_date: date or None, trading_days_old: int)
+        """
+        try:
+            from datetime import datetime
+            from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+            
+            # Get the last trading date (accounts for weekends and holidays)
+            last_trading_date = PKDateUtilities.tradingDate()
+            if isinstance(last_trading_date, datetime):
+                last_trading_date = last_trading_date.date()
+            
+            last_date = None
+            
+            # Handle DataFrame
+            if isinstance(stock_data, pd.DataFrame) and not stock_data.empty:
+                last_date = stock_data.index[-1]
+                if hasattr(last_date, 'date'):
+                    last_date = last_date.date()
+                elif isinstance(last_date, str):
+                    last_date = datetime.strptime(last_date[:10], '%Y-%m-%d').date()
+            
+            # Handle dict with 'index' key (from to_dict("split"))
+            elif isinstance(stock_data, dict) and 'index' in stock_data:
+                index = stock_data['index']
+                if index:
+                    last_date = index[-1]
+                    if hasattr(last_date, 'date'):
+                        last_date = last_date.date()
+                    elif isinstance(last_date, str):
+                        # Try multiple date formats
+                        date_str = str(last_date)
+                        # Remove timezone info if present
+                        if 'T' in date_str:
+                            date_str = date_str.split('T')[0]
+                        elif '+' in date_str:
+                            date_str = date_str.split('+')[0]
+                        elif ' ' in date_str:
+                            date_str = date_str.split(' ')[0]
+                        # Try parsing
+                        try:
+                            last_date = datetime.strptime(date_str[:10], '%Y-%m-%d').date()
+                        except:
+                            # Try other formats
+                            try:
+                                last_date = pd.to_datetime(date_str).date()
+                            except:
+                                last_date = None
+            
+            if last_date is None:
+                return True, None, 0  # Can't determine, assume fresh
+            
+            # Calculate trading days between data date and last trading date
+            # Data is fresh if it's from the last trading day or more recent
+            if last_date >= last_trading_date:
+                return True, last_date, 0
+            
+            # Count trading days between last_date and last_trading_date
+            trading_days_old = PKDateUtilities.trading_days_between(last_date, last_trading_date)
+            is_fresh = trading_days_old <= max_stale_trading_days
+            
+            return is_fresh, last_date, trading_days_old
+            
+        except Exception as e:
+            default_logger().debug(f"Error checking data freshness: {e}")
+            return True, None, 0  # On error, assume fresh to not block
+
+    @staticmethod
+    def validate_data_freshness(stockDict, isTrading=False):
+        """
+        Validate freshness of stock data and log warnings for stale data.
+        
+        Args:
+            stockDict: Dictionary of stock data
+            isTrading: Whether market is currently trading
+            
+        Returns:
+            tuple: (fresh_count, stale_count, oldest_date)
+        """
+        from datetime import datetime
+        
+        fresh_count = 0
+        stale_count = 0
+        oldest_date = None
+        stale_stocks = []
+        
+        for stock, data in stockDict.items():
+            is_fresh, data_date, age_days = PKAssetsManager.is_data_fresh(data)
+            
+            if is_fresh:
+                fresh_count += 1
+            else:
+                stale_count += 1
+                stale_stocks.append((stock, data_date, age_days))
+                
+            if data_date and (oldest_date is None or data_date < oldest_date):
+                oldest_date = data_date
+        
+        # Log warning for stale data during trading hours
+        if isTrading and stale_count > 0:
+            default_logger().warning(
+                f"[DATA-FRESHNESS] {stale_count} stocks have stale data (older than last trading day). "
+                f"Oldest data from: {oldest_date}. Consider fetching fresh tick data."
+            )
+            if stale_count <= 5:
+                for stock, date, age in stale_stocks:
+                    default_logger().warning(f"[DATA-FRESHNESS] {stock}: data from {date} ({age} trading days old)")
+        
+        return fresh_count, stale_count, oldest_date
+
+    @staticmethod
+    def _apply_fresh_ticks_to_data(stockDict):
+        """
+        Apply fresh tick data from PKBrokers to update stale stock data.
+        
+        This method downloads the latest ticks.json from PKBrokers/PKScreener
+        and merges today's OHLCV data into the existing stockDict.
+        
+        Args:
+            stockDict: Dictionary of stock data (symbol -> dict with 'data', 'columns', 'index')
+            
+        Returns:
+            dict: Updated stockDict with fresh tick data merged
+        """
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:_apply_fresh_ticks_to_data:181","message":"Function entry","data":{"stockDict_keys":list(stockDict.keys())[:5] if stockDict else [],"stockDict_len":len(stockDict) if stockDict else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except Exception as e:
+        #     try:
+        #         with open(log_path, 'a') as f:
+        #             f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:_apply_fresh_ticks_to_data:181","message":"Error in function entry log","data":{"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        #     except: pass
+        # #endregion
+        import requests
+        from datetime import datetime
+        
+        try:
+            # Try to download fresh ticks from multiple sources
+            ticks_sources = [
+                "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json",
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
+            ]
+            
+            ticks_data = None
+            for url in ticks_sources:
+                try:
+                    response = requests.get(url, timeout=30)
+                    if response.status_code == 200:
+                        ticks_data = response.json()
+                        if ticks_data and len(ticks_data) > 0:
+                            default_logger().info(f"Downloaded {len(ticks_data)} ticks from {url}")
+                            break
+                except Exception as e:
+                    default_logger().debug(f"Failed to fetch ticks from {url}: {e}")
+                    continue
+            
+            if not ticks_data:
+                # #region agent log
+                # import json
+                # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+                # try:
+                #     with open(log_path, 'a') as f:
+                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:229","message":"No ticks data available, will update timestamps to market close","data":{},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # except: pass
+                # #endregion
+                default_logger().debug("No tick data available, updating today's timestamps to market close time")
+                # Even without ticks.json, we should update today's timestamps to market close time (15:30)
+                # if they have early morning timestamps
+                import pytz
+                from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+                timezone = pytz.timezone("Asia/Kolkata")
+                now = datetime.now(timezone)
+                today_str = now.strftime('%Y-%m-%d')
+                is_trading_hours = PKDateUtilities.isTradingTime()
+                market_close_time = f"{today_str} 15:30:00"
+                updated_count = 0
+                
+                for symbol, stock_data in stockDict.items():
+                    if not isinstance(stock_data, dict) or 'index' not in stock_data:
+                        continue
+                    
+                    index_list = stock_data.get('index', [])
+                    if not index_list:
+                        continue
+                    
+                    # Check if the last index is from today but has early morning time (< 15:00)
+                    last_index = str(index_list[-1])
+                    if len(last_index) >= 10 and last_index[:10] == today_str:
+                        # Parse the time component
+                        try:
+                            if ' ' in last_index:
+                                time_part = last_index.split(' ')[1] if len(last_index.split(' ')) > 1 else ""
+                                if time_part:
+                                    hour = int(time_part.split(':')[0]) if ':' in time_part else 0
+                                    # If time is before 15:00 (3 PM), update to market close
+                                    if hour < 15:
+                                        # Update the last index to market close time
+                                        new_index = list(index_list)
+                                        new_index[-1] = market_close_time
+                                        stock_data['index'] = new_index
+                                        stockDict[symbol] = stock_data
+                                        updated_count += 1
+                        except:
+                            pass
+                
+                if updated_count > 0:
+                    default_logger().info(f"Updated {updated_count} symbols' timestamps to market close time")
+                
+                return stockDict
+            
+            # Get today's date for the merge
+            import pytz
+            from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+            
+            timezone = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(timezone)
+            today_str = now.strftime('%Y-%m-%d')
+            is_trading_hours = PKDateUtilities.isTradingTime()
+            updated_count = 0
+            
+            # Apply ticks to stockDict
+            for instrument_token, tick_info in ticks_data.items():
+                if not isinstance(tick_info, dict):
+                    continue
+                
+                symbol = tick_info.get('trading_symbol', '')
+                ohlcv = tick_info.get('ohlcv', {})
+                
+                if not symbol or not ohlcv or ohlcv.get('close', 0) <= 0:
+                    continue
+                
+                # Check if ohlcv has a timestamp field (alternative to last_update)
+                ohlcv_timestamp = ohlcv.get('timestamp')
+                
+                # Find matching symbol in stockDict
+                if symbol not in stockDict:
+                    continue
+                
+                stock_data = stockDict[symbol]
+                if not isinstance(stock_data, dict) or 'data' not in stock_data:
+                    continue
+                
+                try:
+                    # Create today's candle row
+                    today_row = [
+                        float(ohlcv.get('open', 0)),
+                        float(ohlcv.get('high', 0)),
+                        float(ohlcv.get('low', 0)),
+                        float(ohlcv.get('close', 0)),
+                        int(ohlcv.get('volume', 0))
+                    ]
+                    
+                    # Check if we have 6 columns (with Adj Close)
+                    columns = stock_data.get('columns', [])
+                    if len(columns) == 6:
+                        today_row.append(float(ohlcv.get('close', 0)))  # Adj Close = Close
+                    
+                    # Determine the timestamp for the index
+                    # During market hours: use last_update from ticks (when data was captured)
+                    # After market hours: always use market close time (15:30)
+                    # #region agent log
+                    # import json
+                    # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+                    # try:
+                    #     with open(log_path, 'a') as f:
+                    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:327","message":"Determining timestamp for symbol","data":{"symbol":symbol,"is_trading_hours":is_trading_hours,"tick_info_keys":list(tick_info.keys())[:5] if isinstance(tick_info, dict) else None,"has_last_update":"last_update" in tick_info if isinstance(tick_info, dict) else False},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                    # except: pass
+                    # #endregion
+                    if is_trading_hours:
+                        # Use timestamp from ticks.json (when the data was actually captured)
+                        # This shows the actual time when the tick data was saved for each stock
+                        # Try multiple sources: last_update, last_updated (top level), ohlcv.timestamp, or current time
+                        last_update = ohlcv_timestamp # tick_info.get('last_update') or tick_info.get('last_updated') or ohlcv_timestamp
+                        # #region agent log
+                        # try:
+                        #     with open(log_path, 'a') as f:
+                        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:333","message":"Checking last_update","data":{"symbol":symbol,"last_update":str(last_update) if last_update else None,"last_update_type":type(last_update).__name__ if last_update else None,"ohlcv_timestamp":str(ohlcv_timestamp) if ohlcv_timestamp else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                        # except: pass
+                        # #endregion
+                        if last_update:
+                            try:
+                                # last_update might be a timestamp (float) or ISO string
+                                if isinstance(last_update, (int, float)):
+                                    timestamp_dt = datetime.fromtimestamp(last_update, tz=timezone)
+                                else:
+                                    timestamp_dt = datetime.fromisoformat(str(last_update).replace('Z', '+00:00'))
+                                    if timestamp_dt.tzinfo is None:
+                                        timestamp_dt = timezone.localize(timestamp_dt)
+                                    timestamp_dt = timestamp_dt.astimezone(timezone)
+                                timestamp_str = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S')
+                                # #region agent log
+                                # try:
+                                #     with open(log_path, 'a') as f:
+                                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:344","message":"Using last_update timestamp","data":{"symbol":symbol,"timestamp_str":timestamp_str},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                                # except: pass
+                                # #endregion
+                            except Exception as e:
+                                # Fallback to current time if last_update parsing fails
+                                timestamp_str = now.strftime('%Y-%m-%d %H:%M:%S')
+                                # #region agent log
+                                # try:
+                                #     with open(log_path, 'a') as f:
+                                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:347","message":"last_update parsing failed, using current time","data":{"symbol":symbol,"error":str(e),"timestamp_str":timestamp_str},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                                # except: pass
+                                # #endregion
+                        else:
+                            # Fallback to current time if last_update not available
+                            timestamp_str = now.strftime('%Y-%m-%d %H:%M:%S')
+                            # #region agent log
+                            # try:
+                            #     with open(log_path, 'a') as f:
+                            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:350","message":"last_update not available, using current time","data":{"symbol":symbol,"timestamp_str":timestamp_str},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                            # except: pass
+                            # #endregion
+                    else:
+                        # After market hours, try to use the actual timestamp when data was captured
+                        # This shows when each stock's data was actually updated, not just market close time
+                        last_update = ohlcv_timestamp # tick_info.get('last_update') or tick_info.get('last_updated') or ohlcv_timestamp
+                        if last_update:
+                            try:
+                                # Parse the timestamp (could be ISO string or float)
+                                if isinstance(last_update, (int, float)):
+                                    timestamp_dt = datetime.fromtimestamp(last_update, tz=timezone)
+                                else:
+                                    # Handle ISO format strings like "2026-01-07T10:29:13.827168" or "2026-01-07T10:29:09"
+                                    timestamp_str_clean = str(last_update).replace('Z', '+00:00')
+                                    if 'T' in timestamp_str_clean:
+                                        # ISO format with T separator
+                                        timestamp_dt = datetime.fromisoformat(timestamp_str_clean)
+                                    else:
+                                        # Try parsing as regular datetime string
+                                        timestamp_dt = datetime.strptime(timestamp_str_clean, '%Y-%m-%d %H:%M:%S')
+                                    if timestamp_dt.tzinfo is None:
+                                        timestamp_dt = timezone.localize(timestamp_dt)
+                                    timestamp_dt = timestamp_dt.astimezone(timezone)
+                                timestamp_str = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S')
+                                # #region agent log
+                                # try:
+                                #     with open(log_path, 'a') as f:
+                                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:354","message":"Market closed, using data capture timestamp","data":{"symbol":symbol,"timestamp_str":timestamp_str,"last_update":str(last_update)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                                # except: pass
+                                # #endregion
+                            except Exception as e:
+                                # Fallback to market close time if parsing fails
+                                timestamp_str = f"{today_str} 15:30:00"
+                                # #region agent log
+                                # try:
+                                #     with open(log_path, 'a') as f:
+                                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:375","message":"Market closed, timestamp parsing failed, using market close time","data":{"symbol":symbol,"timestamp_str":timestamp_str,"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                                # except: pass
+                                # #endregion
+                        else:
+                            # No timestamp available, use market close time
+                            timestamp_str = f"{today_str} 15:30:00"
+                            # #region agent log
+                            # try:
+                            #     with open(log_path, 'a') as f:
+                            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"AssetsManager.py:_apply_fresh_ticks_to_data:382","message":"Market closed, no timestamp available, using market close time","data":{"symbol":symbol,"timestamp_str":timestamp_str},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                            # except: pass
+                            # #endregion
+                    
+                    # Check if today's data already exists and update/append
+                    data_rows = stock_data.get('data', [])
+                    index_list = stock_data.get('index', [])
+                    
+                    # Find and remove today's existing data (by date, not full timestamp)
+                    new_rows = []
+                    new_index = []
+                    for idx, row in zip(index_list, data_rows):
+                        idx_str = str(idx)
+                        idx_date = idx_str[:10] if len(idx_str) >= 10 else idx_str
+                        # Remove all entries from today - we'll replace with fresh data
+                        if idx_date != today_str:
+                            new_rows.append(row)
+                            new_index.append(idx)
+                    
+                    # Append today's fresh data with proper timestamp
+                    new_rows.append(today_row)
+                    new_index.append(timestamp_str)
+                    
+                    # #region agent log
+                    # import json
+                    # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+                    # try:
+                    #     with open(log_path, 'a') as f:
+                    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:320","message":"Setting timestamp for symbol","data":{"symbol":symbol,"timestamp_str":timestamp_str,"is_trading_hours":is_trading_hours,"new_index_last":new_index[-1] if new_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                    # except: pass
+                    # #endregion
+                    
+                    stock_data['data'] = new_rows
+                    stock_data['index'] = new_index
+                    stockDict[symbol] = stock_data
+                    updated_count += 1
+                    
+                except Exception as e:
+                    default_logger().debug(f"Error applying tick for {symbol}: {e}", exc_info=True)
+                    continue
+            
+            if updated_count > 0:
+                default_logger().info(f"Applied fresh tick data to {updated_count} symbols")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Applied fresh tick data to {updated_count} stocks."
+                    + colorText.END
+                )
+            
+        except Exception as e:
+            # #region agent log
+            # import json
+            # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+            # try:
+            #     with open(log_path, 'a') as f:
+            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"AssetsManager.py:_apply_fresh_ticks_to_data:343","message":"Exception in _apply_fresh_ticks_to_data","data":{"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+            # except: pass
+            # #endregion
+            default_logger().debug(f"Error applying fresh ticks: {e}")
+        
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+        # try:
+        #     sample_symbol = list(stockDict.keys())[0] if stockDict else None
+        #     sample_index = stockDict[sample_symbol]['index'][-1] if sample_symbol and stockDict.get(sample_symbol, {}).get('index') else None
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:_apply_fresh_ticks_to_data:357","message":"Function exit","data":{"updated_count":updated_count,"sample_symbol":sample_symbol,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
+        return stockDict
+
+    # Helper method to download and validate a PKL file
+    @staticmethod
+    def _download_and_validate_pkl(url: str, output_path: str, min_rows_required: int = 100) -> tuple:
+        import requests
+        import pickle
+        import shutil
+        import pandas as pd
+        
+        try:
+            default_logger().debug(f"Attempting to download from: {url}")
+            response = requests.get(url, timeout=60)
+            
+            if response.status_code == 200 and len(response.content) > 10000:
+                temp_path = output_path + ".tmp"
+                with open(temp_path, 'wb') as f:
+                    f.write(response.content)
+                
+                with open(temp_path, 'rb') as f:
+                    data = pickle.load(f)
+                
+                default_logger().debug(f"Loaded PKL file. Total items: {len(data) if data else 0}")
+                if data:
+                    default_logger().debug(f"Sample keys from PKL: {list(data.keys())[:5]}")
+
+                if data and len(data) > 0:
+                    rows_count = []
+                    sample_symbols = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN']
+                    for sym in sample_symbols:
+                        if sym in data:
+                            item = data[sym]
+                            current_rows = 0
+                            if isinstance(item, pd.DataFrame):
+                                current_rows = len(item)
+                            elif isinstance(item, dict) and 'data' in item:
+                                current_rows = len(item['data'])
+                            
+                            rows_count.append(current_rows)
+                            default_logger().debug(f"Symbol {sym}: Found {current_rows} rows.")
+                    
+                    avg_rows = sum(rows_count) / len(rows_count) if rows_count else 0
+                    
+                    if avg_rows >= min_rows_required:
+                        shutil.move(temp_path, output_path)
+                        return True, output_path, len(data), avg_rows
+                    else:
+                        default_logger().debug(f"Downloaded PKL has insufficient rows (avg {avg_rows:.1f} < {min_rows_required}). Discarding. Sampled symbols rows: {rows_count}")
+                        os.remove(temp_path)
+            
+            return False, None, 0, 0
+        except Exception as e:
+            default_logger().debug(f"Failed to download or validate {url}: {e}")
+            return False, None, 0, 0
+
+    @staticmethod
+    def download_fresh_pkl_from_github(intraday=False) -> tuple: # Added intraday parameter
+        """
+        Download the latest pkl file from GitHub actions-data-download branch.
+        
+        This method tries multiple URLs and date formats to find the most recent
+        stock_data_DDMMYYYY.pkl file. It prioritizes the exact filename
+        returned by Archiver.afterMarketStockDataExists().
+        
+        Args:
+            intraday (bool): Whether to look for intraday data.
+            
+        Returns:
+            tuple: (success, file_path, num_instruments)
+        """
+        from datetime import datetime, timedelta
+        
+        try:
+            data_dir = Archiver.get_user_data_dir()
+            MIN_ROWS_REQUIRED = 100 # Consistent with the existing logic
+            
+            # 1. First, try to download the exact file name expected by Archiver.afterMarketStockDataExists()
+            _, expected_cache_file_name = Archiver.afterMarketStockDataExists(intraday=intraday)
+            output_path = os.path.join(data_dir, expected_cache_file_name)
+            expected_url_primary = f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{expected_cache_file_name}"
+            expected_url_fallback = f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{expected_cache_file_name}"
+
+            # Try primary URL first
+            success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                expected_url_primary, output_path, MIN_ROWS_REQUIRED
+            )
+            if success:
+                default_logger().info(f"Downloaded expected pkl from GitHub (primary URL): {expected_url_primary} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Downloaded fresh data from GitHub ({num_instruments} instruments, {avg_rows:.0f} rows/stock)"
+                    + colorText.END
+                )
+                return True, downloaded_path, num_instruments
+            
+            # If primary failed, try fallback URL
+            success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                expected_url_fallback, output_path, MIN_ROWS_REQUIRED
+            )
+            if success:
+                default_logger().info(f"Downloaded expected pkl from GitHub (fallback URL): {expected_url_fallback} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Downloaded fresh data from GitHub ({num_instruments} instruments, {avg_rows:.0f} rows/stock)"
+                    + colorText.END
+                )
+                return True, downloaded_path, num_instruments
+
+            # 2. If the exact file is not found or valid, fall back to existing logic (trying multiple dated files and generic names)
+            default_logger().info("Expected pkl not found or valid. Falling back to broader search.")
+
+            today = datetime.now()
+            urls_to_try = []
+            
+            for days_ago in range(0, 10):
+                check_date = today - timedelta(days=days_ago)
+                date_str_full = check_date.strftime('%d%m%Y')
+                date_str_short = check_date.strftime('%-d%m%y') if hasattr(check_date, 'strftime') else check_date.strftime('%d%m%y').lstrip('0')
+                
+                for date_str in [date_str_full, date_str_short]:
+                    # Ensure we don't try the expected file again, if it was included in the date_str loop
+                    current_file_name_full = f"stock_data_{date_str}.pkl"
+                    current_file_name_intraday = f"stock_data_{date_str}_intraday.pkl"
+                    
+                    if intraday:
+                        if current_file_name_intraday != expected_cache_file_name:
+                            urls_to_try.extend([
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{current_file_name_intraday}",
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{current_file_name_intraday}",
+                            ])
+                    else:
+                        if current_file_name_full != expected_cache_file_name:
+                            urls_to_try.extend([
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/{current_file_name_full}",
+                                f"https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/{current_file_name_full}",
+                            ])
+            
+            # Also try generic names
+            urls_to_try.extend([
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/actions-data-download/daily_candles.pkl",
+                "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/daily_candles.pkl",
+            ])
+            
+            best_file = None
+            best_url = None
+            best_rows_per_stock = 0
+            best_num_instruments = 0
+            
+            for url in urls_to_try:
+                success, downloaded_path, num_instruments, avg_rows = PKAssetsManager._download_and_validate_pkl(
+                    url, output_path, MIN_ROWS_REQUIRED
+                )
+                
+                if success:
+                    if avg_rows > best_rows_per_stock:
+                        best_file = downloaded_path
+                        best_url = url
+                        best_rows_per_stock = avg_rows
+                        best_num_instruments = num_instruments
+                        default_logger().debug(f"Found better file: {url} ({num_instruments} instruments, avg {avg_rows:.1f} rows/stock)")
+                    else: # Clean up less optimal download
+                        os.remove(downloaded_path) # _download_and_validate_pkl already moves temp_path to output_path if successful
+                
+            # Use the best file found
+            if best_file:
+                default_logger().info(f"Downloaded best pkl from GitHub: {best_url} ({best_num_instruments} instruments, avg {best_rows_per_stock:.1f} rows/stock)")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Downloaded fresh data from GitHub ({best_num_instruments} instruments, {best_rows_per_stock:.0f} rows/stock)"
+                    + colorText.END
+                )
+                return True, best_file, best_num_instruments
+            
+            default_logger().warning("Could not download pkl from GitHub")
+            return False, None, 0
+            
+        except Exception as e:
+            default_logger().debug(f"Error downloading pkl from GitHub: {e}")
+            return False, None, 0
+
+    @staticmethod
+    def trigger_history_download_workflow(missing_days: int = 1) -> bool:
+        """
+        Trigger the PKBrokers w1-workflow-history-data-child.yml workflow to download missing OHLCV data.
+        
+        When pkl data from actions-data-download is stale (latest date < last trading date),
+        this method triggers a GitHub Actions workflow to download the missing history.
+        
+        Args:
+            missing_days: Number of trading days of historical data to fetch
+            
+        Returns:
+            True if workflow was triggered successfully
+        """
+        import requests
+        import os
+        
+        try:
+            github_token = os.environ.get('GITHUB_TOKEN') or os.environ.get('CI_PAT')
+            if not github_token:
+                default_logger().warning("GITHUB_TOKEN or CI_PAT not found. Cannot trigger history download workflow.")
+                return False
+            
+            # Trigger PKBrokers history workflow
+            url = "https://api.github.com/repos/pkjmesra/PKBrokers/actions/workflows/w1-workflow-history-data-child.yml/dispatches"
+            
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            payload = {
+                "ref": "main",
+                "inputs": {
+                    "period": "day",
+                    "pastoffset": str(missing_days),
+                    "logLevel": "20"
+                }
+            }
+            
+            default_logger().info(f"Triggering history download workflow with past_offset={missing_days}")
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 204:
+                default_logger().info("Successfully triggered history download workflow")
+                OutputControls().printOutput(
+                    colorText.GREEN
+                    + f"  [+] Triggered history download for {missing_days} missing trading days."
+                    + colorText.END
+                )
+                return True
+            else:
+                default_logger().warning(f"Failed to trigger history workflow: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            default_logger().debug(f"Error triggering history download workflow: {e}")
+            return False
+
+    @staticmethod
+    def ensure_data_freshness(stockDict, trigger_download: bool = True) -> tuple:
+        """
+        Ensure downloaded pkl data is fresh. If stale, optionally trigger history download.
+        
+        This should be called after downloading data from actions-data-download to ensure
+        the data is up-to-date before using it for scans.
+        
+        Args:
+            stockDict: Dictionary of stock data
+            trigger_download: If True, trigger history download workflow when data is stale
+            
+        Returns:
+            tuple: (is_fresh, missing_trading_days)
+        """
+        try:
+            from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+            from datetime import datetime
+            
+            if not stockDict:
+                return True, 0
+            
+            # Get the last trading date
+            last_trading_date = PKDateUtilities.tradingDate()
+            if hasattr(last_trading_date, 'date'):
+                last_trading_date = last_trading_date.date()
+            
+            # Find the latest date across all stocks
+            latest_data_date = None
+            for stock, data in stockDict.items():
+                is_fresh, data_date, _ = PKAssetsManager.is_data_fresh(data)
+                if data_date and (latest_data_date is None or data_date > latest_data_date):
+                    latest_data_date = data_date
+            
+            if latest_data_date is None:
+                return True, 0
+            
+            # Check if data is fresh
+            if latest_data_date >= last_trading_date:
+                return True, 0
+            
+            # Calculate missing trading days
+            missing_days = PKDateUtilities.trading_days_between(latest_data_date, last_trading_date)
+            
+            if missing_days > 0:
+                default_logger().warning(
+                    f"Data is stale by {missing_days} trading days. "
+                    f"Latest data: {latest_data_date}, Last trading date: {last_trading_date}"
+                )
+                
+                if trigger_download:
+                    # Trigger history download workflow
+                    PKAssetsManager.trigger_history_download_workflow(missing_days)
+            
+            return missing_days <= 0, missing_days
+            
+        except Exception as e:
+            default_logger().debug(f"Error ensuring data freshness: {e}")
+            return True, 0
+
     def make_hyperlink(value):
         url = "https://in.tradingview.com/chart?symbol=NSE:{}"
         return '=HYPERLINK("%s", "%s")' % (url.format(ImageUtility.PKImageTools.stockNameFromDecoratedName(value)), value)
@@ -112,7 +853,7 @@ class PKAssetsManager:
         except ValueError as e:  # pragma: no cover
             default_logger().debug(e, exc_info=True)
             response = "Y"
-        if response is not None and response.upper() != "N":
+        if response is not None and str(response).upper() != "N":
             pastDateString = f"{pastDate}_to_" if pastDate is not None else ""
             filename = (
                 f"PKS_{sheetName.strip()}_"
@@ -189,7 +930,7 @@ class PKAssetsManager:
     def afterMarketStockDataExists(intraday=False, forceLoad=False):
         exists, cache_file = Archiver.afterMarketStockDataExists(intraday=intraday,
                                                                  forceLoad=forceLoad,
-                                                                 date_suffix=False)
+                                                                 date_suffix=True)
         return exists, cache_file
 
     @Halo(text='', spinner='dots')
@@ -302,9 +1043,10 @@ class PKAssetsManager:
                             processedStocks.append(stock)
         """
         leftOutStocks = list(set(stockCodes)-set(processedStocks))
-        default_logger().debug(f"Attempted fresh download of {len(stockCodes)} stocks and downloaded {len(processedStocks)} stocks. {len(leftOutStocks)} stocks remaining.")
-        return stockDict, leftOutStocks
+        default_logger().debug(f"Attempted fresh download of {len(stockCodes)} stocks and downloaded {len(processedStocks)} stocks. {len(leftOutStocks)} stocks remaining/ignored.")
+        return stockDict, 0
 
+    @Halo(text='  [+] Downloading fresh instruments and their data from Data Providers...', spinner='dots')
     def loadStockData(
         stockDict,
         configManager,
@@ -318,6 +1060,14 @@ class PKAssetsManager:
         forceRedownload=False,
         userDownloadOption=None
     ):
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadStockData:842","message":"loadStockData entry","data":{"stockCodes_len":len(stockCodes) if stockCodes else 0,"downloadOnly":downloadOnly,"isTrading":PKDateUtilities.isTradingTime()},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         isIntraday = isIntraday or configManager.isIntradayConfig()
         exists, cache_file = PKAssetsManager.afterMarketStockDataExists(
             isIntraday, forceLoad=forceLoad
@@ -325,7 +1075,22 @@ class PKAssetsManager:
         initialLoadCount = len(stockDict)
         leftOutStocks = None
         recentDownloadFromOriginAttempted = False
+        srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
         isTrading = PKDateUtilities.isTradingTime() and (PKDateUtilities.wasTradedOn() or not PKDateUtilities.isTodayHoliday()[0])
+        # #region agent log
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadStockData:870","message":"isTrading check","data":{"isTrading":isTrading,"cache_file":cache_file,"exists":exists},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
+        if isTrading or not os.path.exists(srcFilePath):
+            try:
+                from pkbrokers.kite.examples.externals import kite_fetch_save_pickle
+                if kite_fetch_save_pickle():
+                    default_logger().info("pkl file update succeeded!")
+            except Exception as e:
+                default_logger().error(f"Error downloading latest file:{e}")
+            isTrading = False
         if userDownloadOption is not None and "B" in userDownloadOption: # Backtests
             isTrading = False
         # Check if NSEI data is requested
@@ -351,11 +1116,73 @@ class PKAssetsManager:
         )
         stockDataLoaded = False
         # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
-        srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
         # if os.path.exists(copyFilePath):
         #     shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
         if os.path.exists(srcFilePath) and not forceRedownload:
-            stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
+            # Check if local cache is stale OR has insufficient data before loading
+            is_local_stale = False
+            has_insufficient_data = False
+            MIN_ROWS_REQUIRED = 20  # Minimum rows needed for technical indicators (SMA20)
+            try:
+                with open(srcFilePath, "rb") as f:
+                    sample_data = pickle.load(f)
+                    if sample_data and len(sample_data) > 0:
+                        # Check freshness of first available stock
+                        sample_stock = list(sample_data.keys())[0]
+                        sample_stock_data = sample_data[sample_stock]
+                        is_fresh, data_date, trading_days_old = PKAssetsManager.is_data_fresh(sample_stock_data, max_stale_trading_days=1)
+                        if not is_fresh:
+                            is_local_stale = True
+                            default_logger().info(f"Local cache is stale (data_date={data_date}, trading_days_old={trading_days_old}), will download fresh data")
+                            OutputControls().printOutput(
+                                colorText.WARN
+                                + f"  [!] Local cache is stale (data from {data_date}), downloading fresh data..."
+                                + colorText.END
+                            )
+                        
+                        # Check data quality (minimum rows per stock)
+                        row_count = 0
+                        if isinstance(sample_stock_data, pd.DataFrame):
+                            row_count = len(sample_stock_data)
+                        elif isinstance(sample_stock_data, dict) and 'data' in sample_stock_data:
+                            row_count = len(sample_stock_data.get('data', []))
+                        elif isinstance(sample_stock_data, dict) and 'index' in sample_stock_data:
+                            row_count = len(sample_stock_data.get('index', []))
+                        
+                        if row_count < MIN_ROWS_REQUIRED:
+                            has_insufficient_data = True
+                            default_logger().info(f"Local cache has insufficient data ({row_count} rows < {MIN_ROWS_REQUIRED} required), will download fresh data")
+                            OutputControls().printOutput(
+                                colorText.WARN
+                                + f"  [!] Local cache has insufficient data ({row_count} rows), downloading fresh data..."
+                                + colorText.END
+                            )
+            except Exception as e:
+                default_logger().debug(f"Error checking local cache freshness: {e}")
+                # If we can't check, assume it's OK and try loading
+            
+            # Only load from local cache if it's fresh AND has sufficient data
+            if not is_local_stale and not has_insufficient_data:
+                stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
+            else:
+                # Try to download fresh data from GitHub first
+                success, github_path, num_instruments = PKAssetsManager.download_fresh_pkl_from_github(intraday=isIntraday)
+                if success and github_path:
+                    # Replace local cache with fresh GitHub data
+                    import shutil
+                    shutil.copy(github_path, srcFilePath)
+                    default_logger().info(f"Replaced stale/insufficient local cache with fresh data from GitHub ({num_instruments} instruments)")
+                    OutputControls().printOutput(
+                        colorText.GREEN
+                        + f"  [+] Downloaded and replaced cache with fresh data ({num_instruments} instruments)"
+                        + colorText.END
+                    )
+                    # Now load from the updated local cache
+                    stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
+                else:
+                    # If GitHub download failed, still try to load from local (might be better than nothing)
+                    default_logger().warning("Failed to download fresh data from GitHub, using stale/insufficient local cache")
+                    stockDict, stockDataLoaded = PKAssetsManager.loadDataFromLocalPickle(stockDict,configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading)
         if (
             not stockDataLoaded
             and ("1d" if isIntraday else ConfigManager.default_period)
@@ -385,6 +1212,14 @@ class PKAssetsManager:
 
     @Halo(text='  [+] Loading data from local cache...', spinner='dots')
     def loadDataFromLocalPickle(stockDict, configManager, downloadOnly, defaultAnswer, exchangeSuffix, cache_file, isTrading):
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:930","message":"loadDataFromLocalPickle entry","data":{"isTrading":isTrading,"stockDict_len":len(stockDict) if stockDict else 0,"cache_file":cache_file},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         stockDataLoaded = False
         srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
 
@@ -407,9 +1242,35 @@ class PKAssetsManager:
                 listStockCodes = list(stockData.keys())
             if exchangeSuffix and any(exchangeSuffix in code for code in listStockCodes):
                 listStockCodes = [x.replace(exchangeSuffix, "") for x in listStockCodes]
+            # Filter out numeric keys (instrument tokens) - they have stale data
+            # and the same stocks exist with proper symbol keys with fresh data
+            listStockCodes = [code for code in listStockCodes if not str(code).isdigit()]
             for stock in listStockCodes:
                 df_or_dict = stockData.get(stock)
-                df_or_dict = df_or_dict.to_dict("split") if isinstance(df_or_dict, pd.DataFrame) else df_or_dict
+                # Handle DataFrame with duplicate lowercase/uppercase columns
+                if isinstance(df_or_dict, pd.DataFrame):
+                    # Merge lowercase and uppercase OHLCV columns
+                    ohlcv_cols = ['open', 'high', 'low', 'close', 'volume']
+                    clean_df = pd.DataFrame(index=df_or_dict.index)
+                    for col in ohlcv_cols:
+                        lower_col = col
+                        upper_col = col.capitalize()
+                        has_lower = lower_col in df_or_dict.columns
+                        has_upper = upper_col in df_or_dict.columns
+                        if has_lower and has_upper:
+                            # Both exist - merge (fillna from lowercase with uppercase)
+                            lower_data = df_or_dict[lower_col].iloc[:, 0] if isinstance(df_or_dict[lower_col], pd.DataFrame) else df_or_dict[lower_col]
+                            upper_data = df_or_dict[upper_col].iloc[:, 0] if isinstance(df_or_dict[upper_col], pd.DataFrame) else df_or_dict[upper_col]
+                            clean_df[col] = lower_data.fillna(upper_data)
+                        elif has_lower:
+                            clean_df[col] = df_or_dict[lower_col].iloc[:, 0] if isinstance(df_or_dict[lower_col], pd.DataFrame) else df_or_dict[lower_col]
+                        elif has_upper:
+                            clean_df[col] = df_or_dict[upper_col].iloc[:, 0] if isinstance(df_or_dict[upper_col], pd.DataFrame) else df_or_dict[upper_col]
+                    # Copy other non-OHLCV columns
+                    for col in df_or_dict.columns:
+                        if col.lower() not in ohlcv_cols and col not in clean_df.columns:
+                            clean_df[col] = df_or_dict[col]
+                    df_or_dict = clean_df.to_dict("split")
                 existingPreLoadedData = stockDict.get(stock)
                 if existingPreLoadedData:
                     if isTrading:
@@ -421,6 +1282,63 @@ class PKAssetsManager:
                 elif not isTrading:
                     stockDict[stock] = df_or_dict
             stockDataLoaded = True
+            
+            # Always try to apply fresh real-time data or update timestamps
+            # During trading hours: use current time for latest timestamps
+            # After market hours: update today's data to market close time (15:30) if it has early morning timestamps
+            # #region agent log
+            # import json
+            # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+            # try:
+            #     with open(log_path, 'a') as f:
+            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1030","message":"Checking if should apply fresh ticks","data":{"isTrading":isTrading,"stockDict_len":len(stockDict) if stockDict else 0,"stockDict_keys_sample":list(stockDict.keys())[:3] if stockDict else []},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+            # except Exception as e:
+            #     try:
+            #         with open(log_path, 'a') as f:
+            #             f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1030","message":"Error logging","data":{"error":str(e)},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+            #     except: pass
+            # #endregion
+            if stockDict and len(stockDict) > 0:
+                stockDict = PKAssetsManager._apply_fresh_ticks_to_data(stockDict)
+            if stockDict and isTrading:
+                # #region agent log
+                # try:
+                #     with open(log_path, 'a') as f:
+                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1032","message":"About to call _apply_fresh_ticks_to_data","data":{"isTrading":isTrading,"stockDict_len":len(stockDict) if stockDict else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # except: pass
+                # #endregion
+                # Always apply fresh ticks to update timestamps (during trading: current time, after hours: market close time)
+                # stockDict = PKAssetsManager._apply_fresh_ticks_to_data(stockDict)
+                # #region agent log
+                # try:
+                #     sample_stock = list(stockDict.keys())[0] if stockDict else None
+                #     sample_index = stockDict[sample_stock]['index'][-1] if sample_stock and stockDict.get(sample_stock, {}).get('index') else None
+                #     with open(log_path, 'a') as f:
+                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1033","message":"After _apply_fresh_ticks_to_data","data":{"stockDict_len":len(stockDict) if stockDict else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # except: pass
+                # #endregion
+                
+                # Save updated stockDict back to PKL file if we're in downloadOnly mode or GitHub Actions
+                # This ensures PKL files committed to actions-data-download branch contain the latest tick data
+                if downloadOnly or ("RUNNER" in os.environ.keys()):
+                    # #region agent log
+                    # try:
+                    #     with open(log_path, 'a') as f:
+                    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadDataFromLocalPickle:1040","message":"Saving updated stockDict with fresh ticks to PKL","data":{"downloadOnly":downloadOnly,"hasRUNNER":"RUNNER" in os.environ.keys(),"stockDict_len":len(stockDict) if stockDict else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                    # except: pass
+                    # #endregion
+                    # Force save the updated data with fresh ticks
+                    isIntraday = configManager.isIntradayConfig()
+                    PKAssetsManager.saveStockData(stockDict, configManager, len(stockDict) if stockDict else 0, isIntraday, downloadOnly, forceSave=True)
+                
+                # Also validate and warn if still stale
+                fresh_count, stale_count, oldest_date = PKAssetsManager.validate_data_freshness(
+                    stockDict, isTrading=isTrading
+                )
+                if stale_count > 0:
+                    default_logger().debug(
+                        f"Warning: {stale_count} stocks still have stale data after applying fresh ticks (oldest: {oldest_date})"
+                    )
         except (pickle.UnpicklingError, EOFError) as e:
             default_logger().debug(e, exc_info=True)
             OutputControls().printOutput(
@@ -531,12 +1449,26 @@ class PKAssetsManager:
                                     # and so, was not found in stockDict
                                 continue
                         stockDataLoaded = True
-                        # copyFilePath = os.path.join(Archiver.get_user_data_dir(), f"copy_{cache_file}")
-                        # srcFilePath = os.path.join(Archiver.get_user_data_dir(), cache_file)
-                        # if os.path.exists(copyFilePath) and os.path.exists(srcFilePath):
-                        #     shutil.copy(copyFilePath,srcFilePath) # copy is the saved source of truth
-                        # if not os.path.exists(copyFilePath) and os.path.exists(srcFilePath): # Let's make a copy of the original one
-                        #     shutil.copy(srcFilePath,copyFilePath)
+                        
+                        # Validate data freshness after server download
+                        if stockDict and len(stockDict) > 0:
+                            stockDict = PKAssetsManager._apply_fresh_ticks_to_data(stockDict)
+                        # if isTrading:
+                        #     fresh_count, stale_count, oldest_date = PKAssetsManager.validate_data_freshness(
+                        #         stockDict, isTrading=isTrading
+                        #     )
+                        #     if stale_count > 0:
+                        #         default_logger().warning(
+                        #             f"[DATA-FRESHNESS] Server data has {stale_count} stale stocks. "
+                        #             f"Oldest: {oldest_date}. Fresh ticks recommended."
+                        #         )
+                        #         # Trigger history download workflow if data is stale
+                        #         is_fresh, missing_days = PKAssetsManager.ensure_data_freshness(
+                        #             stockDict, trigger_download=True
+                        #         )
+                        #         if not is_fresh and missing_days > 0:
+                        #             # Try to apply fresh tick data while history download is in progress
+                        #             stockDict = PKAssetsManager._apply_fresh_ticks_to_data(stockDict)
                         # Remove the progress bar now!
                         OutputControls().moveCursorUpLines(1)
                 except KeyboardInterrupt: # pragma: no cover
@@ -564,6 +1496,16 @@ class PKAssetsManager:
                         forceRedownload=forceRedownload
                     )
                 
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+        # try:
+        #     sample_stock = list(stockDict.keys())[0] if stockDict else None
+        #     sample_index = stockDict[sample_stock]['index'][-1] if sample_stock and stockDict.get(sample_stock, {}).get('index') else None
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"AssetsManager.py:loadStockData:1280","message":"loadStockData return","data":{"stockDict_len":len(stockDict) if stockDict else 0,"stockDataLoaded":stockDataLoaded,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         return stockDict,stockDataLoaded
 
     # Save screened results to excel

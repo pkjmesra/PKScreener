@@ -39,7 +39,7 @@ RUN printf "I'm building for TARGETPLATFORM=${TARGETPLATFORM}" \
 RUN apt-get install -y apt-transport-https
 RUN apt-get -y update && apt-get upgrade -y
 
-RUN apt-get install -y gcc curl make build-essential wget unzip tar pkg-config libhdf5-serial-dev
+RUN apt-get install -y gcc curl make build-essential wget unzip tar pkg-config libhdf5-serial-dev git
 
 ENV LANG C.UTF-8
 
@@ -56,8 +56,12 @@ RUN rm -rf main.zip
 RUN pip3 install ta-lib==0.6.4
 
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Filter out libsql from requirements if present (it's optional)
+RUN grep -v "^libsql" requirements.txt > requirements_no_libsql.txt || cp requirements.txt requirements_no_libsql.txt
+RUN pip3 install --no-cache-dir -r requirements_no_libsql.txt
 RUN pip3 install --no-deps advanced-ta
+# Try to install pkbrokers without libsql dependency (it should handle missing libsql gracefully)
+RUN pip3 install --no-deps pkbrokers || pip3 install pkbrokers || echo "pkbrokers installation issue (libsql may be missing), continuing..."
 RUN pip3 install .
 RUN wget https://raw.githubusercontent.com/pkjmesra/PKScreener/main/pkscreener/courbd.ttf && \
   cp courbd.ttf /usr/local/share/fonts/courbd.ttf
@@ -65,6 +69,8 @@ RUN export TERM=xterm
 COPY cve-fixes.txt .
 RUN pip3 install -r cve-fixes.txt
 ENV PKSCREENER_DOCKER=1
+# Set GitPython to quiet mode to avoid errors if git is not available (though we install it above)
+ENV GIT_PYTHON_REFRESH=quiet
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

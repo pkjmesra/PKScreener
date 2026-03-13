@@ -65,7 +65,7 @@ last_release = 0
 configManager = ConfigManager.tools()
 fetcher = Fetcher.screenerStockDataFetcher(configManager)
 configManager.default_logger = default_logger()
-disableSysOut(input=False)
+disableSysOut(disable_input=False)
 
 this_version_components = VERSION.split(".")
 this_major_minor = ".".join([this_version_components[0], this_version_components[1]])

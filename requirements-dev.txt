@@ -13,6 +13,7 @@ pyinstaller
 pytest
 pytest-cov
 pytest-mock
+pytest-timeout
 pytoml
 ruff
 setuptools

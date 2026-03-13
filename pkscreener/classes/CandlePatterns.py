@@ -73,7 +73,7 @@ class CandlePatterns:
         if "Pattern" not in saveDict.keys():
             saveDict["Pattern"] = ""
             dict["Pattern"] = ""
-        # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+        # Only 'doji' and 'inside' is internally implemented by pandas_ta_classic.
         # Otherwise, for the rest of the candle patterns, they also need
         # TA-Lib.
         check = pktalib.CDLDOJI(data["open"], data["high"], data["low"], data["close"])

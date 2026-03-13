@@ -328,25 +328,25 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 + colorText.END
             )
             try:
-                self.period = input(
+                self.period = OutputControls().takeUserInput(
                     f"  [+] Valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max\n  [+] Enter number of days for which stock data to be downloaded (Days).({colorText.GREEN}Optimal = 1y{colorText.END}, Current: {colorText.FAIL}{self.period}{colorText.END}): "
                 ) or self.period
-                self.daysToLookback = input(
+                self.daysToLookback = OutputControls().takeUserInput(
                     f"  [+] Number of recent trading periods (TimeFrame) to screen for Breakout/Consolidation (Days)({colorText.GREEN}Optimal = 22{colorText.END}, Current: {colorText.FAIL}{self.daysToLookback}{colorText.END}): "
                 ) or self.daysToLookback
-                self.duration = input(
+                self.duration = OutputControls().takeUserInput(
                     f"  [+] Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo\n  [+] Enter Duration of each candle (Days)({colorText.GREEN}Optimal = 1{colorText.END}, Current: {colorText.FAIL}{self.duration}{colorText.END}): "
                 ) or self.duration
-                self.minLTP = input(
+                self.minLTP = OutputControls().takeUserInput(
                     f"  [+] Minimum Price of Stock to Buy (in RS)({colorText.GREEN}Optimal = 20{colorText.END}, Current: {colorText.FAIL}{self.minLTP}{colorText.END}): "
                 ) or self.minLTP
-                self.maxLTP = input(
+                self.maxLTP = OutputControls().takeUserInput(
                     f"  [+] Maximum Price of Stock to Buy (in RS)({colorText.GREEN}Optimal = 50000{colorText.END}, Current: {colorText.FAIL}{self.maxLTP}{colorText.END}): "
                 ) or self.maxLTP
-                self.volumeRatio = input(
+                self.volumeRatio = OutputControls().takeUserInput(
                     f"  [+] How many times the volume should be more than average for the breakout? (Number)({colorText.GREEN}Optimal = 2.5{colorText.END}, Current: {colorText.FAIL}{self.volumeRatio}{colorText.END}): "
                 ) or self.volumeRatio
-                self.consolidationPercentage = input(
+                self.consolidationPercentage = OutputControls().takeUserInput(
                     f"  [+] How much % the price should be in range, to consider it as consolidation? (Number)({colorText.GREEN}Optimal = 10{colorText.END}, Current: {colorText.FAIL}{self.consolidationPercentage}{colorText.END}): "
                 ) or self.consolidationPercentage
                 self.shuffle = str(
@@ -404,70 +404,70 @@ class tools(SingletonMixin, metaclass=SingletonType):
                         f"  [+] Calculate intraday RSI during trading hours? [Y/N, Current: {colorText.FAIL}{'y' if self.calculatersiintraday else 'n'}{colorText.END}]: "
                     ) or ('y' if self.calculatersiintraday else 'n')
                 ).lower()
-                self.generalTimeout = input(
+                self.generalTimeout = OutputControls().takeUserInput(
                     f"  [+] General network timeout (in seconds)({colorText.GREEN}Optimal = 2 for good networks{colorText.END}, Current: {colorText.FAIL}{self.generalTimeout}{colorText.END}): "
                 ) or self.generalTimeout
-                self.longTimeout = input(
+                self.longTimeout = OutputControls().takeUserInput(
                     f"  [+] Long network timeout for heavier downloads(in seconds)({colorText.GREEN}Optimal = 4 for good networks{colorText.END}, Current: {colorText.FAIL}{self.longTimeout}{colorText.END}): "
                 ) or self.longTimeout
-                self.marketOpen = input(
+                self.marketOpen = OutputControls().takeUserInput(
                     f"  [+] Market Open time({colorText.GREEN}Optimal = 09:15{colorText.END}, Current: {colorText.FAIL}{self.marketOpen}{colorText.END}): "
                 ) or self.marketOpen
-                self.marketClose = input(
+                self.marketClose = OutputControls().takeUserInput(
                     f"  [+] Market Close time({colorText.GREEN}Optimal = 15:30{colorText.END}, Current: {colorText.FAIL}{self.marketClose}{colorText.END}): "
                 ) or self.marketClose
-                self.maxdisplayresults = input(
+                self.maxdisplayresults = OutputControls().takeUserInput(
                     f"  [+] Maximum number of display results(number)({colorText.GREEN}Optimal = 100{colorText.END}, Current: {colorText.FAIL}{self.maxdisplayresults}{colorText.END}): "
                 ) or self.maxdisplayresults
-                self.maxNetworkRetryCount = input(
+                self.maxNetworkRetryCount = OutputControls().takeUserInput(
                     f"  [+] Maximum number of retries in case of network timeout(in seconds)({colorText.GREEN}Optimal = 10 for slow networks{colorText.END}, Current: {colorText.FAIL}{self.maxNetworkRetryCount}{colorText.END}): "
                 ) or self.maxNetworkRetryCount
-                self.defaultIndex = input(
+                self.defaultIndex = OutputControls().takeUserInput(
                     f"  [+] Default Index({colorText.GREEN}NSE=12, NASDAQ=15{colorText.END}, Current: {colorText.FAIL}{self.defaultIndex}{colorText.END}): "
                 ) or self.defaultIndex
-                self.backtestPeriod = input(
+                self.backtestPeriod = OutputControls().takeUserInput(
                     f"  [+] Number of days in the past for backtesting(in days)({colorText.GREEN}Optimal = 30{colorText.END}, Current: {colorText.FAIL}{self.backtestPeriod}{colorText.END}): "
                 ) or self.backtestPeriod
-                self.maxBacktestWindow = input(
+                self.maxBacktestWindow = OutputControls().takeUserInput(
                     f"  [+] Number of days to show the results for backtesting(in days)({colorText.GREEN}Optimal = 1 to 30{colorText.END}, Current: {colorText.FAIL}{self.maxBacktestWindow}{colorText.END}): "
                 ) or self.maxBacktestWindow
-                self.morninganalysiscandlenumber = input(
+                self.morninganalysiscandlenumber = OutputControls().takeUserInput(
                     f"  [+] Candle number since the market open time({colorText.GREEN}Optimal = 15 to 60{colorText.END}, Current: {colorText.FAIL}{self.morninganalysiscandlenumber}{colorText.END}): "
                 ) or self.morninganalysiscandlenumber
-                self.morninganalysiscandleduration = input(
+                self.morninganalysiscandleduration = OutputControls().takeUserInput(
                     f"  [+] Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo\n  [+] Enter Duration of each candle (minutes)({colorText.GREEN}Optimal = 1 to 5{colorText.END}, Current: {colorText.FAIL}{self.morninganalysiscandleduration}{colorText.END}): "
                 ) or self.morninganalysiscandleduration
-                self.minVolume = input(
+                self.minVolume = OutputControls().takeUserInput(
                     f"  [+] Minimum per day traded volume of any stock (number)({colorText.GREEN}Optimal = 100000{colorText.END}, Current: {colorText.FAIL}{self.minVolume}{colorText.END}): "
                 ) or self.minVolume
-                self.pinnedMonitorSleepIntervalSeconds = input(
+                self.pinnedMonitorSleepIntervalSeconds = OutputControls().takeUserInput(
                     f"  [+] Minimum number of seconds to wait before refreshing the data again when in pinned monitor mode (seconds)({colorText.GREEN}Optimal = 30{colorText.END}, Current: {colorText.FAIL}{self.pinnedMonitorSleepIntervalSeconds}{colorText.END}): "
                 ) or self.pinnedMonitorSleepIntervalSeconds
-                self.backtestPeriodFactor = input(
+                self.backtestPeriodFactor = OutputControls().takeUserInput(
                     f"  [+] Factor for backtest periods. If you choose 5, 1-Pd would mean 5-Pd returns. (number)({colorText.GREEN}Optimal = 1{colorText.END}, Current: {colorText.FAIL}{self.backtestPeriodFactor}{colorText.END}): "
                 ) or self.backtestPeriodFactor
-                self.minimumChangePercentage = input(
+                self.minimumChangePercentage = OutputControls().takeUserInput(
                     f"  [+] Minimun change in stock price (in percentage). (number)({colorText.GREEN}Optimal = 0{colorText.END}, Current: {colorText.FAIL}{self.minimumChangePercentage}{colorText.END}): "
                 ) or self.minimumChangePercentage
-                self.atrTrailingStopPeriod = input(
+                self.atrTrailingStopPeriod = OutputControls().takeUserInput(
                     f"  [+] ATR Trailing Stop Periods. (number)({colorText.GREEN}Optimal = 10{colorText.END}, Current: {colorText.FAIL}{self.atrTrailingStopPeriod}{colorText.END}): "
                 ) or self.atrTrailingStopPeriod
-                self.atrTrailingStopSensitivity = input(
+                self.atrTrailingStopSensitivity = OutputControls().takeUserInput(
                     f"  [+] ATR Trailing Stop Sensitivity. (number)({colorText.GREEN}Optimal = 1{colorText.END}, Current: {colorText.FAIL}{self.atrTrailingStopSensitivity}{colorText.END}): "
                 ) or self.atrTrailingStopSensitivity
-                self.atrTrailingStopEMAPeriod = input(
+                self.atrTrailingStopEMAPeriod = OutputControls().takeUserInput(
                     f"  [+] ATR Trailing Stop EMA Period. (number)({colorText.GREEN}Optimal = 1 to 200{colorText.END}, Current: {colorText.FAIL}{self.atrTrailingStopEMAPeriod}{colorText.END}): "
                 ) or self.atrTrailingStopEMAPeriod
-                self.otpInterval = input(
+                self.otpInterval = OutputControls().takeUserInput(
                     f"  [+] OTP validity in seconds (number)({colorText.GREEN}Optimal = 30 to 120{colorText.END}, Current: {colorText.FAIL}{self.otpInterval}{colorText.END}): "
                 ) or self.otpInterval
-                self.vcpLegsToCheckForConsolidation = input(
+                self.vcpLegsToCheckForConsolidation = OutputControls().takeUserInput(
                     f"  [+] Number of consolidation legs to check for VCP. (number)({colorText.GREEN}Optimal = 2{colorText.END},[Recommended: 3], Current: {colorText.FAIL}{self.vcpLegsToCheckForConsolidation}{colorText.END}): "
                 ) or self.vcpLegsToCheckForConsolidation
-                self.vcpRangePercentageFromTop = input(
+                self.vcpRangePercentageFromTop = OutputControls().takeUserInput(
                     f"  [+] Range percentage from the highest high(top) for VCP:[Recommended: 20] (number)({colorText.GREEN}Optimal = 20 to 60{colorText.END}, Current: {colorText.FAIL}{self.vcpRangePercentageFromTop}{colorText.END}): "
                 ) or self.vcpRangePercentageFromTop
-                self.vcpVolumeContractionRatio = input(
+                self.vcpVolumeContractionRatio = OutputControls().takeUserInput(
                     f"  [+] Ratio of volume of recent largest to pullback candles for VCP. (number)({colorText.GREEN}Optimal = 0.4{colorText.END}, Current: {colorText.FAIL}{self.vcpVolumeContractionRatio}{colorText.END}): "
                 ) or self.vcpVolumeContractionRatio
                 self.enableAdditionalVCPFilters = str(
@@ -490,10 +490,10 @@ class tools(SingletonMixin, metaclass=SingletonType):
                         f"  [+] Enable usage analytics to be captured? [Y/N, Current: {colorText.FAIL}{'y' if self.enableUsageAnalytics else 'n'}{colorText.END}]: "
                     ) or ('y' if self.enableUsageAnalytics else 'n')
                 ).lower()
-                self.superConfluenceEMAPeriods = input(
+                self.superConfluenceEMAPeriods = OutputControls().takeUserInput(
                     f"  [+] Comma separated EMA periods for super-confluence-checks. (numbers)({colorText.GREEN}Optimal = 8,21,55{colorText.END}, Current: {colorText.FAIL}{self.superConfluenceEMAPeriods}{colorText.END}): "
                 ) or self.superConfluenceEMAPeriods
-                self.superConfluenceMaxReviewDays = input(
+                self.superConfluenceMaxReviewDays = OutputControls().takeUserInput(
                     f"  [+] Max number of review days for super-confluence-checks. (number)({colorText.GREEN}Optimal = 3{colorText.END}, Current: {colorText.FAIL}{self.superConfluenceMaxReviewDays}{colorText.END}): "
                 ) or self.superConfluenceMaxReviewDays
                 self.superConfluenceEnforce200SMA = str(

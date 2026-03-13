@@ -30,6 +30,7 @@ from pkscreener.classes.PKDemoHandler import PKDemoHandler
 from pkscreener.classes.PKUserRegistration import PKUserRegistration, ValidationResult
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.Environment import PKEnvironment
 from PKDevTools.classes.UserSubscriptions import PKUserSusbscriptions, PKSubscriptionModel
 
 class PKPremiumHandler:
@@ -38,6 +39,8 @@ class PKPremiumHandler:
     def hasPremium(self,mnu:menu):
         findingPremium = True
         consideredMenu = mnu
+        if consideredMenu is None:
+            return False
         isPremium = consideredMenu.isPremium #False
         # while findingPremium:
         #     findingPremium = not consideredMenu.isPremium
@@ -60,10 +63,13 @@ class PKPremiumHandler:
         elif not result and reason == ValidationResult.BadOTP:
             return PKUserRegistration.login(trialCount=1)
         else:
+            is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+            if not is_subscription_enabled:
+                return PKUserRegistration.login()
             OutputControls().printOutput(f"[+] {colorText.GREEN}{mnu.menuText}{colorText.END}\n[+] {colorText.WARN}This is a premium/paid feature.{colorText.END}\n[+] {colorText.WARN}You do not seem to have a paid subscription to PKScreener or you are not logged-in. Please login!!{colorText.END}\n[+] {colorText.GREEN}If you would like to subscribe, please pay UPI: PKScreener@APL{colorText.END}\n[+] {colorText.GREEN}Or, Use GitHub sponsor link to sponsor: https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra{colorText.END}\n[+] {colorText.WARN}Or, Drop a message to {colorText.END}{colorText.GREEN}@ItsOnlyPK{colorText.END}{colorText.WARN} on telegram{colorText.END}\n[+] {colorText.WARN}Follow instructions in the response message to{colorText.END} {colorText.GREEN}/OTP on @nse_pkscreener_bot on telegram{colorText.END} {colorText.WARN}for subscription details!{colorText.END}")
             m = menus()
             m.renderUserDemoMenu()
-            userDemoOption = input(colorText.FAIL + "  [+] Select option: ") or "1"
+            userDemoOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "1"
             if str(userDemoOption).upper() in ["1"]:
                 PKDemoHandler.demoForMenu(mnu)
                 input("\n\nPress any key to exit ...")
