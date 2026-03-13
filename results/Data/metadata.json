@@ -1,9 +1,9 @@
 {
-  "last_update": "2026-03-13T09:52:08.931978Z",
-  "last_update_ist": "2026-03-13T15:22:08.931968+05:30",
-  "is_market_hours": true,
-  "data_source": "ticks_json",
-  "instrument_count": 2393,
+  "last_update": "2026-03-13T10:21:59.562258Z",
+  "last_update_ist": "2026-03-13T15:51:59.562246+05:30",
+  "is_market_hours": false,
+  "data_source": "pickle",
+  "instrument_count": 2427,
   "version": "2.0.0",
   "publisher": "w-data-publisher.yml",
   "availability": "24x7",
@@ -12,15 +12,16 @@
     "daily_pkl_min_size_mb": 23.84185791015625,
     "intraday_pkl_min_size_mb": 0.762939453125,
     "results": [
-      "ticks.json: 0.80 MB \u2713"
+      "ticks.json: 0.63 MB \u2717 (below 1 MB)",
+      "daily_pkl: 27.08 MB \u2713"
     ],
     "saved_files": {
-      "ticks_json_mb": 0.6262474060058594,
-      "gzip_mb": 0.09434032440185547
+      "ticks_json_mb": 0.22142791748046875,
+      "gzip_mb": 0.02243518829345703
     }
   },
   "health": {
     "status": "healthy",
-    "data_size_mb": 0.6262474060058594
+    "data_size_mb": 0.22142791748046875
   }
 }
