@@ -1,6 +1,6 @@
 {
-  "last_update": "2026-03-13T05:40:41.261717Z",
-  "last_update_ist": "2026-03-13T11:10:41.261704+05:30",
+  "last_update": "2026-03-13T06:09:57.305785Z",
+  "last_update_ist": "2026-03-13T11:39:57.305774+05:30",
   "is_market_hours": true,
   "data_source": "ticks_json",
   "instrument_count": 2393,
@@ -12,15 +12,15 @@
     "daily_pkl_min_size_mb": 23.84185791015625,
     "intraday_pkl_min_size_mb": 0.762939453125,
     "results": [
-      "ticks.json: 1.01 MB \u2713"
+      "ticks.json: 0.79 MB \u2713"
     ],
     "saved_files": {
-      "ticks_json_mb": 1.0090389251708984,
-      "gzip_mb": 0.14636993408203125
+      "ticks_json_mb": 0.6254386901855469,
+      "gzip_mb": 0.09388351440429688
     }
   },
   "health": {
     "status": "healthy",
-    "data_size_mb": 1.0090389251708984
+    "data_size_mb": 0.6254386901855469
   }
 }
