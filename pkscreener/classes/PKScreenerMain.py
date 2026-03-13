@@ -113,6 +113,7 @@ from pkscreener.classes.PKPremiumHandler import PKPremiumHandler
 from pkscreener.classes.AssetsManager import PKAssetsManager
 from pkscreener.classes.PKAnalytics import PKAnalyticsService
 from pkscreener.classes.MenuManager import MenuManager, ScanExecutor, ResultProcessor, TelegramNotifier, DataManager, BacktestManager
+from pkscreener.globals import getTopLevelMenuChoices, ensureMenusLoaded, initExecution, getScannerMenuChoices, handleSecondaryMenuChoices, handleExitRequest, handleScannerExecuteOption4, selectedChoice
 if __name__ == '__main__':
     multiprocessing.freeze_support()
 
@@ -154,6 +155,152 @@ class PKScreenerMain:
         self.backtest_manager.menu_choice_hierarchy = self.menu_manager.menu_choice_hierarchy
         self.backtest_manager.elapsed_time = self.scan_executor.elapsed_time
         self.backtest_manager.default_answer = self.default_answer
+
+    def runScanning(self, userArgs=None, menuOption=None, indexOption=None, 
+                    executeOption=None, testing=False, downloadOnly=False,
+                    optionalFinalOutcome_df=None):
+        """
+        Execute scanning with pre-processed menu options.
+        
+        This method is called by globals.py when menu processing has already been done.
+        It skips menu navigation and goes directly to scanning.
+        
+        Args:
+            userArgs: User arguments passed to the application
+            menuOption: Pre-processed menu option (X, C, etc.)
+            indexOption: Pre-processed index option
+            executeOption: Pre-processed execute option
+            testing: Whether in test mode
+            downloadOnly: Whether download-only mode
+            optionalFinalOutcome_df: Optional final outcome dataframe
+            
+        Returns:
+            tuple: Screen results and save results dataframes
+        """
+        from pkscreener.globals import selectedChoice
+        
+        # Initialize state variables
+        self.user_passed_args = userArgs
+        self.default_answer = None if userArgs is None else userArgs.answerdefault
+        
+        # Update references with actual user args
+        self.menu_manager.user_passed_args = self.user_passed_args
+        self.scan_executor.user_passed_args = self.user_passed_args
+        self.result_processor.user_passed_args = self.user_passed_args
+        self.telegram_notifier.user_passed_args = self.user_passed_args
+        self.data_manager.user_passed_args = self.user_passed_args
+        self.backtest_manager.user_passed_args = self.user_passed_args
+        
+        # Initialize screening counters
+        self.scan_executor.screen_counter = multiprocessing.Value("i", 1)
+        self.scan_executor.screen_results_counter = multiprocessing.Value("i", 0)
+        
+        # Initialize multiprocessing manager
+        if self.scan_executor.mp_manager is None:
+            self.scan_executor.mp_manager = multiprocessing.Manager()
+            
+        # Setup keyboard interrupt handling
+        if self.scan_executor.keyboard_interrupt_event is None and not self.scan_executor.keyboard_interrupt_event_fired:
+            self.scan_executor.keyboard_interrupt_event = self.scan_executor.mp_manager.Event()
+            mkt_monitor_dict = self.scan_executor.mp_manager.dict()
+            self.startMarketMonitor(mkt_monitor_dict, self.scan_executor.keyboard_interrupt_event)
+            
+        self.scan_executor.keyboard_interrupt_event_fired = False
+        
+        # Initialize stock data dictionaries
+        if self.data_manager.stock_dict_primary is None or isinstance(self.data_manager.stock_dict_primary, dict):
+            self.data_manager.stock_dict_primary = self.scan_executor.mp_manager.dict()
+            self.data_manager.stock_dict_secondary = self.scan_executor.mp_manager.dict()
+            self.data_manager.load_count = 0
+            
+        # Handle cleanup if needed
+        if not self.data_manager.run_clean_up and self.user_passed_args is not None and not self.user_passed_args.systemlaunched:
+            self.data_manager.cleanup_local_results()
+            
+        # Initialize results dataframes
+        self.scan_executor.screen_results, self.scan_executor.save_results = PKScanRunner.initDataframes()
+        
+        # Use pre-processed selectedChoice
+        self.menu_manager.selected_choice = selectedChoice.copy()
+        
+        # Update menu choice hierarchy
+        self.menu_manager.update_menu_choice_hierarchy()
+        
+        # Prepare stocks for screening using pre-processed options
+        options = []
+        if self.user_passed_args and self.user_passed_args.options:
+            options = self.user_passed_args.options.split(":")
+        
+        self.data_manager.list_stock_codes = self.data_manager.handle_request_for_specific_stocks(options, indexOption)
+        self.data_manager.list_stock_codes = self.data_manager.prepare_stocks_for_screening(
+            testing, downloadOnly, self.data_manager.list_stock_codes, indexOption
+        )
+        
+        if executeOption is None:
+            executeOption = 0
+        try:
+            executeOption = int(executeOption)
+        except:
+            executeOption = 0
+        
+        # Process execute options (RSI, chart patterns, etc.)
+        volumeRatio = self.config_manager.volumeRatio
+        reversalOption = None
+        respChartPattern = None
+        
+        # Load or fetch stock data
+        if not self.data_manager.loaded_stock_data:
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+            #             downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            #         )
+            # except:
+            self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+                downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            )
+                
+        self.data_manager.load_count = len(self.data_manager.stock_dict_primary) if self.data_manager.stock_dict_primary is not None else 0
+        
+        # Run the scanning process
+        if menuOption in ["X", "B", "G", "C", "F"]:
+            self.scan_executor.screen_results, self.scan_executor.save_results, self.scan_executor.backtest_df = self.scan_executor.run_scanners(
+                menuOption, [], self.scan_executor.tasks_queue, self.scan_executor.results_queue,
+                len(self.data_manager.list_stock_codes), 0, 1, self.scan_executor.consumers,
+                self.scan_executor.screen_results, self.scan_executor.save_results, self.scan_executor.backtest_df, testing
+            )
+            
+            # Process and display results
+            if not downloadOnly and menuOption in ["X", "G", "C", "F"]:
+                if self.scan_executor.screen_results is not None and len(self.scan_executor.screen_results) > 0:
+                    self.scan_executor.screen_results, self.scan_executor.save_results = self.result_processor.label_data_for_printing(
+                        self.scan_executor.screen_results, self.scan_executor.save_results, volumeRatio, executeOption, reversalOption or respChartPattern, menuOption
+                    )
+                    
+                # Remove unknown values if configured
+                if not self.menu_manager.newlyListedOnly and not self.config_manager.showunknowntrends and self.scan_executor.screen_results is not None and len(self.scan_executor.screen_results) > 0 and not self.user_passed_args.runintradayanalysis:
+                    self.scan_executor.screen_results, self.scan_executor.save_results = self.result_processor.remove_unknowns(
+                        self.scan_executor.screen_results, self.scan_executor.save_results
+                    )
+                
+                # Filter out rows with stale Time data (not from current trading date)
+                if self.scan_executor.screen_results is not None and len(self.scan_executor.screen_results) > 0:
+                    self.scan_executor.screen_results, self.scan_executor.save_results = self.result_processor.filter_stale_time_data(
+                        self.scan_executor.screen_results, self.scan_executor.save_results
+                    )
+                    
+        # Finish screening process
+        self.finishScreening(
+            downloadOnly, testing, self.data_manager.stock_dict_primary, self.data_manager.load_count,
+            testing, self.scan_executor.screen_results, self.scan_executor.save_results, 
+            None if userArgs is None else userArgs.user
+        )
+        
+        # Reset configuration to default
+        self.resetConfigToDefault()
+        
+        return self.scan_executor.screen_results, self.scan_executor.save_results
 
     def main(self, userArgs=None, optionalFinalOutcome_df=None):
         """
@@ -224,17 +371,17 @@ class PKScreenerMain:
         self.scan_executor.screen_results, self.scan_executor.save_results = PKScanRunner.initDataframes()
         
         # Get top level menu choices
-        options, menuOption, indexOption, executeOption = self.menu_manager.getTopLevelMenuChoices(
-            startupoptions, testBuild, downloadOnly, defaultAnswer=self.default_answer
+        options, menuOption, indexOption, executeOption = getTopLevelMenuChoices(
+            startupoptions, testBuild, downloadOnly, defaultAnswer_param=self.default_answer
         )
         
         # Execute main menu navigation and processing
-        selectedMenu = self.menu_manager.initExecution(menuOption=menuOption)
+        selectedMenu = initExecution(menuOption=menuOption)
         menuOption = selectedMenu.menuKey
         
         # Handle premium feature checks
         if menuOption in ["F", "M", "S", "B", "G", "C", "P", "D"] or selectedMenu.isPremium:
-            self.menu_manager.ensureMenusLoaded(menuOption, indexOption, executeOption)
+            ensureMenusLoaded(menuOption, indexOption, executeOption)
             if not PKPremiumHandler.hasPremium(selectedMenu):
                 PKAnalyticsService().send_event(f"non_premium_user_{menuOption}_{indexOption}_{executeOption}")
                 PKAnalyticsService().send_event("app_exit")
@@ -246,14 +393,20 @@ class PKScreenerMain:
             return None, None
             
         # Process scanner menu choices
-        if menuOption in ["X", "T", "E", "Y", "U", "H", "C"]:
-            menuOption, indexOption, executeOption, self.menu_manager.selected_choice = self.menu_manager.getScannerMenuChoices(
+        if menuOption in ["X", "C"]:
+            menuOption, indexOption, executeOption, self.menu_manager.selected_choice = getScannerMenuChoices(
                 testBuild or testing, downloadOnly, startupoptions, menuOption=menuOption,
-                indexOption=indexOption, executeOption=executeOption, defaultAnswer=self.default_answer,
-                user=user
+                indexOption=indexOption, executeOption=executeOption,
+                defaultAnswer_param=self.default_answer, user=user
             )
             if indexOption is None:
                 return None, None
+                
+        # Handle secondary menu options (T, E, Y, U, H)
+        if menuOption in ["T", "E", "Y", "U", "H"]:
+            handleSecondaryMenuChoices(menuOption, testBuild or testing, defaultAnswer_param=self.default_answer, user=user)
+            ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
+            return None, None
                 
         # Handle backtest options
         elif menuOption in ["B", "G"]:
@@ -266,23 +419,23 @@ class PKScreenerMain:
         elif menuOption in ["S"]:
             strategyFilter = self.handle_strategy_screening(options)
             if strategyFilter:
-                menuOption, indexOption, executeOption, self.menu_manager.selected_choice = self.menu_manager.getScannerMenuChoices(
+                menuOption, indexOption, executeOption, self.menu_manager.selected_choice = getScannerMenuChoices(
                     testBuild or testing, downloadOnly, startupoptions, menuOption="X",
-                    indexOption=indexOption, executeOption=executeOption, defaultAnswer=self.default_answer,
-                    user=user
+                    indexOption=indexOption, executeOption=executeOption,
+                    defaultAnswer_param=self.default_answer, user=user
                 )
                 
         # Update menu choice hierarchy
         self.menu_manager.update_menu_choice_hierarchy()
         
         # Prepare stocks for screening
-        self.data_manager.list_stock_codes = self.menu_manager.handleRequestForSpecificStocks(options, indexOption)
-        self.data_manager.list_stock_codes = self.data_manager.prepareStocksForScreening(
+        self.data_manager.list_stock_codes = self.data_manager.handle_request_for_specific_stocks(options, indexOption)
+        self.data_manager.list_stock_codes = self.data_manager.prepare_stocks_for_screening(
             testing, downloadOnly, self.data_manager.list_stock_codes, indexOption
         )
         
         # Handle exit requests
-        self.menu_manager.handleExitRequest(executeOption)
+        handleExitRequest(executeOption)
         
         # Process execute options
         volumeRatio = self.config_manager.volumeRatio
@@ -294,7 +447,7 @@ class PKScreenerMain:
         if executeOption == 3:
             self.user_passed_args.maxdisplayresults = max(self.config_manager.maxdisplayresults, 2000)
         elif executeOption == 4:
-            daysForLowestVolume = self.menu_manager.handleScannerExecuteOption4(executeOption, options)
+            daysForLowestVolume = handleScannerExecuteOption4(executeOption, options)
         elif executeOption == 5:
             minRSI, maxRSI = ConsoleMenuUtility.PKConsoleMenuTools.promptRSIValues()
         elif executeOption == 6:
@@ -313,22 +466,22 @@ class PKScreenerMain:
         
         # Load or fetch stock data
         if not self.data_manager.loaded_stock_data:
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.loadDatabaseOrFetch(
-                        downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                    )
-            except:
-                self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.loadDatabaseOrFetch(
-                    downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                )
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+            #             downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            #         )
+            # except:
+            self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+                downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            )
                 
         self.data_manager.load_count = len(self.data_manager.stock_dict_primary) if self.data_manager.stock_dict_primary is not None else 0
         
         # Run the scanning process
         if menuOption in ["X", "B", "G", "C", "F"]:
-            self.scan_executor.screen_results, self.scan_executor.save_results, self.scan_executor.backtest_df = self.scan_executor.runScanners(
+            self.scan_executor.screen_results, self.scan_executor.save_results, self.scan_executor.backtest_df = self.scan_executor.run_scanners(
                 menuOption, [], self.scan_executor.tasks_queue, self.scan_executor.results_queue,
                 len(self.data_manager.list_stock_codes), 0, 1, self.scan_executor.consumers,
                 self.scan_executor.screen_results, self.scan_executor.save_results, self.scan_executor.backtest_df, testing
@@ -413,7 +566,8 @@ class PKScreenerMain:
             executeOption = None
             
             if self.user_passed_args is not None and self.user_passed_args.options is not None and len(self.user_passed_args.options.split(":")) >= 3:
-                stockOptions = self.user_passed_args.options.split(":")[2 if len(stockOptions)<=3 else 3]
+                optionParts = self.user_passed_args.options.split(":")
+                stockOptions = optionParts[2 if len(optionParts) <= 3 else 3]
                 self.data_manager.list_stock_codes = stockOptions.replace(".",",").split(",")
                 
             if self.data_manager.list_stock_codes is None or len(self.data_manager.list_stock_codes) == 0:
@@ -433,7 +587,7 @@ class PKScreenerMain:
         selectedMenu = self.menu_manager.m0.find("D")
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m1.renderForMenu(selectedMenu)
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
         if selDownloadOption.upper() == "D":
@@ -463,7 +617,7 @@ class PKScreenerMain:
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m2.renderForMenu(selectedMenu)
         PKAnalyticsService().send_event(f"D_{selDownloadOption.upper()}")
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -509,7 +663,7 @@ class PKScreenerMain:
         selectedMenu = self.menu_manager.m1.find(selDownloadOption.upper())
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         self.menu_manager.m2.renderForMenu(selectedMenu, skip=["15"])
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "12"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "12"
         OutputControls().printOutput(colorText.END, end="")
         
         filePrefix = "Download"
@@ -569,13 +723,13 @@ class PKScreenerMain:
             self.menu_manager.m1.renderForMenu(selectedMenu=selectedMenu)
             
             try:
-                userOption = input(colorText.FAIL + "  [+] Select option: ")
+                userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ")
                 OutputControls().printOutput(colorText.END, end="")
                 
                 if userOption == "":
                     userOption = "37"  # NoFilter
                 elif userOption == "38":
-                    userOption = input(colorText.FAIL + "  [+] Enter Exact Pattern name:")
+                    userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Enter Exact Pattern name:")
                     OutputControls().printOutput(colorText.END, end="")
                     
                     if userOption == "":
@@ -596,7 +750,7 @@ class PKScreenerMain:
             ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
             return None
         elif userOption == "Z":
-            self.menu_manager.handleExitRequest(userOption)
+            handleExitRequest(userOption)
             return None
         elif userOption == "S":
             OutputControls().printOutput(
@@ -728,7 +882,7 @@ class PKScreenerMain:
                         monitorOption = (f"{monitorOption}:" if len(monitorOption) > 0 else '') + f"{self.menu_manager.selected_choice[choice]}"
                         
                 self.menu_manager.m0.renderPinnedMenu(substitutes=[monitorOption, len(prevOutput_results), monitorOption, monitorOption, monitorOption], skip=(["1","2","4","5"] if self.menu_manager.selected_choice["0"] in ["F"] else []))
-                pinOption = input(colorText.FAIL + "  [+] Select option: ") or 'M'
+                pinOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or 'M'
                 OutputControls().printOutput(colorText.END, end="")
                 
                 self.menu_manager.ensureMenusLoaded(self.menu_manager.selected_choice["0"], self.menu_manager.selected_choice["1"], self.menu_manager.selected_choice["2"])
@@ -909,8 +1063,3 @@ def startMarketMonitor(mp_dict, keyboardevent):
     """Start market monitor - maintained for backward compatibility."""
     screener = PKScreenerMain()
     screener.startMarketMonitor(mp_dict, keyboardevent)
-
-
-if __name__ == "__main__":
-    screener = PKScreenerMain()
-    screener.main()

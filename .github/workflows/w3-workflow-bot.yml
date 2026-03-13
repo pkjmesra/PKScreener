@@ -56,28 +56,36 @@ on:
         required: false
         type: string
         default: 'x64'
-  # push:
-  #   branches: [ main ]
-    # workflow_run:
-    #   workflows: ["0. New Features - Tests"]
-    #   types:
-    #     - completed
-    # workflow_call:
-    #   inputs:
-    #     branch-name:
-    #       required: true
-    #       type: string
-    #       default: 'new-features'
-  schedule:
-    - cron: '59 * * * *'
+      triggered_by:
+        description: 'What triggered this run'
+        required: false
+        default: 'schedule'
+        type: string
+  # schedule:
+  #   - cron: '30 */4 * * *'
+
+# Add permissions for repository dispatch
+permissions:
+  contents: write
+  actions: write
 
 jobs:
 
   Prod_Telegram_Bot:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
     runs-on: ${{ inputs.runson || 'ubuntu-latest' }} #ubuntu-latest #windows-latest ubuntu-24.04-arm, ubuntu-22.04-arm
+    permissions: write-all
+    env:
+      TRIGGERED_BY: ${{ github.event.inputs.triggered_by || 'schedule' }}
 
     steps:
+    - name: Log trigger source
+      run: |
+        echo "🎯 Workflow triggered by: ${{ env.TRIGGERED_BY }}"
+        echo "🎯 Run ID: ${{ github.run_id }}"
+        echo "🎯 Run number: ${{ github.run_number }}"
+        echo "🎯 Run attempt: ${{ github.run_attempt }}"
+
     - uses: actions/checkout@v4
       with:
         ref: ${{ inputs.branch-name }}
@@ -89,38 +97,12 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
-    - name: Restore Dependencies from Windows Cache
-      if: startsWith(runner.os, 'Windows')
+    - name: Cache TA-Lib
       uses: actions/cache@v4
-      with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-  
-    - name: Load Cache for Linux Dependencies
-      uses: actions/cache@v4
-      if: startsWith(runner.os, 'Linux')
       with:
         path: |
-          /usr/include/ta-lib
-          /usr/bin/ta-lib-config
-          /usr/lib/libta_lib.la
-          /usr/lib/libta_lib.a
-        key: ${{ runner.os }}-talib
-        restore-keys: |
-          ${{ runner.os }}-talib
-        
-    - name: Restore Dependencies from Ubuntu Cache
-      if: startsWith(runner.os, 'Linux')
-      uses: actions/cache@v4
-      id: cache-venv  # name for referring later
-      with:
-        path: ./.venv/  # what we cache: the virtualenv
-        # The cache key depends on requirements.txt
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-venv-
+          ~/talib
+        key: ${{ runner.os }}-talib-${{ hashFiles('**/install-talib.sh') }}
 
     - name: Install TA-Lib for Windows
       if: ${{ inputs.installtalib == 'Y' && startsWith(runner.os, 'Windows') }}
@@ -171,7 +153,41 @@ jobs:
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-        
+
+    - name: Validate and ensure binary is executable
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ inputs.DOWNLOAD_URL || steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
+        download_binary() {
+          echo "Downloading binary from: $exe_path"
+          curl -f -o "$BINARY_PATH" -JL "$exe_path" || {
+            echo "ERROR: Failed to download binary."
+            exit 1
+          }
+          chmod +x "$BINARY_PATH"
+        }
+        if [ -f "$BINARY_PATH" ]; then
+          if file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+            echo "Binary is valid ELF format"
+            chmod +x "$BINARY_PATH"
+          else
+            echo "Binary corrupted, re-downloading..."
+            rm -f "$BINARY_PATH"
+            download_binary
+          fi
+        else
+          echo "Binary not found, downloading..."
+          download_binary
+        fi
+        if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+          echo "ERROR: Invalid binary"
+          file "$BINARY_PATH"
+          exit 1
+        fi
+
     - name: Configure env.dev file
       shell: bash
       env:
@@ -204,101 +220,143 @@ jobs:
         Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
         Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
         TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
       run: |
+        # Quote all values to handle spaces properly
         cat > .env.dev << EOF
-        CHAT_ID_DEV=$CHAT_ID_DEV
-        TOKEN_DEV=$TOKEN_DEV
-        CHAT_IDADMIN_DEV=$CHAT_IDADMIN_DEV
-        CHAT_ID=$CHAT_ID
-        TOKEN=$TOKEN
-        chat_idADMIN=$chat_idADMIN
-        GITHUB_TOKEN=$GITHUB_TOKEN
-        CI_PAT=$CI_PAT
-        TURSO_TOKEN=$TURSO_TOKEN
-        TDU=$TDU
-        TAT=$TAT
-        MCU=$MCU
-        MCAP=$MCAP
-        MCL=$MCL
-        MS=$MS
-        PKG=$PKG
-        REPO_URL=$REPO_URL
-        KTOKEN=$KTOKEN
-        KUSER=$KUSER
-        KPWD=$KPWD
-        KTOTP=$KTOTP
-        DB_TYPE=$DB_TYPE
-        DB_TICKS=$DB_TICKS
-        TBTOKEN=$TBTOKEN
-        BBTOKEN=$BBTOKEN
-        Tel_API_ID=$Tel_API_ID
-        Tel_API_Hash=$Tel_API_Hash
-        Tel_Phone_Number=$Tel_Phone_Number
-        TEL_SESSION_DATA=$TEL_SESSION_DATA
+        CHAT_ID_DEV='$CHAT_ID_DEV'
+        TOKEN_DEV='$TOKEN_DEV'
+        CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+        CHAT_ID='$CHAT_ID'
+        TOKEN='$TOKEN'
+        chat_idADMIN='$chat_idADMIN'
+        GITHUB_TOKEN='$GITHUB_TOKEN'
+        CI_PAT='$CI_PAT'
+        TURSO_TOKEN='$TURSO_TOKEN'
+        TDU='$TDU'
+        TAT='$TAT'
+        MCU='$MCU'
+        MCAP='$MCAP'
+        MCL='$MCL'
+        MS='$MS'
+        PKG='$PKG'
+        REPO_URL='$REPO_URL'
+        KTOKEN='$KTOKEN'
+        KUSER='$KUSER'
+        KPWD='$KPWD'
+        KTOTP='$KTOTP'
+        DB_TYPE='$DB_TYPE'
+        DB_TICKS='$DB_TICKS'
+        TBTOKEN='$TBTOKEN'
+        BBTOKEN='$BBTOKEN'
+        Tel_API_ID='$Tel_API_ID'
+        Tel_API_Hash='$Tel_API_Hash'
+        Tel_Phone_Number='$Tel_Phone_Number'
+        TEL_SESSION_DATA='$TEL_SESSION_DATA'
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
         EOF
         
-        echo "Created .env.dev file with secrets"
+        echo "Created .env.dev file with secrets (values quoted)"
+        
+        # Show the file (without revealing secrets)
+        echo "File content (with values masked):"
+        cat .env.dev | sed 's/=[^=]*$/=***/'
+        
+        echo `pwd`
+        cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
+        ls -l
 
     - name: Run Telegram bot on Windows
       shell: cmd
-      timeout-minutes: 350
+      timeout-minutes: 290  # Slightly less than job timeout to allow cleanup
       continue-on-error: true
       if: startsWith(runner.os, 'Windows')
       env:
         RUNNER : "GitHub_Actions"
         MONITORING_BOT_RUNNER: "MONITORING_BOT_RUNNER"
+        CI_PAT: ${{ secrets.CI_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         pkscreenercli.exe --bot --botavailable ${{ inputs.cliOptions || '' }}
 
     - name: Telegram Bot on Ubuntu
-      timeout-minutes: 350
+      timeout-minutes: 290  # Slightly less than job timeout to allow cleanup
       continue-on-error: true
       shell: bash
       if: startsWith(runner.os, 'Linux')
       env:
         RUNNER : "GitHub_Actions"
         MONITORING_BOT_RUNNER: "MONITORING_BOT_RUNNER"
+        CI_PAT: ${{ secrets.CI_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin --bot --botavailable ${{ inputs.cliOptions || '' }}
+        pip3 install setuptools libsql
+        pip3 install libsql-experimental || pip3 install libsql || echo "libsql not available (will use SQLite fallback)"
+        # Also install other potential missing dependencies
+        pip3 install chardet charset-normalizer
+        echo "Starting bot at $(date)"
+        echo "Bot will run in foreground with full output"
+        cp /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev .env.dev
+        # Source the environment file so the bot can access secrets
+        source /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
+        echo `pwd`
+        ls -l
+        # Run the bot in the foreground (not background) so the workflow waits
+        # This will keep the workflow running until the bot exits
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin --bot --botavailable ${{ inputs.cliOptions || '' }} 2>&1 | tee bot_output.log
+        
+        # This line will only execute after the bot exits
+        BOT_EXIT_CODE=${PIPESTATUS[0]}
+        echo "Bot exited with code $BOT_EXIT_CODE at $(date)"
+        
+        # Save exit code for potential use
+        echo "BOT_EXIT_CODE=$BOT_EXIT_CODE" >> $GITHUB_ENV
+
+    - name: Self-trigger for 24x7 continuity
+      if: always() && !cancelled()
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "🔄 Self-triggering workflow for 24x7 continuity..."
+        
+        # Get current timestamp
+        CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        echo "Current time: $CURRENT_TIME"
+        
+        # Check if bot exited with an error (optional - you can still trigger even on error)
+        if [ -n "$BOT_EXIT_CODE" ] && [ "$BOT_EXIT_CODE" -ne 0 ]; then
+          echo "⚠️ Bot exited with code $BOT_EXIT_CODE, but still triggering next run for continuity"
+        fi
+        
+        # Trigger the workflow using repository dispatch
+        curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${{ github.repository }}/actions/workflows/w3-workflow-bot.yml/dispatches \
+          -d '{
+            "ref": "main",
+            "inputs": {
+              "branch-name": "${{ github.event.inputs.branch-name || 'main' }}",
+              "installtalib": "${{ github.event.inputs.installtalib || 'N' }}",
+              "targetPythonVersion": "${{ github.event.inputs.targetPythonVersion || '3.12' }}",
+              "runson": "${{ github.event.inputs.runson || 'ubuntu-latest' }}",
+              "cliOptions": "${{ github.event.inputs.cliOptions || '-a Y -l' }}",
+              "targetArch": "${{ github.event.inputs.targetArch || 'x64' }}",
+              "triggered_by": "self_trigger_after_${{ github.run_id }}"
+            }
+          }'
+        
+        echo "✅ Self-trigger initiated successfully"
+        echo "⏱️  Next run should start within 1-2 minutes"
 
     - name: Delete this repo workflow run
       shell: bash
+      if: always()
       run: |
         gh run list --status success --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
         gh run list --status cancelled --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
         gh run list --status completed --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
       env:
         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
-
-    - name: Delete original repo workflow runs
-      shell: bash
-      run: |
-        gh run list --status success --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-        gh run list --status cancelled --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-        gh run list --status completed --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-      env:
-        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
-
-  # Delete_Workflow_Run:
-  #   runs-on: ubuntu-latest
-  #   needs: [Prod_Telegram_Bot]
-  #   name: Delete workflow run
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: main
-  #     - name: Delete this workflow run
-  #       if: startsWith(runner.os, 'Linux')
-  #       shell: bash
-  #       run: |
-  #         gh run list --status success --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-  #         gh run list --status cancelled --limit 400 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # for id in $(gh run list -w "CodeQL" --limit 100 --jq ".[] | select (.status == \"completed\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-          
-  #         # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
-  #         # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
-  #       env:
-  #         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

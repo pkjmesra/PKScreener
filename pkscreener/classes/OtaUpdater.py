@@ -224,7 +224,7 @@ rm updater.sh
                     + colorText.END
                 )
                 try:
-                    action = input(
+                    action = OutputControls().takeUserInput(
                             colorText.FAIL
                             + (
                                 f"\n  [+] New {updateType} Software update (v%s) available. Download Now (Size: %dMB)? [Y/N]: "

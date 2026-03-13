@@ -152,6 +152,12 @@ jobs:
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        # Validate binary format
+        if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+          file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          exit 1
+        fi
     
     - name: Install PKBrokers dependencies
       run: |
@@ -186,6 +192,7 @@ jobs:
         Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
         Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
         TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
       run: |
         cat > .env.dev << EOF
         CHAT_ID=$CHAT_ID
@@ -213,6 +220,7 @@ jobs:
         Tel_API_Hash=$Tel_API_Hash
         Tel_Phone_Number=$Tel_Phone_Number
         TEL_SESSION_DATA=$TEL_SESSION_DATA
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
         PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
         EOF
         
@@ -223,6 +231,12 @@ jobs:
       run: |
         echo ${{ env.TEL_SESSION_DATA }} | base64 -d > user_session.session
         chmod 600 user_session.session
+
+    - name: Fetch fresh market data (if market hours)
+      continue-on-error: true
+      run: |
+        pip3 install requests
+        python3 .github/workflows/fetch-fresh-data.py || echo "Fresh data fetch skipped"
 
     - name: Trigger workflow
       continue-on-error: true

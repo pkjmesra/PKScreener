@@ -152,9 +152,30 @@ jobs:
         pip3 install requests
         python3 .github/workflows/githubutilities.py -d
 
+    # Phase 1: Binary caching to reduce scan latency by 30-60s
+    - name: Cache PKScreener Binary (Linux)
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
+      id: binary-cache-linux
+      with:
+        path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
+    - name: Cache PKScreener Binary (Windows)
+      if: startsWith(runner.os, 'Windows')
+      uses: actions/cache@v4
+      id: binary-cache-windows
+      with:
+        path: pkscreenercli.exe
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
     - name: Download latest executable on Windows
       shell: cmd
-      if: startsWith(runner.os, 'Windows')
+      if: startsWith(runner.os, 'Windows') && steps.binary-cache-windows.outputs.cache-hit != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
@@ -162,13 +183,49 @@ jobs:
 
     - name: Download latest executable on Ubuntu
       shell: bash
-      if: startsWith(runner.os, 'Linux')
+      if: startsWith(runner.os, 'Linux') && steps.binary-cache-linux.outputs.cache-hit != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
 
+    - name: Validate and ensure binary is executable
+      shell: bash
+      if: startsWith(runner.os, 'Linux')
+      env:
+        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+      run: |
+        BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
+        download_binary() {
+          echo "Downloading binary from: $exe_path"
+          curl -f -o "$BINARY_PATH" -JL "$exe_path" || {
+            echo "ERROR: Failed to download binary. The release may not include Linux binaries yet."
+            echo "Please ensure the build workflow has completed and created the Linux binary."
+            exit 1
+          }
+          chmod +x "$BINARY_PATH"
+        }
+        # Check if binary exists and is valid ELF format
+        if [ -f "$BINARY_PATH" ]; then
+          if file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+            echo "Binary is valid ELF format"
+            chmod +x "$BINARY_PATH"
+          else
+            echo "Binary is corrupted or wrong format, re-downloading..."
+            rm -f "$BINARY_PATH"
+            download_binary
+          fi
+        else
+          echo "Binary not found, downloading..."
+          download_binary
+        fi
+        # Final validation
+        if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+          echo "ERROR: Downloaded file is not a valid Linux binary"
+          file "$BINARY_PATH"
+          exit 1
+        fi
     - name: Configure env.dev file
       shell: bash
       env:
@@ -201,40 +258,86 @@ jobs:
         Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
         Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
         TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
       run: |
+        # Quote all values to handle spaces properly
         cat > .env.dev << EOF
-        CHAT_ID_DEV=$CHAT_ID_DEV
-        TOKEN_DEV=$TOKEN_DEV
-        CHAT_IDADMIN_DEV=$CHAT_IDADMIN_DEV
-        CHAT_ID=$CHAT_ID
-        TOKEN=$TOKEN
-        chat_idADMIN=$chat_idADMIN
-        GITHUB_TOKEN=$GITHUB_TOKEN
-        CI_PAT=$CI_PAT
-        TURSO_TOKEN=$TURSO_TOKEN
-        TDU=$TDU
-        TAT=$TAT
-        MCU=$MCU
-        MCAP=$MCAP
-        MCL=$MCL
-        MS=$MS
-        PKG=$PKG
-        REPO_URL=$REPO_URL
-        KTOKEN=$KTOKEN
-        KUSER=$KUSER
-        KPWD=$KPWD
-        KTOTP=$KTOTP
-        DB_TYPE=$DB_TYPE
-        DB_TICKS=$DB_TICKS
-        TBTOKEN=$TBTOKEN
-        BBTOKEN=$BBTOKEN
-        Tel_API_ID=$Tel_API_ID
-        Tel_API_Hash=$Tel_API_Hash
-        Tel_Phone_Number=$Tel_Phone_Number
-        TEL_SESSION_DATA=$TEL_SESSION_DATA
+        CHAT_ID_DEV='$CHAT_ID_DEV'
+        TOKEN_DEV='$TOKEN_DEV'
+        CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+        CHAT_ID='$CHAT_ID'
+        TOKEN='$TOKEN'
+        chat_idADMIN='$chat_idADMIN'
+        GITHUB_TOKEN='$GITHUB_TOKEN'
+        CI_PAT='$CI_PAT'
+        TURSO_TOKEN='$TURSO_TOKEN'
+        TDU='$TDU'
+        TAT='$TAT'
+        MCU='$MCU'
+        MCAP='$MCAP'
+        MCL='$MCL'
+        MS='$MS'
+        PKG='$PKG'
+        REPO_URL='$REPO_URL'
+        KTOKEN='$KTOKEN'
+        KUSER='$KUSER'
+        KPWD='$KPWD'
+        KTOTP='$KTOTP'
+        DB_TYPE='$DB_TYPE'
+        DB_TICKS='$DB_TICKS'
+        TBTOKEN='$TBTOKEN'
+        BBTOKEN='$BBTOKEN'
+        Tel_API_ID='$Tel_API_ID'
+        Tel_API_Hash='$Tel_API_Hash'
+        Tel_Phone_Number='$Tel_Phone_Number'
+        TEL_SESSION_DATA='$TEL_SESSION_DATA'
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
         EOF
         
-        echo "Created .env.dev file with secrets"
+        echo "Created .env.dev file with secrets (values quoted)"
+
+
+    # Phase 2: Restore pre-cached stock data for faster scans (only during non-trading hours)
+    - name: Check current time in IST
+      id: time-check
+      shell: bash
+      run: |
+        # Get current time in IST
+        CURRENT_HOUR=$(TZ='Asia/Kolkata' date +%H)
+        CURRENT_MIN=$(TZ='Asia/Kolkata' date +%M)
+        CURRENT_TIME=$((10#$CURRENT_HOUR * 60 + 10#$CURRENT_MIN))
+        
+        # Trading hours: 9:15 AM to 4:00 PM IST
+        MARKET_OPEN=$((9 * 60 + 15))  # 9:15 AM
+        MARKET_CLOSE=$((16 * 60 + 0))   # 4:00 PM
+        
+        echo "Current IST time: $CURRENT_HOUR:$CURRENT_MIN"
+        echo "Market open: 9:15, Market close: 16:00"
+        
+        if [ $CURRENT_TIME -ge $MARKET_OPEN ] && [ $CURRENT_TIME -lt $MARKET_CLOSE ]; then
+          echo "🕒 Market hours detected - skipping cache restore to ensure fresh data"
+          echo "USE_CACHE=false" >> $GITHUB_OUTPUT
+        else
+          echo "🕒 Non-market hours detected - using cached data for faster scans"
+          echo "USE_CACHE=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Restore Stock Data Cache (Non-market hours only)
+      if: steps.time-check.outputs.USE_CACHE == 'true'
+      uses: actions/cache@v4
+      with:
+        path: results/Data/
+        key: stock-data-${{ github.run_id }}
+        restore-keys: |
+          stock-data-
+          
+    - name: Clear cache during market hours (optional)
+      if: steps.time-check.outputs.USE_CACHE == 'false'
+      shell: bash
+      run: |
+        echo "🧹 Market hours - ensuring fresh data by removing any cached stock data"
+        rm -rf results/Data/*.pkl results/Data/*.csv 2>/dev/null || true
+        echo "✓ Cache cleared for fresh market data"
 
     - name: Create session file
       run: |
@@ -266,26 +369,6 @@ jobs:
         ALERT_TRIGGER: ${{ inputs.alertTrigger || 'N' }}
       run: |
         ${{ inputs.prerequisites }}
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ inputs.params }} -l
+        pip3 install libsql
+        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ inputs.params }}
         ${{ inputs.postrun }}
-
-  # Delete_Workflow_Run:
-  #   runs-on: ubuntu-latest
-  #   needs: [Generic_Workflow_Runner]
-  #   name: Delete workflow run
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: main
-          
-  #     - name: Delete this workflow run
-  #       if: startsWith(runner.os, 'Linux')
-  #       shell: bash
-  #       run: |
-  #         for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"cancelled\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"failure\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
-  #         # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
-  #       env:
-  #         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

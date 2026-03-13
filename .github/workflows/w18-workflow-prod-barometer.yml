@@ -1,27 +1,3 @@
-# """
-#     The MIT License (MIT)
-
-#     Copyright (c) 2023 pkjmesra
-
-#     Permission is hereby granted, free of charge, to any person obtaining a copy
-#     of this software and associated documentation files (the "Software"), to deal
-#     in the Software without restriction, including without limitation the rights
-#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#     copies of the Software, and to permit persons to whom the Software is
-#     furnished to do so, subject to the following conditions:
-
-#     The above copyright notice and this permission notice shall be included in all
-#     copies or substantial portions of the Software.
-
-#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#     SOFTWARE.
-
-# """
 name: 18. Global Market Barometer
 on:
   workflow_dispatch:
@@ -46,14 +22,17 @@ jobs:
 
   NIFTY_Barometer_Alert:
 
-    runs-on: ${{ inputs.runson || 'macos-latest' }} #ubuntu-latest #windows-latest
+    runs-on: ${{ inputs.runson || 'macos-latest' }}
+    
+    # Add concurrency to prevent multiple runs overlapping
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.runson }}
+      cancel-in-progress: false
 
     steps:
     - uses: actions/checkout@v4
       with:
-        # repository: pkjmesra/PKScreener
         ref: main
-        # token: ${{secrets.PK_GITHUB_TOKEN}}
     
     - name: setup git config
       run: |
@@ -64,163 +43,252 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.targetPythonVersion || 3.12 }}
+        cache: 'pip'  # Built-in pip caching
+        cache-dependency-path: |
+          **/requirements*.txt
+          setup.py
 
-    - name: Restore Dependencies from Cache
+    # Platform-specific Python cache
+    - name: Cache Python packages (Linux/Mac)
       uses: actions/cache@v4
       with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', 'setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Activate virtualenv for MacOS
-      if: startsWith(runner.os, 'MacOS')
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-
-    - name: Load Cache for Linux Dependencies
+    # Virtual environment cache for faster activation
+    - name: Cache virtual environment
+      id: cache-venv
       uses: actions/cache@v4
-      if: startsWith(runner.os, 'Linux')
       with:
         path: |
-          /usr/include/ta-lib
-          /usr/bin/ta-lib-config
-          /usr/lib/libta_lib.la
-          /usr/lib/libta_lib.a
-        key: ${{ runner.os }}-talib
-        restore-keys: |
-          ${{ runner.os }}-talib
-          
-    - name: Restore Dependencies from Ubuntu Cache
-      if: startsWith(runner.os, 'Linux')
-      uses: actions/cache@v4
-      id: cache-venv  # name for referring later
-      with:
-        path: ./.venv/  # what we cache: the virtualenv
-        # The cache key depends on requirements.txt
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+          .venv
+          venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt', 'setup.py') }}-${{ inputs.targetPythonVersion }}
         restore-keys: |
           ${{ runner.os }}-venv-
 
-    # - name: Install TA-Lib for Windows
-    #   if: ${{ startsWith(runner.os, 'Windows') }}
-    #   shell: bash
-    #   run: |
-    #     python3 -m pip install --upgrade pip
-    #     pip3 install requests
-    #     cd .github/dependencies/
-    #     if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-    #       pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
-    #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-    #       pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-    #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-    #       pip3 install TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
-    #     elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-    #       pip3 install TA_Lib-0.4.28-cp312-cp312-win_amd64.whl
-    #     fi
+    # Create and cache virtual environment if not exists
+    - name: Create virtual environment (if not cached)
+      if: steps.cache-venv.outputs.cache-hit != 'true'
+      run: |
+        python3 -m venv .venv
+        echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+        
+    - name: Activate virtual environment
+      run: |
+        if [ -d ".venv" ]; then
+          echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+          echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
+        elif [ -d "venv" ]; then
+          echo "${{ github.workspace }}/venv/bin" >> $GITHUB_PATH
+          echo "VIRTUAL_ENV=${{ github.workspace }}/venv" >> $GITHUB_ENV
+        fi
 
-    # - name: Install TA-Lib for Linux
-    #   if: ${{ startsWith(runner.os, 'Linux') }}
-    #   run: |
-    #     cd .github/dependencies/
-    #     sudo dpkg -i ta-lib_0.6.4_amd64.deb
-    #     cd /home/runner/work/PKScreener/PKScreener/
-    #     pip3 install ta-lib
-          
+    - name: Cache TA-Lib (Linux)
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/talib
+          /usr/lib/libta_lib.so*
+          /usr/include/ta-lib
+        key: ${{ runner.os }}-talib-${{ hashFiles('.github/dependencies/ta-lib_*.deb') }}
+        restore-keys: |
+          ${{ runner.os }}-talib-
+
+    - name: Install TA-Lib (Linux) - if not cached
+      if: startsWith(runner.os, 'Linux') && steps.cache-talib.outputs.cache-hit != 'true'
+      run: |
+        cd .github/dependencies/
+        sudo dpkg -i ta-lib_0.6.4_amd64.deb
+        cd /home/runner/work/PKScreener/PKScreener/
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+
     - name: Environment setup to get latest EXE
       shell: bash
       id: releaseurlsetter
       run: |
-        pip3 install requests
+        pip install requests
         python3 .github/workflows/githubutilities.py -d
-  
-    - name: Download latest executable on Windows
-      shell: cmd
-      if: ${{ startsWith(runner.os, 'Windows' ) }}
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        curl -o pkscreenercli.exe -JL %exe_path%
 
-    - name: Download latest executable on Ubuntu
+    # Binary caching with version-specific keys
+    - name: Cache PKScreener Binary (Linux)
+      if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
+      id: binary-cache-linux
+      with:
+        path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
+    - name: Cache PKScreener Binary (Mac)
+      if: startsWith(runner.os, 'MacOS')
+      uses: actions/cache@v4
+      id: binary-cache-mac
+      with:
+        path: /Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run
+        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-pkscreener-bin-
+
+    - name: Download latest executable on Linux
+      if: startsWith(runner.os, 'Linux') && steps.binary-cache-linux.outputs.cache-hit != 'true'
       shell: bash
-      if: ${{ startsWith(runner.os, 'Linux' ) }}
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-
+        
     - name: Download latest executable on Mac
+      if: startsWith(runner.os, 'MacOS') && steps.binary-cache-mac.outputs.cache-hit != 'true'
       shell: bash
-      if: ${{ startsWith(runner.os, 'MacOS' ) }}
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run -JL $exe_path
         chmod +x /Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run
-        brew install google-chrome
+
+    - name: Validate Linux binary
+      if: startsWith(runner.os, 'Linux')
+      run: |
+        BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
+        if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+          echo "ERROR: Invalid Linux binary"
+          file "$BINARY_PATH"
+          exit 1
+        fi
+        echo "✓ Linux binary validated"
+
+    - name: Validate Mac binary
+      if: startsWith(runner.os, 'MacOS')
+      run: |
+        BINARY_PATH="/Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run"
+        if ! file "$BINARY_PATH" | grep -q "Mach-O 64-bit"; then
+          echo "ERROR: Invalid Mac binary"
+          file "$BINARY_PATH"
+          exit 1
+        fi
+        echo "✓ Mac binary validated"
           
-    - name: Install Chromium Dependencies
-      if: ${{ startsWith(runner.os, 'Linux' ) }}
+    - name: Install Chromium Dependencies (Linux)
+      if: startsWith(runner.os, 'Linux')
       continue-on-error: true
       run: |
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list
-        sudo apt update 
-        sudo apt install -y gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
-        sudo apt install google-chrome-stable
-        sudo apt-get install chromium-chromedriver
-        pip3 install pyppeteer
+        # Cache Chrome installation
+        sudo apt update
+        sudo apt install -y chromium-browser chromium-chromedriver
+        pip install pyppeteer
         pyppeteer-install
-        # pip3 uninstall pyppeteer -y
-        # pip3 install pyppeteer==1.0.0
-        ls /home/runner/.local/share/pyppeteer/local-chromium/1181205
-        sudo chmod +x /home/runner/.local/share/pyppeteer/local-chromium/1181205/chrome-linux/chrome
-        /home/runner/.local/share/pyppeteer/local-chromium/1181205/chrome-linux/chrome
-        
-    - name: Install Python Dependencies
-      shell: bash
-      run: |
-        pip3 install -r requirements.txt
-        pip3 install .
-        pyppeteer-install
-
-    - name: Environment setup to check the market status
-      shell: bash
-      id: marketsetter
-      run: |
-        python3 .github/workflows/workflowtriggers.py
 
     - name: Configure env.dev file
-      # if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
-      run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
-        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('REPO_URL=https://github.com/pkjmesra/PKScreener.git'+'\n'); file.close()"
       shell: bash
       env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+          CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          TOKEN: ${{ secrets.TOKEN }}
+          chat_idADMIN: ${{ secrets.chat_idADMIN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_PAT: ${{ secrets.CI_PAT }}
+          TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+          TDU: ${{ secrets.TDU }}
+          TAT: ${{ secrets.TAT }}
+          MCU: ${{ secrets.MCU }}
+          MCAP: ${{ secrets.MCAP }}
+          MCL: ${{ secrets.MCL }}
+          MS: ${{ secrets.MS }}
+          PKG: ${{ secrets.PKG }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+          KTOKEN: ${{ secrets.KTOKEN }}
+          KUSER: ${{ secrets.KUSER }}
+          KPWD: ${{ secrets.KPWD }}
+          KTOTP: ${{ secrets.KTOTP }}
+          DB_TYPE: "local"
+          DB_TICKS: ${{ secrets.DB_TICKS }}
+          TBTOKEN: ${{ secrets.TBTOKEN }}
+          BBTOKEN: ${{ secrets.BBTOKEN }}
+          Tel_API_ID: ${{ secrets.Tel_API_ID }}
+          Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+          Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+          TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+          SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
+      run: |
+          # Quote all values to handle spaces properly
+          cat > .env.dev << EOF
+          CHAT_ID_PROD='$CHAT_ID_PROD'
+          CHAT_ID_DEV='$CHAT_ID_DEV'
+          TOKEN_DEV='$TOKEN_DEV'
+          CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+          CHAT_ID='$CHAT_ID'
+          TOKEN='$TOKEN'
+          chat_idADMIN='$chat_idADMIN'
+          GITHUB_TOKEN='$GITHUB_TOKEN'
+          CI_PAT='$CI_PAT'
+          TURSO_TOKEN='$TURSO_TOKEN'
+          TDU='$TDU'
+          TAT='$TAT'
+          MCU='$MCU'
+          MCAP='$MCAP'
+          MCL='$MCL'
+          MS='$MS'
+          PKG='$PKG'
+          REPO_URL='$REPO_URL'
+          KTOKEN='$KTOKEN'
+          KUSER='$KUSER'
+          KPWD='$KPWD'
+          KTOTP='$KTOTP'
+          DB_TYPE='$DB_TYPE'
+          DB_TICKS='$DB_TICKS'
+          TBTOKEN='$TBTOKEN'
+          BBTOKEN='$BBTOKEN'
+          Tel_API_ID='$Tel_API_ID'
+          Tel_API_Hash='$Tel_API_Hash'
+          Tel_Phone_Number='$Tel_Phone_Number'
+          TEL_SESSION_DATA='$TEL_SESSION_DATA'
+          SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
+          EOF
+          
+          echo "Created .env.dev file with secrets (values quoted)"
+          cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev || true
 
     - name: Barometer alert on Linux
-      if : ${{ startsWith(runner.os, 'Linux') }} # && (steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1') }}
+      if: startsWith(runner.os, 'Linux')
       shell: bash
       env:
         RUNNER : "GitHub_Actions"
         ALERT_TRIGGER : "Y"
       run: |
+        source .env.dev
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -a Y -o X:12 -e --barometer
 
     - name: Barometer alert on Mac
-      if : ${{ startsWith(runner.os, 'MacOS') }} #&& (steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1') }}
+      if: startsWith(runner.os, 'MacOS')
       shell: bash
+      timeout-minutes: 5
       env:
         RUNNER : "GitHub_Actions"
         ALERT_TRIGGER : "Y"
         PUPPETEER_EXECUTABLE_PATH : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       run: |
-        /Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run -a Y -l -o X:12 -e --barometer
+        source .env.dev
+        /Users/runner/work/PKScreener/PKScreener/pkscreenercli_x64.run -a Y -o X:12 -e --barometer
+
+    # Optional: Clean up old workflow runs
+    - name: Clean up old workflow runs
+      if: github.event_name != 'workflow_dispatch'
+      shell: bash
+      run: |
+        gh run list --limit 100 --json databaseId,status,conclusion --jq '.[] | select(.status=="completed") | .databaseId' | xargs -IID gh api "repos/${{ github.repository }}/actions/runs/ID" -X DELETE 2>/dev/null || true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

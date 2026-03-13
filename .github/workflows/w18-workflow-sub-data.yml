@@ -85,18 +85,77 @@ jobs:
         pip3 install PKNSETools
 
     - name: Configure env.dev file
-      run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
-        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
       shell: bash
       env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-        TURSO_TOKEN : ${{secrets.TURSO_TOKEN}}
-        TDU : ${{secrets.TURSO_DATABASE_URL}}
-        TAT : ${{secrets.TURSO_AUTH_TOKEN}}
+          CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+          CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          TOKEN: ${{ secrets.TOKEN }}
+          chat_idADMIN: ${{ secrets.chat_idADMIN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_PAT: ${{ secrets.CI_PAT }}
+          TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+          TDU: ${{ secrets.TURSO_DATABASE_URL }}
+          TAT: ${{ secrets.TURSO_AUTH_TOKEN }}
+          MCU: ${{ secrets.MCU }}
+          MCAP: ${{ secrets.MCAP }}
+          MCL: ${{ secrets.MCL }}
+          MS: ${{ secrets.MS }}
+          PKG: ${{ secrets.PKG }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+          KTOKEN: ${{ secrets.KTOKEN }}
+          KUSER: ${{ secrets.KUSER }}
+          KPWD: ${{ secrets.KPWD }}
+          KTOTP: ${{ secrets.KTOTP }}
+          DB_TYPE: "local"
+          DB_TICKS: ${{ secrets.DB_TICKS }}
+          TBTOKEN: ${{ secrets.TBTOKEN }}
+          BBTOKEN: ${{ secrets.BBTOKEN }}
+          Tel_API_ID: ${{ secrets.Tel_API_ID }}
+          Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+          Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+          TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+          SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
+      run: |
+          # Quote all values to handle spaces properly
+          cat > .env.dev << EOF
+          CHAT_ID_PROD='$CHAT_ID_PROD'
+          CHAT_ID_DEV='$CHAT_ID_DEV'
+          TOKEN_DEV='$TOKEN_DEV'
+          CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+          CHAT_ID='$CHAT_ID'
+          TOKEN='$TOKEN'
+          chat_idADMIN='$chat_idADMIN'
+          GITHUB_TOKEN='$GITHUB_TOKEN'
+          CI_PAT='$CI_PAT'
+          TURSO_TOKEN='$TURSO_TOKEN'
+          TDU='$TDU'
+          TAT='$TAT'
+          MCU='$MCU'
+          MCAP='$MCAP'
+          MCL='$MCL'
+          MS='$MS'
+          PKG='$PKG'
+          REPO_URL='$REPO_URL'
+          KTOKEN='$KTOKEN'
+          KUSER='$KUSER'
+          KPWD='$KPWD'
+          KTOTP='$KTOTP'
+          DB_TYPE='$DB_TYPE'
+          DB_TICKS='$DB_TICKS'
+          TBTOKEN='$TBTOKEN'
+          BBTOKEN='$BBTOKEN'
+          Tel_API_ID='$Tel_API_ID'
+          Tel_API_Hash='$Tel_API_Hash'
+          Tel_Phone_Number='$Tel_Phone_Number'
+          TEL_SESSION_DATA='$TEL_SESSION_DATA'
+          SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
+          EOF
+          
+          echo "Created .env.dev file with secrets (values quoted)"
+          cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
   
     - name: Update Sub Data
       shell: bash

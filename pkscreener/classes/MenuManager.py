@@ -204,7 +204,10 @@ class MenuManager:
                     OutputControls().printOutput(colorText.GREEN + f"      [+] {log_file_path}" + colorText.END)
                     OutputControls().printOutput(colorText.FAIL + "      [+] If you need to share,run through the menus that are causing problems. At the end, open this folder, zip the log file to share at https://github.com/pkjmesra/PKScreener/issues .\n" + colorText.END)
                     
-                menu_option = input(colorText.FAIL + f"{past_date}  [+] Select option: ") or "P"
+                # In non-interactive mode (bot/systemlaunched), default to X (Scanners) not P (Piped Scanners)
+                # to avoid infinite loops where P triggers another P selection
+                default_menu_option = "X" if (self.user_passed_args is not None and (self.user_passed_args.systemlaunched or self.user_passed_args.answerdefault is not None or self.user_passed_args.telegram)) else "P"
+                menu_option = OutputControls().takeUserInput(colorText.FAIL + f"{past_date}  [+] Select option: ", defaultInput=default_menu_option)
                 OutputControls().printOutput(colorText.END, end="")
                 
             if menu_option == "" or menu_option is None:
@@ -370,7 +373,7 @@ class MenuManager:
                         sys.exit(0)
                         
                     index_keys = level1_index_options_sectoral.keys()
-                    stock_index_code = input(
+                    stock_index_code = OutputControls().takeUserInput(
                         colorText.FAIL + "  [+] Select option: "
                     ) or str(len(index_keys))
                     OutputControls().printOutput(colorText.END, end="")
@@ -392,7 +395,7 @@ class MenuManager:
             
             if index_option is not None and index_option != "W":
                 if execute_option is None:
-                    execute_option = input(
+                    execute_option = OutputControls().takeUserInput(
                         colorText.FAIL + f"{past_date}  [+] Select option: "
                     ) or "9"
                     OutputControls().printOutput(colorText.END, end="")
@@ -564,7 +567,11 @@ class MenuManager:
         return self.menu_choice_hierarchy
 
     def show_option_error_message(self):
-        """Display an error message for invalid menu options."""
+        """Display an error message for invalid menu options - only in interactive mode."""
+        # Only show error message and wait if in interactive mode
+        if not OutputControls().enableUserInput:
+            return  # Skip error message in non-interactive/bot mode
+        
         OutputControls().printOutput(
             colorText.FAIL
             + "\n  [+] Please enter a valid option & try Again!"
@@ -593,7 +600,7 @@ class MenuManager:
             if self.user_passed_args is None or self.user_passed_args.options is None:
                 selected_menu = self.m0.find(menu_option)
                 self.m1.renderForMenu(selected_menu=selected_menu)
-                period_option = input(
+                period_option = OutputControls().takeUserInput(
                     colorText.FAIL + "  [+] Select option: "
                 ) or ('L' if self.config_manager.period == '1y' else 'S')
                 OutputControls().printOutput(colorText.END, end="")
@@ -606,7 +613,7 @@ class MenuManager:
                 if period_option.upper() in ["L", "S"]:
                     selected_menu = self.m1.find(period_option)
                     self.m2.renderForMenu(selected_menu=selected_menu)
-                    duration_option = input(
+                    duration_option = OutputControls().takeUserInput(
                         colorText.FAIL + "  [+] Select option: "
                     ) or "1"
                     OutputControls().printOutput(colorText.END, end="")
@@ -629,7 +636,7 @@ class MenuManager:
                     return
                 elif period_option.upper() in ["B"]:
                     last_trading_date = PKDateUtilities.nthPastTradingDateStringFromFutureDate(n=(22 if self.config_manager.period == '1y' else 15))
-                    backtest_days_ago = input(
+                    backtest_days_ago = OutputControls().takeUserInput(
                         f"{colorText.FAIL}  [+] Enter no. of days/candles in the past as starting candle for which you'd like to run the scans\n  [+] You can also enter a past date in {colorText.END}{colorText.GREEN}YYYY-MM-DD{colorText.END}{colorText.FAIL} format\n  [+] (e.g. {colorText.GREEN}10{colorText.END} for 10 candles ago or {colorText.GREEN}0{colorText.END} for today or {colorText.GREEN}{last_trading_date}{colorText.END}):"
                     ) or ('22' if self.config_manager.period == '1y' else '15')
                     OutputControls().printOutput(colorText.END, end="")
@@ -762,10 +769,23 @@ class ScanExecutor:
         self.elapsed_time = 0
         self.start_time = 0
         self.scan_cycle_running = False
+        self.screen_results = None
+        self.save_results = None
+        self.backtest_df = None
+        self.selected_choice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
+        self.criteria_date_time = None
 
     def run_scanners(self, menu_option, items, tasks_queue, results_queue, num_stocks,
                     backtest_period, iterations, consumers, screen_results, save_results,
                     backtest_df, testing=False):
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"MenuManager.py:run_scanners:778","message":"run_scanners entry - scan starting","data":{"menu_option":menu_option,"num_stocks":num_stocks},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         """
         Execute scanning operations with the given parameters.
         
@@ -907,8 +927,15 @@ class ScanExecutor:
                 
         if result is not None and len(result) >=1 and "Date" not in save_results.columns:
             temp_df = result[2].copy()
+            # Ensure data is sorted to get the latest date
+            if not temp_df.empty and hasattr(temp_df.index, 'sort_values'):
+                try:
+                    temp_df = temp_df.sort_index(ascending=False)  # Latest first
+                except:
+                    pass
             temp_df.reset_index(inplace=True)
-            temp_df = temp_df.tail(1)
+            # Use head(1) to get the most recent date (since we sorted latest first)
+            temp_df = temp_df.head(1)
             temp_df.rename(columns={"index": "Date"}, inplace=True)
             target_date = (
                 temp_df["Date"].iloc[0]
@@ -1486,7 +1513,8 @@ class TelegramNotifier:
             user: User identifier
             message: Message content
         """
-        if user is not None and message is not None and "|" in str(message):
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        if is_subscription_enabled and user is not None and message is not None and "|" in str(message):
             if int(user) > 0:
                 scan_id = message.split("|")[0].replace("*b>", "").strip()
                 from PKDevTools.classes.DBManager import DBManager
@@ -1742,8 +1770,8 @@ class DataManager:
         Returns:
             list: Prepared list of stock codes
         """
-        if not download_only:
-            self.update_menu_choice_hierarchy()
+        # Note: update_menu_choice_hierarchy should be called by PKScreenerMain, not here
+        # since DataManager doesn't have access to menu state
             
         index_option = int(index_option)
         
@@ -1866,7 +1894,7 @@ class DataManager:
         response = "N"
         
         if should_prompt:
-            response = input(f"  [+] {colorText.WARN}Clean up local non-essential system generated data?{colorText.END}{colorText.FAIL}[Default: {response}]{colorText.END}\n    (User generated reports won't be deleted.)        :") or response
+            response = OutputControls().takeUserInput(f"  [+] {colorText.WARN}Clean up local non-essential system generated data?{colorText.END}{colorText.FAIL}[Default: {response}]{colorText.END}\n    (User generated reports won't be deleted.)        :") or response
             
         if "y" in response.lower():
             dirs = [Archiver.get_user_data_dir(), Archiver.get_user_cookies_dir(), 
@@ -1875,7 +1903,7 @@ class DataManager:
             for dir in dirs:
                 self.config_manager.deleteFileWithPattern(rootDir=dir, pattern="*")
                 
-            response = input(f"\n  [+] {colorText.WARN}Clean up local user generated reports as well?{colorText.END} {colorText.FAIL}[Default: N]{colorText.END} :") or "n"
+            response = OutputControls().takeUserInput(f"\n  [+] {colorText.WARN}Clean up local user generated reports as well?{colorText.END} {colorText.FAIL}[Default: N]{colorText.END} :") or "n"
             
             if "y" in response.lower():
                 self.config_manager.deleteFileWithPattern(rootDir=Archiver.get_user_reports_dir(), pattern="*.*")
@@ -2089,7 +2117,7 @@ class BacktestManager:
         )
         
         if self.default_answer is None:
-            choice = input(
+            choice = OutputControls().takeUserInput(
                 colorText.FAIL + "  [+] Select option:"
             )
             OutputControls().printOutput(colorText.END, end="")

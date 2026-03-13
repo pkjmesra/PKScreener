@@ -284,7 +284,7 @@ if __name__ == '__main__':
     counter = 1
     # Iterate through the top level menus
     for mnu0 in cmds0:
-        p0 = mnu0.menuKey.upper()
+        p0 = str(mnu0.menuKey).upper()
         selectedMenu = m0.find(p0)
         # Find the first level menus, skipping those in the provided list
         cmds1 = m1.renderForMenu(
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             renderStyle=MenuRenderStyle.STANDALONE,
         )
         for mnu1 in cmds1:
-            p1 = mnu1.menuKey.upper()
+            p1 = str(mnu1.menuKey).upper()
             selectedMenu = m1.find(p1)
             # Find the 2nd level menus, skipping those in the provided list
             cmds2 = m2.renderForMenu(
@@ -305,7 +305,7 @@ if __name__ == '__main__':
             )
             try:
                 for mnu2 in cmds2:
-                    p2 = mnu2.menuKey.upper()
+                    p2 = str(mnu2.menuKey).upper()
                     if p2 == "0":
                         continue
                     if p2 in ["6", "7", "21","22","30"]:
@@ -319,7 +319,7 @@ if __name__ == '__main__':
                         )
                         try:
                             for mnu3 in cmds3:
-                                p3 = mnu3.menuKey.upper()
+                                p3 = str(mnu3.menuKey).upper()
                                 if p3 == "0":
                                     continue
                                 if (p3 in [ "7","10"] and p2 in ["6"]) or (p3 in [ "3","6","9"] and p2 in ["7"]):
@@ -333,7 +333,7 @@ if __name__ == '__main__':
                                     )
                                     try:
                                         for mnu4 in cmds4:
-                                            p4 = mnu4.menuKey.upper()
+                                            p4 = str(mnu4.menuKey).upper()
                                             if p4 == "0":
                                                 continue
                                             p_all = f"{p0}_{p1}_{p2}_{p3}_{p4}"

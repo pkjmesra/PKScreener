@@ -17,16 +17,21 @@ import urllib.error
 from alive_progress import alive_bar
 
 # Import project-specific modules
-from pkscreener.classes import colorText, Utility, PKDateUtilities, ConsoleUtility, PKScanRunner
-from pkscreener.classes.ConfigManager import ConfigManager
-from pkscreener.classes.Fetcher import fetcher
-from pkscreener.classes.PKMenu import m0, m1, m2, m3, m4
-from pkscreener.classes.PortfolioXRay import PortfolioXRay
-from pkscreener.classes.log import default_logger
+from PKDevTools.classes.ColorText import colorText
+from PKDevTools.classes.log import default_logger
+from PKDevTools.classes.OutputControls import OutputControls
+from PKDevTools.classes.PKDateUtilities import PKDateUtilities as DevDateUtilities
+from pkscreener.classes import Utility, ConsoleUtility
+from pkscreener.classes.PKScanRunner import PKScanRunner
+import pkscreener.classes.ConfigManager as ConfigManager
+from pkscreener.classes.Fetcher import screenerStockDataFetcher
+from pkscreener.classes.MenuOptions import menus
+from pkscreener.classes import PortfolioXRay
 from pkscreener.classes.PKAnalytics import PKAnalyticsService
 from pkscreener.classes.PKPremiumHandler import PKPremiumHandler
 from pkscreener.classes.PKSpreadsheets import PKSpreadsheets
 from pkscreener.globals import *
+# m0, m1, m2, m3, m4 are defined in globals.py and imported via *
 
 class ApplicationState:
     """Manages the global application state and configuration"""
@@ -139,12 +144,12 @@ class MenuHandler:
         """Handle download-specific menu options"""
         ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         m1.renderForMenu(selectedMenu)
-        selDownloadOption = input(colorText.FAIL + "  [+] Select option: ") or "D"
+        selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
-        if selDownloadOption.upper() == "D":
+        if str(selDownloadOption).upper() == "D":
             OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener to Download daily OHLC data. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} -a Y -e -d{colorText.END}\n{colorText.WARN}Press Ctrl + C to exit at any time.{colorText.END}")
-            PKAnalyticsService().send_event(f"{menuOption}_{selDownloadOption.upper()}")
+            PKAnalyticsService().send_event(f"{menuOption}_{str(selDownloadOption).upper()}")
             time.sleep(2)
             os.system(f"{launcher} -a Y -e -d")
             return None, None
@@ -332,13 +337,13 @@ class StrategyHandler:
             m1.renderForMenu(selectedMenu=selectedMenu)
             
             try:
-                userOption = input(colorText.FAIL + "  [+] Select option: ")
+                userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ")
                 OutputControls().printOutput(colorText.END, end="")
                 
                 if userOption == "":
                     userOption = "37"  # NoFilter
                 elif userOption == "38":
-                    userOption = input(colorText.FAIL + "  [+] Enter Exact Pattern name:")
+                    userOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Enter Exact Pattern name:")
                     OutputControls().printOutput(colorText.END, end="")
                     
                     if userOption == "":
@@ -351,7 +356,7 @@ class StrategyHandler:
             except Exception as e:
                 default_logger().debug(e, exc_info=True)
         
-        userOption = userOption.upper()
+        userOption = str(userOption).upper()
         
         if userOption == "M":
             ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
@@ -433,16 +438,16 @@ class DataLoader:
         if (menuOption in ["X", "B", "G", "S", "F"] and not loadedStockData) or (
             self.configManager.cacheEnabled and not loadedStockData and not self.app_state.testing
         ):
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
-                        downloadOnly, listStockCodes, menuOption, indexOption
-                    )
-            except:
-                stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
-                    downloadOnly, listStockCodes, menuOption, indexOption
-                )
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
+            #             downloadOnly, listStockCodes, menuOption, indexOption
+            #         )
+            # except:
+            stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
+                downloadOnly, listStockCodes, menuOption, indexOption
+            )
         
         return len(stockDictPrimary) if stockDictPrimary is not None else 0
 

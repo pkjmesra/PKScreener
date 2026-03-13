@@ -29,4 +29,26 @@ The MIT License (MIT)
 # required for the package as well as this file, ReadMe.txt file as well as
 # commit the changes into the main/checked-out branch.
 # major.minor.dateOfRelease.pipelineJobNumber
-VERSION = '0.46.20250914.779'
+VERSION = '0.46.20260313.838'
+
+# Expose refactored modules for clean imports
+from pkscreener.classes.MenuNavigation import MenuNavigator
+from pkscreener.classes.DataLoader import StockDataLoader
+from pkscreener.classes.NotificationService import NotificationService
+from pkscreener.classes.BacktestUtils import BacktestResultsHandler, get_backtest_report_filename
+from pkscreener.classes.ResultsLabeler import ResultsLabeler
+
+__all__ = [
+    'VERSION',
+    # Menu handling
+    'MenuNavigator',
+    # Data loading
+    'StockDataLoader',
+    # Notifications
+    'NotificationService',
+    # Backtesting
+    'BacktestResultsHandler',
+    'get_backtest_report_filename',
+    # Results
+    'ResultsLabeler',
+]

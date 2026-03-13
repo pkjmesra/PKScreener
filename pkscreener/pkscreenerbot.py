@@ -38,6 +38,9 @@ ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line to stop the bot.
 """
+# pylint: disable=unused-argument, wrong-import-position
+# This program is dedicated to the public domain under the CC0 license.
+
 import os
 import html
 import json
@@ -45,14 +48,201 @@ import logging
 import re
 import sys
 import threading
+import traceback
+from datetime import datetime
+from time import sleep
+
+# =============================================================================
+# MOCK PKG_RESOURCES FOR APSCHEDULER COMPATIBILITY
+# =============================================================================
+"""
+This mock is required because PyInstaller builds sometimes miss pkg_resources,
+which apscheduler needs for entry point discovery. This mock provides all
+necessary functions and classes that apscheduler imports from pkg_resources.
+"""
+import sys
+from types import ModuleType
+
+try:
+    import pkg_resources
+    # If it exists, we're good
+    pass
+except ImportError:
+    # Create a comprehensive mock pkg_resources module
+    mock_pkg_resources = ModuleType('pkg_resources')
+    
+    class DistributionNotFound(Exception):
+        """Mock DistributionNotFound exception."""
+        pass
+    
+    class Distribution:
+        """Mock Distribution class."""
+        version = "0.0.0"
+        project_name = "mock"
+        location = "/mock/location"
+        key = "mock"
+        
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def get_entry_map(self, *args, **kwargs):
+            return {}
+        
+        def get_entry_info(self, *args, **kwargs):
+            return None
+    
+    class EntryPoint:
+        """Mock EntryPoint class."""
+        def __init__(self, name, module_name, attrs=(), extras=(), dist=None):
+            self.name = name
+            self.module_name = module_name
+            self.attrs = attrs
+            self.extras = extras
+            self.dist = dist
+            self.key = name
+            
+        def load(self):
+            """Mock load method."""
+            return None
+        
+        def resolve(self):
+            """Mock resolve method."""
+            return None
+        
+        def require(self):
+            """Mock require method."""
+            pass
+    
+    def get_distribution(*args, **kwargs):
+        """Mock get_distribution function."""
+        return Distribution()
+    
+    def require(*args, **kwargs):
+        """Mock require function."""
+        return [Distribution()]
+    
+    def iter_entry_points(group, name=None):
+        """Mock iter_entry_points function - what apscheduler needs."""
+        return []
+    
+    def entry_points():
+        """Mock entry_points function."""
+        return {}
+    
+    def get_entry_info(dist, group, name):
+        """Mock get_entry_info function."""
+        return None
+    
+    def get_entry_map(dist, group=None):
+        """Mock get_entry_map function."""
+        return {}
+    
+    def resource_filename(package_or_requirement, resource_name):
+        """Mock resource_filename function."""
+        return "/mock/filename"
+    
+    def resource_string(package_or_requirement, resource_name):
+        """Mock resource_string function."""
+        return b""
+    
+    def resource_stream(package_or_requirement, resource_name):
+        """Mock resource_stream function."""
+        import io
+        return io.BytesIO()
+    
+    def resource_exists(package_or_requirement, resource_name):
+        """Mock resource_exists function."""
+        return True
+    
+    def resource_isdir(package_or_requirement, resource_name):
+        """Mock resource_isdir function."""
+        return False
+    
+    def resource_listdir(package_or_requirement, resource_name):
+        """Mock resource_listdir function."""
+        return []
+    
+    def cleanup_resources(*args, **kwargs):
+        """Mock cleanup_resources function."""
+        pass
+    
+    def get_provider(package_or_requirement):
+        """Mock get_provider function."""
+        return None
+    
+    def working_set():
+        """Mock working_set function."""
+        return []
+    
+    def find_distributions(*args, **kwargs):
+        """Mock find_distributions function."""
+        return []
+    
+    def get_platform():
+        """Mock get_platform function."""
+        return sys.platform
+    
+    def load_entry_point(dist, group, name):
+        """Mock load_entry_point function."""
+        return None
+    
+    def get_build_platform():
+        """Mock get_build_platform function."""
+        return sys.platform
+    
+    def declare_namespace(name):
+        """Mock declare_namespace function."""
+        pass
+    
+    def fixup_namespace_packages(path):
+        """Mock fixup_namespace_packages function."""
+        pass
+    
+    # Add all the functions to the mock module
+    mock_pkg_resources.DistributionNotFound = DistributionNotFound
+    mock_pkg_resources.Distribution = Distribution
+    mock_pkg_resources.EntryPoint = EntryPoint
+    mock_pkg_resources.get_distribution = get_distribution
+    mock_pkg_resources.require = require
+    mock_pkg_resources.iter_entry_points = iter_entry_points
+    mock_pkg_resources.entry_points = entry_points
+    mock_pkg_resources.get_entry_info = get_entry_info
+    mock_pkg_resources.get_entry_map = get_entry_map
+    mock_pkg_resources.resource_filename = resource_filename
+    mock_pkg_resources.resource_string = resource_string
+    mock_pkg_resources.resource_stream = resource_stream
+    mock_pkg_resources.resource_exists = resource_exists
+    mock_pkg_resources.resource_isdir = resource_isdir
+    mock_pkg_resources.resource_listdir = resource_listdir
+    mock_pkg_resources.cleanup_resources = cleanup_resources
+    mock_pkg_resources.get_provider = get_provider
+    mock_pkg_resources.working_set = working_set
+    mock_pkg_resources.find_distributions = find_distributions
+    mock_pkg_resources.get_platform = get_platform
+    mock_pkg_resources.load_entry_point = load_entry_point
+    mock_pkg_resources.get_build_platform = get_build_platform
+    mock_pkg_resources.declare_namespace = declare_namespace
+    mock_pkg_resources.fixup_namespace_packages = fixup_namespace_packages
+    mock_pkg_resources.__version__ = "0.0.0-mock"
+    
+    # Insert the mock into sys.modules
+    sys.modules['pkg_resources'] = mock_pkg_resources
+    
+    # Also mock pkg_resources.py2_warn if needed
+    mock_py2_warn = ModuleType('pkg_resources.py2_warn')
+    sys.modules['pkg_resources.py2_warn'] = mock_py2_warn
+    
+    import warnings
+    warnings.warn("pkg_resources not found, using comprehensive mock for apscheduler compatibility")
+
+# =============================================================================
+# END OF MOCK
+# =============================================================================
+
 try:
     import thread
 except ImportError:
     import _thread as thread
-
-import traceback
-from datetime import datetime
-from time import sleep
 from telegram import __version__ as TG_VER
 # from telegram.constants import ParseMode
 
@@ -145,21 +335,22 @@ int_timer = None
 _updater = None
 QR_CODE_PAYMENT_LINK="upi://pay?pa=PKSCREENER@APL&pn=PKSCREENER&tn=undefined&am=undefined"
 
-TOP_LEVEL_SCANNER_MENUS = ["X", "B", "MI","DV", "P"] # 
-TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"] # Last item will be skipped.
+TOP_LEVEL_SCANNER_MENUS = ["X", "B","DV", "P"] # 
+TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "MI", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"] # Last item will be skipped.
 TOP_LEVEL_MARKUP_SKIP_MENUS = TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1]
 TOP_LEVEL_MARKUP_SKIP_MENUS.extend(["X","P","B"])
 INDEX_SKIP_MENUS_1_To_4 = ["W","E","M","Z","0","5","6","7","8","9","10","11","12","13","14","S","15"]
 INDEX_SKIP_MENUS_5_TO_9 = ["W","E","M","Z","N","0","1","2","3","4","10","11","12","13","14","S","15"]
 INDEX_SKIP_MENUS_10_TO_15 = ["W","E","M","Z","N","0","1","2","3","4","5","6","7","8","9","S"]
-SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_26_TO_31 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","32","33","34","35","36","37","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_32_TO_37 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","38","39","40","41","42","43","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_38_TO_43 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","44","45","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_MENUS_WITH_NO_SUBMENUS = ["1","2","3","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45"]
+SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_26_TO_31 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_32_TO_37 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_38_TO_43 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_44_TO_47 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_MENUS_WITH_NO_SUBMENUS = ["1","2","3","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47"]
 SCANNER_MENUS_WITH_SUBMENU_SUPPORT = ["6", "7", "21","22","30","32","33","40"]
 SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT = {"6":[ "7","10"], "7":[ "3","6","7","9"],}
 
@@ -168,7 +359,7 @@ INDEX_COMMANDS_SKIP_MENUS_BACKTEST = ["W", "E", "M", "Z", "S", "N", "0", "15"]
 PIPED_SCAN_SKIP_COMMAND_MENUS =["2", "3", "M", "0", "4"]
 PIPED_SCAN_SKIP_INDEX_MENUS =["W","N","E","S","0","Z","M","15"]
 UNSUPPORTED_COMMAND_MENUS =["22","M","Z","0",str(MAX_MENU_OPTION)]
-SUPPORTED_COMMAND_MENUS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45"]
+SUPPORTED_COMMAND_MENUS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47"]
 user_states = {}
 
 def registerUser(user,forceFetch=False):
@@ -194,6 +385,9 @@ def isInMarketHours():
     return not PKDateUtilities.isTodayHoliday()[0] and now >= marketStartTime and now <= marketCloseTime
 
 def initializeIntradayTimer():
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if not is_subscription_enabled:
+        return
     try:
         if (not PKDateUtilities.isTodayHoliday()[0]):
             now = PKDateUtilities.currentDateTime()
@@ -346,8 +540,9 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
     else:
         reply_markup = None
 
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if updatedResults is None:
-        cmdText = "\n/otp : To generate an OTP to login to PKScreener desktop console\n/check UPI_UTR_HERE_After_Making_Payment : To share transaction reference number to automatically enable subscription after making payment via UPI\n"
+        cmdText = f"\n/otp : To generate an OTP to login to PKScreener desktop console\n{'' if not is_subscription_enabled else '/check UPI_UTR_HERE_After_Making_Payment : To share transaction reference number to automatically enable subscription after making payment via UPI\n'}"
         for cmd in cmds:
             if cmd.menuKey not in TOP_LEVEL_MARKUP_SKIP_MENUS:
                 cmdText = f"{cmdText}\n{cmd.commandTextKey()} : {cmd.commandTextLabel()}"
@@ -362,7 +557,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
         menuText = f"{menuText}\nClick /start if you want to restart the session."
     else:
         if not isUserSubscribed(user):
-            updatedResults = f"Thank you for choosing Intraday Monitor!\nThis scan request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1"
+            updatedResults = f"Thank you for choosing Intraday Monitor!\n{'' if not is_subscription_enabled else 'This scan request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1'}"
             updatedResults = f"{updatedResults}\nClick /start if you want to restart the session."
         chosenBotMenuOption = f"{chosenBotMenuOption}\nInt. Monitor. MonitorIndex:{monitorIndex}\n{updatedResults}"
         menuText = updatedResults
@@ -405,6 +600,9 @@ def launchIntradayMonitor():
     global int_timer
     if int_timer is not None:
         int_timer.cancel()
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if not is_subscription_enabled:
+        return None, None
     filePath = os.path.join(Archiver.get_user_data_dir(), "monitor_outputs")
     result_outputs = ""
     if (PKDateUtilities.isTradingTime() and not PKDateUtilities.isTodayHoliday()[0]) or ("PKDevTools_Default_Log_Level" in os.environ.keys() or sys.argv[0].endswith(".py")):
@@ -453,7 +651,7 @@ def launchIntradayMonitor():
 def XDevModeHandler(update: Update, context: CallbackContext) -> str:
     """Show new choice of buttons"""
     query = update.callback_query
-    data = query.data.upper().replace("CX", "X").replace("CB", "B").replace("CG", "G").replace("CMI", "MI").replace("CDV","DV")
+    data = str(query.data).upper().replace("CX", "X").replace("CB", "B").replace("CG", "G").replace("CMI", "MI").replace("CDV","DV")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         return start(update, context)
     if data.startswith("DV"):
@@ -503,7 +701,7 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
-    data = query.data.upper().replace("C", "")
+    data = str(query.data).upper().replace("C", "")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         # Someone is trying to send commands we do not support
         return start(update, context)
@@ -592,7 +790,7 @@ def cancelAlertSubscription(update:Update,context:CallbackContext):
             return
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
-    scanId = updateCarrier.data.upper().replace("CAN_", "")
+    scanId = str(updateCarrier.data).upper().replace("CAN_", "")
     logger.info("User %s started the conversation.", user.first_name)
     if not bot_available:
         # Sometimes, either the payment does not go through or 
@@ -646,33 +844,45 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         updatedResults = APOLOGY_TEXT
     
     reply_markup=default_markup(user=user)
+    # Initialize variables to avoid UnboundLocalError
+    scannerJobsSubscribed = ""
+    alertUser = None
+    subscriptionModelName = PKSubscriptionModel.No_Subscription.name
+    subscriptionModelNames = ""
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if bot_available:
         try:
             otpValue = 0
             alertUser = None
             dbManager = DBManager()
             otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)
-            scannerJobsSubscribed = ""
-            if alertUser is not None and len(alertUser.scannerJobs) > 0:
-                scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
-                if len(scannerJobsSubscribed) > 0:
-                    scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
+            if is_subscription_enabled:
+                if alertUser is not None and len(alertUser.scannerJobs) > 0:
+                    scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
+                    if len(scannerJobsSubscribed) > 0:
+                        scannerJobsSubscribed = f"Subscribed to [{scannerJobsSubscribed}]"
+            else:
+                scannerJobsSubscribed = "Alert subscription is currently unavailable. Please check back later."
         except Exception as e: # pragma: no cover
             logger.error(e)
             pass
         userText = f"<b>UserID</b> : <code>{user.id}</code>"
         try:
-            subscriptionModelNames = "\n<pre>Following basic and premium subscription models are available. Premium subscription allows for unlimited premium scans:\n"
-            for name,value in PKUserSusbscriptions().subscriptionKeyValuePairs.items():
-                if name == PKSubscriptionModel.No_Subscription.name:
-                    subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name} (Only Basic Scans are free)\n"
-                else:
-                    subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name}"
-            subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'><b>sponsor</b></a>\nPlease send\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n. If it is not auto-enabled, please drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually."
+            if is_subscription_enabled:
+                subscriptionModelNames = "\n<pre>Following basic and premium subscription models are available. Premium subscription allows for unlimited premium scans:\n"
+                for name,value in PKUserSusbscriptions().subscriptionKeyValuePairs.items():
+                    if name == PKSubscriptionModel.No_Subscription.name:
+                        subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name} (Only Basic Scans are free)\n"
+                    else:
+                        subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name}"
+                subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'><b>sponsor</b></a>\nPlease send\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n. If it is not auto-enabled, please drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually."
 
-            subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
-            if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
-                subscriptionModelName = f"{subscriptionModelName} (Expires on: {subsValidity})"
+                subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
+                if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
+                    subscriptionModelName = f"{subscriptionModelName} (Expires on: {subsValidity})"
+            else:
+                subscriptionModelName = PKSubscriptionModel.No_Subscription.name
+                subscriptionModelNames = ""
         except Exception as e:
             logger.error(e)
             subscriptionModelName = PKSubscriptionModel.No_Subscription.name
@@ -686,7 +896,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             updatedResults = f"Current subscription: <b>{subscriptionModelName}</b>.\nCurrent alerts balance: <b>₹ {alertUser.balance if alertUser is not None else 0}</b> {scannerJobsSubscribed}. {subscriptionModelNames}"
         
         #Add new buttons with alert subscription options to cancel
-        if alertUser is not None and len(alertUser.scannerJobs) > 0:
+        if is_subscription_enabled and alertUser is not None and len(alertUser.scannerJobs) > 0:
             buttonDict = {}
             for scannerJob in alertUser.scannerJobs:
                 if len(scannerJob) > 0:
@@ -718,7 +928,7 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
-    scanId = query.data.upper().replace("SUB_", "").strip()
+    scanId = str(query.data).upper().replace("SUB_", "").strip()
     global bot_available
     if not bot_available:
         # Bot is running but is running in unavailable mode.
@@ -734,6 +944,12 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     alertUser = dbManager.alertsForUser(int(user.id))
     query.answer()
     menuText = ""
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if not is_subscription_enabled:
+        menuText = "Alert subscription is currently unavailable. Please check back later."
+        editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=default_markup(user=user))
+        return START_ROUTES
+
     requiredBalance = 40 if str(scanId).upper().startswith("P") else 31
     # upi://pay?pa=PKScreener@APL&pn=PKScreener&cu=INR
     payWall = "Please pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>\nPlease use\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI.\nAfter that you can try re-subscribing!\nIf you still face any problem, please drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually."
@@ -801,7 +1017,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
-    data = query.data.upper().replace("C", "")
+    data = str(query.data).upper().replace("C", "")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         # Someone is trying to send commands we do not support
         return start(update, context)
@@ -820,12 +1036,13 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     if data.startswith("MI"): # Intraday monitor
         monitorIndex = int(data.split("_")[1])
         result_outputs, filePath = launchIntradayMonitor()
-        filePath = f"{filePath}_{monitorIndex}.txt"
+        if filePath is not None:
+            filePath = f"{filePath}_{monitorIndex}.txt"
         monitorIndex += 1
         if monitorIndex >= configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
             monitorIndex = 0
         try:
-            if os.path.exists(filePath):
+            if filePath is not None and os.path.exists(filePath):
                 f = open(filePath, "r")
                 result_outputs = f.read()
                 f.close()
@@ -913,11 +1130,11 @@ def Level2(update: Update, context: CallbackContext) -> str:
     query = update.callback_query
     query.answer()
     preSelection = (
-        query.data.upper().replace("C", "")
+        str(query.data).upper().replace("C", "")
     )
     selection = preSelection.split("_")
     preSelection = f"{selection[0]}_{selection[1]}"
-    if (selection[0].upper() not in TOP_LEVEL_SCANNER_MENUS):
+    if (str(selection[0]).upper() not in TOP_LEVEL_SCANNER_MENUS):
         start(update, context)
         return START_ROUTES
     global bot_available
@@ -931,7 +1148,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
         # unavailable mode instead until this gets fixed.
         start(update, context)
         return START_ROUTES
-    if selection[len(selection)-1].upper() == "H": # Home button
+    if str(selection[len(selection)-1]).upper() == "H": # Home button
         start(update, context)
         return START_ROUTES
     
@@ -975,8 +1192,9 @@ def Level2(update: Update, context: CallbackContext) -> str:
         query.answer()
         for mnu in mns:
             activeInlineRow = getinlineMenuListRow(keyboardRows)
+            prefix = (selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] == "P" else selection[0]
             activeInlineRow.append(
-                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{(selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] in ["P"] else selection[0]}_{mnu.menuKey}")))
+                InlineKeyboardButton(mnu.menuKey, callback_data=str(f"C{prefix}_{mnu.menuKey}")))
 
         keyboard = keyboardRows
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1092,7 +1310,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 skip=SCANNER_SKIP_MENUS_38_TO_43,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            menuText = menuText + "\n\nP > More options"
+            menuText = menuText + "\n\nP7 > More Options"
             menuText = menuText + "\nH > Home"
             mns = m2.renderForMenu(
                 m1.find(selection[1]),
@@ -1100,8 +1318,22 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
+            mns.append(menu().create("P7", "More Options", 2))
             mns.append(menu().create("H", "Home", 2))
-            mns.append(menu().create("P", "More Options", 2))
+        elif selection[2] == "P7":
+            menuText = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=SCANNER_SKIP_MENUS_44_TO_47,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            menuText = menuText + "\nH > Home"
+            mns = m2.renderForMenu(
+                m1.find(selection[1]),
+                skip=SCANNER_SKIP_MENUS_44_TO_47,
+                asList=True,
+                renderStyle=MenuRenderStyle.STANDALONE,
+            )
+            mns.append(menu().create("H", "Home", 2))
         elif str(selection[2]).isnumeric() and selection[0].lower() not in ["p"]:
             preSelection = f"{selection[0]}_{selection[1]}_{selection[2]}"
             if selection[2] in SCANNER_MENUS_WITH_SUBMENU_SUPPORT:
@@ -1132,7 +1364,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     selection.extend(["", ""])
     elif len(selection) == 4:
         preSelection = (
-            query.data.upper().replace("C", "")
+            str(query.data).upper().replace("C", "")
         )
     optionChoices = ""
     if len(selection) <= 3 and mns is not None:
@@ -1155,7 +1387,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     asList=True,
                     renderStyle=MenuRenderStyle.STANDALONE,
                 )
-                selectedMenu = m0.find(selection[0].upper())
+                selectedMenu = m0.find(str(selection[0]).upper())
                 m1.renderForMenu(
                     selectedMenu=selectedMenu,
                     skip=(
@@ -1166,7 +1398,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     asList=True,
                     renderStyle=MenuRenderStyle.STANDALONE,
                 )
-                selectedMenu = m1.find(selection[1].upper())
+                selectedMenu = m1.find(str(selection[1]).upper())
                 m2.renderForMenu(
                     selectedMenu=selectedMenu,
                     skip=UNSUPPORTED_COMMAND_MENUS,
@@ -1174,14 +1406,14 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     renderStyle=MenuRenderStyle.STANDALONE,
                 )
                 if selection[2] in SCANNER_MENUS_WITH_SUBMENU_SUPPORT:
-                    selectedMenu = m2.find(selection[2].upper())
+                    selectedMenu = m2.find(str(selection[2]).upper())
                     m3.renderForMenu(
                         selectedMenu=selectedMenu,
                         skip=["0","M","Z"],
                         asList=True,
                         renderStyle=MenuRenderStyle.STANDALONE,
                     )
-                    selectedMenu = m3.find(selection[3].upper())
+                    selectedMenu = m3.find(str(selection[3]).upper())
                     menuText = m4.renderForMenu(
                         selectedMenu=selectedMenu,
                         renderStyle=MenuRenderStyle.STANDALONE,
@@ -1206,7 +1438,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 menuText = ''
         elif len(selection) > 4 or (len(selection) >= 3 and selection[0].lower() in ["p"]):
             if (selection[0] in 'P' and ((len(selection) >= 4 and len(selection[3]) == 0) or (len(selection) == 3 and str(selection[2]).isnumeric()))):
-                preSelection = query.data.upper().replace("C", "")
+                preSelection = str(query.data).upper().replace("C", "")
                 skipMenus = ["N"]
                 skipMenus.extend(INDEX_SKIP_MENUS_1_To_4)
                 # Create the menu text labels
@@ -1252,7 +1484,11 @@ def Level2(update: Update, context: CallbackContext) -> str:
             )
             optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}".replace(" > >","").strip()
             expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
-            menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks and 10-15 minutes for NASDAQ (7300+).\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+            is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+            if is_subscription_enabled:
+                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+            else:
+                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener is being made available for free for a long time. We incur costs to maintain the service. Consider donating to help cover the basic server and maintenance costs:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
 
             reply_markup = default_markup(user=user)
             options = ":".join(selection)
@@ -1303,7 +1539,7 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
     user = updateCarrier.from_user
     query = update.callback_query
     query.answer()
-    preSelection = (query.data.upper().replace("C", ""))
+    preSelection = (str(query.data).upper().replace("C", ""))
     selection = preSelection.split("_")[1]
     if query is None:
         start(update, context)
@@ -1318,7 +1554,8 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
         payingUsers = dbMgr.getPayingUsers()
         if payingUsers is not None and len(payingUsers) > 0:
             menuText = "Here are all the paying users:"
-            menuText = f"{menuText}\n{"UserID".ljust(10,'#')} : {"UserName".ljust(10,'#')} : {"Subs.".ljust(5,'#')} : {"Bal.".ljust(5,'#')}"
+            header = "UserID".ljust(10,'#') + " : " + "UserName".ljust(10,'#') + " : " + "Subs.".ljust(5,'#') + " : " + "Bal.".ljust(5,'#')
+            menuText = f"{menuText}\n{header}"
             for payingUser in payingUsers:
                 menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.username).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
     elif selection == "UUB":
@@ -1378,12 +1615,15 @@ def default_markup(user=None,monitorIndex=0):
             if rowIndex % 2 == 0:
                 keyboard.append(inlineMenus)
                 inlineMenus = []
-    lastRowMenus.append(
-        InlineKeyboardButton(
-            iconDict.get("VS") + "Subscriptions",
-            callback_data="VS_",
+
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if is_subscription_enabled:
+        lastRowMenus.append(
+            InlineKeyboardButton(
+                iconDict.get("VS") + "Subscriptions",
+                callback_data="VS_",
+            )
         )
-    )
     lastRowMenus.append(
         InlineKeyboardButton(
             iconDict.get("start") + "Start",
@@ -1440,7 +1680,8 @@ def launchScreener(options, user, context, optionChoices, update):
             PKAnalyticsService().send_event("bot_scan",{"bot_userid":str(user.id), "bot_username":str(user.username),"scan_id":str(scanRequest),"user_subscribed":userSubs})
         except Exception as e:
             pass
-        if not userSubs:
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        if is_subscription_enabled and not userSubs:
             basicSubscriptions = ["X_0","X_N","X_1_"]
             isBasicScanRequest = False
             for basicSub in basicSubscriptions:
@@ -1448,7 +1689,7 @@ def launchScreener(options, user, context, optionChoices, update):
                     isBasicScanRequest = True
                     break
             if not isBasicScanRequest:
-                responseText = f"Thank you for choosing {scanRequest}!\nThis {'Backtest' if str(scanRequest).startswith('B') else 'Scan'} request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
+                responseText = f"Thank you for choosing {scanRequest}!\n This {'Backtest' if str(scanRequest).startswith('B') else 'Scan'} request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
                 if update is not None and update.message is not None:
                     update.message.reply_text(sanitiseTexts(responseText),reply_markup=default_markup(user=user),parse_mode="HTML")
                 else:
@@ -1458,7 +1699,7 @@ def launchScreener(options, user, context, optionChoices, update):
                 sendSubscriptionOption(update,context,scanRequest)
                 return False
 
-        if str(optionChoices.upper()).startswith("B"):
+        if str(optionChoices).upper().startswith("B"):
             optionChoices = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","")
             while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
@@ -1478,13 +1719,13 @@ def launchScreener(options, user, context, optionChoices, update):
             )
             return True
             # run_workflow(optionChoices, str(user.id), str(options.upper()))
-        elif str(optionChoices.upper()).startswith("G"):
+        elif str(optionChoices).upper().startswith("G"):
             optionChoices = optionChoices.replace(" ", "").replace(">", "_")
             while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
-            options = options.upper().replace("G", "G:3").replace("::", ":D:D:D")
+            options = str(options).upper().replace("G", "G:3").replace("::", ":D:D:D")
             run_workflow(
-                optionChoices, str(user.id), str(options.upper()), workflowType="G"
+                optionChoices, str(user.id), str(options), workflowType="G"
             )
             return True
         else: #str(optionChoices.upper()).startswith("X") or str(optionChoices.upper()).startswith("P"):
@@ -1492,7 +1733,7 @@ def launchScreener(options, user, context, optionChoices, update):
             while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
             run_workflow(
-                optionChoices, str(user.id), str(options.upper().replace(":7:3:4",":7:3:0.008:4")), workflowType="X"
+                optionChoices, str(user.id), str(str(options).upper().replace(":7:3:4",":7:3:0.008:4")), workflowType="X"
             )
             return True
             # Popen(
@@ -1562,12 +1803,14 @@ def sendSubscriptionOption(update:Update,context:CallbackContext,scanId):
             [{"text": f"Yes! Subscribe", "callback_data": f"SUB_{scanId}"}]
         ],
     }
-    message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
-    if len(str(scanId).strip()) > 0 and not str(scanId).startswith("B"):
-        context.bot.send_message(
-            chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode="HTML"
-        )
-    
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if is_subscription_enabled:
+        message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
+        if len(str(scanId).strip()) > 0 and not str(scanId).startswith("B"):
+            context.bot.send_message(
+                chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode="HTML"
+            )
+        
 def end(update: Update, context: CallbackContext) -> str:
     """Returns `ConversationHandler.END`, which tells the
     ConversationHandler that the conversation is over.
@@ -1612,23 +1855,31 @@ def error_handler(update: object, context: CallbackContext) -> None:
                 f"Stopping due to conflict after running for {timeSinceStarted.total_seconds()/60} minutes."
             )
             try:
-                global int_timer
+                global int_timer, _updater
                 if int_timer is not None:
                     int_timer.cancel()
+                if _updater is not None:
+                    _updater.stop() # This will unblock idle()
+                if monitor_proc is not None:
+                    monitor_proc.kill()
             except: # pragma: no cover
                 pass
                 #https://github.com/python-telegram-bot/python-telegram-bot/issues/209
                 # if _updater is not None:
                 #     _updater.stop() # Calling stop from within a handler will cause deadlock
-            try:
-                # context.dispatcher.stop()
-                thread.interrupt_main() # causes ctrl + c
-                # sys.exit(0)
-            except RuntimeError:
-                pass
-            except SystemExit:
-                thread.interrupt_main()
-            # sys.exit(0)
+            finally:
+                # Force exit after stopping
+                try:
+                    # context.dispatcher.stop()
+                    thread.interrupt_main() # causes ctrl + c
+                    os._exit(0)  # Force exit immediately
+                    # sys.exit(0)
+                except RuntimeError:
+                    pass
+                except SystemExit:
+                    thread.interrupt_main()
+                finally:
+                    sys.exit(0)
         else:
             print("Other instance running!")
             # context.application.run_polling(allowed_updates=Update.ALL_TYPES)
@@ -2033,7 +2284,7 @@ def sendRequestSubmitted(optionChoices, update, context):
             return
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
-    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \nConsider donating to help keep this project going:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \nConsider donating to help cover the basic server and maintenance costs:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
     update.message.reply_text(sanitiseTexts(menuText),reply_markup=default_markup(user=user),parse_mode="HTML")
     # help_command(update=update, context=context)
     shareUpdateWithChannel(
@@ -2268,7 +2519,13 @@ def addCommandsForMenuItems(application):
 #   )
 
 @ping(interval=300,instance=PKAnalyticsService(),prefix="bot_")
+# Add this to the beginning of runpkscreenerbot() to debug
 def runpkscreenerbot(availability=True) -> None:
+    print(f"Python-telegram-bot version: {TG_VER}")
+    print(f"Python version: {sys.version}")
+    print(f"Working directory: {os.getcwd()}")
+    print(f"Environment variables: {[k for k in os.environ.keys() if 'TOKEN' in k or 'CHAT' in k]}")
+    
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     global chat_idADMIN, Channel_Id, bot_available, _updater
@@ -2341,11 +2598,16 @@ def runpkscreenerbot(availability=True) -> None:
     # Start the Bot
     application.start_polling()
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    application.idle()
-
+    try:
+        # Run the bot until you press Ctrl-C or the process receives SIGINT,
+        # SIGTERM or SIGABRT. This should be used most of the time, since
+        # start_polling() is non-blocking and will stop the bot gracefully.
+        application.idle()
+    except (KeyboardInterrupt, SystemExit):
+        sys.exit(0)
+    except Exception as e:
+        print(f"Exception in runpkscreenerbot: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     runpkscreenerbot()

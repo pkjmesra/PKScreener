@@ -1,0 +1,156 @@
+name: Scan Worker Pool
+
+# Phase 5: Warm worker pool to reduce cold start latency by 20-40s
+# This workflow keeps workers warm and ready to process scan requests instantly.
+
+on:
+  # schedule:
+  #   # Keep workers warm by running every 50 minutes
+  #   - cron: '*/50 * * * *'
+  workflow_dispatch:
+    inputs:
+      scan_params:
+        description: 'Scan parameters (e.g., -a Y -e -o X:12:9:2)'
+        required: false
+        default: ''
+      user_id:
+        description: 'Telegram user ID for results'
+        required: false
+        default: '-1001785195297'
+  repository_dispatch:
+    types: [scan-request]
+
+run-name: Scan Worker ${{ github.event.client_payload.params || 'keepalive' }}
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Environment setup
+        id: setup
+        run: |
+          pip3 install requests
+          python3 .github/workflows/githubutilities.py -d
+
+      - name: Cache PKScreener Binary
+        uses: actions/cache@v4
+        id: binary-cache
+        with:
+          path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          key: ${{ runner.os }}-pkscreener-bin-${{ steps.setup.outputs.VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-pkscreener-bin-
+
+      - name: Download binary if not cached
+        if: steps.binary-cache.outputs.cache-hit != 'true'
+        env:
+          exe_path: ${{ steps.setup.outputs.DOWNLOAD_URL }}
+        run: |
+          curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
+          chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          # Validate binary format
+          if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+            echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+            file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+            exit 1
+          fi
+
+      - name: Ensure binary executable
+        run: |
+          chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+          # Validate binary format
+          if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
+            echo "ERROR: Downloaded file is not a valid Linux ELF binary"
+            file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+            exit 1
+          fi
+
+      # Phase 2: Restore pre-cached stock data for faster scans (only during non-trading hours)
+      - name: Check current time in IST
+        id: time-check
+        shell: bash
+        run: |
+          # Get current time in IST
+          CURRENT_HOUR=$(TZ='Asia/Kolkata' date +%H)
+          CURRENT_MIN=$(TZ='Asia/Kolkata' date +%M)
+          CURRENT_TIME=$((10#$CURRENT_HOUR * 60 + 10#$CURRENT_MIN))
+          
+          # Trading hours: 9:15 AM to 4:00 PM IST
+          MARKET_OPEN=$((9 * 60 + 15))  # 9:15 AM
+          MARKET_CLOSE=$((16 * 60 + 0))   # 4:00 PM
+          
+          echo "Current IST time: $CURRENT_HOUR:$CURRENT_MIN"
+          echo "Market open: 9:15, Market close: 16:00"
+          
+          if [ $CURRENT_TIME -ge $MARKET_OPEN ] && [ $CURRENT_TIME -lt $MARKET_CLOSE ]; then
+            echo "🕒 Market hours detected - skipping cache restore to ensure fresh data"
+            echo "USE_CACHE=false" >> $GITHUB_OUTPUT
+          else
+            echo "🕒 Non-market hours detected - using cached data for faster scans"
+            echo "USE_CACHE=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Restore Stock Data Cache (Non-market hours only)
+        if: steps.time-check.outputs.USE_CACHE == 'true'
+        uses: actions/cache@v4
+        with:
+          path: results/Data/
+          key: stock-data-${{ github.run_id }}
+          restore-keys: |
+            stock-data-
+            
+      - name: Clear cache during market hours (optional)
+        if: steps.time-check.outputs.USE_CACHE == 'false'
+        shell: bash
+        run: |
+          echo "🧹 Market hours - ensuring fresh data by removing any cached stock data"
+          rm -rf results/Data/*.pkl results/Data/*.csv 2>/dev/null || true
+          echo "✓ Cache cleared for fresh market data"
+
+      - name: Process scan request (repository_dispatch)
+        if: github.event_name == 'repository_dispatch'
+        env:
+          RUNNER: "GitHub_Actions"
+          SCAN_PARAMS: ${{ github.event.client_payload.params }}
+          USER_ID: ${{ github.event.client_payload.user }}
+        run: |
+          echo "Processing scan request for user: $USER_ID"
+          echo "Parameters: $SCAN_PARAMS"
+          if [ -n "$SCAN_PARAMS" ]; then
+            /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin $SCAN_PARAMS -u $USER_ID -l
+          else
+            echo "No scan parameters provided"
+          fi
+
+      - name: Process manual scan request
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.scan_params != ''
+        env:
+          RUNNER: "GitHub_Actions"
+        run: |
+          /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ github.event.inputs.scan_params }} -u ${{ github.event.inputs.user_id }} -l
+
+      - name: Keepalive (scheduled runs)
+        if: github.event_name == 'schedule'
+        run: |
+          echo "Worker pool keepalive at $(date)"
+          echo "Binary ready: $(test -x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin && echo 'YES' || echo 'NO')"
+          echo "Data cache status: $(ls -la results/Data/ 2>/dev/null | wc -l) files"

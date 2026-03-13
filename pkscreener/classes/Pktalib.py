@@ -130,15 +130,21 @@ class pktalib:
             return talib.EMA(close, timeperiod)
 
     @classmethod
-    def VWAP(self, high, low, close, volume,anchor=None):
+    def VWAP(self, high, low, close, volume, anchor=None):
         try:
             import pandas_ta_classic as talib
             # Aligning the series
             # high,low,close = pktalib.align_series(high, low, close, fill_value=0)
-            return talib.vwap(high, low, close, volume,anchor=anchor)
+            return talib.vwap(high, low, close, volume, anchor=anchor)
         except Exception:  # pragma: no cover
-            # default_logger().debug(e, exc_info=True)
-            return None
+            # Fallback to manual VWAP calculation
+            try:
+                import pandas as pd
+                typical_price = (high + low + close) / 3
+                vwap = (typical_price * volume).cumsum() / volume.cumsum()
+                return pd.Series(vwap, name="VWAP")
+            except Exception:
+                return None
         
     @classmethod
     def KeltnersChannel(self, high, low, close, timeperiod=20):
