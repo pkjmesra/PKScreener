@@ -1,196 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Data Manager</title>
+    <title>Instrument Data Lookup</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
-            background: #f5f5f5;
+            background-color: #f5f5f5;
         }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 10px;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        button.secondary {
-            background: #6c757d;
-        }
-        button.secondary:hover {
-            background: #545b62;
-        }
-        .status {
-            margin-top: 20px;
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
             padding: 15px;
-            border-radius: 5px;
-            display: none;
-        }
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            color: #f44336;
+            font-weight: bold;
+            padding: 15px;
+            background-color: #ffebee;
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+        }
+        .loading {
+            color: #2196f3;
+            font-weight: bold;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
         }
         .info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .url-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-            margin: 10px 0;
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 12px;
+        .timestamp {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 20px;
+            text-align: right;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
         }
-        .data-preview {
-            max-height: 300px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
+        a {
+            color: #2196f3;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 Stock Data Manager</h1>
-        
-        <div class="section">
-            <h2>Update Stock Data via URL</h2>
-            <p>Use this format in your URL:</p>
-            <div class="url-box">
-                https://pkjmesra.github.io/PKScreener/?symbol=SYMBOL&open=PRICE&high=PRICE&low=PRICE&close=PRICE&volume=NUMBER
-            </div>
-            <p>For multiple symbols, separate with commas:</p>
-            <div class="url-box">
-                https://pkjmesra.github.io/PKScreener/?symbol=RELIANCE,INFY&open=2650,1550&high=2680,1575&low=2645,1545&close=2675,1568&volume=1500000,850000
-            </div>
-        </div>
+    <h1>📈 Instrument Data Lookup</h1>
 
-        <div class="section">
-            <h2>Manual Data Entry</h2>
-            <div class="form-group">
-                <label for="symbols">Stock Symbols (comma separated):</label>
-                <input type="text" id="symbols" placeholder="RELIANCE,INFY,TCS">
-            </div>
-            
-            <div class="form-group">
-                <label for="open">Open Prices (comma separated):</label>
-                <input type="text" id="open" placeholder="2650.50,1550.25,3450.75">
-            </div>
-            
-            <div class="form-group">
-                <label for="high">High Prices (comma separated):</label>
-                <input type="text" id="high" placeholder="2680.75,1575.50,3480.25">
-            </div>
-            
-            <div class="form-group">
-                <label for="low">Low Prices (comma separated):</label>
-                <input type="text" id="low" placeholder="2645.25,1545.75,3440.50">
-            </div>
-            
-            <div class="form-group">
-                <label for="close">Close Prices (comma separated):</label>
-                <input type="text" id="close" placeholder="2675.00,1568.00,3465.00">
-            </div>
-            
-            <div class="form-group">
-                <label for="volume">Volumes (comma separated):</label>
-                <input type="text" id="volume" placeholder="1500000,850000,1200000">
-            </div>
-            
-            <button onclick="processManualEntry()">Update Data</button>
-            <button onclick="clearForm()" class="secondary">Clear Form</button>
-        </div>
-
-        <div class="section">
-            <h2>Current Data</h2>
-            <button onclick="loadTicksData()">Refresh Data</button>
-            <button onclick="downloadTicksJson()" class="secondary">Download ticks.json</button>
-            <button onclick="clearAllData()" class="secondary" style="background: #dc3545;">Clear All Data</button>
-            
-            <div id="data-preview" class="data-preview">
-                Loading data...
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Access Your Data</h2>
-            <p>Access your saved ticks.json file at:</p>
-            <div class="url-box" id="json-url">
-                https://pkjmesra.github.io/PKScreener/data/ticks.json
-            </div>
-            <button onclick="copyJsonUrl()">Copy URL</button>
-            <button onclick="openJsonUrl()">Open in New Tab</button>
-        </div>
-
-        <div id="status" class="status"></div>
+    <div class="info">
+        <strong>How to use:</strong> Add <code>?instrument_id=INSTRUMENT_ID</code> to the URL.
+        For example: <a href="?instrument_id=256265">?instrument_id=256265</a> will fetch data for NIFTY 50.
     </div>
 
-    <script src="js/stock-manager.js"></script>
+    <div id="content">
+        <div class="loading">🔍 Fetching instrument data...</div>
+    </div>
+
+    <div class="timestamp" id="timestamp"></div>
+
     <script>
-        // Process query parameters on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            processQueryParams(urlParams);
-            loadTicksData();
-        });
+        (async function() {
+            const contentDiv = document.getElementById('content');
+            const timestampDiv = document.getElementById('timestamp');
+
+            try {
+                // Get instrument_id from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const instrumentId = urlParams.get('instrument_id');
+
+                // Show help if no instrument ID provided
+                if (!instrumentId) {
+                    contentDiv.innerHTML = `
+                        <div class="error">
+                            ❌ No instrument ID provided. Please specify an instrument_id parameter.<br><br>
+                            Example: <code>?instrument_id=256265</code>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Validate instrument ID format
+                if (!/^\d+$/.test(instrumentId)) {
+                    contentDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Invalid instrument ID format. Please use only numbers.<br>
+                            Provided: "${instrumentId}"
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Show loading message
+                contentDiv.innerHTML = `<div class="loading">⏳ Fetching data for instrument ID: ${instrumentId}...</div>`;
+
+                // Fetch the main JSON file
+                const response = await fetch('https://raw.githubusercontent.com/pkjmesra/PKBrokers/refs/heads/main/pkbrokers/kite/examples/results/Data/ticks.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // Get the specific instrument data
+                const instrumentData = data[instrumentId];
+
+                // Display result
+                if (instrumentData) {
+                    // Pretty print the JSON
+                    const prettyJson = JSON.stringify(instrumentData, null, 2);
+                    
+                    contentDiv.innerHTML = `
+                        <h3>✅ Data for Instrument ID: ${instrumentId}</h3>
+                        <pre>${escapeHtml(prettyJson)}</pre>
+                    `;
+                    
+                    // Add timestamp from the data if available
+                    if (instrumentData.last_updated) {
+                        timestampDiv.textContent = `Last updated: ${instrumentData.last_updated}`;
+                    } else {
+                        timestampDiv.textContent = `Retrieved: ${new Date().toLocaleString()}`;
+                    }
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="error">
+                            ❌ No data found for instrument ID: ${instrumentId}<br><br>
+                            Available instrument IDs range from ${Object.keys(data)[0]} to ${Object.keys(data)[Object.keys(data).length - 1]} (sample).
+                        </div>
+                    `;
+                    
+                    // Show a few sample IDs for reference
+                    const sampleIds = Object.keys(data).slice(0, 5).join(', ');
+                    timestampDiv.textContent = `Sample available IDs: ${sampleIds}...`;
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                let errorMessage = error.message;
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                }
+                
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error fetching instrument data:<br>
+                        ${escapeHtml(errorMessage)}
+                    </div>
+                `;
+                timestampDiv.textContent = `Attempted at: ${new Date().toLocaleString()}`;
+            }
+
+            // Helper function to escape HTML special characters
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        })();
     </script>
 </body>
 </html>
