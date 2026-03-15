@@ -49,26 +49,26 @@ if Imports["talib"]:
                 + colorText.END
             )
         try:
-            import pandas_ta as talib
+            import pandas_ta_classic as talib
             OutputControls().printOutput(
                 colorText.FAIL
-                + f"  [+] TA-Lib is not installed. Falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
+                + f"  [+] TA-Lib is not installed. Falling back on pandas_ta_classic.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
         except: # pragma: no cover
             OutputControls().printOutput(
                 colorText.FAIL
-                + f"  [+] pandas_ta is not installed. Falling back on pandas_ta also failed.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
+                + f"  [+] pandas_ta_classic is not installed. Falling back on pandas_ta_classic also failed.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
             pass
         pass
 else:
     try:
-        import pandas_ta as talib
+        import pandas_ta_classic as talib
         OutputControls().printOutput(
             colorText.FAIL
-            + "  [+] TA-Lib is not installed. Falling back on pandas_ta.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+            + "  [+] TA-Lib is not installed. Falling back on pandas_ta_classic.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
             + colorText.END
         )
         sleep(3)
@@ -103,12 +103,12 @@ class pktalib:
         # identify potential areas of support and resistance more accurately 
         # and make better trading decisions.
         with pd.option_context('mode.chained_assignment', None):
-            df["VWAP_D"] = pktalib.VWAP(high=df["High"],low=df["Low"],close=df["Close"],volume=df["Volume"],anchor="D")
+            df["VWAP_D"] = pktalib.VWAP(high=df["high"],low=df["low"],close=df["close"],volume=df["volume"],anchor="D")
             # If we create a column 'typical_price', it should be identical with 'VWAP_D'
-            df['typical_price'] = (df['High'] + df['Low'] + df['Close'])/3
-            tpp_d = ((df['High'] + df['Low'] + df['Close'])*df['Volume'])/3
+            df['typical_price'] = (df["high"] + df["low"] + df["close"])/3
+            tpp_d = ((df["high"] + df["low"] + df["close"])*df["volume"])/3
             df['anchored_VWAP'] = tpp_d.where(df.index >= anchored_date).groupby(
-                df.index >= anchored_date).cumsum()/df['Volume'].where(
+                df.index >= anchored_date).cumsum()/df["volume"].where(
                     df.index >= anchored_date).groupby(
                         df.index >= anchored_date).cumsum()
         return df['anchored_VWAP']
@@ -130,15 +130,21 @@ class pktalib:
             return talib.EMA(close, timeperiod)
 
     @classmethod
-    def VWAP(self, high, low, close, volume,anchor=None):
+    def VWAP(self, high, low, close, volume, anchor=None):
         try:
-            import pandas_ta as talib
+            import pandas_ta_classic as talib
             # Aligning the series
             # high,low,close = pktalib.align_series(high, low, close, fill_value=0)
-            return talib.vwap(high, low, close, volume,anchor=anchor)
+            return talib.vwap(high, low, close, volume, anchor=anchor)
         except Exception:  # pragma: no cover
-            # default_logger().debug(e, exc_info=True)
-            return None
+            # Fallback to manual VWAP calculation
+            try:
+                import pandas as pd
+                typical_price = (high + low + close) / 3
+                vwap = (typical_price * volume).cumsum() / volume.cumsum()
+                return pd.Series(vwap, name="VWAP")
+            except Exception:
+                return None
         
     @classmethod
     def KeltnersChannel(self, high, low, close, timeperiod=20):
@@ -204,7 +210,7 @@ class pktalib:
     @classmethod
     def TriMA(self, close,length=10):
         try:
-            import pandas_ta as talib
+            import pandas_ta_classic as talib
             return talib.trima(close=close, length=length)
         except Exception:  # pragma: no cover
             # default_logger().debug(e, exc_info=True)
@@ -213,7 +219,7 @@ class pktalib:
     @classmethod
     def MACD(self, close, fast, slow, signal):
         try:
-            # import pandas_ta as talib
+            # import pandas_ta_classic as talib
             return talib.macd(close, fast, slow, signal, talib=Imports["talib"])
         except Exception:  # pragma: no cover
             # default_logger().debug(e, exc_info=True)
@@ -346,7 +352,7 @@ class pktalib:
     def ichimoku(
         self, df, tenkan=None, kijun=None, senkou=None, include_chikou=True, offset=None
     ):
-        import pandas_ta as ta
+        import pandas_ta_classic as ta
 
         ichimokudf, spandf = ta.ichimoku(
             df["high"], df["low"], df["close"], tenkan, kijun, senkou, False, 26
@@ -355,10 +361,10 @@ class pktalib:
 
     @classmethod
     def supertrend(self, df, length=7, multiplier=3):
-        import pandas_ta as ta
+        import pandas_ta_classic as ta
 
         sti = ta.supertrend(
-            df["High"], df["Low"], df["Close"], length=length, multiplier=multiplier
+            df["high"], df["low"], df["close"], length=length, multiplier=multiplier
         )
         # trend, direction, long, short
         # SUPERT_7_3.0  SUPERTd_7_3.0  SUPERTl_7_3.0  SUPERTs_7_3.0
@@ -373,17 +379,17 @@ class pktalib:
 
     # @classmethod
     # def momentum(self, df):
-    #     df.loc[:,'MOM'] = talib.MOM(df.loc[:,'Close'],2).apply(lambda x: round(x, 2))
+    #     df.loc[:,'MOM'] = talib.MOM(df.loc[:,"close"],2).apply(lambda x: round(x, 2))
     #     return df.loc[:,'MOM']
 
     # @classmethod
     # def get_dmi_df(self, df):
-    #     df.loc[:,'DMI'] = talib.DX(df.loc[:,'High'],df.loc[:,'Low'],df.loc[:,'Close'],timeperiod=14)
+    #     df.loc[:,'DMI'] = talib.DX(df.loc[:,"high"],df.loc[:,"low"],df.loc[:,"close"],timeperiod=14)
     #     return df.loc[:,'DMI']
 
     # @classmethod
     # def get_macd_df(self, df):
-    #     df.loc[:,'macd(12)'], df.loc[:,'macdsignal(9)'], df.loc[:,'macdhist(26)'] = talib.MACD(df.loc[:,'Close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    #     df.loc[:,'macd(12)'], df.loc[:,'macdsignal(9)'], df.loc[:,'macdhist(26)'] = talib.MACD(df.loc[:,"close"], fastperiod=12, slowperiod=26, signalperiod=9)
     #     df.loc[:,'macd(12)'] = df.loc[:,'macd(12)'].apply(lambda x: round(x, 3))
     #     df.loc[:,'macdsignal(9)']= df.loc[:,'macdsignal(9)'].apply(lambda x: round(x, 3))
     #     df.loc[:,'macdhist(26)'] = df.loc[:,'macdhist(26)'].apply(lambda x: round(x, 3))
@@ -391,48 +397,48 @@ class pktalib:
 
     # @classmethod
     # def get_sma_df(self, df):
-    #     df.loc[:,'SMA(10)'] = talib.SMA(df.loc[:,'Close'],10).apply(lambda x: round(x, 2))
-    #     df.loc[:,'SMA(50)'] = talib.SMA(df.loc[:,'Close'],50).apply(lambda x: round(x, 2))
-    #     return df.loc[:,['Close','SMA(10)', 'SMA(50)']]
+    #     df.loc[:,'SMA(10)'] = talib.SMA(df.loc[:,"close"],10).apply(lambda x: round(x, 2))
+    #     df.loc[:,'SMA(50)'] = talib.SMA(df.loc[:,"close"],50).apply(lambda x: round(x, 2))
+    #     return df.loc[:,["close",'SMA(10)', 'SMA(50)']]
 
     # @classmethod
     # def get_ema_df(self, df):
-    #     df.loc[:,'EMA(9)'] = talib.EMA(df.loc[:,'Close'], timeperiod = 9).apply(lambda x: round(x, 2))
-    #     return df.loc[:,['Close','EMA(9)']]
+    #     df.loc[:,'EMA(9)'] = talib.EMA(df.loc[:,"close"], timeperiod = 9).apply(lambda x: round(x, 2))
+    #     return df.loc[:,["close",'EMA(9)']]
 
     # @classmethod
     # def get_adx_df(self, df):
-    #     df.loc[:,'ADX'] = talib.ADX(df.loc[:,'High'],df.loc[:,'Low'], df.loc[:,'Close'], timeperiod=14).apply(lambda x: round(x, 2))
+    #     df.loc[:,'ADX'] = talib.ADX(df.loc[:,"high"],df.loc[:,"low"], df.loc[:,"close"], timeperiod=14).apply(lambda x: round(x, 2))
     #     return df.loc[:,'ADX']
 
     # @classmethod
     # def get_bbands_df(self, df):
-    #     df.loc[:,'BBands-U'], df.loc[:,'BBands-M'], df.loc[:,'BBands-L'] = talib.BBANDS(df.loc[:,'Close'], timeperiod =20)
+    #     df.loc[:,'BBands-U'], df.loc[:,'BBands-M'], df.loc[:,'BBands-L'] = talib.BBANDS(df.loc[:,"close"], timeperiod =20)
     #     df.loc[:,'BBands-U'] = df.loc[:,'BBands-U'].apply(lambda x: round(x, 2))
     #     df.loc[:,'BBands-M'] = df.loc[:,'BBands-M'].apply(lambda x: round(x, 2))
     #     df.loc[:,'BBands-L'] = df.loc[:,'BBands-L'].apply(lambda x: round(x, 2))
-    #     return df[['Close','BBands-U','BBands-M','BBands-L']]
+    #     return df[["close",'BBands-U','BBands-M','BBands-L']]
 
     # @classmethod
     # def get_obv_df(self, df):
-    #     if ('Close' not in df.keys()) or ('Volume' not in df.keys()):
+    #     if ("close" not in df.keys()) or ("volume" not in df.keys()):
     #         return np.nan
-    #     df.loc[:,'OBV'] = talib.OBV(df.loc[:,'Close'], df.loc[:,'Volume'])
+    #     df.loc[:,'OBV'] = talib.OBV(df.loc[:,"close"], df.loc[:,"volume"])
     #     return df.loc[:,'OBV']
 
     # @classmethod
     # def get_atr_df(self, df):
-    #     df.loc[:,'ATR'] = talib.ATR(df.loc[:,'High'], df.loc[:,'Low'], df.loc[:,'Close'], timeperiod=14).apply(lambda x: round(x, 2))
+    #     df.loc[:,'ATR'] = talib.ATR(df.loc[:,"high"], df.loc[:,"low"], df.loc[:,"close"], timeperiod=14).apply(lambda x: round(x, 2))
     #     return df.loc[:,'ATR']
 
     # @classmethod
     # def get_natr_df(self, df):
-    #     df.loc[:,'NATR'] = talib.NATR(df.loc[:,'High'], df.loc[:,'Low'], df.loc[:,'Close'], timeperiod=14).apply(lambda x: round(x, 2))
+    #     df.loc[:,'NATR'] = talib.NATR(df.loc[:,"high"], df.loc[:,"low"], df.loc[:,"close"], timeperiod=14).apply(lambda x: round(x, 2))
     #     return df.loc[:,'NATR']
 
     # @classmethod
     # def get_trange_df(self, df):
-    #     df.loc[:,'TRANGE'] = talib.TRANGE(df.loc[:,'High'], df.loc[:,'Low'], df.loc[:,'Close']).apply(lambda x: round(x, 2))
+    #     df.loc[:,'TRANGE'] = talib.TRANGE(df.loc[:,"high"], df.loc[:,"low"], df.loc[:,"close"]).apply(lambda x: round(x, 2))
     #     return df.loc[:,'TRANGE']
 
     # @classmethod
@@ -443,9 +449,9 @@ class pktalib:
 
     #     @return: fasts, slows
     #     """
-    #     highs = df.loc[:,'High']
-    #     lows = df.loc[:,'Low']
-    #     closes = df.loc[:,'Close']
+    #     highs = df.loc[:,"high"]
+    #     lows = df.loc[:,"low"]
+    #     closes = df.loc[:,"close"]
     #     slowPeriod=30
     #     fastPeriod=3
     #     atr = self.get_atr_df(df)
@@ -467,7 +473,7 @@ class pktalib:
     #     """
     #     ATR(14)/MA(14)
     #     """
-    #     closes = df.loc[:,'Close']
+    #     closes = df.loc[:,"close"]
 
     #     atr = self.get_atr_df(df)
     #     ma = talib.MA(closes, timeperiod=14)
@@ -501,7 +507,7 @@ class pktalib:
                     result = pd.Series(high + 2 * (PP - low))
                 elif pivotPoint == "S3":
                     result = pd.Series(low - 2 * (high - PP))
-            psr = {'Close':close, 'PP':round(PP,2)}
+            psr = {"close":close, 'PP':round(PP,2)}
             if pivotPoint != "PP" and result is not None:
                 psr[pivotPoint] = round(result,2)
             with pd.option_context('mode.chained_assignment', None):

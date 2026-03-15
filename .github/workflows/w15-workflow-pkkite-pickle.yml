@@ -1,0 +1,453 @@
+name: 0. Run PKBrokers pickle save
+on:
+  workflow_dispatch:  # Allows manual triggering
+  # schedule:
+  #   - cron: '0 10 * * 1-6'  # Run at 8 AM UTC every weekday (Monday-Friday)
+  # Removed push trigger to prevent overwriting good pkl files from History Data Child workflow
+  # push:
+  #   branches: [ actions-data-download ]
+
+jobs:
+  run-pkbrokers-kite:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.11'
+      PKDevTools_Default_Log_Level: ${{ github.event.inputs.logLevel || '20' }}
+      TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+    
+    steps:
+    - name: Checkout PKScreener repository
+      uses: actions/checkout@v4
+      with:
+        repository: pkjmesra/PKScreener
+        ref: actions-data-download
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Clone PKBrokers repository
+      run: |
+        git clone https://github.com/pkjmesra/PKBrokers.git PKBrokers
+
+    - name: Install Python dependencies
+      run: |
+        cd PKBrokers
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install .
+        cd ..
+        pip install pkbrokers
+
+    - name: List directory structure (for debugging)
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Contents:"
+        ls -la
+        echo "PKBrokers repo contents:"
+        ls -la PKBrokers/
+
+    - name: Check if the target script exists
+      run: |
+        if [ -f "PKBrokers/pkbrokers/kite/examples/pkkite.py" ]; then
+          echo "Script found at PKBrokers/pkbrokers/kite/examples/pkkite.py"
+        else
+          echo "Script not found. Available files in kite/examples:"
+          find PKBrokers/pkbrokers/kite -name "*.py" -type f 2>/dev/null || echo "No Python files found in kite directory"
+          exit 1
+        fi
+
+    - name: Create .env.dev file with secrets
+      env:
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+        TOKEN: ${{ secrets.TOKEN }}
+        chat_idADMIN: ${{ secrets.chat_idADMIN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CI_PAT: ${{ secrets.CI_PAT }}
+        TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+        TDU: ${{ secrets.TDU }}
+        TAT: ${{ secrets.TAT }}
+        MCU: ${{ secrets.MCU }}
+        MCAP: ${{ secrets.MCAP }}
+        MCL: ${{ secrets.MCL }}
+        MS: ${{ secrets.MS }}
+        PKG: ${{ secrets.PKG }}
+        REPO_URL: ${{ secrets.REPO_URL }}
+        KUSER: ${{ secrets.KUSER }}
+        KPWD: ${{ secrets.KPWD }}
+        KTOTP: ${{ secrets.KTOTP }}
+        KTOKEN: ${{ secrets.KTOKEN }}
+        DB_TYPE: ${{ secrets.DB_TYPE }}
+        TBTOKEN: ${{ secrets.TBTOKEN }}
+        BBTOKEN: ${{ secrets.BBTOKEN }}
+        Tel_API_ID: ${{ secrets.Tel_API_ID }}
+        Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+        Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+        TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
+      run: |
+        cat > .env.dev << EOF
+        CHAT_ID=$CHAT_ID
+        TOKEN=$TOKEN
+        chat_idADMIN=$chat_idADMIN
+        GITHUB_TOKEN=$GITHUB_TOKEN
+        CI_PAT=$CI_PAT
+        TURSO_TOKEN=$TURSO_TOKEN
+        TDU=$TDU
+        TAT=$TAT
+        MCU=$MCU
+        MCAP=$MCAP
+        MCL=$MCL
+        MS=$MS
+        PKG=$PKG
+        REPO_URL=$REPO_URL
+        KUSER=$KUSER
+        KPWD=$KPWD
+        KTOTP=$KTOTP
+        KTOKEN=$KTOKEN
+        DB_TYPE=$DB_TYPE
+        TBTOKEN=$TBTOKEN
+        BBTOKEN=$BBTOKEN
+        Tel_API_ID=$Tel_API_ID
+        Tel_API_Hash=$Tel_API_Hash
+        Tel_Phone_Number=$Tel_Phone_Number
+        TEL_SESSION_DATA=$TEL_SESSION_DATA
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
+        PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
+        EOF
+        
+        echo "Created .env.dev file with secrets"
+        
+    - name: Create session file
+      run: |
+        echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
+        chmod 600 user_session.session
+        cp .env.dev PKBrokers/pkbrokers/kite/examples/.env.dev
+        cd PKBrokers/pkbrokers/kite/examples/
+        echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
+        chmod 600 user_session.session
+        cd ../../../..
+        pwd
+
+    - name: Execute pkkite.py script
+      env:
+        PYTHONUNBUFFERED: 1  # Force unbuffered output
+        PKDevTools_Default_Log_Level: ${{ env.PKDevTools_Default_Log_Level }}
+      run: |
+        python PKBrokers/pkbrokers/kite/examples/pkkite.py --pickle --verbose 2>&1 | while IFS= read -r line; do
+          # Print timestamp with each log line for better debugging
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+        done
+        EXIT_CODE=${PIPESTATUS[0]}
+        echo "pkkite exited with code $EXIT_CODE"
+
+    - name: Validate generated files
+      id: validate
+      run: |
+        # Define size thresholds (in bytes)
+        DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
+        INTRADAY_PKL_MIN_SIZE=800000  # 1 MB minimum for intraday pkl
+        TICKS_MIN_SIZE=800000         # 1 MB minimum for ticks.json
+        
+        echo "=== Validating Generated Files ==="
+        
+        # Create validation results array
+        VALIDATION_RESULTS=()
+        DAILY_VALID=0
+        INTRADAY_VALID=0
+        TICKS_VALID=0
+        
+        # Check results/Data directory
+        if [ -d "results/Data" ]; then
+          echo "Checking files in results/Data/:"
+          
+          # Check pkl files
+          for pkl_file in results/Data/*.pkl; do
+            if [ -f "$pkl_file" ]; then
+              file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+              size_mb=$((file_size/1024/1024))
+              
+              # Determine if daily or intraday
+              if [[ "$pkl_file" == *"intraday"* ]] || [[ "$pkl_file" == *"1m"* ]] || [[ "$pkl_file" == *"min"* ]]; then
+                # Intraday file
+                if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                  echo "✅ Valid intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  VALIDATION_RESULTS+=("✓ intraday: $(basename "$pkl_file") (${size_mb} MB)")
+                  INTRADAY_VALID=$((INTRADAY_VALID + 1))
+                else
+                  echo "⚠️ Undersized intraday pkl: $(basename "$pkl_file") - ${size_mb} MB (min: $((INTRADAY_PKL_MIN_SIZE/1024/1024)) MB)"
+                  VALIDATION_RESULTS+=("✗ intraday: $(basename "$pkl_file") (${size_mb} MB)")
+                fi
+              else
+                # Daily file
+                if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                  echo "✅ Valid daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+                  VALIDATION_RESULTS+=("✓ daily: $(basename "$pkl_file") (${size_mb} MB)")
+                  DAILY_VALID=$((DAILY_VALID + 1))
+                else
+                  echo "⚠️ Undersized daily pkl: $(basename "$pkl_file") - ${size_mb} MB (min: $((DAILY_PKL_MIN_SIZE/1024/1024)) MB)"
+                  VALIDATION_RESULTS+=("✗ daily: $(basename "$pkl_file") (${size_mb} MB)")
+                fi
+              fi
+            fi
+          done
+          
+          # Check ticks.json
+          if [ -f "results/Data/ticks.json" ]; then
+            ticks_size=$(stat -c%s "results/Data/ticks.json" 2>/dev/null || stat -f%z "results/Data/ticks.json")
+            ticks_mb=$((ticks_size/1024/1024))
+            
+            if [ "$ticks_size" -ge "$TICKS_MIN_SIZE" ]; then
+              echo "✅ Valid ticks.json - ${ticks_mb} MB"
+              VALIDATION_RESULTS+=("✓ ticks.json (${ticks_mb} MB)")
+              TICKS_VALID=1
+            else
+              echo "⚠️ Undersized ticks.json - ${ticks_mb} MB (min: $((TICKS_MIN_SIZE/1024/1024)) MB)"
+              VALIDATION_RESULTS+=("✗ ticks.json (${ticks_mb} MB)")
+            fi
+          fi
+        else
+          echo "results/Data directory not found"
+        fi
+        
+        # Check PKBrokers directory for files
+        if [ -d "PKBrokers/pkbrokers/kite/examples/results/Data" ]; then
+          echo ""
+          echo "Checking files in PKBrokers directory:"
+          
+          for pkl_file in PKBrokers/pkbrokers/kite/examples/results/Data/*.pkl; do
+            if [ -f "$pkl_file" ]; then
+              file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+              size_mb=$((file_size/1024/1024))
+              
+              if [[ "$pkl_file" == *"intraday"* ]]; then
+                echo "Found intraday pkl: $(basename "$pkl_file") - ${size_mb} MB"
+              else
+                echo "Found daily pkl: $(basename "$pkl_file") - ${size_mb} MB"
+              fi
+            fi
+          done
+        fi
+        
+        # Create validation metadata
+        cat > validation_metadata.json << EOF
+        {
+          "validation_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "validation_time_ist": "$(TZ='Asia/Kolkata' date +%Y-%m-%dT%H:%M:%S%:z)",
+          "daily_valid": $DAILY_VALID,
+          "intraday_valid": $INTRADAY_VALID,
+          "ticks_valid": $TICKS_VALID,
+          "size_thresholds": {
+            "daily_mb": $((DAILY_PKL_MIN_SIZE/1024/1024)),
+            "intraday_mb": $((INTRADAY_PKL_MIN_SIZE/1024/1024)),
+            "ticks_mb": $((TICKS_MIN_SIZE/1024/1024))
+          },
+          "validation_results": [
+            $(printf '"%s",' "${VALIDATION_RESULTS[@]}" | sed 's/,$//')
+          ]
+        }
+        EOF
+        
+        echo ""
+        echo "=== Validation Summary ==="
+        echo "Daily valid files: $DAILY_VALID"
+        echo "Intraday valid files: $INTRADAY_VALID"
+        echo "Ticks valid: $TICKS_VALID"
+        
+        # Export validation results
+        echo "DAILY_VALID=$DAILY_VALID" >> $GITHUB_ENV
+        echo "INTRADAY_VALID=$INTRADAY_VALID" >> $GITHUB_ENV
+        echo "TICKS_VALID=$TICKS_VALID" >> $GITHUB_ENV
+
+    - name: Handle script output
+      run: |
+        echo "Script execution completed"
+        ls
+        ls -l results/Data/ 2>/dev/null || echo "results/Data/ not found"
+
+    - name: Upload artifacts (if script generates output files)
+      timeout-minutes: 5
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: pkkite-output
+        path: |
+          results/Data/*.json
+          results/Data/*.db
+          results/Data/*.pkl
+        retention-days: 1
+
+    - name: Copy validated pkl files to actions-data-download directory
+      run: |
+        mkdir -p actions-data-download
+        
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=800000
+        TICKS_MIN_SIZE=800000
+        
+        FILES_COPIED=0
+        
+        echo "=== Copying validated files ==="
+        
+        # Copy from results/Data/
+        if [ -d "results/Data" ]; then
+          # Copy pkl files
+          for pkl_file in results/Data/*.pkl; do
+            if [ -f "$pkl_file" ]; then
+              file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+              size_mb=$((file_size/1024/1024))
+              
+              if [[ "$pkl_file" == *"intraday"* ]] || [[ "$pkl_file" == *"1m"* ]] || [[ "$pkl_file" == *"min"* ]]; then
+                if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                  cp "$pkl_file" actions-data-download/
+                  echo "✅ Copied valid intraday pkl: $(basename "$pkl_file") (${size_mb} MB)"
+                  FILES_COPIED=$((FILES_COPIED + 1))
+                fi
+              else
+                if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                  cp "$pkl_file" actions-data-download/
+                  echo "✅ Copied valid daily pkl: $(basename "$pkl_file") (${size_mb} MB)"
+                  FILES_COPIED=$((FILES_COPIED + 1))
+                fi
+              fi
+            fi
+          done
+          
+          # Copy ticks.json if valid
+          if [ -f "results/Data/ticks.json" ]; then
+            ticks_size=$(stat -c%s "results/Data/ticks.json" 2>/dev/null || stat -f%z "results/Data/ticks.json")
+            ticks_mb=$((ticks_size/1024/1024))
+            
+            if [ "$ticks_size" -ge "$TICKS_MIN_SIZE" ]; then
+              cp "results/Data/ticks.json" actions-data-download/
+              echo "✅ Copied valid ticks.json (${ticks_mb} MB)"
+              FILES_COPIED=$((FILES_COPIED + 1))
+            fi
+          fi
+        fi
+        
+        # Copy from PKBrokers directory as fallback
+        if [ -d "PKBrokers/pkbrokers/kite/examples/results/Data" ]; then
+          for pkl_file in PKBrokers/pkbrokers/kite/examples/results/Data/*.pkl; do
+            if [ -f "$pkl_file" ] && [ ! -f "actions-data-download/$(basename "$pkl_file")" ]; then
+              file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+              size_mb=$((file_size/1024/1024))
+              
+              if [[ "$pkl_file" == *"intraday"* ]]; then
+                if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                  cp "$pkl_file" actions-data-download/
+                  echo "✅ Copied valid intraday pkl from PKBrokers: $(basename "$pkl_file") (${size_mb} MB)"
+                  FILES_COPIED=$((FILES_COPIED + 1))
+                fi
+              else
+                if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                  cp "$pkl_file" actions-data-download/
+                  echo "✅ Copied valid daily pkl from PKBrokers: $(basename "$pkl_file") (${size_mb} MB)"
+                  FILES_COPIED=$((FILES_COPIED + 1))
+                fi
+              fi
+            fi
+          done
+        fi
+        
+        # Copy validation metadata
+        if [ -f "validation_metadata.json" ]; then
+          cp validation_metadata.json actions-data-download/
+          echo "✅ Copied validation metadata"
+          FILES_COPIED=$((FILES_COPIED + 1))
+        fi
+        
+        echo ""
+        echo "=== Files in actions-data-download ==="
+        ls -la actions-data-download/ || echo "Directory empty"
+        
+        echo "Total valid files copied: $FILES_COPIED"
+        echo "FILES_COPIED=$FILES_COPIED" >> $GITHUB_ENV
+
+    - name: Push validated pkl files to repository
+      timeout-minutes: 5
+      if: success() && env.FILES_COPIED != '0'
+      run: |
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git remote update
+        git fetch
+        
+        # Count valid files to commit
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=800000
+        FILES_TO_COMMIT=0
+        DAILY_SIZE=0
+        INTRADAY_SIZE=0
+        
+        echo "=== Preparing to commit validated files ==="
+        
+        # Add only files that meet size requirements
+        for pkl_file in actions-data-download/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+            size_mb=$((file_size/1024/1024))
+            
+            if [[ "$pkl_file" == *"intraday"* ]] || [[ "$pkl_file" == *"1m"* ]] || [[ "$pkl_file" == *"min"* ]]; then
+              if [ "$file_size" -ge "$INTRADAY_PKL_MIN_SIZE" ]; then
+                git add -f "$pkl_file"
+                FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+                [ "$file_size" -gt "$INTRADAY_SIZE" ] && INTRADAY_SIZE=$file_size
+                echo "✅ Staging intraday pkl: $(basename "$pkl_file") (${size_mb} MB)"
+              fi
+            else
+              if [ "$file_size" -ge "$DAILY_PKL_MIN_SIZE" ]; then
+                git add -f "$pkl_file"
+                FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+                [ "$file_size" -gt "$DAILY_SIZE" ] && DAILY_SIZE=$file_size
+                echo "✅ Staging daily pkl: $(basename "$pkl_file") (${size_mb} MB)"
+              fi
+            fi
+          fi
+        done
+        
+        # Add ticks.json if valid
+        if [ -f "actions-data-download/ticks.json" ]; then
+          ticks_size=$(stat -c%s "actions-data-download/ticks.json" 2>/dev/null || stat -f%z "actions-data-download/ticks.json")
+          if [ "$ticks_size" -ge 800000 ]; then
+            git add -f actions-data-download/ticks.json
+            FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+            echo "✅ Staging valid ticks.json ($((ticks_size/1024/1024)) MB)"
+          fi
+        fi
+        
+        # Add validation metadata
+        if [ -f "actions-data-download/validation_metadata.json" ]; then
+          git add -f actions-data-download/validation_metadata.json
+          FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
+        fi
+        
+        if [ "$FILES_TO_COMMIT" -gt 0 ]; then
+          echo ""
+          echo "Committing $FILES_TO_COMMIT validated files..."
+          
+          DAILY_MB=$((DAILY_SIZE/1024/1024))
+          INTRADAY_MB=$((INTRADAY_SIZE/1024/1024))
+          
+          git commit -m "GitHub-Action-Workflow-PKBrokers-Pickle-Save-$(date +%Y-%m-%d) - daily:${DAILY_MB}MB intraday:${INTRADAY_MB}MB [files:$FILES_TO_COMMIT]" || echo "No changes to commit"
+          
+          # Pull and rebase before pushing to avoid overwriting good commits from other workflows
+          for i in 1 2 3; do
+            git pull --rebase origin actions-data-download || true
+            if git push -v -u origin actions-data-download; then
+              echo "✅ Successfully pushed $FILES_TO_COMMIT validated files to repository"
+              break
+            else
+              echo "Push failed, retry $i/3..."
+              sleep 5
+            fi
+          done
+        else
+          echo "⚠️ No valid files found to commit (all files below size thresholds)"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

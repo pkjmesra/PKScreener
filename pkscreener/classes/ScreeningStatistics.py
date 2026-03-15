@@ -38,7 +38,7 @@ import pkscreener.classes.Utility as Utility
 from pkscreener import Imports
 from pkscreener.classes.Pktalib import pktalib
 from PKDevTools.classes.OutputControls import OutputControls
-from PKDevTools.classes import Archiver
+from PKDevTools.classes import Archiver, log
 from PKNSETools.morningstartools import Stock
 
 if sys.version_info >= (3, 11):
@@ -90,13 +90,25 @@ class ScreeningStatistics:
         self.configManager = configManager
         self.default_logger = default_logger
         self.shouldLog = shouldLog
+        self.setupLogger(self.default_logger.level)
+
+    def setupLogger(self, log_level):
+        if log_level > 0:
+            os.environ["PKDevTools_Default_Log_Level"] = str(log_level)
+        log.setup_custom_logger(
+            "pkscreener",
+            log_level,
+            trace=False,
+            log_file_path="pkscreener-logs.txt",
+            filter=None,
+        )
 
     def calc_relative_strength(self,df:pd.DataFrame):
         if df is None or len(df) <= 1:
             return -1
         closeColumn = 'Adj Close'
         if closeColumn not in df.columns:
-            closeColumn = 'Close'
+            closeColumn = "close"
 
         with pd.option_context('mode.chained_assignment', None):
             df.sort_index(inplace=True)
@@ -119,13 +131,13 @@ class ScreeningStatistics:
             if Imports["vectorbt"]:
                 from vectorbt.indicators import MA as vbt
                 if df is not None:
-                    ema = vbt.run(df["Close"], 1, short_name='EMA', ewm=True)
+                    ema = vbt.run(df["close"], 1, short_name='EMA', ewm=True)
                     df["Above"] = ema.ma_crossed_above(df["ATRTrailingStop"])
                     df["Below"] = ema.ma_crossed_below(df["ATRTrailingStop"])
             else:
                 OutputControls().printOutput(f"{colorText.FAIL}The main module needed for best Buy/Sell result calculation is missing. Falling back on an alternative, but it is not very reliable.{colorText.END}")
                 if df is not None:
-                    ema = pktalib.EMA(df["Close"], ema_period) if ema_period > 1 else df["Close"]#short_name='EMA', ewm=True)        
+                    ema = pktalib.EMA(df["close"], ema_period) if ema_period > 1 else df["close"]#short_name='EMA', ewm=True)        
                     df["Above"] = ema > df["ATRTrailingStop"]
                     df["Below"] = ema < df["ATRTrailingStop"]
         except (OSError,FileNotFoundError) as e: # pragma: no cover
@@ -160,7 +172,7 @@ class ScreeningStatistics:
             else:
                 OutputControls().printOutput(msg)
             if df is not None:
-                ema = pktalib.EMA(df["Close"], ema_period) if ema_period > 1 else df["Close"]#short_name='EMA', ewm=True)        
+                ema = pktalib.EMA(df["close"], ema_period) if ema_period > 1 else df["close"]#short_name='EMA', ewm=True)        
                 df["Above"] = ema > df["ATRTrailingStop"]
                 df["Below"] = ema < df["ATRTrailingStop"]
         except KeyboardInterrupt: # pragma: no cover
@@ -169,8 +181,8 @@ class ScreeningStatistics:
             pass
                 
         if df is not None:
-            df["Buy"] = (df["Close"] > df["ATRTrailingStop"]) & (df["Above"]==True)
-            df["Sell"] = (df["Close"] < df["ATRTrailingStop"]) & (df["Below"]==True)
+            df["Buy"] = (df["close"] > df["ATRTrailingStop"]) & (df["Above"]==True)
+            df["Sell"] = (df["close"] < df["ATRTrailingStop"]) & (df["Below"]==True)
 
         return df
 
@@ -179,8 +191,8 @@ class ScreeningStatistics:
         dataframe = self.findBuySellSignalsFromATRTrailing(dataframe, key_value=2, atr_period=7, ema_period=100)
         
         # Calculate RSI and ADX
-        rsi = pktalib.RSI(dataframe['Close'])
-        adx = pktalib.ADX(dataframe['High'], dataframe['Low'], dataframe['Close'])
+        rsi = pktalib.RSI(dataframe["close"])
+        adx = pktalib.ADX(dataframe["high"], dataframe["low"], dataframe["close"])
         
         # Define conditions based on UTBot Alerts and additional indicators
         # ... (your custom conditions here)
@@ -233,9 +245,9 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["High"].iloc[0]
+        recent = data.head(1)["high"].iloc[0]
         full52Week = data.head(50 * one_week)
-        full52WeekHigh = full52Week["High"].max()
+        full52WeekHigh = full52Week["high"].max()
         # if self.shouldLog:
         #     self.default_logger.debug(data.head(10))
         return recent >= full52WeekHigh
@@ -251,10 +263,10 @@ class ScreeningStatistics:
         one_week = 5
         week_52 = one_week * 50  # Considering holidays etc as well of 10 days
         full52Week = data.head(week_52 + 1).tail(week_52+1)
-        recentHigh = data.head(1)["High"].iloc[0]
-        recentLow = data.head(1)["Low"].iloc[0]
-        full52WeekHigh = full52Week["High"].max()
-        full52WeekLow = full52Week["Low"].min()
+        recentHigh = data.head(1)["high"].iloc[0]
+        recentLow = data.head(1)["low"].iloc[0]
+        full52WeekHigh = full52Week["high"].max()
+        full52WeekLow = full52Week["low"].min()
 
         saveDict["52Wk-H"] = "{:.2f}".format(full52WeekHigh)
         saveDict["52Wk-L"] = "{:.2f}".format(full52WeekLow)
@@ -287,12 +299,12 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["Low"].iloc[0]
+        recent = data.head(1)["low"].iloc[0]
         last1Week = data.head(one_week)
         last2Week = data.head(2 * one_week)
         previousWeek = last2Week.tail(one_week)
-        last1WeekLow = last1Week["Low"].min()
-        previousWeekLow = previousWeek["Low"].min()
+        last1WeekLow = last1Week["low"].min()
+        previousWeekLow = previousWeek["low"].min()
         # if self.shouldLog:
         #     self.default_logger.debug(data.head(10))
         return (recent <= min(previousWeekLow, last1WeekLow)) and (
@@ -308,14 +320,14 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         one_week = 5
-        recent = data.head(1)["Low"].iloc[0]
+        recent = data.head(1)["low"].iloc[0]
         # last1Week = data.head(one_week)
         # last2Week = data.head(2 * one_week)
         # previousWeek = last2Week.tail(one_week)
         full52Week = data.head(50 * one_week)
-        # last1WeekLow = last1Week["Low"].min()
-        # previousWeekLow = previousWeek["Low"].min()
-        full52WeekLow = full52Week["Low"].min()
+        # last1WeekLow = last1Week["low"].min()
+        # previousWeekLow = previousWeek["low"].min()
+        full52WeekLow = full52Week["low"].min()
         # if self.shouldLog:
         #     self.default_logger.debug(data.head(10))
         return recent <= full52WeekLow
@@ -329,7 +341,7 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         period = 14
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        aroondf = pktalib.Aroon(data["High"], data["Low"], period)
+        aroondf = pktalib.Aroon(data["high"], data["low"], period)
         recent = aroondf.tail(1)
         up = recent[f"AROONU_{period}"].iloc[0]
         down = recent[f"AROOND_{period}"].iloc[0]
@@ -348,11 +360,11 @@ class ScreeningStatistics:
         recent = data.head(1)
         recentCandleHeight = self.getCandleBodyHeight(recent)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        atr = pktalib.ATR(data["High"],data["Low"],data["Close"], 14)
+        atr = pktalib.ATR(data["high"],data["low"],data["close"], 14)
         atrCross = recentCandleHeight >= atr.tail(1).iloc[0]
         bullishRSI = recent["RSI"].iloc[0] >= 55 or recent["RSIi"].iloc[0] >= 55
-        smav7 = pktalib.SMA(data["Volume"],timeperiod=7).tail(1).iloc[0]
-        atrCrossCondition = atrCross and bullishRSI and (smav7 < recent["Volume"].iloc[0])
+        smav7 = pktalib.SMA(data["volume"],timeperiod=7).tail(1).iloc[0]
+        atrCrossCondition = atrCross and bullishRSI and (smav7 < recent["volume"].iloc[0])
         saveDict["ATR"] = round(atr.tail(1).iloc[0],1)
         screenDict["ATR"] = saveDict["ATR"] #(colorText.GREEN if atrCrossCondition else colorText.FAIL) + str(atr.tail(1).iloc[0]) + colorText.END
         # if self.shouldLog:
@@ -369,7 +381,7 @@ class ScreeningStatistics:
 
         SENSITIVITY = sensitivity
         # Compute ATR And nLoss variable
-        data["xATR"] = pktalib.ATR(data["High"], data["Low"], data["Close"], timeperiod=atr_period)
+        data["xATR"] = pktalib.ATR(data["high"], data["low"], data["close"], timeperiod=atr_period)
         data["nLoss"] = SENSITIVITY * data["xATR"]
         
         #Drop all rows that have nan, X first depending on the ATR preiod for the moving average
@@ -380,8 +392,8 @@ class ScreeningStatistics:
         
         for i in range(1, len(data)):
             data.loc[i, "ATRTrailingStop"] = self.xATRTrailingStop_func(
-                data.loc[i, "Close"],
-                data.loc[i - 1, "Close"],
+                data.loc[i, "close"],
+                data.loc[i - 1, "close"],
                 data.loc[i - 1, "ATRTrailingStop"],
                 data.loc[i, "nLoss"],
             )
@@ -416,11 +428,11 @@ class ScreeningStatistics:
                 
     #             if base_count <= 4:  # Maximum of 4 base candles for weekly or monthly timeframe, else 3 for daily
     #                 if j < len(data) and data['Candle Type'][j] == 'Rally Candle':
-    #                     if data['Close'][j] > data['Low'][i] + 0.6 * data['Candle Range'][i] and data['High'][i] <= cmp:
+    #                     if data["close"][j] > data["low"][i] + 0.6 * data['Candle Range'][i] and data["high"][i] <= cmp:
     #                         # Check for one more rally candle or green base candle
     #                         k = j + 1
     #                         while k < len(data):
-    #                             if data['Candle Type'][k] == 'Rally Candle' or (data['Candle Type'][k] == 'Base Candle' and data['Close'][k] > data['Open'][k]):
+    #                             if data['Candle Type'][k] == 'Rally Candle' or (data['Candle Type'][k] == 'Base Candle' and data["close"][k] > data["open"][k]):
     #                                 demand_zones.append((i, j, 'Drop Base Rally', base_count))
     #                                 drop_base_rally_zone = True
     #                                 break
@@ -434,11 +446,11 @@ class ScreeningStatistics:
                 
     #             if base_count >= 1:  # At least one base candle required
     #                 if j < len(data) and data['Candle Type'][j] == 'Rally Candle':
-    #                     if data['Close'][j] > data['Close'][i] and data['High'][i] <= cmp:  # New condition: close of 2nd rally candle > 1st rally candle
+    #                     if data["close"][j] > data["close"][i] and data["high"][i] <= cmp:  # New condition: close of 2nd rally candle > 1st rally candle
     #                         # Check for one more rally candle or green base candle
     #                         k = j + 1
     #                         while k < len(data):
-    #                             if data['Candle Type'][k] == 'Rally Candle' or (data['Candle Type'][k] == 'Base Candle' and data['Close'][k] > data['Open'][k]):
+    #                             if data['Candle Type'][k] == 'Rally Candle' or (data['Candle Type'][k] == 'Base Candle' and data["close"][k] > data["open"][k]):
     #                                 demand_zones.append((i, j, 'Rally Base Rally', base_count))
     #                                 rally_base_rally_zone = True
     #                                 break
@@ -446,7 +458,7 @@ class ScreeningStatistics:
                             
     #         # Collect base candle prices for proximal line calculation
     #         if data['Candle Type'][i] == 'Base Candle':
-    #             base_candle_prices.append(data['Close'][i])
+    #             base_candle_prices.append(data["close"][i])
 
     #     # Calculate proximal line price (highest price among base candles)
     #     proximal_line_price = max(base_candle_prices) if base_candle_prices else None
@@ -471,12 +483,12 @@ class ScreeningStatistics:
                 
     #             if base_count <= 4:  # Maximum of 4 base candles for weekly or monthly timeframe, else 3 for daily
     #                 if j < len(data) and data['Candle Type'][j] == 'Drop Candle':
-    #                     if data['Close'][i] < data['Low'][j] and data['Low'][i] >= cmp:  # New condition: close of drop candle < low of base candle
+    #                     if data["close"][i] < data["low"][j] and data["low"][i] >= cmp:  # New condition: close of drop candle < low of base candle
     #                         # New logic: Look for one more drop candle or red base candle
     #                         k = j + 1
-    #                         while k < len(data) and (data['Candle Type'][k] == 'Drop Candle' or data['Close'][k] < data['Open'][k]):
+    #                         while k < len(data) and (data['Candle Type'][k] == 'Drop Candle' or data["close"][k] < data["open"][k]):
     #                             k += 1
-    #                         if k < len(data) and (data['Candle Type'][k] == 'Drop Candle' or data['Close'][k] < data['Open'][k]):
+    #                         if k < len(data) and (data['Candle Type'][k] == 'Drop Candle' or data["close"][k] < data["open"][k]):
     #                             supply_zones.append((i, j, 'Drop Base Drop', base_count))
     #                             drop_base_drop_zone = True
     #         elif data['Candle Type'][i] == 'Rally Candle' and data['Candle Type'][i + 1] == 'Base Candle':
@@ -488,13 +500,13 @@ class ScreeningStatistics:
                 
     #             if base_count >= 1:  # At least one base candle required
     #                 if j < len(data) and data['Candle Type'][j] == 'Drop Candle':
-    #                     if data['Close'][j] < data['Open'][j] and data['Low'][i] >= cmp:  # Modified condition: close of drop candle < open of drop candle
+    #                     if data["close"][j] < data["open"][j] and data["low"][i] >= cmp:  # Modified condition: close of drop candle < open of drop candle
     #                         supply_zones.append((i, j, 'Rally Base Drop', base_count))
     #                         rally_base_drop_zone = True
                             
     #         # Collect base candle prices for proximal line calculation
     #         if data['Candle Type'][i] == 'Base Candle':
-    #             base_candle_prices.append(data['Close'][i])
+    #             base_candle_prices.append(data["close"][i])
 
     #     # Calculate proximal line price (lowest price among base candles)
     #     proximal_line_price = min(base_candle_prices) if base_candle_prices else None
@@ -504,7 +516,7 @@ class ScreeningStatistics:
     # def calculate_demand_proximal_lines(self,data, demand_zones):
     #     proximal_line_prices = []
     #     for start, end, _, _ in demand_zones:
-    #         base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), ['Open', 'Close']]
+    #         base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), ["open", "close"]]
     #         max_price = base_candle_prices.max(axis=1).max()  # Get the maximum price among all base candles' open and close prices
     #         proximal_line_prices.append(max_price)
     #     return proximal_line_prices
@@ -512,7 +524,7 @@ class ScreeningStatistics:
     # def calculate_supply_proximal_lines(self,data, supply_zones):
     #     proximal_line_prices = []
     #     for start, end, _, _ in supply_zones:
-    #         base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), ['Open', 'Close']]
+    #         base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), ["open", "close"]]
     #         min_price = base_candle_prices.min(axis=1).min()  # Get the minimum price among all base candles' open and close prices
     #         proximal_line_prices.append(min_price)
     #     return proximal_line_prices
@@ -522,12 +534,12 @@ class ScreeningStatistics:
     #     for start, end, pattern, _ in demand_zones:
     #         if pattern == 'Drop Base Rally':
     #             # Logic for Drop Base Rally pattern: Take the lowest price among all components of the zone
-    #             lowest_price = min(data['Low'][start:end + 1])  # Get the lowest price within the zone
+    #             lowest_price = min(data["low"][start:end + 1])  # Get the lowest price within the zone
     #             distal_line_prices.append(lowest_price)
     #         elif pattern == 'Rally Base Rally':
     #             # Logic for Rally Base Rally pattern: Take the lowest of only all base candle and followed rally candle
-    #             base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), 'Low']
-    #             rally_candle_prices = data.loc[(data['Candle Type'] == 'Rally Candle') & (data.index >= data.index[end]) & (data.index < data.index[end+1]), 'Low']
+    #             base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), "low"]
+    #             rally_candle_prices = data.loc[(data['Candle Type'] == 'Rally Candle') & (data.index >= data.index[end]) & (data.index < data.index[end+1]), "low"]
     #             all_prices = pd.concat([base_candle_prices, rally_candle_prices])
     #             lowest_price = all_prices.min() if not all_prices.empty else None
     #             distal_line_prices.append(lowest_price)
@@ -538,12 +550,12 @@ class ScreeningStatistics:
     #     for start, end, pattern, _ in supply_zones:
     #         if pattern == 'Rally Base Drop':
     #             # Logic for Rally Base Drop pattern: Take the highest price among all components of the zone
-    #             highest_price = max(data['High'][start:end + 1])  # Get the highest price within the zone
+    #             highest_price = max(data["high"][start:end + 1])  # Get the highest price within the zone
     #             distal_line_prices.append(highest_price)
     #         elif pattern == 'Drop Base Drop':
     #             # Logic for Drop Base Drop pattern: Take the highest of only all base candles and followed drop candle
-    #             base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), 'High']
-    #             drop_candle_prices = data.loc[(data['Candle Type'] == 'Drop Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), 'High']
+    #             base_candle_prices = data.loc[(data['Candle Type'] == 'Base Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), "high"]
+    #             drop_candle_prices = data.loc[(data['Candle Type'] == 'Drop Candle') & (data.index >= data.index[start]) & (data.index <= data.index[end]), "high"]
     #             all_prices = pd.concat([base_candle_prices, drop_candle_prices])
     #             highest_price = all_prices.max() if not all_prices.empty else None
     #             distal_line_prices.append(highest_price)
@@ -563,7 +575,7 @@ class ScreeningStatistics:
     #     - True if the proximal line price is tested, False otherwise
     #     """
     #     for i in range(end_index + 1, len(data)):
-    #         if data['Low'][i] <= proximal_line_price <= data['High'][i]:
+    #         if data["low"][i] <= proximal_line_price <= data["high"][i]:
     #             return True
     #     return False
 
@@ -623,7 +635,7 @@ class ScreeningStatistics:
     #     filtered_stocks = []
     #     for symbol in symbol_list:
     #         if data is not None:
-    #             cmp = data.iloc[-1]['Close']  # Current market price
+    #             cmp = data.iloc[-1]["close"]  # Current market price
     #             demand_zones, _, _, demand_proximal_line = self.identify_demand_zone(data, cmp)  # Pass cmp argument here
     #             supply_zones, _, _, supply_proximal_line = self.identify_supply_zone(data, cmp)  # Pass cmp argument here
                 
@@ -641,7 +653,7 @@ class ScreeningStatistics:
     #     with open("demand_supply_zones.txt", "w") as file:
     #         for symbol in data["Stock"]:
     #             if data is not None:
-    #                 cmp = data.iloc[-1]['Close']  # Current market price
+    #                 cmp = data.iloc[-1]["close"]  # Current market price
     #                 demand_zones, _, _, demand_proximal_line = self.identify_demand_zone(data, cmp)
     #                 supply_zones, _, _, supply_proximal_line = self.identify_supply_zone(data, cmp)
 
@@ -724,7 +736,7 @@ class ScreeningStatistics:
             
     #         for symbol in filtered_stocks:
     #             if data is not None:
-    #                 cmp = data.iloc[-1]['Close']  # Current market price
+    #                 cmp = data.iloc[-1]["close"]  # Current market price
     #                 demand_zones, _, _, demand_proximal_line = self.identify_demand_zone(data, cmp)
     #                 supply_zones, _, _, supply_proximal_line = self.identify_supply_zone(data, cmp)
 
@@ -830,9 +842,9 @@ class ScreeningStatistics:
         latestRecordsFirst_df = latestRecordsFirst_df.fillna(0)
         latestRecordsFirst_df = latestRecordsFirst_df.replace([np.inf, -np.inf], 0)
         # Bollinger bands
-        latestRecordsFirst_df.loc[:,'BBands-U'], latestRecordsFirst_df.loc[:,'BBands-M'], latestRecordsFirst_df.loc[:,'BBands-L'] = pktalib.BBANDS(latestRecordsFirst_df["Close"], 20)
+        latestRecordsFirst_df.loc[:,'BBands-U'], latestRecordsFirst_df.loc[:,'BBands-M'], latestRecordsFirst_df.loc[:,'BBands-L'] = pktalib.BBANDS(latestRecordsFirst_df["close"], 20)
         # compute Keltner's channel
-        latestRecordsFirst_df['low_kel'], latestRecordsFirst_df['upp_kel'] = pktalib.KeltnersChannel(latestRecordsFirst_df["High"], latestRecordsFirst_df["Low"],latestRecordsFirst_df["Close"],20)
+        latestRecordsFirst_df['low_kel'], latestRecordsFirst_df['upp_kel'] = pktalib.KeltnersChannel(latestRecordsFirst_df["high"], latestRecordsFirst_df["low"],latestRecordsFirst_df["close"],20)
         # squeeze indicator
         def in_squeeze(df):
             return df['low_kel'] < df['BBands-L'] < df['BBands-U'] < df['upp_kel']
@@ -851,8 +863,8 @@ class ScreeningStatistics:
             if filter not in [1,3,4]: # Buy/Sell/All
                 return False
             # decide which action to take by comparing distances                
-            distance_to_upper = abs(latestRecordsFirst_df['BBands-U'].values[-1] - latestRecordsFirst_df['Close'].values[-1])
-            distance_to_lower = abs(latestRecordsFirst_df['BBands-L'].values[-1] - latestRecordsFirst_df['Close'].values[-1])
+            distance_to_upper = abs(latestRecordsFirst_df['BBands-U'].values[-1] - latestRecordsFirst_df["close"].values[-1])
+            distance_to_lower = abs(latestRecordsFirst_df['BBands-L'].values[-1] - latestRecordsFirst_df["close"].values[-1])
             
             action = False
             if distance_to_upper < distance_to_lower:
@@ -892,13 +904,13 @@ class ScreeningStatistics:
             candleHeight = abs(self.getCandleBodyHeight(data[candle:]))
             totalCandleHeight += candleHeight
 
-        reversedData.loc[:,'BBands-U'], reversedData.loc[:,'BBands-M'], reversedData.loc[:,'BBands-L'] = pktalib.BBANDS(reversedData["Close"], 20)
+        reversedData.loc[:,'BBands-U'], reversedData.loc[:,'BBands-M'], reversedData.loc[:,'BBands-L'] = pktalib.BBANDS(reversedData["close"], 20)
         reversedData = reversedData[::-1]
         recents = reversedData.head(6)
         ulr = self.non_zero_range(recents.loc[:,'BBands-U'], recents.loc[:,'BBands-L'])
         maxOfLast5Candles = ulr.tail(5).max()
         # bandwidth = 100 * ulr / recents.loc[:,'BBands-M']
-        # percent = self.non_zero_range(recents.loc[:,'Close'], recents.loc[:,'BBands-L']) / ulr
+        # percent = self.non_zero_range(recents.loc[:,"close"], recents.loc[:,'BBands-L']) / ulr
         saveDict["bbands_ulr_ratio_max5"] = round(ulr.iloc[0]/maxOfLast5Candles,2) #percent.iloc[0]
         screenDict["bbands_ulr_ratio_max5"] = saveDict["bbands_ulr_ratio_max5"]
         # saveDict["bbands_bandwidth"] = bandwidth.iloc[0]
@@ -924,9 +936,9 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         recent = data.head(1)
         data = data[1:]
-        maxHigh = round(data.describe()["High"]["max"], 2)
-        maxClose = round(data.describe()["Close"]["max"], 2)
-        recentClose = round(recent["Close"].iloc[0], 2)
+        maxHigh = round(data.describe()["high"]["max"], 2)
+        maxClose = round(data.describe()["close"]["max"], 2)
+        recentClose = round(recent["close"].iloc[0], 2)
         if np.isnan(maxClose) or np.isnan(maxHigh):
             saveDict["Breakout"] = "BO: 0 R: 0"
             screenDict["Breakout"] = (
@@ -968,7 +980,7 @@ class ScreeningStatistics:
                     + colorText.END
                 )
                 return not alreadyBrokenout
-            noOfHigherShadows = len(data[data.High > maxClose])
+            noOfHigherShadows = len(data[data.high > maxClose])
             if daysToLookback / noOfHigherShadows <= 3:
                 saveDict["Breakout"] = "BO: " + str(maxHigh) + " R: 0"
                 if recentClose >= maxHigh:
@@ -1058,18 +1070,18 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         reversedData = data[::-1]  # Reverse the dataframe so that its the oldest date first
         # Find the anchor point. Find the candle where there's a major dip.
-        majorLow = reversedData["Low"].min()
-        lowRow = reversedData[reversedData["Low"] == majorLow]
+        majorLow = reversedData["low"].min()
+        lowRow = reversedData[reversedData["low"] == majorLow]
         anchored_date = lowRow.index[0]
         avwap = pktalib.AVWAP(df=reversedData,anchored_date=anchored_date)
         if 'anchored_VWAP' not in reversedData.keys():
             reversedData.loc[:,'anchored_VWAP'] =avwap
-        recentOpen = reversedData["Open"].tail(1).head(1).iloc[0]
-        recentClose = reversedData["Close"].tail(1).head(1).iloc[0]
-        recentLow = reversedData["Low"].tail(1).head(1).iloc[0]
+        recentOpen = reversedData["open"].tail(1).head(1).iloc[0]
+        recentClose = reversedData["close"].tail(1).head(1).iloc[0]
+        recentLow = reversedData["low"].tail(1).head(1).iloc[0]
         recentAVWAP = reversedData["anchored_VWAP"].tail(1).head(1).iloc[0]
-        recentVol = reversedData["Volume"].tail(1).head(1).iloc[0]
-        prevVol = reversedData["Volume"].tail(2).head(1).iloc[0]
+        recentVol = reversedData["volume"].tail(1).head(1).iloc[0]
+        prevVol = reversedData["volume"].tail(2).head(1).iloc[0]
         avwap.replace(np.inf, np.nan).replace(-np.inf, np.nan).dropna(inplace=True)
         reversedData = reversedData.tail(len(avwap))
         diffFromAVWAP = (abs(recentClose-recentAVWAP)/recentAVWAP) * 100
@@ -1104,15 +1116,15 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data["RSI12"] = pktalib.RSI(data["Close"], 12)
-        data["EMA10"] = pktalib.EMA(data["Close"], 10)
-        data["EMA200"] = pktalib.EMA(data["Close"], 200)
-        macd = pktalib.MACD(data["Close"], 10, 18, 9)[2].tail(1)
+        data["RSI12"] = pktalib.RSI(data["close"], 12)
+        data["EMA10"] = pktalib.EMA(data["close"], 10)
+        data["EMA200"] = pktalib.EMA(data["close"], 200)
+        macd = pktalib.MACD(data["close"], 10, 18, 9)[2].tail(1)
         recent = data.tail(1)
         cond1 = recent["RSI12"].iloc[0] > 55
         cond2 = cond1 and (macd.iloc[:1][0] > 0)
-        cond3 = cond2 and (recent["Close"].iloc[0] > recent["EMA10"].iloc[0])
-        cond4 = cond3 and (recent["Close"].iloc[0] > recent["EMA200"].iloc[0])
+        cond3 = cond2 and (recent["close"].iloc[0] > recent["EMA10"].iloc[0])
+        cond4 = cond3 and (recent["close"].iloc[0] > recent["EMA200"].iloc[0])
         return cond4
     
     def findBuySellSignalsFromATRTrailing(self,df, key_value=1, atr_period=10, ema_period=200,buySellAll=1,saveDict=None,screenDict=None):
@@ -1124,9 +1136,9 @@ class ScreeningStatistics:
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
 
         # Calculate ATR and xATRTrailingStop
-        xATR = np.array(pktalib.ATR(data['High'], data['Low'], data['Close'], timeperiod=atr_period))
+        xATR = np.array(pktalib.ATR(data["high"], data["low"], data["close"], timeperiod=atr_period))
         nLoss = key_value * xATR
-        src = data['Close']
+        src = data["close"]
         # Initialize arrays
         xATRTrailingStop = np.zeros(len(data))
         xATRTrailingStop[0] = src[0] - nLoss[0]
@@ -1148,7 +1160,7 @@ class ScreeningStatistics:
         pos = np.where(mask_sell, -1, pos)
         pos[~((pos == 1) | (pos == -1))] = 0
 
-        ema = np.array(pktalib.EMA(data['Close'], timeperiod=ema_period))
+        ema = np.array(pktalib.EMA(data["close"], timeperiod=ema_period))
 
         buy_condition_utbot = (xATRTrailingStop > ema) & (pos > 0) & (src > ema)
         sell_condition_utbot = (xATRTrailingStop < ema) & (pos < 0) & (src < ema)
@@ -1214,9 +1226,9 @@ class ScreeningStatistics:
 
         data = data.reset_index()
         data['Date'] = data['Date'].apply(lambda x : x.strftime('%Y-%m-%d'))
-        data['Close_ch'] = data['Close'].shift(+1)
-        data['rpv'] = ((data['Close'] / data['Close_ch']) - 1) * data['Volume']
-        data['SMA50_Volume'] = data.Volume.rolling(50).mean()
+        data['Close_ch'] = data["close"].shift(+1)
+        data['rpv'] = ((data["close"] / data['Close_ch']) - 1) * data["volume"]
+        data['SMA50_Volume'] = data.volume.rolling(50).mean()
         data['SMA50_rpv'] = data.rpv.rolling(50).mean()
 
         T = 0
@@ -1226,17 +1238,17 @@ class ScreeningStatistics:
         while t < len(data)-T:
             dat = data.loc[t:]
             Dk = dat.loc[t]['Date']
-            Pk = dat.loc[t]['Close']   
+            Pk = dat.loc[t]["close"]   
             # search for region K to A
             k = 25
             while k > 15:
                 #print('Searching SETUP with width = ', k)
                 datA = dat.loc[:t+k] # Dk = t
                 # first find absolute maxima point A
-                Da_index = datA[datA['Close'] == max(datA['Close'])]['Date'].index[0]
-                Da_value = datA[datA['Close'] == max(datA['Close'])]['Date'].values[0]
-                Pa_index = datA[datA['Close'] == max(datA['Close'])]['Close'].index[0]
-                Pa_value = datA[datA['Close'] == max(datA['Close'])]['Close'].values[0]
+                Da_index = datA[datA["close"] == max(datA["close"])]['Date'].index[0]
+                Da_value = datA[datA["close"] == max(datA["close"])]['Date'].values[0]
+                Pa_index = datA[datA["close"] == max(datA["close"])]["close"].index[0]
+                Pa_value = datA[datA["close"] == max(datA["close"])]["close"].values[0]
                 uprv1 = abs(datA.loc[t:Da_index].loc[datA['rpv'] > 0, :]['rpv'].mean())
                 dprv1 = abs(datA.loc[t:Da_index].loc[datA['rpv'] <= 0, :]['rpv'].mean())
                 if (dprv1 == 'NaN') | (dprv1 == 0):
@@ -1250,11 +1262,11 @@ class ScreeningStatistics:
                     while a > 10:
                         #print('Lets search for LEFT SIDE CUP with width = ', a)
                         datB = dat.loc[Da_index:Da_index+a]
-                        Db_index = datB[datB['Close'] == min(datB['Close'])]['Date'].index[0]
-                        Db_value = datB[datB['Close'] == min(datB['Close'])]['Date'].values[0]
-                        Pb_index = datB[datB['Close'] == min(datB['Close'])]['Close'].index[0]
-                        Pb_value = datB[datB['Close'] == min(datB['Close'])]['Close'].values[0]
-                        avg_vol = datB['Volume'].mean()
+                        Db_index = datB[datB["close"] == min(datB["close"])]['Date'].index[0]
+                        Db_value = datB[datB["close"] == min(datB["close"])]['Date'].values[0]
+                        Pb_index = datB[datB["close"] == min(datB["close"])]["close"].index[0]
+                        Pb_value = datB[datB["close"] == min(datB["close"])]["close"].values[0]
+                        avg_vol = datB["volume"].mean()
                         avg_ma_vol = data['SMA50_Volume'].mean()
                         if (Pb_value < Pa_value) & (avg_vol < avg_ma_vol):
                             #print("Voila! You found the bottom, it's all uphill from here")
@@ -1262,10 +1274,10 @@ class ScreeningStatistics:
                             while b > round(a/3):
                                 #print("Let's search for RIGHT SIDE CUP with width = ", b)
                                 datC = dat.loc[Db_index:Db_index+b+1]
-                                Dc_index = datC[datC['Close'] == max(datC['Close'])]['Date'].index[0]
-                                Dc_value = datC[datC['Close'] == max(datC['Close'])]['Date'].values[0]
-                                Pc_index = datC[datC['Close'] == max(datC['Close'])]['Close'].index[0]
-                                Pc_value = datC[datC['Close'] == max(datC['Close'])]['Close'].values[0]
+                                Dc_index = datC[datC["close"] == max(datC["close"])]['Date'].index[0]
+                                Dc_value = datC[datC["close"] == max(datC["close"])]['Date'].values[0]
+                                Pc_index = datC[datC["close"] == max(datC["close"])]["close"].index[0]
+                                Pc_value = datC[datC["close"] == max(datC["close"])]["close"].values[0]
                                 uprv2 = abs(datC.loc[datC['rpv'] > 0, :]['rpv'].mean())
                                 dprv2 = abs(datC.loc[datC['rpv'] <= 0, :]['rpv'].mean())
                                 if (dprv2 == 'NaN') | (dprv2 == 0):
@@ -1279,10 +1291,10 @@ class ScreeningStatistics:
                                         #print("Let's search for the handle now with width = ", c)
                                         #print(t, " ", k, " ", a, " ", b, " ", c)
                                         datD = dat.loc[Dc_index:Dc_index+c+1]
-                                        Dd_index = datD[datD['Close'] == min(datD['Close'])]['Date'].index[0]
-                                        Dd_value = datD[datD['Close'] == min(datD['Close'])]['Date'].values[0]
-                                        Pd_index = datD[datD['Close'] == min(datD['Close'])]['Close'].index[0]
-                                        Pd_value = datD[datD['Close'] == min(datD['Close'])]['Close'].values[0]
+                                        Dd_index = datD[datD["close"] == min(datD["close"])]['Date'].index[0]
+                                        Dd_value = datD[datD["close"] == min(datD["close"])]['Date'].values[0]
+                                        Pd_index = datD[datD["close"] == min(datD["close"])]["close"].index[0]
+                                        Pd_value = datD[datD["close"] == min(datD["close"])]["close"].values[0]
                                         uprv3 = abs(datD.loc[datD['rpv'] > 0, :]['rpv'].mean())
                                         dprv3 = abs(datD.loc[datD['rpv'] <= 0, :]['rpv'].mean())
                                         if (dprv3 == 'NaN') | (dprv3 == 0):
@@ -1310,9 +1322,9 @@ class ScreeningStatistics:
 
     def validate_cup(self,df, cup_start, cup_bottom, cup_end):
         """Validate if the detected cup meets shape and depth criteria."""
-        start_price = df['Close'].iloc[cup_start]
-        bottom_price = df['Close'].iloc[cup_bottom]
-        end_price = df['Close'].iloc[cup_end]
+        start_price = df["close"].iloc[cup_start]
+        bottom_price = df["close"].iloc[cup_bottom]
+        end_price = df["close"].iloc[cup_end]
 
         # Cup Depth should be reasonable (10% - 50% drop from highs)
         depth = (start_price - bottom_price) / start_price
@@ -1327,7 +1339,7 @@ class ScreeningStatistics:
 
         # U-shape validation (Avoiding V-bottoms)
         midpoint = (cup_start + cup_end) // 2
-        if df['Close'].iloc[midpoint] < bottom_price * 1.05:
+        if df["close"].iloc[midpoint] < bottom_price * 1.05:
             return False  
 
         return True
@@ -1337,18 +1349,18 @@ class ScreeningStatistics:
         avg_volatility = df['Volatility'].mean()
         
         # If volatility is high, require more data points to confirm a cup
-        if avg_volatility > df['Close'].mean() * 0.02:  
-            return int(df['Close'].mean() * 0.2) + 1  # Higher volatility → require more confirmation
-        elif avg_volatility < df['Close'].mean() * 0.005:  
-            return int(df['Close'].mean() * 0.05) + 1  # Lower volatility → allow faster pattern detection
+        if avg_volatility > df["close"].mean() * 0.02:  
+            return int(df["close"].mean() * 0.2) + 1  # Higher volatility → require more confirmation
+        elif avg_volatility < df["close"].mean() * 0.005:  
+            return int(df["close"].mean() * 0.05) + 1  # Lower volatility → allow faster pattern detection
         else:
             return 15  # Default case
         
     def validate_volume(self,df, cup_start, cup_end, handle_end):
         """Ensure decreasing volume in the cup and increasing volume at breakout."""
-        avg_cup_volume = df['Volume'].iloc[cup_start:cup_end].mean()
-        avg_handle_volume = df['Volume'].iloc[cup_end:handle_end].mean()
-        breakout_volume = df['Volume'].iloc[handle_end]
+        avg_cup_volume = df["volume"].iloc[cup_start:cup_end].mean()
+        avg_handle_volume = df["volume"].iloc[cup_end:handle_end].mean()
+        breakout_volume = df["volume"].iloc[handle_end]
 
         return avg_cup_volume > avg_handle_volume and breakout_volume > avg_handle_volume
 
@@ -1358,7 +1370,7 @@ class ScreeningStatistics:
             from scipy.signal import argrelextrema
         except:
             return False, None
-        close_prices = df['Close'].values
+        close_prices = df["close"].values
         if order <=0:
             order = self.get_dynamic_order(df)  # Set order dynamically
         local_min_idx = argrelextrema(close_prices, np.less, order=order)[0]  # Local minima (potential cup bottoms)
@@ -1375,19 +1387,19 @@ class ScreeningStatistics:
 
         # Handle Detection
         handle_start = cup_end
-        potential_handle = df['Close'][handle_start:handle_start+15]
+        potential_handle = df["close"][handle_start:handle_start+15]
         handle_min = potential_handle.min()
         handle_end = potential_handle.idxmin()
 
         # Handle should not drop more than 50% of cup depth
-        cup_depth = df['Close'].iloc[cup_start] - df['Close'].iloc[cup_bottom]
-        handle_depth = df['Close'].iloc[handle_start] - handle_min
+        cup_depth = df["close"].iloc[cup_start] - df["close"].iloc[cup_bottom]
+        handle_depth = df["close"].iloc[handle_start] - handle_min
         if handle_depth > cup_depth * 0.5:
             return False,None  
 
         # Breakout Confirmation
-        breakout_level = df['Close'].iloc[cup_start]
-        breakout = df[df.index > handle_end]['Close'].gt(breakout_level).any()
+        breakout_level = df["close"].iloc[cup_start]
+        breakout = df[df.index > handle_end]["close"].gt(breakout_level).any()
         if not breakout:
             return False,None  
 
@@ -1423,7 +1435,7 @@ class ScreeningStatistics:
         recent = data.head(2)
         if len(recent) < 2:
             return False
-        return recent["Open"].iloc[0] > recent["High"].iloc[1]
+        return recent["open"].iloc[0] > recent["high"].iloc[1]
 
     # Find stocks that opened higher than the previous high
     def findHigherOpens(self, df):
@@ -1435,7 +1447,7 @@ class ScreeningStatistics:
         recent = data.head(2)
         if len(recent) < 2:
             return False
-        return recent["Open"].iloc[0] > recent["Close"].iloc[1]
+        return recent["open"].iloc[0] > recent["close"].iloc[1]
 
     # Find DEEL Momentum
     def findHighMomentum(self, df, strict=False):
@@ -1446,12 +1458,12 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        mfis = pktalib.MFI(data["High"],data["Low"],data["Close"],data["Volume"], 14)
-        ccis = pktalib.CCI(data["High"],data["Low"],data["Close"], 14)
-        sma7 = pktalib.SMA(data["Close"], 7).tail(2)
-        sma20 = pktalib.SMA(data["Close"], 20).tail(2)
+        mfis = pktalib.MFI(data["high"],data["low"],data["close"],data["volume"], 14)
+        ccis = pktalib.CCI(data["high"],data["low"],data["close"], 14)
+        sma7 = pktalib.SMA(data["close"], 7).tail(2)
+        sma20 = pktalib.SMA(data["close"], 20).tail(2)
         recent = data.tail(2)
-        percentChange = round((recent["Close"].iloc[1] - recent["Close"].iloc[0]) *100/recent["Close"].iloc[0],1)
+        percentChange = round((recent["close"].iloc[1] - recent["close"].iloc[0]) *100/recent["close"].iloc[0],1)
         rsi = recent["RSI"].iloc[1]
         mfi = mfis.tail(1).iloc[0]
         cci = ccis.tail(1).iloc[0]
@@ -1470,8 +1482,8 @@ class ScreeningStatistics:
         # RSI above 68 indicates that the stock is overbought, suggesting that it 
         # has increased by more than 68% from its average price over the last 14 days.
         deelMomentum1 = percentChange >= 1 and (rsi>= 68 and mfi >= 68 and cci >= 110)
-        deelMomentum2 = (rsi>= 50 and mfi >= 50 and recent["Close"].iloc[1] >= sma7.iloc[1] and 
-                          recent["Close"].iloc[1] >= sma20.iloc[1]) and not strict
+        deelMomentum2 = (rsi>= 50 and mfi >= 50 and recent["close"].iloc[1] >= sma7.iloc[1] and 
+                          recent["close"].iloc[1] >= sma20.iloc[1]) and not strict
         hasDeelMomentum = deelMomentum1 or deelMomentum2
                          
         # if self.shouldLog:
@@ -1494,8 +1506,8 @@ class ScreeningStatistics:
             diff_df = data[data.index >=  pd.to_datetime(f'{PKDateUtilities.tradingDate().strftime(f"%Y-%m-%d")} {MarketHours().openHour:02}:{MarketHours().openMinute+self.configManager.morninganalysiscandlenumber + 2}:00+05:30', utc=True)]
             # brokerSqrOfftime = pd.to_datetime(f'{PKDateUtilities.tradingDate().strftime(f"%Y-%m-%d")} 15:14:00+05:30', utc=True)
             pass
-        dayHighAfterAlert = diff_df["High"].max()
-        highRow = diff_df[diff_df["High"] >= dayHighAfterAlert]
+        dayHighAfterAlert = diff_df["high"].max()
+        highRow = diff_df[diff_df["high"] >= dayHighAfterAlert]
         if highRow is not None and len(highRow) > 0:
             highRow = highRow.tail(1)
         return highRow.index[-1], highRow
@@ -1507,8 +1519,8 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         previousDay = data.head(1)
-        prevDayHigh = previousDay["High"].iloc[0]
-        prevDayLow = previousDay["Low"].iloc[0]
+        prevDayHigh = previousDay["high"].iloc[0]
+        prevDayLow = previousDay["low"].iloc[0]
         candleDurations = [1,5,10,15,30]
         int_df = None
         hasIntradaySetup = False
@@ -1519,13 +1531,13 @@ class ScreeningStatistics:
                 int_df = df_intraday[df_intraday.index <=  pd.to_datetime(f'{PKDateUtilities.tradingDate().strftime(f"%Y-%m-%d")} {MarketHours().openHour:02}:{MarketHours().openMinute+candle1MinuteNumberSinceMarketStarted}:00+05:30', utc=True)]
                 pass
             if int_df is not None and len(int_df) > 0:
-                combinedCandle = {"Open":self.getMorningOpen(int_df), "High":max(int_df["High"]), 
-                                "Low":min(int_df["Low"]),"Close":self.getMorningClose(int_df),
-                                "Adj Close":int_df["Adj Close"][-1],"Volume":sum(int_df["Volume"])}
-                openPrice = combinedCandle["Open"]
-                lowPrice = combinedCandle["Low"]
-                closePrice = combinedCandle["Close"]
-                highPrice = combinedCandle["High"]
+                combinedCandle = {"open":self.getMorningOpen(int_df), "high":max(int_df["high"]), 
+                                "low":min(int_df["low"]),"close":self.getMorningClose(int_df),
+                                "Adj Close":int_df["Adj Close"][-1],"volume":sum(int_df["volume"])}
+                openPrice = combinedCandle["open"]
+                lowPrice = combinedCandle["low"]
+                closePrice = combinedCandle["close"]
+                highPrice = combinedCandle["high"]
                 if buySellAll == 1 or buySellAll == 3:
                     hasIntradaySetup = openPrice == lowPrice and openPrice < prevDayHigh and closePrice > prevDayHigh
                 elif buySellAll == 2 or buySellAll == 3:
@@ -1544,11 +1556,11 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data_int = pd.DataFrame(data_int)['Close'].resample('30T', offset='15min').ohlc()
+        data_int = pd.DataFrame(data_int)["close"].resample('30T', offset='15min').ohlc()
         # data_int = data_int[::-1]  # Reverse the dataframe so that its the oldest date first
         if len(data_int) < 5: # we need TMA for period 5
             return False
-        data.loc[:,'PSAR'] = pktalib.psar(data["High"],data["Low"],acceleration=0.08)
+        data.loc[:,'PSAR'] = pktalib.psar(data["high"],data["low"],acceleration=0.08)
         data_int.loc[:,'TMA5'] = pktalib.TriMA(data_int["close"],length=5)
         recent = data.tail(4)
         recent = recent[::-1]
@@ -1561,9 +1573,9 @@ class ScreeningStatistics:
         cond1 = recent["PSAR"].iloc[0] >= recent_i["TMA5"].iloc[0] and \
                 recent["PSAR"].iloc[1] <= recent_i["TMA5"].iloc[1]
         # Daily volume > 1400k
-        cond2 = cond1 and (recent["Volume"].iloc[0] > 1400000)
+        cond2 = cond1 and (recent["volume"].iloc[0] > 1400000)
         # Daily close above 50
-        cond4 = cond2 and recent["Close"].iloc[0] > 50
+        cond4 = cond2 and recent["close"].iloc[0] > 50
         return cond4
 
     def findIPOLifetimeFirstDayBullishBreak(self, df):
@@ -1574,7 +1586,7 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         data.dropna(axis=0, how="all", inplace=True) # Maybe there was no trade done at these times?
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        return data["High"].iloc[0] >= data["High"].max()
+        return data["high"].iloc[0] >= data["high"].max()
 
     def findMACDCrossover(self, df, afterTimestamp=None, nthCrossover=1, upDirection=True, minRSI=60):
         if df is None or len(df) == 0:
@@ -1584,11 +1596,11 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         data.dropna(axis=0, how="all", inplace=True) # Maybe there was no trade done at these times?
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        macdLine, macdSignal, macdHist = pktalib.MACD(data["Close"], 12, 26, 9)
-        # rsi_df = pktalib.RSI(data["Close"], 14)
+        macdLine, macdSignal, macdHist = pktalib.MACD(data["close"], 12, 26, 9)
+        # rsi_df = pktalib.RSI(data["close"], 14)
         line_df = pd.DataFrame(macdLine)
         signal_df = pd.DataFrame(macdSignal)
-        vol_df = data["Volume"]
+        vol_df = data["volume"]
         diff_df = pd.concat([line_df, signal_df, signal_df-line_df,vol_df], axis=1)
         diff_df.columns = ["line","signal","diff","vol"]
         diff_df = diff_df[diff_df["vol"] > 0] # We're not going to do anything with a candle where there was no trade.
@@ -1626,27 +1638,27 @@ class ScreeningStatistics:
             return False
         data = df.copy()
         # https://chartink.com/screener/nr4-daily-today
-        if data.tail(1)["Volume"].iloc[0] <= 50000:
+        if data.tail(1)["volume"].iloc[0] <= 50000:
             return False
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data["SMA10"] = pktalib.SMA(data["Close"], 10)
-        data["SMA50"] = pktalib.SMA(data["Close"], 50)
-        data["SMA200"] = pktalib.SMA(data["Close"], 200)
+        data["SMA10"] = pktalib.SMA(data["close"], 10)
+        data["SMA50"] = pktalib.SMA(data["close"], 50)
+        data["SMA200"] = pktalib.SMA(data["close"], 200)
         recent = data.tail(5)
         recent = recent[::-1]
-        cond1 = (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
-            recent["High"].iloc[1] - recent["Low"].iloc[1]
+        cond1 = (recent["high"].iloc[0] - recent["low"].iloc[0]) < (
+            recent["high"].iloc[1] - recent["low"].iloc[1]
         )
-        cond2 = cond1 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
-            recent["High"].iloc[2] - recent["Low"].iloc[2]
+        cond2 = cond1 and (recent["high"].iloc[0] - recent["low"].iloc[0]) < (
+            recent["high"].iloc[2] - recent["low"].iloc[2]
         )
-        cond3 = cond2 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
-            recent["High"].iloc[3] - recent["Low"].iloc[3]
+        cond3 = cond2 and (recent["high"].iloc[0] - recent["low"].iloc[0]) < (
+            recent["high"].iloc[3] - recent["low"].iloc[3]
         )
-        cond4 = cond3 and (recent["High"].iloc[0] - recent["Low"].iloc[0]) < (
-            recent["High"].iloc[4] - recent["Low"].iloc[4]
+        cond4 = cond3 and (recent["high"].iloc[0] - recent["low"].iloc[0]) < (
+            recent["high"].iloc[4] - recent["low"].iloc[4]
         )
         cond5 = cond4 and (recent["SMA10"].iloc[0] > recent["SMA50"].iloc[0])
         cond6 = cond5 and (recent["SMA50"].iloc[0] > recent["SMA200"].iloc[0])
@@ -1659,22 +1671,22 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data.loc[:,'BBands-U'], data.loc[:,'BBands-M'], data.loc[:,'BBands-L'] = pktalib.BBANDS(data["Close"], 20)
+        data.loc[:,'BBands-U'], data.loc[:,'BBands-M'], data.loc[:,'BBands-L'] = pktalib.BBANDS(data["close"], 20)
         recent = data.tail(4)
         recent = recent[::-1]
         if len(recent) < 4:
             return False
         # 1 day ago high > 2 days ago high
-        cond1 = recent["High"].iloc[1] > recent["High"].iloc[2]
+        cond1 = recent["high"].iloc[1] > recent["high"].iloc[2]
         # 1 day ago close < 2 days ago high
-        cond2 = cond1 and (recent["Close"].iloc[1] < recent["High"].iloc[2])
+        cond2 = cond1 and (recent["close"].iloc[1] < recent["high"].iloc[2])
         # 1 day ago volume > 3 days ago volume
-        cond3 = cond2 and (recent["Volume"].iloc[1] > recent["Volume"].iloc[3])
+        cond3 = cond2 and (recent["volume"].iloc[1] > recent["volume"].iloc[3])
         # daily high < 1 day ago high
-        cond4 = cond3 and (recent["High"].iloc[0] < recent["High"].iloc[1])
+        cond4 = cond3 and (recent["high"].iloc[0] < recent["high"].iloc[1])
         # daily close crossed below daily lower bollinger band(20,2)
-        cond5 = cond4 and (recent["Close"].iloc[0] <= recent["BBands-L"].iloc[0] and \
-                           recent["Close"].iloc[1] >= recent["BBands-L"].iloc[1])
+        cond5 = cond4 and (recent["close"].iloc[0] <= recent["BBands-L"].iloc[0] and \
+                           recent["close"].iloc[1] >= recent["BBands-L"].iloc[1])
         return cond5
     
     # Find potential breakout stocks
@@ -1691,17 +1703,17 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         data = data.head(231)
         recent = data.head(1)
-        recentVolume = recent["Volume"].iloc[0]
-        recentClose = round(recent["Close"].iloc[0] * 1.05, 2)
-        highestHigh200 = round(data.head(201).tail(200).describe()["High"]["max"], 2)
-        highestHigh30 = round(data.head(31).tail(30).describe()["High"]["max"], 2)
-        highestHigh200From30 = round(data.tail(200).describe()["High"]["max"], 2)
-        highestHigh8From30 = round(data.head(39).tail(8).describe()["High"]["max"], 2)
+        recentVolume = recent["volume"].iloc[0]
+        recentClose = round(recent["close"].iloc[0] * 1.05, 2)
+        highestHigh200 = round(data.head(201).tail(200).describe()["high"]["max"], 2)
+        highestHigh30 = round(data.head(31).tail(30).describe()["high"]["max"], 2)
+        highestHigh200From30 = round(data.tail(200).describe()["high"]["max"], 2)
+        highestHigh8From30 = round(data.head(39).tail(8).describe()["high"]["max"], 2)
         data = data.head(200)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        vol200 = pktalib.SMA(data["Volume"],timeperiod=200)
+        vol200 = pktalib.SMA(data["volume"],timeperiod=200)
         data["SMA200V"] = vol200
-        vol50 = pktalib.SMA(data["Volume"],timeperiod=50)
+        vol50 = pktalib.SMA(data["volume"],timeperiod=50)
         data["SMA50V"] = vol50
         recent = data.tail(1)
         sma200v = recent["SMA200V"].iloc[0]
@@ -1731,7 +1743,7 @@ class ScreeningStatistics:
         return False
 
     def findPriceActionCross(self, df, ma, daysToConsider=1, baseMAOrPrice=None, isEMA=False,maDirectionFromBelow=True):
-        ma_val = pktalib.EMA(df["Close"],int(ma)) if isEMA else pktalib.SMA(df["Close"],int(ma))
+        ma_val = pktalib.EMA(df["close"],int(ma)) if isEMA else pktalib.SMA(df["close"],int(ma))
         ma = ma_val.tail(daysToConsider).head(1).iloc[0]
         ma_prev = ma_val.tail(daysToConsider+1).head(1).iloc[0]
         base = baseMAOrPrice.tail(daysToConsider).head(1).iloc[0]
@@ -1754,13 +1766,13 @@ class ScreeningStatistics:
         if len(recent) < 4:
             return False
         # 1 day ago high > 2 days ago high
-        cond1 = recent["High"].iloc[1] > recent["High"].iloc[2]
+        cond1 = recent["high"].iloc[1] > recent["high"].iloc[2]
         # daily close < 1 day ago high
-        cond2 = cond1 and (recent["Close"].iloc[0] < recent["High"].iloc[1])
+        cond2 = cond1 and (recent["close"].iloc[0] < recent["high"].iloc[1])
         # Daily volume > 3 days ago volume
-        cond3 = cond2 and (recent["Volume"].iloc[0] > recent["Volume"].iloc[3])
+        cond3 = cond2 and (recent["volume"].iloc[0] > recent["volume"].iloc[3])
         # daily high < 1 day ago high
-        cond4 = cond3 and (recent["High"].iloc[0] < recent["High"].iloc[1])
+        cond4 = cond3 and (recent["high"].iloc[0] < recent["high"].iloc[1])
         return cond4
     
     # Find stocks with reversing PSAR and RSI
@@ -1769,7 +1781,7 @@ class ScreeningStatistics:
             return False
         data = df.copy()
         data = data[::-1]
-        psar = pktalib.psar(data["High"],data["Low"])
+        psar = pktalib.psar(data["high"],data["low"])
         if len(psar) < 3:
             return False
         psar = psar.tail(3)
@@ -1777,9 +1789,9 @@ class ScreeningStatistics:
         # dayMinus2Psar = psar.iloc[0]
         dayMinus1Psar = psar.iloc[1]
         dayPSAR = psar.iloc[2]
-        # dayMinus2Close = data["Close"].iloc[0]
-        dayMinus1Close = data["Close"].iloc[1]
-        dayClose = data["Close"].iloc[2]
+        # dayMinus2Close = data["close"].iloc[0]
+        dayMinus1Close = data["close"].iloc[1]
+        dayClose = data["close"].iloc[2]
         # dayMinus2RSI = data["RSI"].iloc[0]
         dayMinus1RSI = data["RSI"].iloc[1]
         dayRSI = data["RSI"].iloc[2]
@@ -1818,9 +1830,9 @@ class ScreeningStatistics:
         for maLength in maRange:
             dataCopy = data
             if self.configManager.useEMA or maLength == 9:
-                maRev = pktalib.EMA(dataCopy["Close"], timeperiod=maLength)
+                maRev = pktalib.EMA(dataCopy["close"], timeperiod=maLength)
             else:
-                maRev = pktalib.MA(dataCopy["Close"], timeperiod=maLength)
+                maRev = pktalib.MA(dataCopy["close"], timeperiod=maLength)
             try:
                 dataCopy.drop("maRev", axis=1, inplace=True, errors="ignore")
             except KeyboardInterrupt: # pragma: no cover
@@ -1832,11 +1844,11 @@ class ScreeningStatistics:
             bullishMAReversal = dataCopy["maRev"].iloc[0] >= dataCopy["maRev"].iloc[1] and \
                 dataCopy["maRev"].iloc[1] >= dataCopy["maRev"].iloc[2] and \
                     dataCopy["maRev"].iloc[2] < dataCopy["maRev"].iloc[3]
-            bullishClose = dataCopy.head(1)["Close"].iloc[0] >= dataCopy.head(1)["maRev"].iloc[0]
+            bullishClose = dataCopy.head(1)["close"].iloc[0] >= dataCopy.head(1)["maRev"].iloc[0]
             bearishMAReversal = dataCopy["maRev"].iloc[0] <= dataCopy["maRev"].iloc[1] and \
                 dataCopy["maRev"].iloc[1] <= dataCopy["maRev"].iloc[2] and \
                     dataCopy["maRev"].iloc[2] > dataCopy["maRev"].iloc[3]
-            isRecentCloseWithinPercentRange = dataCopy.equals(dataCopy[(dataCopy.Close >= (dataCopy.maRev - (dataCopy.maRev * percentage))) & (dataCopy.Close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))])
+            isRecentCloseWithinPercentRange = dataCopy.equals(dataCopy[(dataCopy.close >= (dataCopy.maRev - (dataCopy.maRev * percentage))) & (dataCopy.close <= (dataCopy.maRev + (dataCopy.maRev * percentage)))])
             if (isRecentCloseWithinPercentRange and bullishClose and bullishMAReversal) or \
                 (isRecentCloseWithinPercentRange and not bullishClose and bearishMAReversal):
                 hasReversals = True
@@ -1858,13 +1870,20 @@ class ScreeningStatistics:
         if rsiKey not in df.columns:
             return False
         data = df.copy()
-        data = data[::-1]
-        data = data.tail(3)
-        if len(data) < 3:
+        # Ensure data is sorted with latest date first (descending)
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        # Get the 3 most recent rows (latest date first, so head(3) gets newest 3)
+        recent = data.head(3)
+        if len(recent) < 3:
             return False
-        dayMinus2RSI = data["RSI"].iloc[0]
-        dayMinus1RSI = data["RSI"].iloc[1]
-        dayRSI = data["RSI"].iloc[2]
+        # recent.iloc[0] = today (most recent), iloc[1] = yesterday, iloc[2] = day before yesterday
+        dayRSI = recent["RSI"].iloc[0]  # Today's RSI
+        dayMinus1RSI = recent["RSI"].iloc[1]  # Yesterday's RSI
+        dayMinus2RSI = recent["RSI"].iloc[2]  # Day before yesterday's RSI
         returnValue = (dayMinus2RSI <= 35 and dayMinus1RSI > dayMinus2RSI and dayRSI > dayMinus1RSI) or \
                 (dayMinus1RSI <= 35 and dayRSI > dayMinus1RSI)
         if rsiKey == "RSI":
@@ -1906,7 +1925,7 @@ class ScreeningStatistics:
         if df is None or len(df) == 0 or len(df) < 144:
             return 0
         # RVM over the lookback period of 15 periods
-        rvm = pktalib.RVM(df["High"],df["Low"],df["Close"],15)
+        rvm = pktalib.RVM(df["high"],df["low"],df["close"],15)
         screenDict["RVM(15)"] = rvm
         saveDict["RVM(15)"] = rvm
         return rvm
@@ -1918,20 +1937,20 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data.loc[:,'SMAV10'] = pktalib.SMA(data["Volume"], 10)
+        data.loc[:,'SMAV10'] = pktalib.SMA(data["volume"], 10)
         recent = data.tail(4)
         recent = recent[::-1]
         if len(recent) < 4:
             return False
         # daily close < 1 day ago close * .97
-        cond1 = recent["Close"].iloc[0] < recent["Close"].iloc[1] * 0.97
+        cond1 = recent["close"].iloc[0] < recent["close"].iloc[1] * 0.97
         # Daily volume > 100k
-        cond2 = cond1 and (recent["Volume"].iloc[0] > 100000)
+        cond2 = cond1 and (recent["volume"].iloc[0] > 100000)
         # Daily volume * Daily Close > 1000k
-        cond3 = cond2 and (recent["Volume"].iloc[0] * recent["Close"].iloc[0] > 1000000)
+        cond3 = cond2 and (recent["volume"].iloc[0] * recent["close"].iloc[0] > 1000000)
         # Daily close above 8
-        cond4 = cond3 and recent["Close"].iloc[0] > 8
-        cond5 = cond4 and (recent["Volume"].iloc[0] > recent["SMAV10"].iloc[0] * 0.75)
+        cond4 = cond3 and recent["close"].iloc[0] > 8
+        cond5 = cond4 and (recent["volume"].iloc[0] > recent["SMAV10"].iloc[0] * 0.75)
         return cond5
     
     def findSuperGainersLosers(self, df, percentChangeRequired=15, gainer=True):
@@ -1942,8 +1961,104 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
         recent = data.tail(2)
-        percentChange = round((recent["Close"].iloc[1] - recent["Close"].iloc[0]) *100/recent["Close"].iloc[0],1)
+        percentChange = round((recent["close"].iloc[1] - recent["close"].iloc[0]) *100/recent["close"].iloc[0],1)
         return percentChange >= percentChangeRequired if gainer else percentChange <= percentChangeRequired
+
+    def findStrongBuySignals(self, df, screenDict=None, saveDict=None):
+        """
+        Find stocks with Strong Buy signals using multi-indicator analysis.
+        
+        Uses the TradingSignals class to analyze multiple technical indicators
+        and returns True if the stock qualifies as a Strong Buy.
+        
+        Args:
+            df: OHLCV DataFrame
+            screenDict: Dictionary for screen display results
+            saveDict: Dictionary for saving results
+            
+        Returns:
+            True if stock is a Strong Buy, False otherwise
+        """
+        try:
+            from pkscreener.classes.screening.signals import TradingSignals
+            signals = TradingSignals(self.configManager)
+            return signals.find_strong_buys(df, saveDict, screenDict)
+        except Exception as e:
+            if self.default_logger:
+                self.default_logger.debug(f"findStrongBuySignals error: {e}")
+            return False
+
+    def findStrongSellSignals(self, df, screenDict=None, saveDict=None):
+        """
+        Find stocks with Strong Sell signals using multi-indicator analysis.
+        
+        Uses the TradingSignals class to analyze multiple technical indicators
+        and returns True if the stock qualifies as a Strong Sell.
+        
+        Args:
+            df: OHLCV DataFrame
+            screenDict: Dictionary for screen display results
+            saveDict: Dictionary for saving results
+            
+        Returns:
+            True if stock is a Strong Sell, False otherwise
+        """
+        try:
+            from pkscreener.classes.screening.signals import TradingSignals
+            signals = TradingSignals(self.configManager)
+            return signals.find_strong_sells(df, saveDict, screenDict)
+        except Exception as e:
+            if self.default_logger:
+                self.default_logger.debug(f"findStrongSellSignals error: {e}")
+            return False
+
+    def findAllBuySignals(self, df, screenDict=None, saveDict=None):
+        """
+        Find stocks with any Buy signal (Strong, Regular, or Weak).
+        
+        Uses the TradingSignals class to analyze multiple technical indicators
+        and returns True if the stock has any buy signal.
+        
+        Args:
+            df: OHLCV DataFrame
+            screenDict: Dictionary for screen display results
+            saveDict: Dictionary for saving results
+            
+        Returns:
+            True if stock has a buy signal, False otherwise
+        """
+        try:
+            from pkscreener.classes.screening.signals import TradingSignals
+            signals = TradingSignals(self.configManager)
+            return signals.find_buy_signals(df, saveDict, screenDict)
+        except Exception as e:
+            if self.default_logger:
+                self.default_logger.debug(f"findAllBuySignals error: {e}")
+            return False
+
+    def findAllSellSignals(self, df, screenDict=None, saveDict=None):
+        """
+        Find stocks with any Sell signal (Strong, Regular, or Weak).
+        
+        Uses the TradingSignals class to analyze multiple technical indicators
+        and returns True if the stock has any sell signal.
+        
+        Args:
+            df: OHLCV DataFrame
+            screenDict: Dictionary for screen display results
+            saveDict: Dictionary for saving results
+            
+        Returns:
+            True if stock has a sell signal, False otherwise
+        """
+        try:
+            from pkscreener.classes.screening.signals import TradingSignals
+            signals = TradingSignals(self.configManager)
+            return signals.find_sell_signals(df, saveDict, screenDict)
+        except Exception as e:
+            if self.default_logger:
+                self.default_logger.debug(f"findAllSellSignals error: {e}")
+            return False
 
     #@measure_time
     # Find out trend for days to lookback
@@ -1961,10 +2076,10 @@ class ScreeningStatistics:
         saved = self.findCurrentSavedValue(screenDict,saveDict,"Trend")
         try:
             with SuppressOutput(suppress_stdout=True, suppress_stderr=True):
-                data["tops"] = data["Close"].iloc[
+                data["tops"] = data["close"].iloc[
                     list(
                         pktalib.argrelextrema(
-                            np.array(data["Close"]), np.greater_equal, order=1
+                            np.array(data["close"]), np.greater_equal, order=1
                         )[0]
                     )
                 ]
@@ -2046,16 +2161,16 @@ class ScreeningStatistics:
 
         """ Ignoring the Resitance for long-term purpose
         while len(data_high) > points:
-            slope, intercept, r_value, p_value, std_err = linregress(x=data_high['Number'], y=data_high['High'])
-            data_high = data_high.loc[data_high['High'] > slope * data_high['Number'] + intercept]
-        slope, intercept, r_value, p_value, std_err = linregress(x=data_high['Number'], y=data_high['Close'])
+            slope, intercept, r_value, p_value, std_err = linregress(x=data_high['Number'], y=data_high["high"])
+            data_high = data_high.loc[data_high["high"] > slope * data_high['Number'] + intercept]
+        slope, intercept, r_value, p_value, std_err = linregress(x=data_high['Number'], y=data_high["close"])
         data['Resistance'] = slope * data['Number'] + intercept
         """
 
         while len(data_low) > points:
             try:
                 slope, intercept, r_value, p_value, std_err = linregress(
-                    x=data_low["Number"], y=data_low["Low"]
+                    x=data_low["Number"], y=data_low["low"]
                 )
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
@@ -2063,11 +2178,11 @@ class ScreeningStatistics:
                 self.default_logger.debug(e, exc_info=True)
                 continue
             data_low = data_low.loc[
-                data_low["Low"] < slope * data_low["Number"] + intercept
+                data_low["low"] < slope * data_low["Number"] + intercept
             ]
 
         slope, intercept, r_value, p_value, std_err = linregress(
-            x=data_low["Number"], y=data_low["Close"]
+            x=data_low["Number"], y=data_low["close"]
         )
         data["Support"] = slope * data["Number"] + intercept
         now = data.tail(1)
@@ -2075,7 +2190,7 @@ class ScreeningStatistics:
         limit_upper = now["Support"].iloc[0] + (now["Support"].iloc[0] * percentage)
         limit_lower = now["Support"].iloc[0] - (now["Support"].iloc[0] * percentage)
         saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
-        if limit_lower < now["Close"].iloc[0] < limit_upper and slope > 0.15:
+        if limit_lower < now["close"].iloc[0] < limit_upper and slope > 0.15:
             screenDict["Pattern"] = (
                 saved[0] + colorText.GREEN + "Trendline-Support" + colorText.END
             )
@@ -2088,7 +2203,7 @@ class ScreeningStatistics:
         color = 'tab:green'
         xdate = [x.date() for x in data.index]
         ax1.set_xlabel('Date', color=color)
-        ax1.plot(xdate, data.Close, label="close", color=color)
+        ax1.plot(xdate, data.close, label="close", color=color)
         ax1.tick_params(axis='x', labelcolor=color)
 
         ax2 = ax1.twiny() # ax2 and ax1 will have common y axis and different x axis, twiny
@@ -2118,14 +2233,14 @@ class ScreeningStatistics:
             try:
                 data = df.copy()
                 data = data[::-1]
-                today_sma = pktalib.SMA(data["Close"], timeperiod=50)
-                sma_minus9 = pktalib.SMA(data.head(len(data)-9)["Close"], timeperiod=50)
-                sma_minus14 = pktalib.SMA(data.head(len(data)-14)["Close"], timeperiod=50)
-                sma_minus20 = pktalib.SMA(data.head(len(data)-20)["Close"], timeperiod=50)
-                today_lma = pktalib.SMA(data["Close"], timeperiod=200)
-                lma_minus20 = pktalib.SMA(data.head(len(data)-20)["Close"], timeperiod=200)
-                lma_minus80 = pktalib.SMA(data.head(len(data)-80)["Close"], timeperiod=200)
-                lma_minus100 = pktalib.SMA(data.head(len(data)-100)["Close"], timeperiod=200)
+                today_sma = pktalib.SMA(data["close"], timeperiod=50)
+                sma_minus9 = pktalib.SMA(data.head(len(data)-9)["close"], timeperiod=50)
+                sma_minus14 = pktalib.SMA(data.head(len(data)-14)["close"], timeperiod=50)
+                sma_minus20 = pktalib.SMA(data.head(len(data)-20)["close"], timeperiod=50)
+                today_lma = pktalib.SMA(data["close"], timeperiod=200)
+                lma_minus20 = pktalib.SMA(data.head(len(data)-20)["close"], timeperiod=200)
+                lma_minus80 = pktalib.SMA(data.head(len(data)-80)["close"], timeperiod=200)
+                lma_minus100 = pktalib.SMA(data.head(len(data)-100)["close"], timeperiod=200)
                 today_lma = today_lma.iloc[len(today_lma)-1] if today_lma is not None else 0
                 lma_minus20 = lma_minus20.iloc[len(lma_minus20)-1] if lma_minus20 is not None else 0
                 lma_minus80 = lma_minus80.iloc[len(lma_minus80)-1] if lma_minus80 is not None else 0
@@ -2229,13 +2344,13 @@ class ScreeningStatistics:
         return isUptrend, mf_inst_ownershipChange, fairValueDiff
 
     def getCandleBodyHeight(self, dailyData):
-        bodyHeight = dailyData["Close"].iloc[0] - dailyData["Open"].iloc[0]
+        bodyHeight = dailyData["close"].iloc[0] - dailyData["open"].iloc[0]
         return bodyHeight
 
     # Private method to find candle type
     # True = Bullish, False = Bearish
     def getCandleType(self, dailyData):
-        return bool(dailyData["Close"].iloc[0] >= dailyData["Open"].iloc[0])
+        return bool(dailyData["close"].iloc[0] >= dailyData["open"].iloc[0])
 
     def getFairValue(self, stock, hostData=None, force=False,exchangeName="INDIA"):
         if hostData is None or len(hostData) < 1:
@@ -2336,18 +2451,18 @@ class ScreeningStatistics:
         return netChangeMF,netChangeInst,latest_mfdate,latest_instdate
 
     def getMorningClose(self,df):
-        close = df["Close"][-1]
+        close = df["close"][-1]
         index = len(df)
         while close is np.nan and index >= 0:
-            close = df["Close"][index - 1]
+            close = df["close"][index - 1]
             index -= 1
         return close
 
     def getMorningOpen(self,df):
-        open = df["Open"][0]
+        open = df["open"][0]
         index = 0
         while open is np.nan and index < len(df):
-            open = df["Open"][index + 1]
+            open = df["open"][index + 1]
             index += 1
         return open
 
@@ -2445,6 +2560,10 @@ class ScreeningStatistics:
 
         warnings.filterwarnings("ignore")
         data = df.copy()
+        data = data.rename(columns=str.capitalize)
+        # df.columns = df.columns.str.title()
+        # data.columns = [col.capitalize() for col in data.columns]
+
         model, pkl = Utility.tools.getNiftyModel()
         if model is None or pkl is None:
             return 0, "Unknown", "Unknown"
@@ -2512,47 +2631,47 @@ class ScreeningStatistics:
         data = data.replace([np.inf, -np.inf], 0)
         data.reset_index(inplace=True)
         data.rename(columns={"index": "Date"}, inplace=True)
-        data = data[data["High"]>0]
-        data = data[data["Low"]>0]
-        data["tops"] = (data["High"].iloc[list(pktalib.argrelextrema(np.array(data["High"]), np.greater_equal, order=window)[0])].head(numTopsBottoms))
-        data["bots"] = (data["Low"].iloc[list(pktalib.argrelextrema(np.array(data["Low"]), np.less_equal, order=window)[0])].head(numTopsBottoms))
+        data = data[data["high"]>0]
+        data = data[data["low"]>0]
+        data["tops"] = (data["high"].iloc[list(pktalib.argrelextrema(np.array(data["high"]), np.greater_equal, order=window)[0])].head(numTopsBottoms))
+        data["bots"] = (data["low"].iloc[list(pktalib.argrelextrema(np.array(data["low"]), np.less_equal, order=window)[0])].head(numTopsBottoms))
         tops = data[data.tops > 0]
         bots = data[data.bots > 0]
         return tops, bots
 
     def monitorFiveEma(self, fetcher, result_df, last_signal, risk_reward=3):
-        col_names = ["High", "Low", "Close", "5EMA"]
+        col_names = ["high", "low", "close", "5EMA"]
         data_list = ["nifty_buy", "banknifty_buy", "nifty_sell", "banknifty_sell"]
 
         data_tuple = fetcher.fetchFiveEmaData()
         for cnt in range(len(data_tuple)):
             d = data_tuple[cnt]
-            d["5EMA"] = pktalib.EMA(d["Close"], timeperiod=5)
+            d["5EMA"] = pktalib.EMA(d["close"], timeperiod=5)
             d = d[col_names]
             d = d.dropna().round(2)
 
             with SuppressOutput(suppress_stderr=True, suppress_stdout=True):
                 if "sell" in data_list[cnt]:
-                    streched = d[(d.Low > d["5EMA"]) & (d.Low - d["5EMA"] > 0.5)]
-                    streched["SL"] = streched.High
+                    streched = d[(d.low > d["5EMA"]) & (d.low - d["5EMA"] > 0.5)]
+                    streched["SL"] = streched.high
                     validate = d[
-                        (d.Low.shift(1) > d["5EMA"].shift(1))
-                        & (d.Low.shift(1) - d["5EMA"].shift(1) > 0.5)
+                        (d.low.shift(1) > d["5EMA"].shift(1))
+                        & (d.low.shift(1) - d["5EMA"].shift(1) > 0.5)
                     ]
                     old_index = validate.index
                 else:
-                    mask = (d.High < d["5EMA"]) & (d["5EMA"] - d.High > 0.5)  # Buy
+                    mask = (d.high < d["5EMA"]) & (d["5EMA"] - d.high > 0.5)  # Buy
                     streched = d[mask]
-                    streched["SL"] = streched.Low
+                    streched["SL"] = streched.low
                     validate = d.loc[mask.shift(1).fillna(False)]
                     old_index = validate.index
             tgt = pd.DataFrame(
                 (
-                    validate.Close.reset_index(drop=True)
+                    validate.close.reset_index(drop=True)
                     - (
                         (
                             streched.SL.reset_index(drop=True)
-                            - validate.Close.reset_index(drop=True)
+                            - validate.close.reset_index(drop=True)
                         )
                         * risk_reward
                     )
@@ -2570,9 +2689,9 @@ class ScreeningStatistics:
             validate = validate.tail(len(old_index))
             validate = validate.set_index(old_index)
             if "sell" in data_list[cnt]:
-                final = validate[validate.Close < validate["5EMA"]].tail(1)
+                final = validate[validate.close < validate["5EMA"]].tail(1)
             else:
-                final = validate[validate.Close > validate["5EMA"]].tail(1)
+                final = validate[validate.close > validate["5EMA"]].tail(1)
 
             if data_list[cnt] not in last_signal:
                 last_signal[data_list[cnt]] = final
@@ -2639,7 +2758,7 @@ class ScreeningStatistics:
         return result_df[::-1]
 
     def non_zero_range(self, high: pd.Series, low: pd.Series) -> pd.Series:
-        """Returns the difference of two series and adds epsilon to any zero values.  This occurs commonly in crypto data when 'high' = 'low'."""
+        """Returns the difference of two series and adds epsilon to any zero values.  This occurs commonly in crypto data when "high" = "low"."""
         diff = high - low
         if diff.eq(0).any().any():
             diff += sflt.epsilon
@@ -2652,8 +2771,8 @@ class ScreeningStatistics:
                         (dataframe['adx'] > self.adx_long_min.value) & # trend strength confirmation
                         (dataframe['adx'] < self.adx_long_max.value) & # trend strength confirmation
                         (dataframe['trend_l'] > 0) &
-                        (dataframe['volume'] > dataframe['volume_mean']) &
-                        (dataframe['volume'] > 0)
+                        (dataframe["volume"] > dataframe['volume_mean']) &
+                        (dataframe["volume"] > 0)
 
             ),
             'enter_long'] = 1
@@ -2663,7 +2782,7 @@ class ScreeningStatistics:
                         (dataframe['adx'] > self.adx_short_min.value) & # trend strength confirmation
                         (dataframe['adx'] < self.adx_short_max.value) & # trend strength confirmation
                         (dataframe['trend_s'] < 0) &
-                        (dataframe['volume'] > dataframe['volume_mean_s']) # volume weighted indicator
+                        (dataframe["volume"] > dataframe['volume_mean_s']) # volume weighted indicator
             ),
             'enter_short'] = 1
         
@@ -2676,15 +2795,15 @@ class ScreeningStatistics:
         dataframe.loc[:, 'exit_tag'] = ''
 
         exit_long = (
-                # (dataframe['close'] < dataframe['low'].shift(self.sell_shift.value)) &
-                (dataframe['close'] < dataframe['ema_l']) &
-                (dataframe['volume'] > dataframe['volume_mean_exit'])
+                # (dataframe["close"] < dataframe["low"].shift(self.sell_shift.value)) &
+                (dataframe["close"] < dataframe['ema_l']) &
+                (dataframe["volume"] > dataframe['volume_mean_exit'])
         )
 
         exit_short = (
-                # (dataframe['close'] > dataframe['high'].shift(self.sell_shift_short.value)) &
-                (dataframe['close'] > dataframe['ema_s']) &
-                (dataframe['volume'] > dataframe['volume_mean_exit_s'])
+                # (dataframe["close"] > dataframe["high"].shift(self.sell_shift_short.value)) &
+                (dataframe["close"] > dataframe['ema_s']) &
+                (dataframe["volume"] > dataframe['volume_mean_exit_s'])
         )
 
 
@@ -2726,16 +2845,16 @@ class ScreeningStatistics:
         # dataframe['rsi'] = ta.RSI(dataframe)
 
         # EMA
-        dataframe['ema_l'] = pktalib.EMA(dataframe['close'], timeperiod=self.ema_period_l_exit.value)
-        dataframe['ema_s'] = pktalib.EMA(dataframe['close'], timeperiod=self.ema_period_s_exit.value)
+        dataframe['ema_l'] = pktalib.EMA(dataframe["close"], timeperiod=self.ema_period_l_exit.value)
+        dataframe['ema_s'] = pktalib.EMA(dataframe["close"], timeperiod=self.ema_period_s_exit.value)
 
 
         # Volume Weighted
-        dataframe['volume_mean'] = dataframe['volume'].rolling(self.volume_check.value).mean().shift(1)
-        dataframe['volume_mean_exit'] = dataframe['volume'].rolling(self.volume_check_exit.value).mean().shift(1)
+        dataframe['volume_mean'] = dataframe["volume"].rolling(self.volume_check.value).mean().shift(1)
+        dataframe['volume_mean_exit'] = dataframe["volume"].rolling(self.volume_check_exit.value).mean().shift(1)
 
-        dataframe['volume_mean_s'] = dataframe['volume'].rolling(self.volume_check_s.value).mean().shift(1)
-        dataframe['volume_mean_exit_s'] = dataframe['volume'].rolling(self.volume_check_exit_s.value).mean().shift(1)
+        dataframe['volume_mean_s'] = dataframe["volume"].rolling(self.volume_check_s.value).mean().shift(1)
+        dataframe['volume_mean_exit_s'] = dataframe["volume"].rolling(self.volume_check_exit_s.value).mean().shift(1)
         return dataframe
     
     # Preprocess the acquired data
@@ -2749,36 +2868,36 @@ class ScreeningStatistics:
             # self.default_logger.info(f"Preprocessing data:\n{data.head(1)}\n")
             if daysToLookback is None:
                 daysToLookback = self.configManager.daysToLookback
-            volatility = df['Close'].rolling(window=20).std()
+            volatility = df["close"].rolling(window=20).std()
             if self.configManager.useEMA:
-                sma = pktalib.EMA(data["Close"], timeperiod=50)
-                lma = pktalib.EMA(data["Close"], timeperiod=200)
-                ssma = pktalib.EMA(data["Close"], timeperiod=9)
-                ssma20 = pktalib.EMA(data["Close"], timeperiod=20)
+                sma = pktalib.EMA(data["close"], timeperiod=50)
+                lma = pktalib.EMA(data["close"], timeperiod=200)
+                ssma = pktalib.EMA(data["close"], timeperiod=9)
+                ssma20 = pktalib.EMA(data["close"], timeperiod=20)
                 data.insert(len(data.columns), "SMA", sma)
                 data.insert(len(data.columns), "LMA", lma)
                 data.insert(len(data.columns), "SSMA", ssma)
                 data.insert(len(data.columns), "SSMA20", ssma20)
                 data.insert(len(data.columns), "Volatility", volatility)
             else:
-                sma = pktalib.SMA(data["Close"], timeperiod=50)
-                lma = pktalib.SMA(data["Close"], timeperiod=200)
-                ssma = pktalib.SMA(data["Close"], timeperiod=9)
-                ssma20 = pktalib.SMA(data["Close"], timeperiod=20)
+                sma = pktalib.SMA(data["close"], timeperiod=50)
+                lma = pktalib.SMA(data["close"], timeperiod=200)
+                ssma = pktalib.SMA(data["close"], timeperiod=9)
+                ssma20 = pktalib.SMA(data["close"], timeperiod=20)
                 data.insert(len(data.columns), "SMA", sma)
                 data.insert(len(data.columns), "LMA", lma)
                 data.insert(len(data.columns), "SSMA", ssma)
                 data.insert(len(data.columns), "SSMA20", ssma20)
                 data.insert(len(data.columns), "Volatility", volatility)
-            vol = pktalib.SMA(data["Volume"], timeperiod=20)
-            rsi = pktalib.RSI(data["Close"], timeperiod=14)
+            vol = pktalib.SMA(data["volume"], timeperiod=20)
+            rsi = pktalib.RSI(data["close"], timeperiod=14)
             data.insert(len(data.columns), "VolMA", vol)
             data.insert(len(data.columns), "RSI", rsi)
-            cci = pktalib.CCI(data["High"], data["Low"], data["Close"], timeperiod=14)
+            cci = pktalib.CCI(data["high"], data["low"], data["close"], timeperiod=14)
             data.insert(len(data.columns), "CCI", cci)
             try:
                 fastk, fastd = pktalib.STOCHRSI(
-                    data["Close"], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0
+                    data["close"], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0
                 )
                 data.insert(len(data.columns), "FASTK", fastk)
                 data.insert(len(data.columns), "FASTD", fastd)
@@ -2807,9 +2926,18 @@ class ScreeningStatistics:
         data = df.copy()
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
+        # Need at least 20 rows for SMA20 calculation
+        if len(data) < 20:
+            return False
+        # Ensure data is sorted with oldest date first for SMA calculation
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=True)
+            except:
+                pass
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        data["SMA20"] = pktalib.SMA(data["Close"], 20)
-        data["SMA20V"] = pktalib.SMA(data["Volume"], 20)
+        data["SMA20"] = pktalib.SMA(data["close"], 20)
+        data["SMA20V"] = pktalib.SMA(data["volume"], 20)
         data = data[
             ::-1
         ]  # Reverse the dataframe so that it's the most recent date first
@@ -2817,13 +2945,13 @@ class ScreeningStatistics:
         if len(recent) < 3:
             return False
         # Price at least 1% higher than previous close
-        cond1 = recent["Close"].iloc[0] > 1.01*recent["Close"].iloc[1]
+        cond1 = recent["close"].iloc[0] > 1.01*recent["close"].iloc[1]
         # Volume at least 5% higher than previous volume
-        cond6 = recent["Volume"].iloc[0] > 1.05*recent["Volume"].iloc[1]
-        cond2 = cond1 and cond6 and (recent["Close"].iloc[0] > recent["SMA20"].iloc[0])
-        cond3 = cond2 and (recent["Close"].iloc[1] > recent["High"].iloc[2])
-        cond4 = cond3 and (recent["Volume"].iloc[0] > 1.05*recent["SMA20V"].iloc[0])
-        cond5 = cond4 and (recent["Volume"].iloc[1] > recent["SMA20V"].iloc[0])
+        cond6 = recent["volume"].iloc[0] > 1.05*recent["volume"].iloc[1]
+        cond2 = cond1 and cond6 and (recent["close"].iloc[0] > recent["SMA20"].iloc[0])
+        cond3 = cond2 and (recent["close"].iloc[1] > recent["high"].iloc[2])
+        cond4 = cond3 and (recent["volume"].iloc[0] > 1.05*recent["SMA20V"].iloc[0])
+        cond5 = cond4 and (recent["volume"].iloc[1] > recent["SMA20V"].iloc[0])
         return cond5
 
     def validateBullishForTomorrow(self, df):
@@ -2834,9 +2962,9 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        macdLine = pktalib.MACD(data["Close"], 12, 26, 9)[0].tail(3)
-        macdSignal = pktalib.MACD(data["Close"], 12, 26, 9)[1].tail(3)
-        macdHist = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(3)
+        macdLine = pktalib.MACD(data["close"], 12, 26, 9)[0].tail(3)
+        macdSignal = pktalib.MACD(data["close"], 12, 26, 9)[1].tail(3)
+        macdHist = pktalib.MACD(data["close"], 12, 26, 9)[2].tail(3)
 
         return (
             (macdHist.iloc[:1].iloc[0] < macdHist.iloc[:2].iloc[1])
@@ -2914,21 +3042,21 @@ class ScreeningStatistics:
             while recentCurrentDay <= maxRecentDays:
                 # 8 ema>21 ema > 55 ema >200 sma each OF THE ema AND THE 200 sma SEPARATED BY LESS THAN 1%(ideally 0.1% TO 0.5%) DURING CONFLUENCE
                 if len(emas) >= 1:
-                    ema_8 = pktalib.EMA(reversedData["Close"],int(emas[0])).tail(recentCurrentDay).head(1).iloc[0]
-                    ema_8_prev = pktalib.EMA(reversedData["Close"],int(emas[0])).tail(recentCurrentDay+1).head(1).iloc[0]
+                    ema_8 = pktalib.EMA(reversedData["close"],int(emas[0])).tail(recentCurrentDay).head(1).iloc[0]
+                    ema_8_prev = pktalib.EMA(reversedData["close"],int(emas[0])).tail(recentCurrentDay+1).head(1).iloc[0]
                 if len(emas) >= 2:
-                    ema_21 = pktalib.EMA(reversedData["Close"],int(emas[1])).tail(recentCurrentDay).head(1).iloc[0]
-                    ema_21_prev = pktalib.EMA(reversedData["Close"],int(emas[1])).tail(recentCurrentDay+1).head(1).iloc[0]
+                    ema_21 = pktalib.EMA(reversedData["close"],int(emas[1])).tail(recentCurrentDay).head(1).iloc[0]
+                    ema_21_prev = pktalib.EMA(reversedData["close"],int(emas[1])).tail(recentCurrentDay+1).head(1).iloc[0]
                 if len(emas) >= 3:
-                    ema_55 = pktalib.EMA(reversedData["Close"],int(emas[2])).tail(recentCurrentDay).head(1).iloc[0]
-                    ema_55_prev = pktalib.EMA(reversedData["Close"],int(emas[2])).tail(recentCurrentDay+1).head(1).iloc[0]
+                    ema_55 = pktalib.EMA(reversedData["close"],int(emas[2])).tail(recentCurrentDay).head(1).iloc[0]
+                    ema_55_prev = pktalib.EMA(reversedData["close"],int(emas[2])).tail(recentCurrentDay+1).head(1).iloc[0]
                 
                 ema8CrossedEMA21 = (ema_8 >= ema_21 and ema_8_prev <= ema_21_prev) or ema8CrossedEMA21
                 ema8CrossedEMA55 = (ema_8 >= ema_55 and ema_8_prev <= ema_55_prev) or ema8CrossedEMA55
                 ema21CrossedEMA55 = (ema_21 >= ema_55 and ema_21_prev <= ema_55_prev) or ema21CrossedEMA55
                 
-                sma_200 = pktalib.SMA(reversedData["Close"],200).tail(recentCurrentDay).head(1).iloc[0]
-                # ema9 = pktalib.EMA(reversedData["Close"],9).tail(recentCurrentDay).head(1).iloc[0]
+                sma_200 = pktalib.SMA(reversedData["close"],200).tail(recentCurrentDay).head(1).iloc[0]
+                # ema9 = pktalib.EMA(reversedData["close"],9).tail(recentCurrentDay).head(1).iloc[0]
                 # smaRange = sma_200 * percentage
                 superConfluenceEnforce200SMA = self.configManager.superConfluenceEnforce200SMA
                 # ema_min = min(ema_8, ema_21, ema_55)
@@ -2991,10 +3119,10 @@ class ScreeningStatistics:
             key4 = "50DMA"
         is50DMAUpTrend = (recent[key1].iloc[0] > recent[key2].iloc[1])
         is50DMADownTrend = (recent[key1].iloc[0] < recent[key1].iloc[1])
-        is50DMA = (recent[key1].iloc[0] <= recent["Close"].iloc[0])
-        is200DMA = (recent[key2].iloc[0] <= recent["Close"].iloc[0])
+        is50DMA = (recent[key1].iloc[0] <= recent["close"].iloc[0])
+        is200DMA = (recent[key2].iloc[0] <= recent["close"].iloc[0])
         difference = round((recent[key1].iloc[0] - recent[key2].iloc[0])
-                / recent["Close"].iloc[0]
+                / recent["close"].iloc[0]
                 * 100,
                 2,
             )
@@ -3044,11 +3172,11 @@ class ScreeningStatistics:
             return False
         data = df.copy()
         reversedData = data[::-1]  # Reverse the dataframe
-        recentClose = reversedData["Close"].tail(1).head(1).iloc[0]
-        yesterdayClose = reversedData["Close"].tail(2).head(1).iloc[0]
-        recentOpen = reversedData["Open"].tail(1).head(1).iloc[0]
-        yesterdayOpen = reversedData["Open"].tail(2).head(1).iloc[0]
-        recentVol = reversedData["Volume"].tail(1).head(1).iloc[0]
+        recentClose = reversedData["close"].tail(1).head(1).iloc[0]
+        yesterdayClose = reversedData["close"].tail(2).head(1).iloc[0]
+        recentOpen = reversedData["open"].tail(1).head(1).iloc[0]
+        yesterdayOpen = reversedData["open"].tail(2).head(1).iloc[0]
+        recentVol = reversedData["volume"].tail(1).head(1).iloc[0]
         # Daily open > 1 day ago open &
         # Daily Close > 1 day ago close &
         # Volume > 1000000
@@ -3070,7 +3198,7 @@ class ScreeningStatistics:
         lma_200 = reversedData["LMA"]
         sma_50 = reversedData["SMA"]
         full52Week = reversedData.tail(50 * one_week)
-        full52WeekLow = full52Week["Low"].min()
+        full52WeekLow = full52Week["low"].min()
         #200 MA is rising for at least 3 months
         today = 1
         while today <= one_week * 12: # last 3 months
@@ -3081,14 +3209,14 @@ class ScreeningStatistics:
         if sma_50.tail(1).head(1).iloc[0] <= lma_200.tail(1).head(1).iloc[0]:
             return False
         # Current price is above 20Osma and preferably above 50 to 100
-        recentClose = reversedData["Close"].tail(1).head(1).iloc[0]
+        recentClose = reversedData["close"].tail(1).head(1).iloc[0]
         if recentClose < lma_200.tail(1).head(1).iloc[0] or recentClose < 50 or recentClose > 100:
             return False
         # Current price is at least above 100 % from 52week low
         if recentClose <= 2*full52WeekLow:
             return False
         # The stock should have made a 52 week high at least once every 4 to 6 month
-        highAsc = reversedData.sort_values(by=["High"], ascending=True)
+        highAsc = reversedData.sort_values(by=["high"], ascending=True)
         highs = highAsc.tail(13)
         dateDiffs = highs.index.to_series().diff().dt.days
         index = 0
@@ -3107,29 +3235,29 @@ class ScreeningStatistics:
             return False
         data = full_df.copy()
         reversedData = data[::-1]  # Reverse the dataframe
-        recentClose = reversedData["Close"].tail(1).head(1).iloc[0]
-        prevClose = reversedData["Close"].tail(2).head(1).iloc[0]
+        recentClose = reversedData["close"].tail(1).head(1).iloc[0]
+        prevClose = reversedData["close"].tail(2).head(1).iloc[0]
         tradingAbove2Percent = (recentClose-prevClose)*100/prevClose > 2
         if tradingAbove2Percent:
-            prevHigh = reversedData["High"].tail(2).head(1).iloc[0]
+            prevHigh = reversedData["high"].tail(2).head(1).iloc[0]
             tradingAbovePrevHighAnd50MA = (recentClose > prevHigh) and (recentClose > reversedData["SMA"].tail(1).head(1).iloc[0])
             # return tradingAbovePrevHighAnd50MA
             # resampling 1-min data to 5 min for 200MA requires at least 5d data to
             # be downloaded which is pretty huge (~460MB). So skipping this for now.
             if tradingAbovePrevHighAnd50MA:
                 ohlc_dict = {
-                    'Open':'first',
-                    'High':'max',
-                    'Low':'min',
-                    'Close':'last',
+                    "open":'first',
+                    "high":'max',
+                    "low":'min',
+                    "close":'last',
                     'Adj Close': 'last',
-                    'Volume':'sum'
+                    "volume":'sum'
                 }
                 data_5min = df_5min.copy()
                 reversedData_5min = data_5min[::-1]  # Reverse the dataframe
                 reversedData_5min = reversedData_5min.resample(f'5T', offset='15min').agg(ohlc_dict)
                 reversedData_5min.dropna(inplace=True)
-                sma200_5min = pktalib.SMA(reversedData_5min["Close"],timeperiod=200)
+                sma200_5min = pktalib.SMA(reversedData_5min["close"],timeperiod=200)
                 return recentClose > sma200_5min.tail(1).head(1).iloc[0]
         return False
 
@@ -3141,8 +3269,8 @@ class ScreeningStatistics:
         data = df.copy()
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
-        hc = data.describe()["Close"]["max"]
-        lc = data.describe()["Close"]["min"]
+        hc = data.describe()["close"]["max"]
+        lc = data.describe()["close"]["min"]
         if (hc - lc) <= (hc * percentage / 100) and (hc - lc != 0):
             screenDict["Consol."] = (
                 colorText.GREEN
@@ -3249,19 +3377,19 @@ class ScreeningStatistics:
         if len(day1) < 1 or len(day2) < 1 or len(day3) < 1:
             return False
         higherHighs = (
-            (day0["High"].iloc[0] > day1["High"].iloc[0])
-            and (day1["High"].iloc[0] > day2["High"].iloc[0])
-            and (day2["High"].iloc[0] > day3["High"].iloc[0])
+            (day0["high"].iloc[0] > day1["high"].iloc[0])
+            and (day1["high"].iloc[0] > day2["high"].iloc[0])
+            and (day2["high"].iloc[0] > day3["high"].iloc[0])
         )
         higherLows = (
-            (day0["Low"].iloc[0] > day1["Low"].iloc[0])
-            and (day1["Low"].iloc[0] > day2["Low"].iloc[0])
-            and (day2["Low"].iloc[0] > day3["Low"].iloc[0])
+            (day0["low"].iloc[0] > day1["low"].iloc[0])
+            and (day1["low"].iloc[0] > day2["low"].iloc[0])
+            and (day2["low"].iloc[0] > day3["low"].iloc[0])
         )
         higherClose = (
-            (day0["Close"].iloc[0] > day1["Close"].iloc[0])
-            and (day1["Close"].iloc[0] > day2["Close"].iloc[0])
-            and (day2["Close"].iloc[0] > day3["Close"].iloc[0])
+            (day0["close"].iloc[0] > day1["close"].iloc[0])
+            and (day1["close"].iloc[0] > day2["close"].iloc[0])
+            and (day2["close"].iloc[0] > day3["close"].iloc[0])
         )
         # higherRSI = (day0["RSI"].iloc[0] > day1["RSI"].iloc[0]) and \
         #                 (day1["RSI"].iloc[0] > day2["RSI"].iloc[0]) and \
@@ -3269,11 +3397,11 @@ class ScreeningStatistics:
         #                 day3["RSI"].iloc[0] >= 50 and day0["RSI"].iloc[0] >= 65
         reversedData = data[::-1].copy()
         reversedData["SUPERT"] = pktalib.supertrend(reversedData, 7, 3)["SUPERT_7_3.0"]
-        reversedData["EMA8"] = pktalib.EMA(reversedData["Close"], timeperiod=9)
+        reversedData["EMA8"] = pktalib.EMA(reversedData["close"], timeperiod=9)
         higherClose = (
             higherClose
-            and day0["Close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0]
-            and day0["Close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
+            and day0["close"].iloc[0] > reversedData.tail(1)["SUPERT"].iloc[0]
+            and day0["close"].iloc[0] > reversedData.tail(1)["EMA8"].iloc[0]
         )
         return higherHighs and higherLows and higherClose
 
@@ -3298,10 +3426,10 @@ class ScreeningStatistics:
                     data = orgData.head(i)
                     refCandle = data.tail(1)
                     if (
-                        (len(data.High[data.High > refCandle.High.item()]) == 0)
-                        and (len(data.Low[data.Low < refCandle.Low.item()]) == 0)
-                        and (len(data.Open[data.Open > refCandle.High.item()]) == 0)
-                        and (len(data.Close[data.Close < refCandle.Low.item()]) == 0)
+                        (len(data.high[data.high > refCandle.high.item()]) == 0)
+                        and (len(data.low[data.low < refCandle.low.item()]) == 0)
+                        and (len(data.open[data.open > refCandle.high.item()]) == 0)
+                        and (len(data.close[data.close < refCandle.low.item()]) == 0)
                     ):
                         screenDict["Pattern"] = (
                             saved[0]
@@ -3320,10 +3448,10 @@ class ScreeningStatistics:
                     data = orgData.head(i)
                     refCandle = data.tail(1)
                     if (
-                        (len(data.High[data.High > refCandle.High.item()]) == 0)
-                        and (len(data.Low[data.Low < refCandle.Low.item()]) == 0)
-                        and (len(data.Open[data.Open > refCandle.High.item()]) == 0)
-                        and (len(data.Close[data.Close < refCandle.Low.item()]) == 0)
+                        (len(data.high[data.high > refCandle.high.item()]) == 0)
+                        and (len(data.low[data.low < refCandle.low.item()]) == 0)
+                        and (len(data.open[data.open > refCandle.high.item()]) == 0)
+                        and (len(data.close[data.close < refCandle.low.item()]) == 0)
                     ):
                         screenDict["Pattern"] = (
                             saved[0]
@@ -3342,9 +3470,9 @@ class ScreeningStatistics:
         if df is None or len(df) == 0:
             return False
         data = df.copy()
-        listingPrice = data[::-1].head(1)["Open"].iloc[0]
-        currentPrice = data.head(1)["Close"].iloc[0]
-        ATH = data.describe()["High"]["max"]
+        listingPrice = data[::-1].head(1)["open"].iloc[0]
+        currentPrice = data.head(1)["close"].iloc[0]
+        ATH = data.describe()["high"]["max"]
         if ATH > (listingPrice + (listingPrice * percentage)):
             return False
         away = round(((currentPrice - listingPrice) / listingPrice) * 100, 1)
@@ -3384,11 +3512,11 @@ class ScreeningStatistics:
         data = data[::-1]  # Reverse the dataframe
         data = data.rename(
             columns={
-                "Open": "open",
-                "Close": "close",
-                "High": "high",
-                "Low": "low",
-                "Volume": "volume",
+                "open": "open",
+                "close": "close",
+                "high": "high",
+                "low": "low",
+                "volume": "volume",
             }
         )
         try:
@@ -3400,10 +3528,10 @@ class ScreeningStatistics:
                     ata.LorentzianClassification.Feature("CCI", 20, 2),  # f3
                     ata.LorentzianClassification.Feature("ADX", 20, 2),  # f4
                     ata.LorentzianClassification.Feature("RSI", 9, 2),   # f5
-                    pktalib.MFI(data['high'], data['low'], data['close'], data['volume'], 14) #f6
+                    pktalib.MFI(data["high"], data["low"], data["close"], data["volume"], 14) #f6
                 ],
                 settings=ata.LorentzianClassification.Settings(
-                    source=data['close'],
+                    source=data["close"],
                     neighborsCount=8,
                     maxBarsBack=2000,
                     useDynamicExits=False
@@ -3465,14 +3593,14 @@ class ScreeningStatistics:
         day2 = data[2:]
         day3 = data[3:]
         lowerHighs = (
-            (day0["High"].iloc[0] < day1["High"].iloc[0])
-            and (day1["High"].iloc[0] < day2["High"].iloc[0])
-            and (day2["High"].iloc[0] < day3["High"].iloc[0])
+            (day0["high"].iloc[0] < day1["high"].iloc[0])
+            and (day1["high"].iloc[0] < day2["high"].iloc[0])
+            and (day2["high"].iloc[0] < day3["high"].iloc[0])
         )
         lowerLows = (
-            (day0["Low"].iloc[0] < day1["Low"].iloc[0])
-            and (day1["Low"].iloc[0] < day2["Low"].iloc[0])
-            and (day2["Low"].iloc[0] < day3["Low"].iloc[0])
+            (day0["low"].iloc[0] < day1["low"].iloc[0])
+            and (day1["low"].iloc[0] < day2["low"].iloc[0])
+            and (day2["low"].iloc[0] < day3["low"].iloc[0])
         )
         higherRSI = (
             (day0["RSI"].iloc[0] < day1["RSI"].iloc[0])
@@ -3497,8 +3625,8 @@ class ScreeningStatistics:
         recent = data.head(1)
         if len(recent) < 1:
             return False
-        if (recent["Volume"].iloc[0] <= data.describe()["Volume"]["min"]) and recent[
-            "Volume"
+        if (recent["volume"].iloc[0] <= data.describe()["volume"]["min"]) and recent[
+            "volume"
         ][0] != np.nan:
             return True
         return False
@@ -3513,9 +3641,15 @@ class ScreeningStatistics:
             maxLTP = self.configManager.maxLTP
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
+        # Ensure data is sorted with latest date first (in case it wasn't sorted during load)
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
         recent = data.head(1)
 
-        pct_change = (data[::-1]["Close"].pct_change() * 100).iloc[-1]
+        pct_change = (data[::-1]["close"].pct_change() * 100).iloc[-1]
         if pct_change == np.inf or pct_change == -np.inf:
             pct_change = 0
         pct_save = "%.1f%%" % pct_change
@@ -3527,11 +3661,11 @@ class ScreeningStatistics:
             pct_change = colorText.WARN + ("%.1f%%" % pct_change) + colorText.END
         saveDict["%Chng"] = pct_save
         screenDict["%Chng"] = pct_change
-        ltp = round(recent["Close"].iloc[0], 2)
+        ltp = round(recent["close"].iloc[0], 2)
         verifyStageTwo = True
         if len(data) > 250:
-            yearlyLow = data.head(250)["Close"].min()
-            yearlyHigh = data.head(250)["Close"].max()
+            yearlyLow = data.head(250)["close"].min()
+            yearlyHigh = data.head(250)["close"].max()
             if ltp < (2 * yearlyLow) and ltp < (0.75 * yearlyHigh):
                 verifyStageTwo = False
                 screenDict["Stock"] = colorText.FAIL + saveDict["Stock"] + colorText.END
@@ -3543,24 +3677,57 @@ class ScreeningStatistics:
             saveDict["LTP"] = round(ltp, 2)
             screenDict["LTP"] = (colorText.GREEN if ltpValid else colorText.FAIL) + ("%.2f" % ltp) + colorText.END
             try:
-                dateTimePart = str(recent.index[0]).split(" ")
-                if len(dateTimePart) == 1:
-                    indexDate = PKDateUtilities.dateFromYmdString(dateTimePart[0])
-                    dayDate = f"{indexDate.day}/{indexDate.month}"
-                elif len(dateTimePart) == 2:
-                    today = PKDateUtilities.currentDateTime()
-                    try:
-                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
-                    except: # pragma: no cover
-                        indexDate = datetime.datetime.strptime(str(recent.index[0]),"%Y-%m-%d %H:%M:%S%z").replace(tzinfo=today.tzinfo)
-                        pass
-                    dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}" if indexDate.hour > 0 else f"{indexDate.day}/{indexDate.month} {today.hour}:{today.minute}"
-                    screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
-                    saveDict["Time"] = str(dayDate)
+                # Use the latest date from the full dataset (data.index[0] after sorting)
+                # This ensures we always show the most recent trading date
+                latest_date_index = data.index[0] if not data.empty else (recent.index[0] if not recent.empty else None)
+                if latest_date_index is None:
+                    # Fallback to recent if data is empty
+                    latest_date_index = recent.index[0] if not recent.empty else None
+                
+                # #region agent log
+                # import json
+                # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+                # with open(log_path, 'a') as f:
+                #     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"ScreeningStatistics.py:validateLTP:3687","message":"Setting Time column from latest_date_index","data":{"latest_date_index":str(latest_date_index) if latest_date_index else None,"data_empty":data.empty,"data_index_0":str(data.index[0]) if not data.empty else None,"data_index_len":len(data.index) if not data.empty else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # #endregion
+                
+                if latest_date_index is not None:
+                    dateTimePart = str(latest_date_index).split(" ")
+                    if len(dateTimePart) == 1:
+                        indexDate = PKDateUtilities.dateFromYmdString(dateTimePart[0])
+                        dayDate = f"{indexDate.day}/{indexDate.month}"
+                    elif len(dateTimePart) == 2:
+                        today = PKDateUtilities.currentDateTime()
+                        try:
+                            indexDate = datetime.datetime.strptime(str(latest_date_index),"%Y-%m-%d %H:%M:%S").replace(tzinfo=today.tzinfo)
+                        except: # pragma: no cover
+                            try:
+                                indexDate = datetime.datetime.strptime(str(latest_date_index),"%Y-%m-%d %H:%M:%S%z").replace(tzinfo=today.tzinfo)
+                            except:
+                                # Try parsing with pd.to_datetime as fallback
+                                try:
+                                    indexDate = pd.to_datetime(str(latest_date_index), format='mixed', utc=True)
+                                    if hasattr(indexDate, 'tz') and indexDate.tz is not None:
+                                        indexDate = indexDate.tz_convert(today.tzinfo)
+                                    else:
+                                        indexDate = indexDate.replace(tzinfo=today.tzinfo)
+                                except:
+                                    indexDate = today
+                            pass
+                        
+                        # If the time is 00:00, assume market close (15:30) for that day
+                        if indexDate.hour == 0 and indexDate.minute == 0:
+                            indexDate = indexDate.replace(hour=15, minute=30, second=0, microsecond=0)
+                        
+                        dayDate = f"{indexDate.day}/{indexDate.month} {indexDate.hour}:{indexDate.minute}"
+                        screenDict["Time"] = f"{colorText.WHITE}{dayDate}{colorText.END}"
+                        saveDict["Time"] = str(dayDate)
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as e: # pragma: no cover
                 self.default_logger.debug(e, exc_info=True)
+                ltpValid = False
+                verifyStageTwo = False
                 pass
             
             return ltpValid, verifyStageTwo
@@ -3578,8 +3745,8 @@ class ScreeningStatistics:
         calc_date = str(previous_recent.iloc[:, 0][0]).split(" ")[0]
         for prd in periods:
             if len(data) >= prd + 1:
-                prevLtp = data["Close"].iloc[0]
-                ltpTdy = data["Close"].iloc[prd]
+                prevLtp = data["close"].iloc[0]
+                ltpTdy = data["close"].iloc[prd]
                 if isinstance(prevLtp,pd.Series):
                     prevLtp = prevLtp[0]
                     ltpTdy = ltpTdy[0]
@@ -3596,11 +3763,11 @@ class ScreeningStatistics:
                 saveDict[f"LTP{prd}"] = round(ltpTdy, 2)
                 saveDict[f"Growth{prd}"] = round(ltpTdy - prevLtp, 2)
                 if prd == 22 or (prd == requestedPeriod):
-                    changePercent = round(((prevLtp-ltpTdy) if requestedPeriod ==0 else (ltpTdy - prevLtp))*100/ltpTdy, 2)
+                    changePercent = round(((prevLtp-ltpTdy) if requestedPeriod ==0 else (ltpTdy - prevLtp))*100/ltpTdy, 2) if ltpTdy != 0 else 0
                     saveDict[f"{prd}-Pd"] = f"{changePercent}%" if not pd.isna(changePercent) else '-'
                     screenDict[f"{prd}-Pd"] = ((colorText.GREEN if changePercent >=0 else colorText.FAIL) + f"{changePercent}%" + colorText.END) if not pd.isna(changePercent) else '-'
                     if (prd == requestedPeriod):
-                        maxLTPPotential = max(data["High"].head(prd))
+                        maxLTPPotential = max(data["high"].head(prd))
                         screenDict[f"MaxLTP"] = (
                             (colorText.GREEN if (maxLTPPotential >= prevLtp) else (colorText.FAIL))
                             + str("{:.2f}".format(maxLTPPotential))
@@ -3629,7 +3796,7 @@ class ScreeningStatistics:
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
         data = data[::-1]  # Reverse the dataframe so that its the oldest date first
-        macd = pktalib.MACD(data["Close"], 12, 26, 9)[2].tail(1)
+        macd = pktalib.MACD(data["close"], 12, 26, 9)[2].tail(1)
         return macd.iloc[:1][0] < 0
 
     #@measure_time
@@ -3644,16 +3811,16 @@ class ScreeningStatistics:
                 return False
             for row in data.iterrows():
                 # All 3 candles should be Green and NOT Circuits
-                yc = row[1]["Close"]
-                yo = row[1]["Open"]
+                yc = row[1]["close"]
+                yo = row[1]["open"]
                 if yc <= yo:
                     # self.default_logger.info(
                     #     f'Stock:{saveDict["Stock"]}, is not a momentum-gainer because yesterday-close ({yc}) <= yesterday-open ({yo})'
                     # )
                     return False
-            openDesc = data.sort_values(by=["Open"], ascending=False)
-            closeDesc = data.sort_values(by=["Close"], ascending=False)
-            volDesc = data.sort_values(by=["Volume"], ascending=False)
+            openDesc = data.sort_values(by=["open"], ascending=False)
+            closeDesc = data.sort_values(by=["close"], ascending=False)
+            volDesc = data.sort_values(by=["volume"], ascending=False)
             try:
                 if (
                     data.equals(openDesc)
@@ -3663,10 +3830,10 @@ class ScreeningStatistics:
                     # self.default_logger.info(
                     #     f'Stock:{saveDict["Stock"]}, open,close and volume equal from day before yesterday. A potential momentum-gainer!'
                     # )
-                    to = data["Open"].iloc[0]
-                    yc = data["Close"].iloc[1]
-                    yo = data["Open"].iloc[1]
-                    dyc = data["Close"].iloc[2]
+                    to = data["open"].iloc[0]
+                    yc = data["close"].iloc[1]
+                    yo = data["open"].iloc[1]
+                    dyc = data["close"].iloc[2]
                     if (to >= yc) and (yo >= dyc):
                         # self.default_logger.info(
                         #     f'Stock:{saveDict["Stock"]}, is a momentum-gainer because today-open ({to}) >= yesterday-close ({yc}) and yesterday-open({yo}) >= day-before-close({dyc})'
@@ -3706,7 +3873,7 @@ class ScreeningStatistics:
             saved = self.findCurrentSavedValue(screenDict,saveDict,"MA-Signal")
             if (
                 recent["SMA"].iloc[0] > recent["LMA"].iloc[0]
-                and recent["Close"].iloc[0] > recent["SMA"].iloc[0]
+                and recent["close"].iloc[0] > recent["SMA"].iloc[0]
             ):
                 screenDict["MA-Signal"] = (
                     saved[0] + colorText.GREEN + "Bullish" + colorText.END
@@ -3730,17 +3897,17 @@ class ScreeningStatistics:
                 )
                 saveDict["MA-Signal"] = saved[1] + "Neutral"
         reversedData = data[::-1]  # Reverse the dataframe
-        ema_20 = pktalib.EMA(reversedData["Close"],20).tail(1).iloc[0]
-        vwap = pktalib.VWAP(reversedData["High"],reversedData["Low"],reversedData["Close"],reversedData["Volume"]).tail(1).iloc[0]
+        ema_20 = pktalib.EMA(reversedData["close"],20).tail(1).iloc[0]
+        vwap = pktalib.VWAP(reversedData["high"],reversedData["low"],reversedData["close"],reversedData["volume"]).tail(1).iloc[0]
         smaDev = data["SMA"].iloc[0] * maRange / 100
         lmaDev = data["LMA"].iloc[0] * maRange / 100
         emaDev = ema_20 * maRange / 100
         vwapDev = vwap * maRange / 100
         open, high, low, close, sma, lma = (
-            data["Open"].iloc[0],
-            data["High"].iloc[0],
-            data["Low"].iloc[0],
-            data["Close"].iloc[0],
+            data["open"].iloc[0],
+            data["high"].iloc[0],
+            data["low"].iloc[0],
+            data["close"].iloc[0],
             data["SMA"].iloc[0],
             data["LMA"].iloc[0],
         )
@@ -3810,7 +3977,7 @@ class ScreeningStatistics:
         if PKDateUtilities.isTradingTime():
             rangeData = data.head(nr + 1)[1:]
             now_candle = data.head(1)
-            rangeData["Range"] = abs(rangeData["Close"] - rangeData["Open"])
+            rangeData["Range"] = abs(rangeData["close"] - rangeData["open"])
             recent = rangeData.head(1)
             if (
                 len(recent) == 1
@@ -3818,7 +3985,7 @@ class ScreeningStatistics:
             ):
                 if (
                     self.getCandleType(recent)
-                    and now_candle["Close"].iloc[0] >= recent["Close"].iloc[0]
+                    and now_candle["close"].iloc[0] >= recent["close"].iloc[0]
                 ):
                     screenDict["Pattern"] = (
                         saved[0] + colorText.GREEN + f"Buy-NR{nr}" + colorText.END
@@ -3827,7 +3994,7 @@ class ScreeningStatistics:
                     return True
                 elif (
                     not self.getCandleType(recent)
-                    and now_candle["Close"].iloc[0] <= recent["Close"].iloc[0]
+                    and now_candle["close"].iloc[0] <= recent["close"].iloc[0]
                 ):
                     screenDict["Pattern"] = (
                         saved[0] + colorText.FAIL + f"Sell-NR{nr}" + colorText.END
@@ -3837,7 +4004,7 @@ class ScreeningStatistics:
             return False
         else:
             rangeData = data.head(nr)
-            rangeData.loc[:,'Range'] = abs(rangeData["Close"] - rangeData["Open"])
+            rangeData.loc[:,'Range'] = abs(rangeData["close"] - rangeData["open"])
             recent = rangeData.head(1)
             if recent["Range"].iloc[0] == rangeData.describe()["Range"]["min"]:
                 screenDict["Pattern"] = (
@@ -3859,7 +4026,7 @@ class ScreeningStatistics:
         if len(recent) < 1:
             return False
         if len(data) < daysToLookback and (
-            recent["Close"].iloc[0] != np.nan and recent["Close"].iloc[0] > 0
+            recent["close"].iloc[0] != np.nan and recent["close"].iloc[0] > 0
         ):
             return True
         return False
@@ -3873,7 +4040,7 @@ class ScreeningStatistics:
         for ma in mas:
             if len(reversedData) <= int(ma):
                 continue
-            hasCrossed, percentageDiff = self.findPriceActionCross(df=reversedData,ma=ma,daysToConsider=1,baseMAOrPrice=reversedData["Close"].tail(2),isEMA=isEMA,maDirectionFromBelow=maDirectionFromBelow)
+            hasCrossed, percentageDiff = self.findPriceActionCross(df=reversedData,ma=ma,daysToConsider=1,baseMAOrPrice=reversedData["close"].tail(2),isEMA=isEMA,maDirectionFromBelow=maDirectionFromBelow)
             if hasCrossed:
                 if not hasAtleastOneMACross:
                     hasAtleastOneMACross = True
@@ -3891,17 +4058,17 @@ class ScreeningStatistics:
         pp_map = {"1":"PP","2":"S1","3":"S2","4":"S3","5":"R1","6":"R2","7":"R3"}
         if pivotPoint is not None and pivotPoint != "0" and str(pivotPoint).isnumeric():
             ppToCheck = pp_map[str(pivotPoint)]
-            ppsr_df = pktalib.get_ppsr_df(data["High"],data["Low"],data["Close"],ppToCheck)
+            ppsr_df = pktalib.get_ppsr_df(data["high"],data["low"],data["close"],ppToCheck)
             if ppsr_df is None:
                 return False
             if crossDirectionFromBelow:
-                hasPriceCross = (ppsr_df["Close"].iloc[0] > ppsr_df[ppToCheck].iloc[0] and 
-                             ppsr_df["Close"].iloc[1] <= ppsr_df[ppToCheck].iloc[1])
+                hasPriceCross = (ppsr_df["close"].iloc[0] > ppsr_df[ppToCheck].iloc[0] and 
+                             ppsr_df["close"].iloc[1] <= ppsr_df[ppToCheck].iloc[1])
             else:
-                hasPriceCross = (ppsr_df["Close"].iloc[0] < ppsr_df[ppToCheck].iloc[0] and 
-                             ppsr_df["Close"].iloc[1] >= ppsr_df[ppToCheck].iloc[1])
+                hasPriceCross = (ppsr_df["close"].iloc[0] < ppsr_df[ppToCheck].iloc[0] and 
+                             ppsr_df["close"].iloc[1] >= ppsr_df[ppToCheck].iloc[1])
             if hasPriceCross:
-                percentageDiff = round(100*(ppsr_df["Close"].iloc[0]-ppsr_df[ppToCheck].iloc[0])/ppsr_df[ppToCheck].iloc[0],1)
+                percentageDiff = round(100*(ppsr_df["close"].iloc[0]-ppsr_df[ppToCheck].iloc[0])/ppsr_df[ppToCheck].iloc[0],1)
                 saved = self.findCurrentSavedValue(screenDict,saveDict,"MA-Signal")
                 maText = f"Cross-{'FromBelow' if crossDirectionFromBelow else 'FromAbove'}({ppToCheck}:{ppsr_df[ppToCheck].iloc[0]})"
                 saveDict["MA-Signal"] = saved[1] + maText + f"({percentageDiff}%)"
@@ -3918,10 +4085,10 @@ class ScreeningStatistics:
         data = data.head(4)
         if len(data) < 4:
             return False
-        day0 = data.iloc[0]["Close"].item()
-        dayMinus1 = data.iloc[1]["Close"].item()
-        dayMinus2 = data.iloc[2]["Close"].item()
-        dayMinus3 = data.iloc[3]["Close"].item()
+        day0 = data.iloc[0]["close"].item()
+        dayMinus1 = data.iloc[1]["close"].item()
+        dayMinus2 = data.iloc[2]["close"].item()
+        dayMinus3 = data.iloc[3]["close"].item()
         percent3 = round((dayMinus2 - dayMinus3) * 100 / dayMinus3, 2)
         percent2 = round((dayMinus1 - dayMinus2) * 100 / dayMinus2, 2)
         percent1 = round((day0 - dayMinus1) * 100 / dayMinus1, 2)
@@ -3974,11 +4141,11 @@ class ScreeningStatistics:
         try:
             df_ichi = df_new.rename(
                 columns={
-                    "Open": "open",
-                    "High": "high",
-                    "Low": "low",
-                    "Close": "close",
-                    "Volume": "volume",
+                    "open": "open",
+                    "high": "high",
+                    "low": "low",
+                    "close": "close",
+                    "volume": "volume",
                 }
             )
             ichi = pktalib.ichimoku(df_ichi, 9, 26, 52, 26)
@@ -4000,12 +4167,12 @@ class ScreeningStatistics:
         if df_new["cloud_green"].iloc[0]:
             aboveCloudTop = (
                 df_new["IKS_26"].iloc[0] > df_new["ISA_9"].iloc[0]
-                and recent["Close"].iloc[0] > df_new["ISA_9"].iloc[0]
+                and recent["close"].iloc[0] > df_new["ISA_9"].iloc[0]
             )
         elif df_new["cloud_red"].iloc[0]:
             aboveCloudTop = (
                 df_new["IKS_26"].iloc[0] > df_new["ISB_26"].iloc[0]
-                and recent["Close"].iloc[0] > df_new["ISB_26"].iloc[0]
+                and recent["close"].iloc[0] > df_new["ISB_26"].iloc[0]
             )
 
         # Latest Ichimoku baseline is < latest Ichimoku conversion line
@@ -4020,8 +4187,8 @@ class ScreeningStatistics:
                     # close > 50 period SMA/EMA and 200 period SMA/EMA
                     if (
                         recent["SSMA"].iloc[0] > recent["SMA"].iloc[0]
-                        and recent["Close"].iloc[0] > recent["SSMA"].iloc[0]
-                        and recent["Close"].iloc[0] > recent["LMA"].iloc[0]
+                        and recent["close"].iloc[0] > recent["SSMA"].iloc[0]
+                        and recent["close"].iloc[0] > recent["LMA"].iloc[0]
                     ):
                         saved = self.findCurrentSavedValue(screenDict,saveDict,"MA-Signal")
                         screenDict["MA-Signal"] = (
@@ -4041,22 +4208,22 @@ class ScreeningStatistics:
         try:
             if self.configManager.enableAdditionalVCPEMAFilters:
                 reversedData = data[::-1] 
-                ema = pktalib.EMA(reversedData["Close"], timeperiod=50)
-                sema20 = pktalib.EMA(reversedData["Close"], timeperiod=20)
-                if not (data["Close"].iloc[0] >= ema.tail(1).iloc[0] and data["Close"].iloc[0] >= sema20.tail(1).iloc[0]):
+                ema = pktalib.EMA(reversedData["close"], timeperiod=50)
+                sema20 = pktalib.EMA(reversedData["close"], timeperiod=20)
+                if not (data["close"].iloc[0] >= ema.tail(1).iloc[0] and data["close"].iloc[0] >= sema20.tail(1).iloc[0]):
                     return False
             percentageFromTop /= 100
             data.reset_index(inplace=True)
             data.rename(columns={"index": "Date"}, inplace=True)
-            data["tops"] = (data["High"].iloc[list(pktalib.argrelextrema(np.array(data["High"]), np.greater_equal, order=window)[0])].head(4))
-            data["bots"] = (data["Low"].iloc[list(pktalib.argrelextrema(np.array(data["Low"]), np.less_equal, order=window)[0])].head(4))
+            data["tops"] = (data["high"].iloc[list(pktalib.argrelextrema(np.array(data["high"]), np.greater_equal, order=window)[0])].head(4))
+            data["bots"] = (data["low"].iloc[list(pktalib.argrelextrema(np.array(data["low"]), np.less_equal, order=window)[0])].head(4))
             data = data.fillna(0)
             data = data.replace([np.inf, -np.inf], 0)
             tops = data[data.tops > 0]
             # bots = data[data.bots > 0]
-            highestTop = round(tops.describe()["High"]["max"], 1)
-            allTimeHigh = max(data["High"])
-            withinATHRange = data["Close"].iloc[0] >= (allTimeHigh-allTimeHigh * float(self.configManager.vcpRangePercentageFromTop)/100)
+            highestTop = round(tops.describe()["high"]["max"], 1)
+            allTimeHigh = max(data["high"])
+            withinATHRange = data["close"].iloc[0] >= (allTimeHigh-allTimeHigh * float(self.configManager.vcpRangePercentageFromTop)/100)
             if not withinATHRange and self.configManager.enableAdditionalVCPFilters:
                 # Last close is not within all time high range
                 return False
@@ -4071,14 +4238,14 @@ class ScreeningStatistics:
                     lowPoints.append(
                         data[
                             (data.Date >= startDate) & (data.Date <= endDate)
-                        ].describe()["Low"]["min"]
+                        ].describe()["low"]["min"]
                     )
                 lowPointsOrg = lowPoints
                 lowPoints.sort(reverse=True)
                 lowPointsSorted = lowPoints
                 if data.empty or len(lowPoints) < 1:
                     return False
-                ltp = data.head(1)["Close"].iloc[0]
+                ltp = data.head(1)["close"].iloc[0]
                 if (
                     lowPointsOrg == lowPointsSorted
                     and ltp < highestTop
@@ -4112,41 +4279,41 @@ class ScreeningStatistics:
             return False
         data = df.copy()
         ohlc_dict = {
-            'Open':'first',
-            'High':'max',
-            'Low':'min',
-            'Close':'last',
-            'Volume':'sum'
+            "open":'first',
+            "high":'max',
+            "low":'min',
+            "close":'last',
+            "volume":'sum'
         }
         # final_df = df.resample('W-FRI', closed='left').agg(ohlc_dict).shift('1d')
         weeklyData = data.resample('W').agg(ohlc_dict)
         reversedData = data[::-1]  # Reverse the dataframe
-        recent_close = data["Close"].head(1).iloc[0]
-        w_ema_13 = pktalib.EMA(weeklyData["Close"],timeperiod=13).tail(1).iloc[0]
-        w_ema_26 = pktalib.EMA(weeklyData["Close"],timeperiod=26).tail(1).iloc[0]
-        w_sma_50 = pktalib.SMA(weeklyData["Close"],timeperiod=50).tail(1).iloc[0]
-        w_sma_40 = pktalib.SMA(weeklyData["Close"],timeperiod=40).tail(1).iloc[0]
-        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["Close"],timeperiod=40).tail(1).iloc[0]
-        w_min_50 = min(1.3*weeklyData.tail(50)["Low"])
-        w_max_50 = max(0.75*weeklyData.tail(50)["High"])
-        w_ema_26_20w_ago = pktalib.EMA(weeklyData.head(len(weeklyData)-20)["Close"],timeperiod=26).tail(1).iloc[0]
-        recent_ema_13_20d_ago = pktalib.EMA(reversedData.head(len(reversedData)-20)["Close"],timeperiod=13).tail(1).iloc[0]
-        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["Close"],timeperiod=40).tail(1).iloc[0]
-        w_sma_40_10w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-10)["Close"],timeperiod=40).tail(1).iloc[0]
-        recent_sma_50 = pktalib.SMA(reversedData["Close"],timeperiod=50).tail(1).iloc[0]
-        w_wma_8 = pktalib.WMA(weeklyData["Close"],timeperiod=8).tail(1).iloc[0]
-        w_sma_8 = pktalib.SMA(weeklyData["Close"],timeperiod=8).tail(1).iloc[0]
+        recent_close = data["close"].head(1).iloc[0]
+        w_ema_13 = pktalib.EMA(weeklyData["close"],timeperiod=13).tail(1).iloc[0]
+        w_ema_26 = pktalib.EMA(weeklyData["close"],timeperiod=26).tail(1).iloc[0]
+        w_sma_50 = pktalib.SMA(weeklyData["close"],timeperiod=50).tail(1).iloc[0]
+        w_sma_40 = pktalib.SMA(weeklyData["close"],timeperiod=40).tail(1).iloc[0]
+        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["close"],timeperiod=40).tail(1).iloc[0]
+        w_min_50 = min(1.3*weeklyData.tail(50)["low"])
+        w_max_50 = max(0.75*weeklyData.tail(50)["high"])
+        w_ema_26_20w_ago = pktalib.EMA(weeklyData.head(len(weeklyData)-20)["close"],timeperiod=26).tail(1).iloc[0]
+        recent_ema_13_20d_ago = pktalib.EMA(reversedData.head(len(reversedData)-20)["close"],timeperiod=13).tail(1).iloc[0]
+        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["close"],timeperiod=40).tail(1).iloc[0]
+        w_sma_40_10w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-10)["close"],timeperiod=40).tail(1).iloc[0]
+        recent_sma_50 = pktalib.SMA(reversedData["close"],timeperiod=50).tail(1).iloc[0]
+        w_wma_8 = pktalib.WMA(weeklyData["close"],timeperiod=8).tail(1).iloc[0]
+        w_sma_8 = pktalib.SMA(weeklyData["close"],timeperiod=8).tail(1).iloc[0]
         numPreviousCandles = 20
         pullbackData = data.head(numPreviousCandles)
-        pullbackData.loc[:,'PullBack'] = pullbackData["Close"].lt(pullbackData["Open"]) #.shift(periods=1)) #& data["Low"].lt(data["Low"].shift(periods=1))
+        pullbackData.loc[:,'PullBack'] = pullbackData["close"].lt(pullbackData["open"]) #.shift(periods=1)) #& data["low"].lt(data["low"].shift(periods=1))
         shrinkedVolData = pullbackData[pullbackData["PullBack"] == True].head(numPreviousCandles)
-        recentLargestVolume = max(pullbackData[pullbackData["PullBack"] == False].head(3)["Volume"])
-        # pullbackData.loc[:,'PBVolRatio'] = pullbackData["Volume"]/recentLargestVolume
+        recentLargestVolume = max(pullbackData[pullbackData["PullBack"] == False].head(3)["volume"])
+        # pullbackData.loc[:,'PBVolRatio'] = pullbackData["volume"]/recentLargestVolume
         volInPreviousPullbacksShrinked = False
         if not shrinkedVolData.empty:
             index = 0
             while index < len(shrinkedVolData):
-                volInPreviousPullbacksShrinked = shrinkedVolData["Volume"].iloc[index] < self.configManager.vcpVolumeContractionRatio * recentLargestVolume
+                volInPreviousPullbacksShrinked = shrinkedVolData["volume"].iloc[index] < self.configManager.vcpVolumeContractionRatio * recentLargestVolume
                 if not volInPreviousPullbacksShrinked:
                     break
                 index += 1
@@ -4187,18 +4354,18 @@ class ScreeningStatistics:
         # Either the rolling volume of past 20 sessions or today's volume should be > min volume
         hasMinimumVolume = (
             recent["VolMA"].iloc[0] >= minVolume
-            or recent["Volume"].iloc[0] >= minVolume
+            or recent["volume"].iloc[0] >= minVolume
         )
         if recent["VolMA"].iloc[0] == 0:  # Handles Divide by 0 warning
-            saveDict["Volume"] = 0  # "Unknown"
-            screenDict["Volume"] = 0
+            saveDict["volume"] = 0  # "Unknown"
+            screenDict["volume"] = 0
             return False, hasMinimumVolume
-        ratio = round(recent["Volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
-        saveDict["Volume"] = ratio
+        ratio = round(recent["volume"].iloc[0] / recent["VolMA"].iloc[0], 2)
+        saveDict["volume"] = ratio
         if ratio >= volumeRatio and ratio != np.nan and (not math.isinf(ratio)):
-            screenDict["Volume"] = ratio
+            screenDict["volume"] = ratio
             return True, hasMinimumVolume
-        screenDict["Volume"] = ratio
+        screenDict["volume"] = ratio
         return False, hasMinimumVolume
 
     # Find if stock is validating volume spread analysis
@@ -4213,23 +4380,23 @@ class ScreeningStatistics:
             try:
                 # Check for previous RED candles
                 # Current candle = 0th, Previous Candle = 1st for following logic
-                if data.iloc[1]["Open"] >= data.iloc[1]["Close"]:
-                    spread1 = abs(data.iloc[1]["Open"] - data.iloc[1]["Close"])
-                    spread0 = abs(data.iloc[0]["Open"] - data.iloc[0]["Close"])
+                if data.iloc[1]["open"] >= data.iloc[1]["close"]:
+                    spread1 = abs(data.iloc[1]["open"] - data.iloc[1]["close"])
+                    spread0 = abs(data.iloc[0]["open"] - data.iloc[0]["close"])
                     lower_wick_spread0 = (
-                        max(data.iloc[0]["Open"], data.iloc[0]["Close"])
-                        - data.iloc[0]["Low"]
+                        max(data.iloc[0]["open"], data.iloc[0]["close"])
+                        - data.iloc[0]["low"]
                     )
-                    vol1 = data.iloc[1]["Volume"]
-                    vol0 = data.iloc[0]["Volume"]
+                    vol1 = data.iloc[1]["volume"]
+                    vol0 = data.iloc[0]["volume"]
                     saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
                     if (
                         spread0 > spread1
                         and vol0 < vol1
-                        and data.iloc[0]["Volume"] < data.iloc[0]["VolMA"]
-                        and data.iloc[0]["Close"] <= data.iloc[1]["Open"]
+                        and data.iloc[0]["volume"] < data.iloc[0]["VolMA"]
+                        and data.iloc[0]["close"] <= data.iloc[1]["open"]
                         and spread0 < lower_wick_spread0
-                        and data.iloc[0]["Volume"] <= int(data.iloc[1]["Volume"] * 0.75)
+                        and data.iloc[0]["volume"] <= int(data.iloc[1]["volume"] * 0.75)
                     ):
                         screenDict["Pattern"] = (
                             saved[0] 
@@ -4242,8 +4409,8 @@ class ScreeningStatistics:
                     if (
                         spread0 < spread1
                         and vol0 > vol1
-                        and data.iloc[0]["Volume"] > data.iloc[0]["VolMA"]
-                        and data.iloc[0]["Close"] <= data.iloc[1]["Open"]
+                        and data.iloc[0]["volume"] > data.iloc[0]["VolMA"]
+                        and data.iloc[0]["close"] <= data.iloc[1]["open"]
                     ):
                         screenDict["Pattern"] = (
                             saved[0] 

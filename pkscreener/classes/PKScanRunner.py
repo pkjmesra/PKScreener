@@ -71,7 +71,7 @@ class PKScanRunner:
                 "52Wk-H",
                 "52Wk-L",
                 "%Chng",
-                "Volume",
+                "volume",
                 "MA-Signal",
                 "RSI",
                 "RSIi",
@@ -89,7 +89,7 @@ class PKScanRunner:
                 "52Wk-H",
                 "52Wk-L",
                 "%Chng",
-                "Volume",
+                "volume",
                 "MA-Signal",
                 "RSI",
                 "RSIi",
@@ -285,6 +285,16 @@ class PKScanRunner:
         return f'{choices.strip()}{"_IA" if userArgs is not None and userArgs.runintradayanalysis else ""}'
 
     def refreshDatabase(consumers,stockDictPrimary,stockDictSecondary):
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        # try:
+        #     sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
+        #     sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"PKScanRunner.py:refreshDatabase:287","message":"refreshDatabase - copying stockDictPrimary to workers","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"num_consumers":len(consumers) if consumers else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         for worker in consumers:
             worker.objectDictionaryPrimary = stockDictPrimary
             worker.objectDictionarySecondary = stockDictSecondary
@@ -293,13 +303,13 @@ class PKScanRunner:
     # @Halo(text='', spinner='dots')
     def runScanWithParams(userPassedArgs,keyboardInterruptEvent,screenCounter,screenResultsCounter,stockDictPrimary,stockDictSecondary,testing, backtestPeriod, menuOption, executeOption, samplingDuration, items,screenResults, saveResults, backtest_df,scanningCb,tasks_queue, results_queue, consumers,logging_queue):
         if tasks_queue is None or results_queue is None or consumers is None:
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
-            except: # pragma: no cover
-                tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
-                pass
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
+            # except: # pragma: no cover
+            tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.prepareToRunScan(menuOption,keyboardInterruptEvent,screenCounter, screenResultsCounter, stockDictPrimary,stockDictSecondary, items,executeOption,userPassedArgs)
+                # pass
             try:
                 if logging_queue is not None:
                     log_queue_reader = LogQueueReader(logging_queue)
@@ -353,11 +363,11 @@ class PKScanRunner:
         sec_cache_file = cache_file if "intraday_" in cache_file else f"intraday_{cache_file}"
         # Get RS rating stock value of the index
         from pkscreener.classes.Fetcher import screenerStockDataFetcher
-        nsei_df = screenerStockDataFetcher().fetchStockData(PKScanRunner.configManager.baseIndex,PKScanRunner.configManager.period,PKScanRunner.configManager.duration,None,0,0,0,exchangeSuffix="",printCounter=False)
+        # nsei_df = screenerStockDataFetcher().fetchStockData(PKScanRunner.configManager.baseIndex,PKScanRunner.configManager.period,PKScanRunner.configManager.duration,None,0,0,0,exchangeSuffix="",printCounter=False)
         rs_score_index = -1
         PKScanRunner.configManager.getConfig(parser)
-        if nsei_df is not None:
-            rs_score_index = scr.calc_relative_strength(nsei_df[::-1])
+        # if nsei_df is not None:
+        #     rs_score_index = scr.calc_relative_strength(nsei_df[::-1])
         consumers = [
                     PKMultiProcessorClient(
                         StockScreener().screenStocks,

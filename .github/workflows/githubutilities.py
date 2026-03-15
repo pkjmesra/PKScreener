@@ -175,14 +175,18 @@ def dget_latest_release_url():
                 break
         if not FoundMatch:
             print(f"Did not find any match for {machineArch}")
+            # Fallback: construct URL for the expected binary
+            rel_version = resp.json().get("tag_name", "")
+            url = f"https://github.com/pkjmesra/PKScreener/releases/download/{rel_version}/{exe_name}"
+            aset_output("DOWNLOAD_URL", url)
         rel_version = url.split("/")[-2]
     except:
         if args.lastReleasedVersion is not None:
             rel_version = args.lastReleasedVersion
             url = f"https://github.com/pkjmesra/PKScreener/releases/download/{rel_version}/{exe_name}"
+            aset_output("DOWNLOAD_URL", url)
         pass
     aset_output("LAST_RELEASE_VERSION", rel_version)
-    aset_output("DOWNLOAD_URL", url)
     return url
 
 def whatsNew():

@@ -399,7 +399,7 @@ def statScanCalculationForPatterns(*args, **kwargs):
     return scanResults
 
 def ensureColumnsExist(saveResults):
-    columns = ['Stock', 'Date', 'Volume', 'Trend', 'MA-Signal', 'LTP', '52Wk-H',
+    columns = ['Stock', 'Date', "volume", 'Trend', 'MA-Signal', 'LTP', '52Wk-H',
                '52Wk-L', '1-Pd', '2-Pd', '3-Pd', '4-Pd', '5-Pd', '10-Pd', '15-Pd',
                '22-Pd', '30-Pd', 'Consol.', 'Breakout', 'RSI', 'Pattern', 'CCI',
                'LTP1', 'Growth1', 'LTP2', 'Growth2', 'LTP3', 'Growth3', 'LTP4',
@@ -423,7 +423,7 @@ def cleanupData(savedResults):
 
     saveResults["LTP"] = saveResults["LTP"].astype(float).fillna(0.0)
     saveResults["RSI"] = saveResults["RSI"].astype(float).fillna(0.0)
-    saveResults.loc[:, "Volume"] = saveResults.loc[:, "Volume"].apply(
+    saveResults.loc[:, "volume"] = saveResults.loc[:, "volume"].apply(
             lambda x: x.replace("x", "")
         )
     if f"Trend({configManager.daysToLookback}Prds)" not in saveResults.columns:
@@ -455,7 +455,7 @@ def cleanupData(savedResults):
             ].apply(lambda x: x.replace("(Potential)", "") if x is not None else x)
         saveResults["Breakout"] = saveResults["Breakout"].astype(float).fillna(0.0)
         saveResults["Resistance"] = saveResults["Resistance"].astype(float).fillna(0.0)
-    saveResults["Volume"] = saveResults["Volume"].astype(float).fillna(0.0)
+    saveResults["volume"] = saveResults["volume"].astype(float).fillna(0.0)
     saveResults[f"Consol."] = (
             saveResults[f"Consol."].astype(float).fillna(0.0)
         )
@@ -1036,13 +1036,13 @@ def filterMASignalResist(df):
 def filterVolumeLessThan25(df):
     if df is None:
         return None
-    return df[df["Volume"] < 2.5].fillna(0.0)
+    return df[df["volume"] < 2.5].fillna(0.0)
 
 
 def filterVolumeMoreThan25(df):
     if df is None:
         return None
-    return df[df["Volume"] >= 2.5].fillna(0.0)
+    return df[df["volume"] >= 2.5].fillna(0.0)
 
 
 def filterConsolidating10Percent(df):

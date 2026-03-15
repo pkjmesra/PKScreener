@@ -5,9 +5,31 @@
 | :-------------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: |
 | Platforms | [![Windows][Windows-badge]][Windows] | [![Linux(x64)][Linux-badge_x64]][Linux_x64] [![Linux(arm64)][Linux-badge_arm64]][Linux_arm64] | [![Mac OS(x64)][Mac OS-badge_x64]][Mac OS_x64] [![Mac OS(arm64)][Mac OS-badge_arm64]][Mac OS_arm64] | [![Docker Status][Docker Status-badge]][Docker Status] |
 | Package / Docs | [![Documentation][Documentation-badge]][Documentation] [![OpenSSF Best Practices][OpenSSF-Badge]][OpenSSF-pkscreener]  | [![PyPI][pypi-badge]][pypi] | [![is wheel][wheel-badge]][pypi] | ![github license][github-license] |
-| Tests/Code-Quality | [![CodeFactor][Codefactor-badge]][Codefactor] | <a href="https://coveralls.io/github/pkjmesra/PKScreener?branch=main"><img src="https://coveralls.io/repos/github/pkjmesra/PKScreener/badge.svg?branch=main"></a> | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
+| Tests/Code-Quality | [![CodeFactor][Codefactor-badge]][Codefactor] | [![Coverage](https://coveralls.io/repos/github/pkjmesra/PKScreener/badge.svg?branch=main)](https://coveralls.io/github/pkjmesra/PKScreener?branch=main) | [![codecov][codecov-badge]][codecov] | [![After Market][After Market-badge]][After Market] |
 
-## What is PKScreener?
+## 🚀 What is PKScreener?
+
+**PKScreener is India's #1 open-source stock screening and analysis platform for NSE traders and investors.**
+
+### ✨ Key Features at a Glance
+
+| 🎯 **Smart Scanning** | 📊 **Technical Analysis** | 🤖 **AI-Powered** | 📱 **Telegram Integration** |
+|:------------------:|:---------------------:|:---------------:|:------------------------:|
+| 40+ built-in scanners | RSI, MACD, CCI, ATR | Nifty prediction | Real-time alerts |
+| VCP (Mark Minervini) | Chart pattern detection | ML-based signals | On-demand bot |
+| Custom piped scanners | Volume analysis | Trend forecasting | Scheduled scans |
+
+### 💹 Trading Signals & Analysis
+
+| **Buy Signals** | **Sell Signals** | **Momentum** | **Patterns** |
+|:---------------:|:----------------:|:------------:|:------------:|
+| Bullish crossovers | Bearish divergence | High RSI/MFI/CCI | Head & Shoulders |
+| Breakout detection | Death crossover | Volume breakouts | Double Top/Bottom |
+| Support bounces | 52-week lows | Momentum gainers | Cup & Handle |
+| Golden cross | Trend reversal | ATR expansion | Inside Bar |
+
+### 📈 Comprehensive Market Coverage
+
 | Telegram Alerts | Nifty AI Prediction | Scheduling Cron Jobs | On-Demand Telegram Bot | Backtesting / Growth of 10k|
 | :-------------: | :-----------------: | :------------------: | :--------------------: | :-----------: |
 | Nifty screening | Volume scanners | Breakout detection | Consolidating stocks | Reversal Signals |
@@ -26,6 +48,16 @@
 | Moving Average Signals | Candle-stick Patterns | Trendline Support Stocks | Bullish/Bearish Inside Bar | Volume Spread Analysis |
 | Narrow Range (NRx) Reversal | Lorentzian Classifier | PSAR and RSI reversal | Rising RSI | RSI MA Reversal |
 | Upcoming CA stocks | High Dividend Stocks | Fair Value Buy Opportunities | Shareholding by number of Mutual Funds/FIIs | Bullish for next day |
+
+### 🏆 Why Choose PKScreener?
+
+- **🆓 100% Free & Open Source** - No subscription fees for free tier, no hidden costs. High value in subscription tiers and real-time alerts for strong buy-sell signals.
+- **🇮🇳 Made in India** - Specifically designed for NSE/BSE markets
+- **⚡ Real-time Analysis** - Get live market data and instant alerts
+- **📱 Multi-platform** - Works on Windows, macOS, Linux, and Docker
+- **🤖 Telegram Bot** - Get alerts on your phone anytime, anywhere
+- **📈 Backtesting** - Validate strategies with historical data
+- **🔧 Highly Customizable** - Configure everything to match your trading style
 
 ### A Python-based stock screener for NSE, India.
 
@@ -178,7 +210,7 @@ The story is similar for other low severity vulnerabilities that docker might sh
 # Installing the latest version from PyPi.
 * Go ahead and install using `pip install pkscreener`. The releases page also has the latest wheels for multiple platforms.
 * This should install all of the major dependencies, except maybe, TA-Lib.
-* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
+* This app can still run without TA-Lib, but if you need to install TA-Lib for technical indicators (which otherwise is used from `pandas_ta_classic` in the absence of TA-Lib), you can do this: Head to `.github/dependencies/` under this repo. Download the respective TA-Lib file/whl file and install either from the .whl file or from source. Check out any of the workflow files for steps to install TA-Lib.
 
 For example:
 
@@ -331,15 +363,15 @@ If you are a 3rd year or final year engineering graduate or pursuing masters in 
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
 [Windows-badge]: https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white
-[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250810.756/pkscreenercli.exe
+[Windows]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20260315.843/pkscreenercli.exe
 [Linux-badge_x64]: https://img.shields.io/badge/Linux(x64)-FCC624?logo=linux&logoColor=black
-[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250810.756/pkscreenercli_x64.bin
+[Linux_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20260315.843/pkscreenercli_x64.bin
 [Linux-badge_arm64]: https://img.shields.io/badge/Linux(arm64)-FCC624?logo=linux&logoColor=black
-[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250810.756/pkscreenercli_arm64.bin
+[Linux_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20260315.843/pkscreenercli_arm64.bin
 [Mac OS-badge_x64]: https://img.shields.io/badge/mac%20os(x64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250810.756/pkscreenercli_x64.run
+[Mac OS_x64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20260315.843/pkscreenercli_x64.run
 [Mac OS-badge_arm64]: https://img.shields.io/badge/mac%20os(arm64)-D3D3D3?logo=apple&logoColor=000000
-[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20250810.756/pkscreenercli_arm64.run
+[Mac OS_arm64]: https://github.com/pkjmesra/PKScreener/releases/download/0.46.20260315.843/pkscreenercli_arm64.run
 [GitHub release (latest by date)-badge]: https://img.shields.io/github/v/release/pkjmesra/PKScreener
 [GitHub release (latest by date)]: https://github.com/pkjmesra/PKScreener/releases/latest
 [pypi-badge]: https://img.shields.io/pypi/v/pkscreener.svg?style=flat-square

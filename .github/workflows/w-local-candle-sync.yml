@@ -1,0 +1,299 @@
+# Local Candle Database Sync Workflow
+# ====================================
+# This workflow syncs candle data from Turso (or tick aggregation) to local SQLite
+# and commits the database files to the repository for offline scan support.
+
+name: Local Candle DB Sync
+
+on:
+  # schedule:
+  #   # During market hours (IST 9:15-15:30 = UTC 3:45-10:00)
+  #   - cron: '*/30 4-9 * * 1-5'
+  #   # After market close (IST 15:35 = UTC 10:05)
+  #   - cron: '5 10 * * 1-5'
+  #   # Weekend maintenance
+  #   - cron: '0 10 * * 0,6'
+  workflow_dispatch:
+    inputs:
+      force_tick_fallback:
+        description: 'Force use tick data instead of Turso'
+        required: false
+        default: 'N'
+        type: choice
+        options:
+          - 'Y'
+          - 'N'
+
+permissions:
+  contents: write
+
+jobs:
+  Sync_Local_DB:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PKScreener
+      uses: actions/checkout@v4
+      with:
+        ref: actions-data-download
+        fetch-depth: 1
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-candle-sync
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy pytz requests
+        # libsql is optional - try to install but don't fail if unavailable
+        pip install libsql-experimental || pip install libsql || echo "libsql not available (will use SQLite fallback)"
+        # PKBrokers should handle missing libsql gracefully
+        pip install PKBrokers PKDevTools || echo "Will use local modules"
+        
+    - name: Sync and Export Candle Data with Size Validation
+      env:
+        DB_URL: ${{ secrets.DB_URL }}
+        DB_AUTH_TOKEN: ${{ secrets.DB_AUTH_TOKEN }}
+        DB_TYPE: ${{ secrets.DB_TYPE || 'local' }}
+        FORCE_TICK_FALLBACK: ${{ inputs.force_tick_fallback }}
+      run: |
+        echo "DB_TYPE is set to: $DB_TYPE"
+        
+        # Create results directory
+        mkdir -p results/Data
+        
+        # Define size thresholds (in bytes)
+        DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
+        INTRADAY_PKL_MIN_SIZE=800000  # 1 MB minimum for intraday pkl
+        DB_MIN_SIZE=50000000           # 50 MB minimum for SQLite database
+        
+        # Run the sync script with validation
+        python .github/workflows/sync_local_candles.py
+        
+        # Validate generated files
+        echo ""
+        echo "=== File Size Validation ==="
+        
+        VALIDATION_PASSED=true
+        VALIDATION_RESULTS=()
+        
+        # Check daily pkl files
+        for pkl_file in results/Data/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+            size_mb=$((file_size/1024/1024))
+            
+            # Determine if it's daily or intraday based on filename
+            if [[ "$pkl_file" == *"daily"* ]] || [[ "$pkl_file" == *"stock_data_"* && "$pkl_file" != *"intraday"* ]]; then
+              if [ "$file_size" -lt "$DAILY_PKL_MIN_SIZE" ]; then
+                echo "⚠️ DAILY PKL TOO SMALL: $(basename "$pkl_file") - ${size_mb} MB (min: $((DAILY_PKL_MIN_SIZE/1024/1024)) MB)"
+                VALIDATION_PASSED=false
+                VALIDATION_RESULTS+=("✗ daily: $(basename "$pkl_file") (${size_mb} MB)")
+              else
+                echo "✅ Daily pkl valid: $(basename "$pkl_file") - ${size_mb} MB"
+                VALIDATION_RESULTS+=("✓ daily: $(basename "$pkl_file") (${size_mb} MB)")
+              fi
+            else
+              # Intraday pkl
+              if [ "$file_size" -lt "$INTRADAY_PKL_MIN_SIZE" ]; then
+                echo "⚠️ INTRADAY PKL TOO SMALL: $(basename "$pkl_file") - ${size_mb} MB (min: $((INTRADAY_PKL_MIN_SIZE/1024/1024)) MB)"
+                VALIDATION_PASSED=false
+                VALIDATION_RESULTS+=("✗ intraday: $(basename "$pkl_file") (${size_mb} MB)")
+              else
+                echo "✅ Intraday pkl valid: $(basename "$pkl_file") - ${size_mb} MB"
+                VALIDATION_RESULTS+=("✓ intraday: $(basename "$pkl_file") (${size_mb} MB)")
+              fi
+            fi
+          fi
+        done
+        
+        # Check SQLite database files
+        DB_FILES_FOUND=0
+        for db_file in results/Data/*.db; do
+          if [ -f "$db_file" ]; then
+            DB_FILES_FOUND=$((DB_FILES_FOUND + 1))
+            file_size=$(stat -c%s "$db_file" 2>/dev/null || stat -f%z "$db_file")
+            size_mb=$((file_size/1024/1024))
+            
+            if [ "$file_size" -lt "$DB_MIN_SIZE" ]; then
+              echo "⚠️ DATABASE TOO SMALL: $(basename "$db_file") - ${size_mb} MB (min: $((DB_MIN_SIZE/1024/1024)) MB)"
+              VALIDATION_PASSED=false
+              VALIDATION_RESULTS+=("✗ db: $(basename "$db_file") (${size_mb} MB)")
+            else
+              echo "✅ Database valid: $(basename "$db_file") - ${size_mb} MB"
+              VALIDATION_RESULTS+=("✓ db: $(basename "$db_file") (${size_mb} MB)")
+            fi
+          fi
+        done
+        
+        # Save validation results to metadata file
+        cat > results/Data/sync_metadata.json << EOF
+        {
+          "sync_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "sync_time_ist": "$(TZ='Asia/Kolkata' date +%Y-%m-%dT%H:%M:%S%:z)",
+          "validation_passed": $VALIDATION_PASSED,
+          "db_files_found": $DB_FILES_FOUND,
+          "size_thresholds": {
+            "daily_pkl_mb": $((DAILY_PKL_MIN_SIZE/1024/1024)),
+            "intraday_pkl_mb": $((INTRADAY_PKL_MIN_SIZE/1024/1024)),
+            "database_mb": $((DB_MIN_SIZE/1024/1024))
+          },
+          "validation_results": [
+            $(printf '"%s",' "${VALIDATION_RESULTS[@]}" | sed 's/,$//')
+          ]
+        }
+        EOF
+        
+        echo ""
+        echo "=== Validation Summary ==="
+        if [ "$VALIDATION_PASSED" = true ]; then
+          echo "✅ All file size validations passed"
+        else
+          echo "⚠️ Some files did not meet size requirements"
+        fi
+        
+        # List final files
+        echo ""
+        echo "=== Database Files ==="
+        ls -la results/Data/*.db 2>/dev/null | while read line; do
+          size=$(echo "$line" | awk '{print $5}')
+          size_mb=$((size/1024/1024))
+          echo "$line ($size_mb MB)"
+        done || echo "No .db files"
+        
+        echo ""
+        echo "=== Pickle Files ==="
+        ls -la results/Data/*.pkl 2>/dev/null | while read line; do
+          size=$(echo "$line" | awk '{print $5}')
+          size_mb=$((size/1024/1024))
+          echo "$line ($size_mb MB)"
+        done | tail -10 || echo "No .pkl files"
+        
+        # Export validation results to GITHUB_ENV for later steps
+        echo "VALIDATION_PASSED=$VALIDATION_PASSED" >> $GITHUB_ENV
+        
+    - name: Remove files that failed validation
+      if: env.VALIDATION_PASSED == 'false'
+      run: |
+        echo "Removing files that failed size validation..."
+        
+        DAILY_PKL_MIN_SIZE=25000000
+        INTRADAY_PKL_MIN_SIZE=800000
+        DB_MIN_SIZE=50000000
+        
+        # Remove undersized daily pkl files
+        for pkl_file in results/Data/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            file_size=$(stat -c%s "$pkl_file" 2>/dev/null || stat -f%z "$pkl_file")
+            
+            if [[ "$pkl_file" == *"daily"* ]] || [[ "$pkl_file" == *"stock_data_"* && "$pkl_file" != *"intraday"* ]]; then
+              if [ "$file_size" -lt "$DAILY_PKL_MIN_SIZE" ]; then
+                echo "Removing undersized daily pkl: $(basename "$pkl_file") ($((file_size/1024/1024)) MB)"
+                rm -f "$pkl_file"
+              fi
+            elif [[ "$pkl_file" == *"intraday"* ]]; then
+              if [ "$file_size" -lt "$INTRADAY_PKL_MIN_SIZE" ]; then
+                echo "Removing undersized intraday pkl: $(basename "$pkl_file") ($((file_size/1024/1024)) MB)"
+                rm -f "$pkl_file"
+              fi
+            fi
+          fi
+        done
+        
+        # Remove undersized database files
+        for db_file in results/Data/*.db; do
+          if [ -f "$db_file" ]; then
+            file_size=$(stat -c%s "$db_file" 2>/dev/null || stat -f%z "$db_file")
+            if [ "$file_size" -lt "$DB_MIN_SIZE" ]; then
+              echo "Removing undersized database: $(basename "$db_file") ($((file_size/1024/1024)) MB)"
+              rm -f "$db_file"
+            fi
+          fi
+        done
+        
+    - name: Commit and Push with Size Validation
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Use -f to force add files that may be in .gitignore
+        FILES_ADDED=0
+        
+        # Add database files
+        for db_file in results/Data/*.db; do
+          if [ -f "$db_file" ]; then
+            git add -f "$db_file" 2>/dev/null && FILES_ADDED=$((FILES_ADDED + 1))
+          fi
+        done
+        
+        # Add pkl files
+        for pkl_file in results/Data/*.pkl; do
+          if [ -f "$pkl_file" ]; then
+            git add -f "$pkl_file" 2>/dev/null && FILES_ADDED=$((FILES_ADDED + 1))
+          fi
+        done
+        
+        # Add metadata
+        if [ -f "results/Data/sync_metadata.json" ]; then
+          git add -f results/Data/sync_metadata.json 2>/dev/null
+          FILES_ADDED=$((FILES_ADDED + 1))
+        fi
+        
+        if [ "$FILES_ADDED" -eq 0 ]; then
+          echo "No files to commit"
+        else
+          echo "Files to commit: $FILES_ADDED"
+          
+          # Get sizes for commit message
+          DAILY_SIZE="0"
+          if [ -f "results/Data/daily_candles.pkl" ]; then
+            DAILY_SIZE=$(stat -c%s "results/Data/daily_candles.pkl" 2>/dev/null || stat -f%z "results/Data/daily_candles.pkl")
+            DAILY_MB=$((DAILY_SIZE/1024/1024))
+          fi
+          
+          INTRADAY_SIZE="0"
+          if [ -f "results/Data/intraday_1m_candles.pkl" ]; then
+            INTRADAY_SIZE=$(stat -c%s "results/Data/intraday_1m_candles.pkl" 2>/dev/null || stat -f%z "results/Data/intraday_1m_candles.pkl")
+            INTRADAY_MB=$((INTRADAY_SIZE/1024/1024))
+          fi
+          
+          DB_SIZE="0"
+          DB_FILE=$(ls results/Data/*.db 2>/dev/null | head -1)
+          if [ -n "$DB_FILE" ]; then
+            DB_SIZE=$(stat -c%s "$DB_FILE" 2>/dev/null || stat -f%z "$DB_FILE")
+            DB_MB=$((DB_SIZE/1024/1024))
+          fi
+          
+          git commit -m "Update local candle databases $(date +%Y-%m-%d) - daily:${DAILY_MB:-0}MB intraday:${INTRADAY_MB:-0}MB db:${DB_MB:-0}MB"
+          
+          # Retry logic for push conflicts
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if git push; then
+              echo "✅ Successfully pushed database updates ($FILES_ADDED files)"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "Push failed, attempt $RETRY_COUNT of $MAX_RETRIES"
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Pulling latest changes and retrying..."
+                git pull --rebase origin actions-data-download || true
+                sleep 2
+              else
+                echo "Max retries reached. Push failed."
+                exit 1
+              fi
+            fi
+          done
+        fi

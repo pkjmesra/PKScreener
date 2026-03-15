@@ -35,7 +35,7 @@ warnings.simplefilter("ignore", FutureWarning)
 import pandas as pd
 # from PKDevTools.classes.log import tracelog
 # from PKDevTools.classes.PKTimer import PKTimer
-from PKDevTools.classes import Archiver
+from PKDevTools.classes import Archiver, log
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.Fetcher import StockDataEmptyException
 from PKDevTools.classes.SuppressOutput import SuppressOutput
@@ -50,6 +50,17 @@ class StockScreener:
     def __init__(self):
         self.isTradingTime = PKDateUtilities.isTradingTime()
         self.configManager = None
+
+    def setupLogger(self, log_level):
+        if log_level > 0:
+            os.environ["PKDevTools_Default_Log_Level"] = str(log_level)
+        log.setup_custom_logger(
+            "pkscreener",
+            log_level,
+            trace=False,
+            log_file_path="pkscreener-logs.txt",
+            filter=None,
+        )
 
     # @tracelog
     def screenStocks(
@@ -85,6 +96,7 @@ class StockScreener:
         ), "hostRef argument must not be None. It should be an instance of PKMultiProcessorClient"
         if stock is None or len(stock) == 0:
             return None
+        self.setupLogger(log_level=logLevel)
         configManager = hostRef.configManager
         self.configManager = configManager
         screeningDictionary, saveDictionary = self.initResultDictionaries()
@@ -480,7 +492,7 @@ class StockScreener:
                 # Must-run, but only at the end
                 try:
                     if executeOption != 7 or (executeOption == 7 and respChartPattern != 7):
-                    # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+                    # Only 'doji' and 'inside' is internally implemented by pandas_ta_classic.
                     # Otherwise, for the rest of the candle patterns, they also need
                     # TA-Lib. So if TA-Lib is not available, it will throw exception
                     # We can live with no-patterns if user has not installed ta-lib
@@ -634,7 +646,7 @@ class StockScreener:
                         or (executeOption == 9 and hasMinVolumeRatio)
                         or (executeOption == 10 and isPriceRisingByAtLeast2Percent)
                         or (executeOption == 11 and isShortTermBullish)
-                        or (executeOption in [12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43] and isValidityCheckMet)
+                        or (executeOption in [12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47] and isValidityCheckMet)
                         or (executeOption == 21 and (mfiStake > 0 and reversalOption in [3,5]))
                         or (executeOption == 21 and (mfiStake < 0 and reversalOption in [6,7]))
                         or (executeOption == 21 and (fairValueDiff > 0 and reversalOption in [8]))
@@ -682,7 +694,7 @@ class StockScreener:
                             screener.validateCCI(
                                 processedData, screeningDictionary, saveDictionary, minRSI, maxRSI
                             )
-                        if isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
+                        if configManager.enableAdditionalTrendFilters and isNotMonitoringDashboard and executeOption != 21 and backtestDuration == 0:
                             # We don't need to have MFI or fair value data for backtesting because those
                             # are anyways only available for days in the past.
                             # For executeOption 21, we'd have already got the mfiStake and fairValueDiff
@@ -719,38 +731,57 @@ class StockScreener:
             # Capturing Ctr+C Here isn't a great idea
             pass
         except StockDataEmptyException as e: # pragma: no cover
-            # if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
-            #     hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
+            if data is None or (data is not None and not data.isnull().values.all(axis=0)[0]):
+                hostRef.default_logger.debug(f"StockDataEmptyException:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.EligibilityConditionNotMet as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"EligibilityConditionNotMet:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotNewlyListed as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotNewlyListed:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotAStageTwoStock as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotAStageTwoStock:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.NotEnoughVolumeAsPerConfig as e: # pragma: no cover 
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"NotEnoughVolumeAsPerConfig:{stock}: {e}", exc_info=True)
             pass
         except ScreeningStatistics.DownloadDataOnly as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"DownloadDataOnly:{stock}: {e}", exc_info=True)
             try:
                 data = hostRef.objectDictionaryPrimary.get(stock)
                 if data is not None:
-                    data = pd.DataFrame(data["data"], columns=data["columns"], index=data["index"])
+                    # Parse index to datetime with proper format handling
+                    index_data = data.get("index", [])
+                    if index_data and len(index_data) > 0:
+                        try:
+                            parsed_index = pd.to_datetime(index_data, format='mixed', utc=True, errors='coerce')
+                            if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
+                                parsed_index = parsed_index.tz_localize(None)
+                        except:
+                            try:
+                                parsed_index = pd.to_datetime(index_data, errors='coerce')
+                                if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
+                                    parsed_index = parsed_index.tz_localize(None)
+                            except:
+                                parsed_index = index_data
+                    else:
+                        parsed_index = index_data
+                    
+                    data = pd.DataFrame(data["data"], columns=data["columns"], index=parsed_index)
+                    # Ensure index is sorted (latest date at end)
+                    data = data.sort_index()
                     screener.getMutualFundStatus(stock, hostData=data, force=True, exchangeName=exchangeName)
                     hostRef.objectDictionaryPrimary[stock] = data.to_dict("split")
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"MFIStatus: {stock}:\n{ex}", exc_info=True)
                 pass
             try:
                 screener.getFairValue(stock,hostData=data, force=True,exchangeName=exchangeName)
@@ -758,24 +789,24 @@ class StockScreener:
             except KeyboardInterrupt: # pragma: no cover
                 raise KeyboardInterrupt
             except Exception as ex:
-                # hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
+                hostRef.default_logger.debug(f"FairValue: {stock}:\n{ex}", exc_info=True)
                 pass
             pass
         except ScreeningStatistics.LTPNotInConfiguredRange as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"LTPNotInConfiguredRange:{stock}: {e}", exc_info=True)
             pass
         except KeyError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"KeyError:{stock}: {e}", exc_info=True)
             pass
         except OSError as e: # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"OSError:{stock}: {e}", exc_info=True)
             pass
         except Exception as e:  # pragma: no cover
-            # if userArgsLog:
-            #     hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
+            if userArgsLog:
+                hostRef.default_logger.debug(f"Exception:{stock}: {e}", exc_info=True)
             if testbuild or printCounter:
                 import traceback
                 traceback.print_exc()
@@ -792,7 +823,7 @@ class StockScreener:
 
     def performValidityCheckForExecuteOptions(self,executeOption,screener,fullData,screeningDictionary,saveDictionary,processedData,configManager,subMenuOption=3,intraday_data=None):
         isValid = True
-        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43]:
+        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47]:
             return True
         if executeOption == 11:
             isValid = screener.validateShortTermBullish(
@@ -861,6 +892,14 @@ class StockScreener:
             isValid = screener.findSuperGainersLosers(fullData,subMenuOption)
         elif executeOption == 43:
             isValid = screener.findSuperGainersLosers(fullData,subMenuOption,gainer=False)
+        elif executeOption == 44:  # Strong Buy Signals
+            isValid = screener.findStrongBuySignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 45:  # Strong Sell Signals
+            isValid = screener.findStrongSellSignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 46:  # All Buy Signals
+            isValid = screener.findAllBuySignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 47:  # All Sell Signals
+            isValid = screener.findAllSellSignals(fullData, screeningDictionary, saveDictionary)
         return isValid        
                     
     def performBasicVolumeChecks(self, executeOption, volumeRatio, screeningDictionary, saveDictionary, processedData, configManager, screener):
@@ -894,30 +933,31 @@ class StockScreener:
 
     def updateStock(self, stock, screeningDictionary, saveDictionary, executeOption=0,exchangeName='INDIA',userArgs=None):
         doNotAnchorText = executeOption == 26 or (userArgs is not None and userArgs.systemlaunched)
-        screeningDictionary["Stock"] = (
-                    colorText.WHITE
-                    + (f"\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
-                    + colorText.END
-                ) if not doNotAnchorText else stock
+        screeningDictionary["Stock"] = stock
+                # (
+                #     colorText.WHITE
+                #     + (f"\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stock}\x1B\\{stock}\x1B]8;;\x1B\\")
+                #     + colorText.END
+                # ) if not doNotAnchorText else stock
         saveDictionary["Stock"] = stock
 
     def getCleanedDataForDuration(self, backtestDuration, portfolio, screeningDictionary, saveDictionary, configManager, screener, data):
         fullData = None
         processedData = None
         ohlc_dict = {
-            'Open':'first',
-            'High':'max',
-            'Low':'min',
-            'Close':'last',
+            "open":'first',
+            "high":'max',
+            "low":'min',
+            "close":'last',
             'Adj Close': 'last',
-            'Volume':'sum'
+            "volume":'sum'
         }
         candleDuration = self.configManager.candleDurationInt
         candleDurationFrequency = self.configManager.candleDurationFrequency
         durationFrequency = "T" if candleDurationFrequency=="m" else ("H" if candleDurationFrequency=="h" else ("M" if candleDurationFrequency=="mo" else ("W" if candleDurationFrequency=="wk" else "T")))
         if int(candleDuration) >= 1 and (candleDurationFrequency in ["m","h","mo","wk"]):
             data = data.resample(f'{candleDuration}{durationFrequency}', offset='15min').agg(ohlc_dict)
-            data = data[data["High"]>0] # resampling can introduce 0 value rows for non-market hours
+            data = data[data["high"]>0] # resampling can introduce 0 value rows for non-market hours
         if backtestDuration == 0:
             fullData, processedData = screener.preprocessData(
                     data, daysToLookback=configManager.effectiveDaysToLookback
@@ -955,7 +995,25 @@ class StockScreener:
         return fullData,processedData,data
 
     def getRelevantDataForStock(self, totalSymbols, shouldCache, stock, downloadOnly, printCounter, backtestDuration, hostRef,objectDictionary, configManager, fetcher, period, duration, testData=None,exchangeName="INDIA"):
+        # #region agent log
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:996","message":"getRelevantDataForStock entry","data":{"stock":stock},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         hostData = objectDictionary.get(stock) if (objectDictionary is not None and len(objectDictionary) > 0) else None
+        # #region agent log
+        # try:
+        #     hostData_type = type(hostData).__name__ if hostData is not None else None
+        #     hostData_keys = list(hostData.keys())[:3] if hostData and isinstance(hostData, dict) else None
+        #     hostData_index = hostData.get('index', [])[-1] if hostData and isinstance(hostData, dict) and 'index' in hostData and len(hostData.get('index', [])) > 0 else None
+        #     hostData_index_first = hostData.get('index', [])[0] if hostData and isinstance(hostData, dict) and 'index' in hostData and len(hostData.get('index', [])) > 0 else None
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:1005","message":"hostData retrieved from objectDictionary","data":{"stock":stock,"hostData_type":hostData_type,"hostData_keys":hostData_keys,"hostData_index_last":str(hostData_index) if hostData_index else None,"hostData_index_first":str(hostData_index_first) if hostData_index_first else None,"hostData_index_len":len(hostData.get('index', [])) if hostData and isinstance(hostData, dict) and 'index' in hostData else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
+        # #endregion
         data = None
         hostDataLength = 0 if hostData is None else (0 if "data" not in hostData.keys() else len(hostData["data"]))
         start = None
@@ -998,6 +1056,17 @@ class StockScreener:
                 #         exchangeSuffix=".NS" if exchangeName == "INDIA" else "",
                 #         printCounter=printCounter
                 #     )
+                # #region agent log
+                # import json
+                # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+                # try:
+                #     hostData_type = type(hostData).__name__ if hostData is not None else None
+                #     hostData_keys = list(hostData.keys())[:3] if hostData and isinstance(hostData, dict) else None
+                #     hostData_index = hostData.get('index', [])[-1] if hostData and isinstance(hostData, dict) and 'index' in hostData else None
+                #     with open(log_path, 'a') as f:
+                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:1040","message":"hostData before DataFrame creation","data":{"stock":stock,"hostData_type":hostData_type,"hostData_keys":hostData_keys,"hostData_index_last":str(hostData_index) if hostData_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # except: pass
+                # #endregion
                 if hostData is not None and data is not None:
                     # During the market trading hours, we don't want to go for MFI/FV value fetching
                     # So let's copy the old saved ones.
@@ -1020,8 +1089,29 @@ class StockScreener:
             # data = hostData
             try:
                 columns = hostData["columns"]
+                # Parse index to datetime before creating DataFrame to ensure proper date handling
+                index_data = hostData["index"]
+                # if index_data and len(index_data) > 0:
+                #     # Try to parse index as datetime with multiple format support
+                #     try:
+                #         parsed_index = index_data # pd.to_datetime(index_data, format='mixed', utc=True, errors='coerce')
+                #         # Convert to tz-naive for consistency
+                #         # if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
+                #         #     parsed_index = parsed_index.tz_localize(None)
+                #     except:
+                #         # Fallback: try without format specification
+                #         try:
+                #             parsed_index = pd.to_datetime(index_data, errors='coerce')
+                #             if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
+                #                 parsed_index = parsed_index.tz_localize(None)
+                #         except:
+                #             # Last resort: use as-is
+                #             parsed_index = index_data
+                # else:
+                #     parsed_index = index_data
+                
                 data = pd.DataFrame(
-                        hostData["data"], columns=columns, index=hostData["index"]
+                        hostData["data"], columns=columns, index=index_data
                     )
             except (ValueError, AssertionError) as e: # pragma: no cover
                 # 9 columns passed, passed data had 11 columns
@@ -1033,8 +1123,9 @@ class StockScreener:
                     while (num_diff > 0):
                         columns.append(f"temp{num_diff}")
                         num_diff -= 1
+                    # Use parsed index here too
                     data = pd.DataFrame(
-                            hostData["data"], columns=columns, index=hostData["index"]
+                            hostData["data"], columns=columns, index=index_data
                         )
                 else:
                     hostRef.default_logger.debug(e, exc_info=True)
@@ -1049,7 +1140,33 @@ class StockScreener:
             else:
                 data.rename(columns={"index": "Date"}, inplace=True)
             data.set_index("Date", inplace=True)
-        except: # pragma: no cover
+            # Ensure index is datetime and tz-naive
+            # data.index = pd.to_datetime(data.index, format='mixed', utc=True, errors='coerce')
+            # if hasattr(data.index, 'tz') and data.index.tz is not None:
+            #     data.index = data.index.tz_localize(None)
+            # Sort by index in descending order to ensure latest date is at the beginning (index[0])
+            # This is the expected format for validation functions like validate15MinutePriceVolumeBreakout
+            data = data.sort_index(ascending=False)
+            # #region agent log
+            # import json
+            # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
+            # try:
+            #     with open(log_path, 'a') as f:
+            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"D","location":"StockScreener.py:getRelevantDataForStock:1119","message":"DataFrame sorted, checking index[0]","data":{"stock":stock,"index_0":str(data.index[0]) if not data.empty else None,"index_len":len(data.index) if not data.empty else 0,"index_first_3":[str(x) for x in list(data.index[:3])] if not data.empty and len(data.index) >= 3 else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+            # except: pass
+            # #endregion
+            # Log date range for debugging (only for first few stocks to avoid spam)
+            if hasattr(hostRef, '_data_date_logged_count'):
+                hostRef._data_date_logged_count = getattr(hostRef, '_data_date_logged_count', 0) + 1
+            else:
+                hostRef._data_date_logged_count = 1
+            
+            if hostRef._data_date_logged_count <= 3 and not data.empty:
+                latest_date = data.index[0]
+                oldest_date = data.index[-1]
+                hostRef.default_logger.info(f"Data date range for {stock}: {oldest_date} to {latest_date} ({len(data)} rows)")
+        except Exception as e: # pragma: no cover
+            hostRef.default_logger.debug(f"Error parsing date index: {e}", exc_info=True)
             pass
         if ((shouldCache and not self.isTradingTime and (hostData is None  or hostDataLength == 0)) or downloadOnly) \
             or (shouldCache and hostData is None):  # and backtestDuration == 0 # save only if we're NOT backtesting
@@ -1130,7 +1247,7 @@ class StockScreener:
             "52Wk-L",
             "RSI",
             "RSIi",
-            "Volume",
+            "volume",
             "22-Pd",
             "Consol.",
             "Breakout",
@@ -1148,7 +1265,7 @@ class StockScreener:
             "52Wk-L": 0,
             "RSI": 0,
             "RSIi": 0,
-            "Volume": "",
+            "volume": "",
             "22-Pd": "",
             "Consol.": "Range:0%",
             "Breakout": "BO: 0 R: 0",
@@ -1166,7 +1283,7 @@ class StockScreener:
             "52Wk-L": 0,
             "RSI": 0,
             "RSIi": 0,
-            "Volume": "",
+            "volume": "",
             "22-Pd": "",
             "Consol.": "Range:0%",
             "Breakout": "BO: 0 R: 0",

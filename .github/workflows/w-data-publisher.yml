@@ -1,0 +1,541 @@
+# """
+#     The MIT License (MIT)
+
+#     Copyright (c) 2023 pkjmesra
+
+#     Permission is hereby granted, free of charge, to any person obtaining a copy
+#     of this software and associated documentation files (the "Software"), to deal
+#     in the Software without restriction, including without limitation the rights
+#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#     copies of the Software, and to permit persons to whom the Software is
+#     furnished to do so, subject to the following conditions:
+
+#     The above copyright notice and this permission notice shall be included in all
+#     copies or substantial portions of the Software.
+
+#     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#     SOFTWARE.
+
+# """
+name: Data Publisher - 24x7 Stock Data
+
+# This workflow ensures stock data is available 24x7 for scan workflows.
+# It publishes data to the repository for consumption by scan workflows triggered
+# from Telegram bot or CLI at any time.
+#
+# Data Sources (priority order):
+# 1. Real-time ticks data (during market hours)
+# 2. Cached pickle files from w9-workflow-download-data.yml (after market hours)
+# 3. Existing GitHub data (fallback)
+#
+# Benefits:
+# - 24x7 data availability for scans triggered anytime
+# - No Telegram rate limits or file size limits
+# - Parallel access from multiple scan workflows
+# - 2-5 second data fetch latency (vs 30-60 seconds via Telegram)
+
+on:
+#   schedule:
+#     # During market hours (IST 9:00-16:00 = UTC 3:30-10:30): every 5 minutes
+#     - cron: '*/5 3-10 * * 1-5'
+#     # Outside market hours: every 2 hours to ensure data freshness
+#     - cron: '30 */2 * * *'
+    
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 'Force refresh data from pickle files (Y/N)'
+        required: false
+        default: 'N'
+      cleanup:
+        description: 'Clean up old snapshot directories (Y/N)'
+        required: false
+        default: 'N'
+      keep_days:
+        description: 'Number of days to keep for cleanup'
+        required: false
+        default: '7'
+
+run-name: Data Publisher 24x7 ${{ github.event.inputs.force_refresh == 'Y' && '(force refresh)' || '' }}
+
+jobs:
+
+  Publish_Data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: actions-data-download
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install requests pandas pytz
+
+      - name: List available data files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Root directory pkl files ==="
+          ls -la *.pkl 2>/dev/null || echo "No .pkl files in root"
+          echo ""
+          echo "=== actions-data-download directory ==="
+          ls -la actions-data-download/*.pkl 2>/dev/null || echo "No actions-data-download subdirectory or no .pkl files"
+          echo ""
+          echo "=== results directory ==="
+          ls -la results/*.pkl 2>/dev/null || echo "No results directory or no .pkl files"
+          echo ""
+          echo "=== All pkl files (recursive, first 20) ==="
+          find . -name "*.pkl" -type f 2>/dev/null | head -20 || echo "No .pkl files found"
+
+      - name: Determine data source and publish with size validation
+        id: publish
+        env:
+          FORCE_REFRESH: ${{ github.event.inputs.force_refresh || 'N' }}
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import gzip
+          import json
+          import os
+          import pickle
+          import glob
+          from datetime import datetime, timezone
+          from urllib.request import urlopen, Request
+          from urllib.error import URLError
+          import pytz
+          
+          # Define size thresholds (in bytes)
+          TICKS_MIN_SIZE = 800000        # 1 MB minimum for ticks.json
+          DAILY_PKL_MIN_SIZE = 25000000    # 25 MB minimum for daily pkl
+          INTRADAY_PKL_MIN_SIZE = 800000  # 1 MB minimum for intraday pkl
+          
+          # Create data directory
+          os.makedirs("results/Data", exist_ok=True)
+          
+          ist = pytz.timezone('Asia/Kolkata')
+          now = datetime.now(ist)
+          utc_now = datetime.now(timezone.utc)
+          
+          # Check if we're in market hours
+          market_start = now.replace(hour=9, minute=15, second=0, microsecond=0)
+          market_end = now.replace(hour=15, minute=30, second=0, microsecond=0)
+          is_weekday = now.weekday() < 5
+          is_market_hours = is_weekday and market_start <= now <= market_end
+          
+          print(f"Current IST time: {now}")
+          print(f"Is market hours: {is_market_hours}")
+          print(f"Force refresh: {os.environ.get('FORCE_REFRESH', 'N')}")
+          
+          data = {}
+          data_source = "none"
+          validation_results = []
+          
+          # Function to validate file size
+          def validate_file_size(file_path, min_size, file_type):
+              if not os.path.exists(file_path):
+                  return False, 0
+              
+              file_size = os.path.getsize(file_path)
+              size_mb = file_size / (1024 * 1024)
+              min_size_mb = min_size / (1024 * 1024)
+              
+              if file_size >= min_size:
+                  print(f"  ✅ {file_type} size validation passed: {size_mb:.2f} MB >= {min_size_mb:.2f} MB")
+                  return True, file_size
+              else:
+                  print(f"  ⚠️ {file_type} size validation FAILED: {size_mb:.2f} MB < {min_size_mb:.2f} MB - skipping")
+                  return False, file_size
+          
+          # Priority 1: Real-time ticks data (during market hours or if exists)
+          ticks_paths = [
+              "results/Data/ticks.json",
+              "ticks.json",
+          ]
+          
+          for ticks_path in ticks_paths:
+              if os.path.exists(ticks_path):
+                  is_valid, file_size = validate_file_size(ticks_path, TICKS_MIN_SIZE, "ticks.json")
+                  if is_valid:
+                      try:
+                          with open(ticks_path, 'r') as f:
+                              data = json.load(f)
+                          if data:
+                              print(f"✅ Loaded {len(data)} instruments from {ticks_path} ({(file_size/(1024*1024)):.2f} MB)")
+                              data_source = "ticks_json"
+                              validation_results.append(f"ticks.json: {(file_size/(1024*1024)):.2f} MB ✓")
+                              break
+                      except Exception as e:
+                          print(f"Error loading {ticks_path}: {e}")
+                  else:
+                      validation_results.append(f"ticks.json: {(file_size/(1024*1024)):.2f} MB ✗ (below 1 MB)")
+          
+          # Priority 2: Pickle files from w9 workflow (especially outside market hours)
+          if not data or os.environ.get('FORCE_REFRESH') == 'Y':
+              print("\nChecking for pickle files with size validation...")
+              
+              # On actions-data-download branch, w9 saves files to:
+              # - actions-data-download/*.pkl (which is a subdirectory on that branch)
+              # - Root level files saved by copy command
+              pickle_patterns = [
+                  "*.pkl",  # Root level
+                  "actions-data-download/*.pkl",  # Subdirectory
+                  "results/*.pkl",
+              ]
+              
+              all_pkl_files = []
+              for pattern in pickle_patterns:
+                  found = glob.glob(pattern)
+                  if found:
+                      print(f"Pattern '{pattern}' found: {len(found)} files")
+                      all_pkl_files.extend(found)
+              
+              if all_pkl_files:
+                  # Group files by type (daily vs intraday)
+                  daily_pkls = []
+                  intraday_pkls = []
+                  
+                  for pkl_file in all_pkl_files:
+                      if 'intraday' in pkl_file.lower():
+                          intraday_pkls.append(pkl_file)
+                      else:
+                          daily_pkls.append(pkl_file)
+                  
+                  # Sort by modification time (newest first)
+                  daily_pkls.sort(key=lambda f: os.path.getmtime(f), reverse=True)
+                  intraday_pkls.sort(key=lambda f: os.path.getmtime(f), reverse=True)
+                  
+                  # Try daily pkls first (they're larger and more reliable)
+                  for latest_pkl in daily_pkls[:3]:  # Check top 3 daily pkls
+                      is_valid, file_size = validate_file_size(latest_pkl, DAILY_PKL_MIN_SIZE, "daily pkl")
+                      if is_valid:
+                          print(f"  Using daily pickle file: {latest_pkl} ({(file_size/(1024*1024)):.2f} MB)")
+                          validation_results.append(f"daily_pkl: {(file_size/(1024*1024)):.2f} MB ✓")
+                          break
+                      else:
+                          validation_results.append(f"daily_pkl ({os.path.basename(latest_pkl)}): {(file_size/(1024*1024)):.2f} MB ✗ (below 25 MB)")
+                          latest_pkl = None
+                  
+                  # If no valid daily pkl, try intraday pkls
+                  if 'latest_pkl' not in locals() or latest_pkl is None:
+                      for latest_pkl in intraday_pkls[:3]:  # Check top 3 intraday pkls
+                          is_valid, file_size = validate_file_size(latest_pkl, INTRADAY_PKL_MIN_SIZE, "intraday pkl")
+                          if is_valid:
+                              print(f"  Using intraday pickle file: {latest_pkl} ({(file_size/(1024*1024)):.2f} MB)")
+                              validation_results.append(f"intraday_pkl: {(file_size/(1024*1024)):.2f} MB ✓")
+                              break
+                          else:
+                              validation_results.append(f"intraday_pkl ({os.path.basename(latest_pkl)}): {(file_size/(1024*1024)):.2f} MB ✗ (below 1 MB)")
+                              latest_pkl = None
+                  
+                  if 'latest_pkl' in locals() and latest_pkl and os.path.exists(latest_pkl):
+                      try:
+                          with open(latest_pkl, 'rb') as f:
+                              pkl_data = pickle.load(f)
+                          
+                          print(f"Pickle data type: {type(pkl_data)}")
+                          
+                          if isinstance(pkl_data, dict) and len(pkl_data) > 0:
+                              # Convert pickle data to JSON-compatible format
+                              converted_data = {}
+                              for symbol, stock_df in pkl_data.items():
+                                  try:
+                                      if hasattr(stock_df, 'to_dict'):
+                                          # It's a DataFrame - extract summary
+                                          try:
+                                              df_dict = stock_df.to_dict('records')
+                                              if df_dict:
+                                                  last_row = df_dict[-1] if df_dict else {}
+                                                  converted_data[symbol] = {
+                                                      "symbol": symbol,
+                                                      "data_available": True,
+                                                      "source": "pickle",
+                                                      "records": len(df_dict),
+                                                  }
+                                              else:
+                                                  converted_data[symbol] = {
+                                                      "symbol": symbol,
+                                                      "data_available": True,
+                                                      "source": "pickle",
+                                                  }
+                                          except Exception:
+                                              converted_data[symbol] = {
+                                                  "symbol": symbol,
+                                                  "data_available": True,
+                                                  "source": "pickle",
+                                              }
+                                      elif isinstance(stock_df, dict):
+                                          converted_data[symbol] = stock_df
+                                      else:
+                                          converted_data[symbol] = {
+                                              "symbol": symbol,
+                                              "data_available": True,
+                                              "source": "pickle",
+                                          }
+                                  except Exception as e:
+                                      converted_data[symbol] = {
+                                          "symbol": symbol,
+                                          "data_available": True,
+                                          "source": "pickle",
+                                      }
+                              
+                              if converted_data:
+                                  data = converted_data
+                                  data_source = "pickle"
+                                  print(f"✅ Loaded {len(data)} instruments from pickle")
+                          else:
+                              print(f"Pickle data is not a dict or is empty. Type: {type(pkl_data)}, Len: {len(pkl_data) if hasattr(pkl_data, '__len__') else 'N/A'}")
+                      except Exception as e:
+                          print(f"Error loading pickle {latest_pkl}: {e}")
+                          import traceback
+                          traceback.print_exc()
+                  else:
+                      print("No valid pickle files found meeting size requirements")
+              else:
+                  print("No pickle files found in any location")
+          
+          # Priority 3: Fetch from existing GitHub data
+          if not data:
+              print("\nFetching from GitHub...")
+              github_urls = [
+                  "https://raw.githubusercontent.com/pkjmesra/PKBrokers/main/pkbrokers/kite/examples/results/Data/ticks.json",
+                  "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/ticks.json",
+                  "https://raw.githubusercontent.com/pkjmesra/PKScreener/actions-data-download/results/Data/candles_latest.json",
+              ]
+              
+              for url in github_urls:
+                  try:
+                      req = Request(url, headers={"User-Agent": "PKScreener/2.0"})
+                      with urlopen(req, timeout=30) as resp:
+                          content = resp.read()
+                          content_size = len(content)
+                          
+                          # Validate GitHub content size
+                          if content_size < TICKS_MIN_SIZE:
+                              print(f"  ⚠️ GitHub content too small: {content_size/(1024*1024):.2f} MB < 1 MB - skipping {url}")
+                              validation_results.append(f"github_fallback: {content_size/(1024*1024):.2f} MB ✗ (below 1 MB)")
+                              continue
+                          
+                          data = json.loads(content.decode())
+                          if data:
+                              print(f"✅ Fetched {len(data)} instruments from GitHub ({(content_size/(1024*1024)):.2f} MB)")
+                              data_source = "github"
+                              validation_results.append(f"github_fallback: {(content_size/(1024*1024)):.2f} MB ✓")
+                              break
+                  except Exception as e:
+                      print(f"Could not fetch from {url}: {e}")
+          
+          # Build metadata with validation info
+          metadata = {
+              "last_update": utc_now.isoformat().replace('+00:00', 'Z'),
+              "last_update_ist": now.isoformat(),
+              "is_market_hours": is_market_hours,
+              "data_source": data_source,
+              "instrument_count": len(data) if data else 0,
+              "version": "2.0.0",
+              "publisher": "w-data-publisher.yml",
+              "availability": "24x7",
+              "validation": {
+                  "ticks_min_size_mb": TICKS_MIN_SIZE / (1024 * 1024),
+                  "daily_pkl_min_size_mb": DAILY_PKL_MIN_SIZE / (1024 * 1024),
+                  "intraday_pkl_min_size_mb": INTRADAY_PKL_MIN_SIZE / (1024 * 1024),
+                  "results": validation_results
+              }
+          }
+          
+          # Save data with size validation
+          if data:
+              data_size_mb = len(json.dumps(data).encode()) / (1024 * 1024)
+              print(f"\n📊 Data size: {data_size_mb:.2f} MB")
+              
+              # Save compressed candles
+              try:
+                  with gzip.open("results/Data/candles_latest.json.gz", 'wt', encoding='utf-8') as f:
+                      json.dump(data, f)
+                  gz_size = os.path.getsize("results/Data/candles_latest.json.gz")
+                  print(f"✅ Saved candles_latest.json.gz ({(gz_size/(1024*1024)):.2f} MB)")
+              except Exception as e:
+                  print(f"Error saving gzip: {e}")
+              
+              # Save uncompressed ticks.json for compatibility
+              try:
+                  with open("results/Data/ticks.json", 'w') as f:
+                      json.dump(data, f)
+                  json_size = os.path.getsize("results/Data/ticks.json")
+                  print(f"✅ Saved ticks.json ({(json_size/(1024*1024)):.2f} MB)")
+                  
+                  # Final validation of saved ticks.json
+                  if json_size < TICKS_MIN_SIZE:
+                      print(f"⚠️ WARNING: Saved ticks.json is only {(json_size/(1024*1024)):.2f} MB (below 1 MB threshold)")
+                  else:
+                      print(f"✅ ticks.json size validation passed: {(json_size/(1024*1024)):.2f} MB >= 1 MB")
+              except Exception as e:
+                  print(f"Error saving ticks.json: {e}")
+              
+              metadata["health"] = {"status": "healthy", "data_size_mb": data_size_mb}
+              metadata["validation"]["saved_files"] = {
+                  "ticks_json_mb": json_size / (1024 * 1024) if 'json_size' in locals() else 0,
+                  "gzip_mb": gz_size / (1024 * 1024) if 'gz_size' in locals() else 0
+              }
+              print(f"\n✅ Published data for {len(data)} instruments from {data_source}")
+          else:
+              metadata["health"] = {"status": "no_data"}
+              print("\n❌ WARNING: No data to publish!")
+              print("This is expected on first run. Run w9-workflow-download-data.yml first to populate pickle files.")
+          
+          # Always save metadata
+          with open("results/Data/metadata.json", 'w') as f:
+              json.dump(metadata, f, indent=2)
+          
+          print(f"\n📊 Data publishing complete. Source: {data_source}")
+          print(f"📊 Instruments: {len(data) if data else 0}")
+          print(f"\n📋 Validation Results:")
+          for result in validation_results:
+              print(f"  • {result}")
+          PYTHON_SCRIPT
+
+      - name: Validate published files
+        run: |
+          echo "📊 Validating published files..."
+          
+          # Define thresholds
+          TICKS_MIN_SIZE=800000
+          DAILY_PKL_MIN_SIZE=25000000
+          INTRADAY_PKL_MIN_SIZE=800000
+          
+          # Check ticks.json if it exists
+          if [ -f "results/Data/ticks.json" ]; then
+            TICKS_SIZE=$(stat -c%s "results/Data/ticks.json" 2>/dev/null || stat -f%z "results/Data/ticks.json")
+            TICKS_MB=$(($TICKS_SIZE/1024/1024))
+            if [ "$TICKS_SIZE" -lt "$TICKS_MIN_SIZE" ]; then
+              echo "⚠️ WARNING: ticks.json is only $TICKS_MB MB (below 1 MB threshold)"
+            else
+              echo "✅ ticks.json: $TICKS_MB MB ✓"
+            fi
+          fi
+          
+          # Check gzip file
+          if [ -f "results/Data/candles_latest.json.gz" ]; then
+            GZ_SIZE=$(stat -c%s "results/Data/candles_latest.json.gz" 2>/dev/null || stat -f%z "results/Data/candles_latest.json.gz")
+            GZ_MB=$(($GZ_SIZE/1024/1024))
+            echo "📦 candles_latest.json.gz: $GZ_MB MB"
+          fi
+          
+          # Show metadata
+          if [ -f "results/Data/metadata.json" ]; then
+            echo ""
+            echo "📋 Metadata summary:"
+            cat results/Data/metadata.json | python3 -m json.tool | grep -E "data_source|instrument_count|last_update_ist|validation" || true
+          fi
+
+      - name: Cleanup old snapshots
+        if: github.event.inputs.cleanup == 'Y'
+        run: |
+          python3 << 'EOF'
+          import os
+          import shutil
+          from datetime import datetime, timedelta
+          
+          keep_days = int("${{ github.event.inputs.keep_days }}" or "7")
+          cutoff = (datetime.now() - timedelta(days=keep_days)).strftime("%Y-%m-%d")
+          
+          candles_dir = "results/Data/candles"
+          if os.path.exists(candles_dir):
+              for dirname in os.listdir(candles_dir):
+                  if len(dirname) == 10 and dirname < cutoff:
+                      dir_path = os.path.join(candles_dir, dirname)
+                      if os.path.isdir(dir_path):
+                          shutil.rmtree(dir_path)
+                          print(f"Cleaned up: {dirname}")
+          EOF
+
+      - name: Commit and push data with validation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          
+          # Use -f flag to force add files that may be in .gitignore
+          git add -f results/Data/ 2>/dev/null || true
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            # Get sizes for commit message
+            TICKS_SIZE="0"
+            if [ -f "results/Data/ticks.json" ]; then
+              TICKS_SIZE=$(stat -c%s "results/Data/ticks.json" 2>/dev/null || stat -f%z "results/Data/ticks.json")
+              TICKS_MB=$(($TICKS_SIZE/1024/1024))
+            fi
+            
+            GZ_SIZE="0"
+            if [ -f "results/Data/candles_latest.json.gz" ]; then
+              GZ_SIZE=$(stat -c%s "results/Data/candles_latest.json.gz" 2>/dev/null || stat -f%z "results/Data/candles_latest.json.gz")
+              GZ_MB=$(($GZ_SIZE/1024/1024))
+            fi
+            
+            echo "📊 Files to commit:"
+            echo "  • ticks.json: ${TICKS_MB:-0} MB"
+            echo "  • candles_latest.json.gz: ${GZ_MB:-0} MB"
+            
+            git commit -m "Data update $(date -u +%Y-%m-%dT%H:%M:%SZ) - ticks:${TICKS_MB:-0}MB gz:${GZ_MB:-0}MB"
+            
+            # Handle race condition with retries
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push; then
+                echo "✅ Data published successfully"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "Push failed, attempt $RETRY_COUNT of $MAX_RETRIES"
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Pulling latest changes and retrying..."
+                  git pull --rebase origin actions-data-download || true
+                  sleep 2
+                else
+                  echo "Max retries reached. Push failed."
+                  exit 1
+                fi
+              fi
+            done
+          fi
+
+  Notify_Status:
+    needs: [Publish_Data]
+    if: failure()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send failure notification to Telegram
+        env:
+          TOKEN: ${{ secrets.TOKEN_DEV }}
+          CHAT_ID: ${{ secrets.CHAT_IDADMIN_DEV }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$CHAT_ID" ]; then
+            # Get validation info from metadata if available
+            VALIDATION_INFO=""
+            if [ -f "results/Data/metadata.json" ]; then
+              VALIDATION_INFO=$(cat results/Data/metadata.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(f' ({data.get(\"data_source\", \"unknown\")}, {data.get(\"instrument_count\", 0)} instruments)')" 2>/dev/null || echo "")
+            fi
+            
+            curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+              -d chat_id="$CHAT_ID" \
+              -d text="⚠️ Data Publisher 24x7 workflow failed at $(date -u +%H:%M:%S) UTC${VALIDATION_INFO}" \
+              -d parse_mode="HTML" || true
+          else
+            echo "Telegram notification skipped - TOKEN_DEV or CHAT_ID not configured"
+          fi

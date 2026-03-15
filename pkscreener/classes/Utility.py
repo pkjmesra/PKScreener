@@ -22,7 +22,6 @@
     SOFTWARE.
 
 """
-import datetime
 import math
 import os
 import sys
@@ -32,6 +31,10 @@ os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 
 import platform
 import time
+
+import requests
+import json
+from datetime import datetime
 
 import joblib
 import numpy as np
@@ -72,24 +75,64 @@ artText = f"{getArtText()}\n"
 
 STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
 
-def marketStatus():
-    # task = PKTask("Nifty 50 Market Status",MarketStatus().getMarketStatus)
-    lngStatus = MarketStatus().marketStatus
-    nseStatus = ""
-    next_bell = ""
+def marketStatus(instrument_id=256265, prefix=""):
+    """
+    Fetches market data directly from the ticks.json file and returns a formatted status string.
+    
+    Args:
+        instrument_id: The instrument ID to look up (default: 256265 for NIFTY 50)
+    
+    Returns:
+        str: Formatted string with trading symbol, close price, percent change, date and time.
+        Example: "NIFTY 50 | 23142.15 | -2.10% | 25-03-13 | 15:30"
+    """
+    url = "https://raw.githubusercontent.com/pkjmesra/PKBrokers/refs/heads/main/pkbrokers/kite/examples/results/Data/ticks.json"
+    
     try:
-        nseStatus = NSEMarketStatus({},None).status
-        next_bell = NSEMarketStatus({},None).getNextBell()
-    except: # pragma: no cover
-        pass
-    # scheduleTasks(tasksList=[task])
-    if lngStatus == "":
-        lngStatus = MarketStatus().getMarketStatus(exchangeSymbol="^IXIC" if configManager.defaultIndex == 15 else "^NSEI")
-    if "Close" in lngStatus and nseStatus == "Open":
-        lngStatus = lngStatus.replace("Closed","Open")
-    if len(next_bell) > 0 and next_bell not in lngStatus:
-        lngStatus = f"{lngStatus} | Next Bell: {colorText.WARN}{next_bell.replace('T',' ').split('+')[0]}{colorText.END}"
-    return (lngStatus +"\n") if lngStatus is not None else "\n"
+        # Fetch the JSON file directly
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        # Parse the JSON
+        all_data = response.json()
+        
+        # Get data for the requested instrument
+        instrument_data = all_data.get(str(instrument_id))
+        
+        if not instrument_data:
+            return f"Error: No data found for instrument ID: {instrument_id}"
+        
+        # Extract required fields
+        trading_symbol = instrument_data.get('trading_symbol', 'N/A')
+        close_price = instrument_data.get('ohlcv', {}).get('close', 0)
+        prev_day_close = instrument_data.get('prev_day_close', close_price)
+        timestamp_str = instrument_data.get('ohlcv', {}).get('timestamp', '')
+        
+        # Calculate percent change
+        if prev_day_close and prev_day_close != 0:
+            percent_change = ((close_price - prev_day_close) / prev_day_close) * 100
+            percent_formatted = f"{percent_change:+.2f}"
+            percent_formatted = f"{colorText.GREEN}{percent_formatted}{colorText.END}%" if percent_change >= 0 else f"{colorText.FAIL}{percent_formatted}{colorText.END}%"
+        else:
+            percent_formatted = "N/A"
+        trading_symbol = f"{colorText.GREEN}{trading_symbol}{colorText.END}" if close_price >= prev_day_close else f"{colorText.FAIL}{trading_symbol}{colorText.END}"
+        # Parse and format date and time
+        if timestamp_str:
+            # Handle timezone format
+            if timestamp_str.endswith('Z'):
+                timestamp_str = timestamp_str.replace('Z', '+00:00')
+            dt = datetime.fromisoformat(timestamp_str)
+            date_formatted = dt.strftime("%y-%m-%d")
+            time_formatted = dt.strftime("%H:%M")
+        else:
+            date_formatted = "N/A"
+            time_formatted = "N/A"
+        
+        # Construct the final string
+        result = f"{prefix}{' | ' if len(prefix) > 0 else ''}{trading_symbol} ({close_price} | {percent_formatted} | {date_formatted} | {time_formatted})"
+        return result if len(prefix) > 0 else marketStatus(instrument_id=265, prefix=result)
+    except Exception as e:
+        return "N/A"
 
 art = colorText.GREEN + f"{getArtText()}\n" + colorText.END + f"{marketStatus()}"
 
@@ -107,8 +150,9 @@ class tools:
         return colorText.FAIL + (f"{ratio}x" if pd.notna(ratio) else "") + colorText.END
     
     def stockDecoratedName(stockName,exchangeName):
-        decoratedName = f"{colorText.WHITE}\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stockName}\x1B\\{stockName}\x1B]8;;\x1B\\{colorText.END}"
-        return decoratedName
+        return stockName
+        # decoratedName = f"{colorText.WHITE}\x1B]8;;https://in.tradingview.com/chart?symbol={'NSE' if exchangeName=='INDIA' else 'NASDAQ'}%3A{stockName}\x1B\\{stockName}\x1B]8;;\x1B\\{colorText.END}"
+        # return decoratedName
 
     def set_github_output(name, value):
         if "GITHUB_OUTPUT" in os.environ.keys():
@@ -121,13 +165,12 @@ class tools:
         dealsFileSize = os.stat(dealsFile).st_size if os.path.exists(dealsFile) else 0
         if dealsFileSize > 0:
             modifiedDateTime = Archiver.get_last_modified_datetime(dealsFile)
-            curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
+            curr = datetime.now(pytz.timezone("Asia/Kolkata"))
             shouldFetch = modifiedDateTime.date() < curr.date()
         else:
             shouldFetch = True
         if shouldFetch:
             from PKNSETools.Benny.NSE import NSE
-            import json
             try:
                 nseFetcher = NSE(Archiver.get_user_data_dir())
                 jsonDict = nseFetcher.largeDeals()
@@ -141,7 +184,7 @@ class tools:
                 pass
 
     @Halo(text='', spinner='dots')
-    def tryFetchFromServer(cache_file,repoOwner="pkjmesra",repoName="PKScreener",directory="actions-data-download",hideOutput=False,branchName="actions-data-download"):
+    def tryFetchFromServer(cache_file,repoOwner="pkjmesra",repoName="PKScreener",directory="results/Data",hideOutput=False,branchName="refs/heads/actions-data-download"):
         if not hideOutput:
             OutputControls().printOutput(
                         colorText.FAIL
@@ -178,6 +221,31 @@ class tools:
             contentLength = resp.headers.get("content-length")
             filesize = int(contentLength) if contentLength is not None else 0
             # File size should be more than at least 10 MB
+        
+        # If dated file not found in results/Data, try actions-data-download directory
+        if (resp is None or resp.status_code != 200) and cache_file.endswith(".pkl") and directory == "results/Data":
+            alt_directory = "actions-data-download"
+            if not hideOutput:
+                default_logger().info(f"File {cache_file} not found in {directory}, trying {alt_directory}")
+            alt_url = f"https://raw.githubusercontent.com/{repoOwner}/{repoName}/{branchName}/{alt_directory}/{cache_file}"
+            headers['referer'] = f'https://github.com/{repoOwner}/{repoName}/blob/{branchName}/{alt_directory}/{cache_file}'
+            resp = fetcher.fetchURL(alt_url, headers=headers, stream=True)
+            if resp is not None and resp.status_code == 200:
+                contentLength = resp.headers.get("content-length")
+                filesize = int(contentLength) if contentLength is not None else 0
+        
+        # If dated file not found, try the undated stock_data.pkl as fallback
+        if (resp is None or resp.status_code != 200) and cache_file.startswith("stock_data_") and cache_file.endswith(".pkl"):
+            fallback_file = "stock_data.pkl"
+            if not hideOutput:
+                default_logger().info(f"Dated file {cache_file} not found, trying fallback: {fallback_file}")
+            fallback_url = f"https://raw.githubusercontent.com/{repoOwner}/{repoName}/{branchName}/{directory}/{fallback_file}"
+            headers['referer'] = f'https://github.com/{repoOwner}/{repoName}/blob/{branchName}/{directory}/{fallback_file}'
+            resp = fetcher.fetchURL(fallback_url, headers=headers, stream=True)
+            if resp is not None and resp.status_code == 200:
+                contentLength = resp.headers.get("content-length")
+                filesize = int(contentLength) if contentLength is not None else 0
+        
         if (resp is None or (resp is not None and resp.status_code != 200) or filesize <= 10*1024*1024) and (repoOwner=="pkjmesra" and directory=="actions-data-download"):
             return tools.tryFetchFromServer(cache_file,repoOwner=repoName)
         return resp
@@ -289,16 +357,25 @@ class tools:
         return model, pkl
 
     def getSigmoidConfidence(x):
+        """
+        Calculate confidence percentage from model prediction.
+        - x > 0.5: BEARISH prediction, confidence increases as x approaches 1
+        - x <= 0.5: BULLISH prediction, confidence increases as x approaches 0
+        """
         out_min, out_max = 0, 100
         if x > 0.5:
+            # BEARISH: confidence increases as x goes from 0.5 to 1
             in_min = 0.50001
             in_max = 1
+            return round(
+                ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min), 3
+            )
         else:
-            in_min = 0
-            in_max = 0.5
-        return round(
-            ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min), 3
-        )
+            # BULLISH: confidence increases as x goes from 0.5 to 0
+            # Invert the calculation: lower x = higher confidence
+            return round(
+                ((0.5 - x) * (out_max - out_min) / 0.5 + out_min), 3
+            )
 
     def alertSound(beeps=3, delay=0.2):
         for i in range(beeps):

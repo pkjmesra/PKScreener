@@ -121,7 +121,7 @@ jobs:
         - id: should_run
           continue-on-error: true
           name: check latest commit is less than a week
-          if: ${{ github.event_name == 'workflow_call' }} || ${{ github.event_name == 'workflow_dispatch' }}
+          if: ${{ github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' }}
           shell: bash
           run: test -z $(git rev-list  --after="7 days"  ${{ github.sha }} --max-count=1) && echo "::set-output name=should_run::false"
 
@@ -152,7 +152,7 @@ jobs:
             platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
 
-          - os: macos-13
+          - os: macos-15
             python: 312
             platform_id: macosx_x86_64
 
@@ -181,44 +181,40 @@ jobs:
         run: |
           set -ex
           # macos arm64 runners do not have conda installed. Thus we must install conda manually
-          EXPECTED_SHA="dd832d8a65a861b5592b2cf1d55f26031f7c1491b30321754443931e7b1e6832"
-          MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-MacOSX-arm64.sh"
+          MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh"
           curl -L --retry 10 $MINIFORGE_URL -o miniforge.sh
-
-          # Check SHA
-          file_sha=$(shasum -a 256 miniforge.sh | awk '{print $1}')
-          if [ "$EXPECTED_SHA" != "$file_sha" ]; then
-              echo "SHA values did not match!"
-              exit 1
-          fi
 
           # Install miniforge
           MINIFORGE_PATH=$HOME/miniforge
           bash ./miniforge.sh -b -p $MINIFORGE_PATH
           echo "$MINIFORGE_PATH/bin" >> $GITHUB_PATH
           echo "CONDA_HOME=$MINIFORGE_PATH" >> $GITHUB_ENV
+          
+          # Create Python 3.12 environment
+          source $MINIFORGE_PATH/bin/activate
+          conda create -n py312 python=3.12 -y
+          conda activate py312
+          echo "$MINIFORGE_PATH/envs/py312/bin" >> $GITHUB_PATH
 
       - name: Install conda for macos x86_64
         if: ${{ matrix.platform_id == 'macosx_x86_64' }}
         run: |
           set -ex
-          # macos x64: install conda manually
-          EXPECTED_SHA="c6ac073b80cedb313561bc11c2e61b0bd102b74df0363ed6c1e90303b322092a"
-          MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-MacOSX-x86_64.sh"
+          # macos x64: install conda manually with Python 3.12
+          MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-x86_64.sh"
           curl -L --retry 10 $MINIFORGE_URL -o miniforge.sh
-
-          # Check SHA
-          file_sha=$(shasum -a 256 miniforge.sh | awk '{print $1}')
-          if [ "$EXPECTED_SHA" != "$file_sha" ]; then
-              echo "SHA values did not match!"
-              exit 1
-          fi
 
           # Install miniforge
           MINIFORGE_PATH=$HOME/miniforge
           bash ./miniforge.sh -b -p $MINIFORGE_PATH
           echo "$MINIFORGE_PATH/bin" >> $GITHUB_PATH
           echo "CONDA_HOME=$MINIFORGE_PATH" >> $GITHUB_ENV
+          
+          # Create Python 3.12 environment
+          source $MINIFORGE_PATH/bin/activate
+          conda create -n py312 python=3.12 -y
+          conda activate py312
+          echo "$MINIFORGE_PATH/envs/py312/bin" >> $GITHUB_PATH
           
       - name: Set conda environment for non-macos arm64 environments
         if: ${{ matrix.platform_id != 'macosx_arm64' && matrix.platform_id != 'macosx_x86_64'}}
@@ -248,6 +244,11 @@ jobs:
       - name: Install Python Dependencies for ${{ matrix.TARGET }}
         if: ${{ matrix.platform_id != 'win_amd64' }}
         run: |
+          # Install numba via conda for macOS to avoid llvmlite build issues
+          if [[ "${{ matrix.platform_id }}" == "macosx_x86_64" || "${{ matrix.platform_id }}" == "macosx_arm64" ]]; then
+            source $CONDA_HOME/bin/activate py312
+            conda install -y numba llvmlite -c conda-forge
+          fi
           pip3 install -r requirements.txt
           pip3 install -r requirements-dev.txt
       
@@ -372,21 +373,75 @@ jobs:
         if: ${{ inputs.sendNotification != 'no' }}
         env:
           CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        run: |
-          python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
-        
-      - name: Configure .env.dev file for Dev
-        shell: bash
-        if: ${{ inputs.sendNotification == 'no' }}
-        env:
           CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
           TOKEN_DEV : ${{secrets.TOKEN_DEV}}
           CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          TOKEN: ${{ secrets.TOKEN }}
+          chat_idADMIN: ${{ secrets.chat_idADMIN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_PAT: ${{ secrets.CI_PAT }}
+          TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+          TDU: ${{ secrets.TDU }}
+          TAT: ${{ secrets.TAT }}
+          MCU: ${{ secrets.MCU }}
+          MCAP: ${{ secrets.MCAP }}
+          MCL: ${{ secrets.MCL }}
+          MS: ${{ secrets.MS }}
+          PKG: ${{ secrets.PKG }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+          KTOKEN: ${{ secrets.KTOKEN }}
+          KUSER: ${{ secrets.KUSER }}
+          KPWD: ${{ secrets.KPWD }}
+          KTOTP: ${{ secrets.KTOTP }}
+          DB_TYPE: "local"
+          DB_TICKS: ${{ secrets.DB_TICKS }}
+          TBTOKEN: ${{ secrets.TBTOKEN }}
+          BBTOKEN: ${{ secrets.BBTOKEN }}
+          Tel_API_ID: ${{ secrets.Tel_API_ID }}
+          Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+          Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+          TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+          SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
         run: |
-          python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_DEV']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.close()"
-        
+          # Quote all values to handle spaces properly
+          cat > .env.dev << EOF
+          CHAT_ID_PROD='$CHAT_ID_PROD'
+          CHAT_ID_DEV='$CHAT_ID_DEV'
+          TOKEN_DEV='$TOKEN_DEV'
+          CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+          CHAT_ID='$CHAT_ID'
+          TOKEN='$TOKEN'
+          chat_idADMIN='$chat_idADMIN'
+          GITHUB_TOKEN='$GITHUB_TOKEN'
+          CI_PAT='$CI_PAT'
+          TURSO_TOKEN='$TURSO_TOKEN'
+          TDU='$TDU'
+          TAT='$TAT'
+          MCU='$MCU'
+          MCAP='$MCAP'
+          MCL='$MCL'
+          MS='$MS'
+          PKG='$PKG'
+          REPO_URL='$REPO_URL'
+          KTOKEN='$KTOKEN'
+          KUSER='$KUSER'
+          KPWD='$KPWD'
+          KTOTP='$KTOTP'
+          DB_TYPE='$DB_TYPE'
+          DB_TICKS='$DB_TICKS'
+          TBTOKEN='$TBTOKEN'
+          BBTOKEN='$BBTOKEN'
+          Tel_API_ID='$Tel_API_ID'
+          Tel_API_Hash='$Tel_API_Hash'
+          Tel_Phone_Number='$Tel_Phone_Number'
+          TEL_SESSION_DATA='$TEL_SESSION_DATA'
+          SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
+          EOF
+          
+          echo "Created .env.dev file with secrets (values quoted)"
+          cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
+          
       - name: Environment setup to get whats new
         shell: bash
         id: whatsnewgetter

@@ -44,7 +44,7 @@ def sample_data():
                 "2021-01-04",
                 "2021-01-05",
             ],
-            "Close": [100, 110, 120, 130, 140],
+            "close": [100, 110, 120, 130, 140],
             "Stock": ["SBIN", "IRCTC", "SBIN", "TCS", "HDFC"],
         }
     )
@@ -56,7 +56,7 @@ def sample_screened_dict():
     periods = [1, 2, 3, 4, 5, 10, 15, 22, 30]
     screened_dict = {
         "Date": "2023-12-30",
-        "Volume": 1000,
+        "volume": 1000,
         "Trend": "Up",
         "MA-Signal": "Buy",
         "LTP": 100,
@@ -147,7 +147,7 @@ def sample_summary_data():
             "2022-01-01",
             "2022-01-01",
         ],
-        "Volume": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+        "volume": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
         "LTP": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
         "Trend": ["Up", "Up", "Down", "Up", "Down", "Up", "Down", "Up", "Down", "Up"],
         "MA-Signal": [
@@ -311,7 +311,7 @@ def test_backtest(sample_data):
         "Consol.": True,
         "Breakout": False,
         "MA-Signal": True,
-        "Volume": False,
+        "volume": False,
         "LTP": True,
         "52Wk-H": False,
         "52Wk-L": True,
@@ -338,7 +338,7 @@ def test_backtest_no_data_empty():
         "Consol.": True,
         "Breakout": False,
         "MA-Signal": True,
-        "Volume": False,
+        "volume": False,
         "LTP": True,
         "52Wk-H": False,
         "52Wk-L": True,

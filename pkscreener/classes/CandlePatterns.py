@@ -73,17 +73,17 @@ class CandlePatterns:
         if "Pattern" not in saveDict.keys():
             saveDict["Pattern"] = ""
             dict["Pattern"] = ""
-        # Only 'doji' and 'inside' is internally implemented by pandas_ta.
+        # Only 'doji' and 'inside' is internally implemented by pandas_ta_classic.
         # Otherwise, for the rest of the candle patterns, they also need
         # TA-Lib.
-        check = pktalib.CDLDOJI(data["Open"], data["High"], data["Low"], data["Close"])
+        check = pktalib.CDLDOJI(data["open"], data["high"], data["low"], data["close"])
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + colorText.GREEN + f"Doji" + colorText.END 
             saveDict["Pattern"] = self.findCurrentSavedValue(dict,saveDict,"Pattern")[1] +  f"Doji"
             hasCandleStickPattern = True
 
         check = pktalib.CDLMORNINGSTAR(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -93,7 +93,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
         
         check = pktalib.CDLCUPANDHANDLE(
-            processedData["Open"], processedData["High"], processedData["Low"], processedData["Close"]
+            processedData["open"], processedData["high"], processedData["low"], processedData["close"]
         )
         if check:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -103,7 +103,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLMORNINGDOJISTAR(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -113,7 +113,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLEVENINGSTAR(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -123,7 +123,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLEVENINGDOJISTAR(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -133,7 +133,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLLADDERBOTTOM(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -149,7 +149,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDL3LINESTRIKE(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -164,7 +164,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDL3BLACKCROWS(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -174,7 +174,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDL3INSIDE(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -190,7 +190,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDL3OUTSIDE(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -206,7 +206,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDL3WHITESOLDIERS(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -216,7 +216,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLHARAMI(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -232,7 +232,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLHARAMICROSS(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -252,7 +252,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLMARUBOZU(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
@@ -270,7 +270,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLHANGINGMAN(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -280,7 +280,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLHAMMER(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -290,7 +290,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLINVERTEDHAMMER(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -300,7 +300,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLSHOOTINGSTAR(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -310,7 +310,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLDRAGONFLYDOJI(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -320,7 +320,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLGRAVESTONEDOJI(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             dict["Pattern"] = (self.findCurrentSavedValue(dict,saveDict,"Pattern")[0] + 
@@ -330,7 +330,7 @@ class CandlePatterns:
             hasCandleStickPattern = True
 
         check = pktalib.CDLENGULFING(
-            data["Open"], data["High"], data["Low"], data["Close"]
+            data["open"], data["high"], data["low"], data["close"]
         )
         if check is not None and check.tail(1).item() != 0:
             if check.tail(1).item() > 0:
