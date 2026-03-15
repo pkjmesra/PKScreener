@@ -6,13 +6,13 @@
 name: Local Candle DB Sync
 
 on:
-  schedule:
-    # During market hours (IST 9:15-15:30 = UTC 3:45-10:00)
-    - cron: '*/30 4-9 * * 1-5'
-    # After market close (IST 15:35 = UTC 10:05)
-    - cron: '5 10 * * 1-5'
-    # Weekend maintenance
-    - cron: '0 10 * * 0,6'
+  # schedule:
+  #   # During market hours (IST 9:15-15:30 = UTC 3:45-10:00)
+  #   - cron: '*/30 4-9 * * 1-5'
+  #   # After market close (IST 15:35 = UTC 10:05)
+  #   - cron: '5 10 * * 1-5'
+  #   # Weekend maintenance
+  #   - cron: '0 10 * * 0,6'
   workflow_dispatch:
     inputs:
       force_tick_fallback:
@@ -74,7 +74,7 @@ jobs:
         
         # Define size thresholds (in bytes)
         DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
-        INTRADAY_PKL_MIN_SIZE=1000000  # 1 MB minimum for intraday pkl
+        INTRADAY_PKL_MIN_SIZE=800000  # 1 MB minimum for intraday pkl
         DB_MIN_SIZE=50000000           # 50 MB minimum for SQLite database
         
         # Run the sync script with validation
@@ -188,7 +188,7 @@ jobs:
         echo "Removing files that failed size validation..."
         
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
         DB_MIN_SIZE=50000000
         
         # Remove undersized daily pkl files

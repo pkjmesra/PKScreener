@@ -147,9 +147,9 @@ class MenuHandler:
         selDownloadOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ") or "D"
         OutputControls().printOutput(colorText.END, end="")
         
-        if selDownloadOption.upper() == "D":
+        if str(selDownloadOption).upper() == "D":
             OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener to Download daily OHLC data. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} -a Y -e -d{colorText.END}\n{colorText.WARN}Press Ctrl + C to exit at any time.{colorText.END}")
-            PKAnalyticsService().send_event(f"{menuOption}_{selDownloadOption.upper()}")
+            PKAnalyticsService().send_event(f"{menuOption}_{str(selDownloadOption).upper()}")
             time.sleep(2)
             os.system(f"{launcher} -a Y -e -d")
             return None, None
@@ -356,7 +356,7 @@ class StrategyHandler:
             except Exception as e:
                 default_logger().debug(e, exc_info=True)
         
-        userOption = userOption.upper()
+        userOption = str(userOption).upper()
         
         if userOption == "M":
             ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
@@ -438,16 +438,16 @@ class DataLoader:
         if (menuOption in ["X", "B", "G", "S", "F"] and not loadedStockData) or (
             self.configManager.cacheEnabled and not loadedStockData and not self.app_state.testing
         ):
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
-                        downloadOnly, listStockCodes, menuOption, indexOption
-                    )
-            except:
-                stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
-                    downloadOnly, listStockCodes, menuOption, indexOption
-                )
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
+            #             downloadOnly, listStockCodes, menuOption, indexOption
+            #         )
+            # except:
+            stockDictPrimary, stockDictSecondary = loadDatabaseOrFetch(
+                downloadOnly, listStockCodes, menuOption, indexOption
+            )
         
         return len(stockDictPrimary) if stockDictPrimary is not None else 0
 

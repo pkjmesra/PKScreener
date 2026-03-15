@@ -250,16 +250,16 @@ class PKScreenerMain:
         
         # Load or fetch stock data
         if not self.data_manager.loaded_stock_data:
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
-                        downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                    )
-            except:
-                self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
-                    downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                )
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+            #             downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            #         )
+            # except:
+            self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+                downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            )
                 
         self.data_manager.load_count = len(self.data_manager.stock_dict_primary) if self.data_manager.stock_dict_primary is not None else 0
         
@@ -466,16 +466,16 @@ class PKScreenerMain:
         
         # Load or fetch stock data
         if not self.data_manager.loaded_stock_data:
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
-                        downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                    )
-            except:
-                self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
-                    downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
-                )
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+            #             downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            #         )
+            # except:
+            self.data_manager.stock_dict_primary, self.data_manager.stock_dict_secondary = self.data_manager.load_database_or_fetch(
+                downloadOnly, self.data_manager.list_stock_codes, menuOption, indexOption
+            )
                 
         self.data_manager.load_count = len(self.data_manager.stock_dict_primary) if self.data_manager.stock_dict_primary is not None else 0
         

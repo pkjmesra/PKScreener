@@ -533,7 +533,7 @@ def initExecution(menuOption=None):
             OutputControls().printOutput(colorText.END, end="")
         if menuOption == "" or menuOption is None:
             menuOption = "X"
-        menuOption = menuOption.upper()
+        menuOption = str(menuOption).upper()
         selectedMenu = m0.find(menuOption)
         if selectedMenu is not None:
             if selectedMenu.menuKey == "Z":
@@ -597,7 +597,7 @@ def initPostLevel0Execution(
             indexOption = int(configManager.defaultIndex)
         # elif indexOption == 'W' or indexOption == 'w' or indexOption == 'N' or indexOption == 'n' or indexOption == 'E' or indexOption == 'e':
         elif not str(indexOption).isnumeric():
-            indexOption = indexOption.upper()
+            indexOption = str(indexOption).upper()
             if indexOption in ["M", "E", "N", "Z"]:
                 return indexOption, 0
         else:
@@ -625,7 +625,13 @@ def initPostLevel0Execution(
         if not retrial:
             sleep(2)
             ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
-            return initPostLevel0Execution(retrial=True)
+            return initPostLevel0Execution(
+                    menuOption=menuOption,
+                    indexOption=indexOption,
+                    executeOption=executeOption,
+                    skip=["N", "E"],
+                    retrial=True
+                )
     return indexOption, executeOption
 
 
@@ -640,7 +646,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
                 + "  [+] You chose: "
                 + level0MenuDict[selectedChoice["0"]].strip()
                 + " > "
-                + level1_X_MenuDict[selectedChoice["1"]].strip()
+                + level1_X_MenuDict.get(selectedChoice["1"],"").strip()
                 + (f" (Piped Scan Mode) [{userPassedArgs.pipedmenus}]" if (userPassedArgs is not None and userPassedArgs.pipedmenus is not None) else "")
                 + colorText.END
             )
@@ -684,7 +690,7 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
             if executeOption == "":
                 executeOption = 1
             if not str(executeOption).isnumeric():
-                executeOption = executeOption.upper()
+                executeOption = str(executeOption).upper()
             else:
                 executeOption = int(executeOption)
                 if executeOption < 0 or executeOption > MAX_MENU_OPTION: # or (executeOption > MAX_SUPPORTED_MENU_OPTION and executeOption < MAX_MENU_OPTION):
@@ -744,19 +750,35 @@ def refreshStockData(startupoptions=None):
     if indexOption == 0:
         listStockCodes = handleRequestForSpecificStocks(options,indexOption=indexOption)
     listStockCodes = prepareStocksForScreening(testing=False, downloadOnly=False, listStockCodes=listStockCodes,indexOption=indexOption)
-    try:
-        import tensorflow as tf
-        with tf.device("/device:GPU:0"):
-            stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
-    except: # pragma: no cover
-        stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
-        pass
+    # try:
+    #     import tensorflow as tf
+    #     with tf.device("/device:GPU:0"):
+    #         stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
+    # except: # pragma: no cover
+    stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=listStockCodes, menuOption=menuOption,indexOption=indexOption)
+    # pass
     PKScanRunner.refreshDatabase(consumers,stockDictPrimary,stockDictSecondary)
 
 def closeWorkersAndExit():
     global consumers, tasks_queue,userPassedArgs
     if consumers is not None:
         PKScanRunner.terminateAllWorkers(userPassedArgs=userPassedArgs,consumers=consumers, tasks_queue=tasks_queue, testing=userPassedArgs.testbuild)
+
+def normalize_datetime_index(data, target_tz='Asia/Kolkata'):
+    """Normalize DataFrame index to handle mixed timezone-aware/naive values."""
+    if data is None or data.empty:
+        return data
+    
+    try:
+        # Convert to datetime with UTC first
+        data.index = pd.to_datetime(data.index, utc=True)
+        # Then convert to target timezone
+        data.index = data.index.tz_convert(target_tz)
+    except Exception as e:
+        # Fallback to naive conversion
+        data.index = pd.to_datetime(data.index)
+    
+    return data
 
 def main(userArgs=None,optionalFinalOutcome_df=None):
     global lastScanOutputStockCodes,scanCycleRunning,runCleanUp,test_messages_queue,show_saved_diff_results, criteria_dateTime, analysis_dict, mp_manager, listStockCodes, screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDictPrimary, stockDictSecondary, userPassedArgs, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly, keyboardInterruptEventFired,strategyFilter, elapsed_time, start_time
@@ -1125,8 +1147,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             elif indexOption == "N":
                 import pandas as pd
                 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-                import tensorflow as tf
-                tf.get_logger().setLevel('ERROR')
+                # import tensorflow as tf
+                # tf.get_logger().setLevel('ERROR')
                 if stockDictPrimary is None or (len(stockDictPrimary.keys()) == 0):
                     stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly=False, listStockCodes=["NIFTY 50"], menuOption=menuOption,indexOption=indexOption)
                 hostData = stockDictPrimary.get("NIFTY 50") if (stockDictPrimary is not None and len(stockDictPrimary) > 0) else None
@@ -1147,7 +1169,17 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                 else:
                     data.rename(columns={"index": "Date"}, inplace=True)
                 data.set_index("Date", inplace=True)
-                data.index = pd.to_datetime(data.index)
+                try:
+                    data = normalize_datetime_index(data)
+                except ValueError as e:
+                    if "Cannot mix tz-aware with tz-naive" in str(e):
+                        # Handle mixed timezone-aware and naive values
+                        # Convert all to UTC first, then localize if needed
+                        data.index = pd.to_datetime(data.index, utc=True)
+                        # If you need IST, convert to IST after
+                        # data.index = data.index.tz_convert('Asia/Kolkata')
+                    else:
+                        raise e
                 prediction, pText, sText = screener.getNiftyPrediction(df=data)
                 warningText = "\nNifty AI prediction works best if you request after market is closed. It may not be accurate while market is still open!" if "open" in Utility.marketStatus() else ""
                 try:
@@ -1233,13 +1265,13 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             and not loadedStockData
             and not testing
         ):
-            try:
-                import tensorflow as tf
-                with tf.device("/device:GPU:0"):
-                    stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
-            except: # pragma: no cover
-                stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
-                pass
+            # try:
+            #     import tensorflow as tf
+            #     with tf.device("/device:GPU:0"):
+            #         stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
+            # except: # pragma: no cover
+            stockDictPrimary,stockDictSecondary = loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption)
+                # pass
         loadCount = len(stockDictPrimary) if stockDictPrimary is not None else 0
         # Let's use screening only for the stocks for which we could get the data.
         savedOrDownloadedKeys = listStockCodes if (userArgs.options is not None and "," in userArgs.options) else list(stockDictPrimary.keys())
@@ -1255,7 +1287,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             )
             if not configManager.isIntradayConfig():
                 fetcher.saveAllNSEIndices()
-        if menuOption.upper() in ["B", "G"]:
+        if str(menuOption).upper() in ["B", "G"]:
             OutputControls().printOutput(
                     colorText.WARN
                     + f"  [+] A total of {configManager.backtestPeriod} trading periods' historical data will be considered for backtesting. You can change this in User Config."
@@ -1314,7 +1346,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         if not keyboardInterruptEventFired:
             global tasks_queue, results_queue, consumers, logging_queue
             screenResults, saveResults, backtest_df, tasks_queue, results_queue, consumers,logging_queue = PKScanRunner.runScanWithParams(userPassedArgs,keyboardInterruptEvent,screenCounter,screenResultsCounter,stockDictPrimary,stockDictSecondary,testing, backtestPeriod, menuOption,executeOption, samplingDuration, items,screenResults, saveResults, backtest_df,scanningCb=runScanners,tasks_queue=tasks_queue, results_queue=results_queue, consumers=consumers,logging_queue=logging_queue)
-            if userPassedArgs is not None and not userPassedArgs.testalloptions and (userPassedArgs.monitor is None and "|" not in userPassedArgs.options and not userPassedArgs.options.upper().startswith("C")):
+            if userPassedArgs is not None and not userPassedArgs.testalloptions and (userPassedArgs.monitor is None and "|" not in userPassedArgs.options and not str(userPassedArgs.options).upper().startswith("C")):
                 tasks_queue = None
                 results_queue = None
                 consumers = None
@@ -1711,12 +1743,12 @@ def tryLoadDataOnBackgroundThread():
 
 def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption): 
     # #region agent log
-    import json
-    log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-    try:
-        with open(log_path, 'a') as f:
-            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1712","message":"loadDatabaseOrFetch entry","data":{"menuOption":menuOption,"listStockCodes_len":len(listStockCodes) if listStockCodes else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    except: pass
+    # import json
+    # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+    # try:
+    #     with open(log_path, 'a') as f:
+    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1712","message":"loadDatabaseOrFetch entry","data":{"menuOption":menuOption,"listStockCodes_len":len(listStockCodes) if listStockCodes else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+    # except: pass
     # #endregion
     global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
     if menuOption not in ["C"]:
@@ -1765,12 +1797,12 @@ def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption):
         configManager.setConfig(ConfigManager.parser,default=True,showFileCreatedText=False)
     loadedStockData = True
     # #region agent log
-    try:
-        sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
-        sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
-        with open(log_path, 'a') as f:
-            f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1758","message":"loadDatabaseOrFetch exit","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    except: pass
+    # try:
+    #     sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
+    #     sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
+    #     with open(log_path, 'a') as f:
+    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1758","message":"loadDatabaseOrFetch exit","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+    # except: pass
     # #endregion
     Utility.tools.loadLargeDeals()
     return stockDictPrimary, stockDictSecondary

@@ -4,9 +4,9 @@ name: Scan Worker Pool
 # This workflow keeps workers warm and ready to process scan requests instantly.
 
 on:
-  schedule:
-    # Keep workers warm by running every 50 minutes
-    - cron: '*/50 * * * *'
+  # schedule:
+  #   # Keep workers warm by running every 50 minutes
+  #   - cron: '*/50 * * * *'
   workflow_dispatch:
     inputs:
       scan_params:
@@ -84,13 +84,47 @@ jobs:
             exit 1
           fi
 
-      - name: Restore Stock Data Cache
+      # Phase 2: Restore pre-cached stock data for faster scans (only during non-trading hours)
+      - name: Check current time in IST
+        id: time-check
+        shell: bash
+        run: |
+          # Get current time in IST
+          CURRENT_HOUR=$(TZ='Asia/Kolkata' date +%H)
+          CURRENT_MIN=$(TZ='Asia/Kolkata' date +%M)
+          CURRENT_TIME=$((10#$CURRENT_HOUR * 60 + 10#$CURRENT_MIN))
+          
+          # Trading hours: 9:15 AM to 4:00 PM IST
+          MARKET_OPEN=$((9 * 60 + 15))  # 9:15 AM
+          MARKET_CLOSE=$((16 * 60 + 0))   # 4:00 PM
+          
+          echo "Current IST time: $CURRENT_HOUR:$CURRENT_MIN"
+          echo "Market open: 9:15, Market close: 16:00"
+          
+          if [ $CURRENT_TIME -ge $MARKET_OPEN ] && [ $CURRENT_TIME -lt $MARKET_CLOSE ]; then
+            echo "🕒 Market hours detected - skipping cache restore to ensure fresh data"
+            echo "USE_CACHE=false" >> $GITHUB_OUTPUT
+          else
+            echo "🕒 Non-market hours detected - using cached data for faster scans"
+            echo "USE_CACHE=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Restore Stock Data Cache (Non-market hours only)
+        if: steps.time-check.outputs.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
           path: results/Data/
-          key: stock-data-
+          key: stock-data-${{ github.run_id }}
           restore-keys: |
             stock-data-
+            
+      - name: Clear cache during market hours (optional)
+        if: steps.time-check.outputs.USE_CACHE == 'false'
+        shell: bash
+        run: |
+          echo "🧹 Market hours - ensuring fresh data by removing any cached stock data"
+          rm -rf results/Data/*.pkl results/Data/*.csv 2>/dev/null || true
+          echo "✓ Cache cleared for fresh market data"
 
       - name: Process scan request (repository_dispatch)
         if: github.event_name == 'repository_dispatch'

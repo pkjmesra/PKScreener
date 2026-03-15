@@ -344,12 +344,12 @@ The system includes a high-performance, in-memory candle data system that provid
 ┌─────────────────────────────────┐ ┌─────────────────────────────────────────┐
 │  nseStockDataFetcher            │ │    screenerStockDataFetcher             │
 │     (PKNSETools)                │ │       (PKScreener)                      │
-│  ┌─────────────────────────┐   │ │  ┌─────────────────────────────────┐     │
-│  │ • fetchStockData()      │   │ │  │ • fetchStockData()              │     │
-│  │ • getLatestPrice()      │   │ │  │ • getLatestPrice()              │     │
-│  │ • getRealtimeOHLCV()    │   │ │  │ • getRealtimeOHLCV()            │     │
-│  │ • isRealtimeAvailable() │   │ │  │ • isRealtimeDataAvailable()     │     │
-│  └─────────────────────────┘   │ │  │ • getAllRealtimeData()          │     │
+│  ┌─────────────────────────┐    │ │  ┌─────────────────────────────────┐    │
+│  │ • fetchStockData()      │    │ │  │ • fetchStockData()              │    │
+│  │ • getLatestPrice()      │    │ │  │ • getLatestPrice()              │    │
+│  │ • getRealtimeOHLCV()    │    │ │  │ • getRealtimeOHLCV()            │    │
+│  │ • isRealtimeAvailable() │    │ │  │ • isRealtimeDataAvailable()     │    │
+│  └─────────────────────────┘    │ │  │ • getAllRealtimeData()          │    │
 └─────────────────────────────────┘ │  │ • fetchFiveEmaData()            │    │
                                     │  │ • fetchLatestNiftyDaily()       │    │
                                     │  └─────────────────────────────────┘    │

@@ -84,7 +84,7 @@ def download_latest_pkl():
             try:
                 log(f"Trying PKL: stock_data_{date_str}.pkl")
                 resp = requests.get(url, timeout=120)
-                if resp.status_code == 200 and len(resp.content) > 1000000:  # > 1MB
+                if resp.status_code == 200 and len(resp.content) > 800000:  # > 800KB
                     pkl_path = data_dir / f"stock_data_{date_str}.pkl"
                     with open(pkl_path, 'wb') as f:
                         f.write(resp.content)

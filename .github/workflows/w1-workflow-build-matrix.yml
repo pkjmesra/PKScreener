@@ -112,7 +112,35 @@ jobs:
           - os: windows-latest
             TARGET: Windows
             CMD_BUILD: |
-              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs\LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots\icon.ico pkscreener\pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import yfinance --hidden-import vectorbt --hidden-import PKDevTools --hidden-import PKNSETools --hidden-import scipy.special._cdflib
+              pyinstaller --onefile `
+                --add-data="README.md;." `
+                --add-data="LICENSE;." `
+                --add-data="docs\LICENSE-Others;." `
+                --add-data="Disclaimer.txt;." `
+                --icon=screenshots\icon.ico `
+                --hidden-import cmath `
+                --hidden-import talib.stream `
+                --hidden-import numpy `
+                --hidden-import pandas `
+                --hidden-import alive_progress `
+                --hidden-import yfinance `
+                --hidden-import vectorbt `
+                --hidden-import PKDevTools `
+                --hidden-import PKNSETools `
+                --hidden-import scipy.special._cdflib `
+                --hidden-import chardet `
+                --hidden-import charset_normalizer `
+                --hidden-import pkg_resources `
+                --hidden-import pkg_resources.py2_warn `
+                --hidden-import setuptools `
+                --hidden-import apscheduler `
+                --hidden-import apscheduler.triggers.interval `
+                --hidden-import apscheduler.jobstores.base `
+                --hidden-import apscheduler.executors.pool `
+                --collect-all setuptools `
+                --collect-all pkg_resources `
+                --collect-all apscheduler `
+                pkscreener\pkscreenercli.py
             DEP_BUILD: |
               python3 -m pip install --upgrade pip
               echo Installing TA-lib...
@@ -145,7 +173,37 @@ jobs:
             platform_id: manylinux_x86_64
             TARGET: Linux
             CMD_BUILD: |
-              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress  --hidden-import scipy.special._cdflib
+              pyinstaller --onefile \
+                --add-data="README.md:." \
+                --add-data="LICENSE:." \
+                --add-data="docs/LICENSE-Others:." \
+                --add-data="Disclaimer.txt:." \
+                --icon=screenshots/icon.ico \
+                --hidden-import cmath \
+                --hidden-import talib.stream \
+                --hidden-import numpy \
+                --hidden-import pandas \
+                --hidden-import alive_progress \
+                --hidden-import yfinance \
+                --hidden-import vectorbt \
+                --hidden-import PKDevTools \
+                --hidden-import PKNSETools \
+                --hidden-import scipy.special._cdflib \
+                --hidden-import chardet \
+                --hidden-import charset_normalizer \
+                --hidden-import pkg_resources \
+                --hidden-import pkg_resources.py2_warn \
+                --hidden-import setuptools \
+                --hidden-import apscheduler \
+                --hidden-import apscheduler.triggers.interval \
+                --hidden-import apscheduler.jobstores.base \
+                --hidden-import apscheduler.executors.pool \
+                --collect-all setuptools \
+                --collect-all pkg_resources \
+                --collect-all apscheduler \
+                --hidden-import libsql \
+                --collect-all libsql \
+                pkscreener/pkscreenercli.py
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
             DEP_BUILD: |
@@ -158,6 +216,7 @@ jobs:
               pip3 uninstall -y PKDevTools
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
+              pip3 install libsql
               pip3 install ta-lib==0.6.4
               pip3 install .
             TEST_BUILD: |
@@ -170,7 +229,37 @@ jobs:
             platform_id: manylinux_arm64
             TARGET: Linux
             CMD_BUILD: |
-              pyinstaller --onefile --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress  --hidden-import scipy.special._cdflib
+              pyinstaller --onefile \
+                --add-data="README.md:." \
+                --add-data="LICENSE:." \
+                --add-data="docs/LICENSE-Others:." \
+                --add-data="Disclaimer.txt:." \
+                --icon=screenshots/icon.ico \
+                --hidden-import cmath \
+                --hidden-import talib.stream \
+                --hidden-import numpy \
+                --hidden-import pandas \
+                --hidden-import alive_progress \
+                --hidden-import yfinance \
+                --hidden-import vectorbt \
+                --hidden-import PKDevTools \
+                --hidden-import PKNSETools \
+                --hidden-import scipy.special._cdflib \
+                --hidden-import chardet \
+                --hidden-import charset_normalizer \
+                --hidden-import pkg_resources \
+                --hidden-import pkg_resources.py2_warn \
+                --hidden-import setuptools \
+                --hidden-import apscheduler \
+                --hidden-import apscheduler.triggers.interval \
+                --hidden-import apscheduler.jobstores.base \
+                --hidden-import apscheduler.executors.pool \
+                --collect-all setuptools \
+                --collect-all pkg_resources \
+                --collect-all apscheduler \
+                --hidden-import libsql \
+                --collect-all libsql \
+                pkscreener/pkscreenercli.py
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
             DEP_BUILD: |
@@ -184,6 +273,7 @@ jobs:
               pip3 install -r requirements.txt
               pip3 install -r requirements-dev.txt
               pip3 install ta-lib==0.6.4
+              pip3 install libsql
               pip3 install .
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin --testbuild
@@ -195,7 +285,37 @@ jobs:
             platform_id: macosx_arm64
             TARGET: MacOS
             CMD_BUILD: |
-              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
+              pyinstaller --onefile --windowed \
+                --add-data="README.md:." \
+                --add-data="LICENSE:." \
+                --add-data="docs/LICENSE-Others:." \
+                --add-data="Disclaimer.txt:." \
+                --icon=screenshots/icon.ico \
+                --hidden-import cmath \
+                --hidden-import talib.stream \
+                --hidden-import numpy \
+                --hidden-import pandas \
+                --hidden-import alive_progress \
+                --hidden-import yfinance \
+                --hidden-import vectorbt \
+                --hidden-import PKDevTools \
+                --hidden-import PKNSETools \
+                --hidden-import scipy.special._cdflib \
+                --hidden-import chardet \
+                --hidden-import charset_normalizer \
+                --hidden-import pkg_resources \
+                --hidden-import pkg_resources.py2_warn \
+                --hidden-import setuptools \
+                --hidden-import apscheduler \
+                --hidden-import apscheduler.triggers.interval \
+                --hidden-import apscheduler.jobstores.base \
+                --hidden-import apscheduler.executors.pool \
+                --collect-all setuptools \
+                --collect-all pkg_resources \
+                --collect-all apscheduler \
+                --hidden-import libsql \
+                --collect-all libsql \
+                pkscreener/pkscreenercli.py
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run
             DEP_BUILD: |
               brew install ta-lib
@@ -210,6 +330,7 @@ jobs:
               export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
               #python3 -m pip install -U ta-lib
               python3 -m pip install --no-cache-dir ta-lib==0.6.4
+              pip3 install libsql
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.run -e -a Y -o H
@@ -221,7 +342,37 @@ jobs:
             platform_id: macosx_x86_64
             TARGET: MacOS
             CMD_BUILD: |
-              pyinstaller --onefile --windowed --add-data="README.md:." --add-data="LICENSE:." --add-data="docs/LICENSE-Others:." --add-data="Disclaimer.txt:." --icon=screenshots/icon.ico pkscreener/pkscreenercli.py  --hidden-import cmath --hidden-import talib.stream --hidden-import numpy --hidden-import pandas --hidden-import alive_progress --hidden-import scipy.special._cdflib
+              pyinstaller --onefile --windowed \
+                --add-data="README.md:." \
+                --add-data="LICENSE:." \
+                --add-data="docs/LICENSE-Others:." \
+                --add-data="Disclaimer.txt:." \
+                --icon=screenshots/icon.ico \
+                --hidden-import cmath \
+                --hidden-import talib.stream \
+                --hidden-import numpy \
+                --hidden-import pandas \
+                --hidden-import alive_progress \
+                --hidden-import yfinance \
+                --hidden-import vectorbt \
+                --hidden-import PKDevTools \
+                --hidden-import PKNSETools \
+                --hidden-import scipy.special._cdflib \
+                --hidden-import chardet \
+                --hidden-import charset_normalizer \
+                --hidden-import pkg_resources \
+                --hidden-import pkg_resources.py2_warn \
+                --hidden-import setuptools \
+                --hidden-import apscheduler \
+                --hidden-import apscheduler.triggers.interval \
+                --hidden-import apscheduler.jobstores.base \
+                --hidden-import apscheduler.executors.pool \
+                --collect-all setuptools \
+                --collect-all pkg_resources \
+                --collect-all apscheduler \
+                --hidden-import libsql \
+                --collect-all libsql \
+                pkscreener/pkscreenercli.py
               mv /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run
             DEP_BUILD: |
               brew install ta-lib
@@ -236,6 +387,7 @@ jobs:
               export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
               #python3 -m pip install -U ta-lib
               python3 -m pip install --no-cache-dir ta-lib==0.6.4
+              pip3 install libsql
               pip3 install .
             TEST_BUILD: |
               /Users/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.run --testbuild

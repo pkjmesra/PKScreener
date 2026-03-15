@@ -56,8 +56,8 @@ on:
         required: false
         default: '--reScanForZeroSize --scanDaysInPast 3 -s2 42,0,21,22,29,M,Z -s1 W,N,E,M,Z,S,0,2,3,4,6,7,9,10,13,14,15 -s0 S,T,E,U,Z,F,H,Y,B,G,C,M,D,I,L,P -s3 "0" -s4 "0" --branchname actions-data-download --scans --triggerRemotely -f'
 
-  schedule:
-  - cron: '58 9 * * 0-6'
+  # schedule:
+  # - cron: '58 9 * * 0-6'
 
 run-name: ${{ inputs.name || 'After-Market Data Gen'}}
 
@@ -180,7 +180,7 @@ jobs:
       run: |
         # Define size thresholds (in bytes)
         DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
-        INTRADAY_PKL_MIN_SIZE=1000000  # 1 MB minimum for intraday pkl
+        INTRADAY_PKL_MIN_SIZE=800000  # 1 MB minimum for intraday pkl
         
         # Function to validate pkl files
         validate_pkl_files() {
@@ -309,7 +309,7 @@ jobs:
       if: ${{ inputs.skipDownload == '' && startsWith(runner.os, 'Linux' ) && env.DAILY_VALID == '0' && env.INTRADAY_VALID == '0' }}
       run: |
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
         
         echo "No valid pkl files found, trying ticks.json.zip fallback..."
         
@@ -326,7 +326,7 @@ jobs:
           ZIP_SIZE=$(stat -c%s /tmp/ticks.json.zip 2>/dev/null || stat -f%z /tmp/ticks.json.zip)
           echo "Downloaded ticks.json.zip - size: $((ZIP_SIZE/1024/1024)) MB"
           
-          if [ "$ZIP_SIZE" -gt 1000000 ]; then  # At least 1MB
+          if [ "$ZIP_SIZE" -gt 800000 ]; then  # At least 800KB
             echo "Extracting ticks.json.zip..."
             unzip -o /tmp/ticks.json.zip -d /tmp/ 2>/dev/null || true
           else
@@ -339,7 +339,7 @@ jobs:
           JSON_SIZE=$(stat -c%s /tmp/ticks.json 2>/dev/null || stat -f%z /tmp/ticks.json)
           echo "Found ticks.json - size: $((JSON_SIZE/1024/1024)) MB"
           
-          if [ "$JSON_SIZE" -gt 1000000 ]; then  # At least 1MB
+          if [ "$JSON_SIZE" -gt 800000 ]; then  # At least 800KB
             echo "Converting ticks.json to pickle format..."
             python3 .github/workflows/ticks_to_pickle.py --ticks /tmp/ticks.json --output actions-data-download
             
@@ -409,7 +409,7 @@ jobs:
       shell: bash
       run: |
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
         
         # Copy files
         copy results\*DB.pkl actions-data-download
@@ -471,7 +471,7 @@ jobs:
         
         # Add only files that meet size requirements
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
         
         for pkl_file in actions-data-download/*.pkl; do
           if [ -f "$pkl_file" ]; then

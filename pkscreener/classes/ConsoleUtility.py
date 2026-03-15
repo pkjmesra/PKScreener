@@ -30,6 +30,7 @@ from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.log import default_logger
 from PKDevTools.classes.Utils import random_user_agent
+from PKDevTools.classes.Environment import PKEnvironment
 
 from pkscreener.classes import VERSION, Changelog, Utility
 from pkscreener.classes.ArtTexts import getArtText
@@ -145,7 +146,7 @@ class PKConsoleTools:
             str: Formatted string containing all developer information
         """
         OutputControls().printOutput("\n" + Changelog.changelog())
-        
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
         # Build information strings
         devInfo = "\n[👨🏻‍💻] Developer: PK (PKScreener) 🇮🇳"
         versionInfo = "[🚦] Version: %s" % VERSION
@@ -158,13 +159,18 @@ class PKConsoleTools:
         issuesInfo = "[🚩] Read/Post Issues here: https://github.com/pkjmesra/PKScreener/issues"
         communityInfo = "[📢] Join Community Discussions: https://github.com/pkjmesra/PKScreener/discussions"
         latestInfo = "[⏰] Download latest software from https://github.com/pkjmesra/PKScreener/releases/latest"
-        freeInfo = "[💰] PKScreener had been free for a long time"
-        donationInfo = (
-            ", but owing to cost/budgeting issues, only a basic set of features will always "
-            "remain free for everyone. Consider donating to help cover the basic server costs "
-            "or subscribe to premium.\n[💸] Please donate whatever you can: PKScreener@APL using "
+        freeInfo = "[💰] PKScreener had and still has been free for a long time"
+        if not is_subscription_enabled:
+            donationInfo = ".Consider donating to help cover the basic server and maintenance costs"
+            "\n[💸] Please donate whatever you can: PKScreener@APL using "
             "UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
-        )
+        else:
+            donationInfo = (
+                ", but owing to cost/budgeting issues, only a basic set of features will always "
+                "remain free for everyone. Consider donating to help cover the basic server and maintenance costs"
+                "or subscribe to premium.\n[💸] Please donate whatever you can: PKScreener@APL using "
+                "UPI(India) or https://github.com/sponsors/pkjmesra 🙏🏻"
+            )
         
         # Fetch download statistics
         totalDownloads = PKConsoleTools._fetchDownloadStats()

@@ -1,9 +1,9 @@
 name: Data Warmup - Pre-cache Stock Data
 
 on:
-  schedule:
-    - cron: '*/3 3-10 * * 1-5'
-    - cron: '0,30 11-23,0-2 * * *'
+  # schedule:
+  #   - cron: '*/3 3-10 * * 1-5'
+  #   - cron: '0,30 11-23,0-2 * * *'
   workflow_dispatch:
     inputs:
       force_refresh:

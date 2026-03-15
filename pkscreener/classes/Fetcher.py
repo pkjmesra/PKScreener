@@ -48,8 +48,8 @@ from PKDevTools.classes import Archiver
 
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
-from requests_ratelimiter import LimiterMixin
-from pyrate_limiter import Duration, RequestRate, Limiter
+# from requests_ratelimiter import LimiterMixin
+# from pyrate_limiter import Duration, RequestRate, Limiter
 
 # Import high-performance data provider (replaces Yahoo Finance)
 try:
@@ -77,19 +77,19 @@ except ImportError:
 # Rate Limiting Configuration (for fallback sources)
 # ============================================================================
 
-class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
-    """Session class with caching and rate limiting capabilities."""
-    pass
+# class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
+#     """Session class with caching and rate limiting capabilities."""
+#     pass
 
 
 # Rate limit configuration for fallback data sources
 # Note: Primary data source (PKBrokers candle store) has no rate limits
-TRY_FACTOR = 1
-yf_limiter = Limiter(
-    RequestRate(60 * TRY_FACTOR, Duration.MINUTE),    # Max 60 requests per minute
-    RequestRate(360 * TRY_FACTOR, Duration.HOUR),     # Max 360 requests per hour
-    RequestRate(8000 * TRY_FACTOR, Duration.DAY)      # Max 8000 requests per day
-)
+# TRY_FACTOR = 1
+# yf_limiter = Limiter(
+#     RequestRate(60 * TRY_FACTOR, Duration.MINUTE),    # Max 60 requests per minute
+#     RequestRate(360 * TRY_FACTOR, Duration.HOUR),     # Max 360 requests per hour
+#     RequestRate(8000 * TRY_FACTOR, Duration.DAY)      # Max 8000 requests per day
+# )
 
 
 # ============================================================================

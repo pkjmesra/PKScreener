@@ -41,7 +41,7 @@ scipy==1.12.0  # CRITICAL: Must be exactly 1.12.0 (compiled with numpy 1.x)
 scikit-learn==1.4.2  # Compatible with scipy 1.12.0 and numpy 1.26.4
 pandas>=2.2.3,<2.3  # Avoid pandas 2.3+ which may require numpy 2.x
 keras==3.6.0  # Compatible with tensorflow 2.16.1
-tensorflow==2.16.1  # https://github.com/tensorflow/tensorflow/issues/62075
+# tensorflow==2.16.1  # https://github.com/tensorflow/tensorflow/issues/62075
 
 # Data formats and file handling
 openpyxl>=3.1.5
@@ -57,9 +57,9 @@ pefile>=2023.2.7,<2024.8.26
 Pillow>=9.5.0
 
 # PKScreener ecosystem packages
-PKDevTools>=0.13.20260302.325
+PKDevTools>=0.13.20260315.331
 PKNSETools>=0.1.20260108.149
-PKBrokers>=0.1.20260302.64
+PKBrokers>=0.1.20260313.67
 
 # Browser automation
 pyppeteer>=2.0.0
@@ -71,6 +71,7 @@ pytz>=2024.2
 python-telegram-bot>=13.4,<20.0
 
 # HTTP requests and caching
+requests>=2.32.4
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
@@ -79,6 +80,14 @@ urllib3>=1.26.20
 # Backtesting and trading
 vectorbt>=0.26.2
 
+setuptools>=78.1.1
 # Note: pandas-ta-classic is excluded due to numpy>=2.0.0 requirement
 # which conflicts with tensorflow 2.16.1. A fallback VWAP implementation
 # is provided in Pktalib.py. TA-Lib should be used for full functionality.
+autobahn>=19.11.2
+cryptography>=46.0.5
+filelock>=3.20.3
+protobuf>=5.29.6
+pyasn1>=0.6.2
+tornado>=6.5.3
+zipp>=3.19.1

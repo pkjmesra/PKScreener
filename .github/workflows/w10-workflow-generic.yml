@@ -192,6 +192,7 @@ jobs:
         Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
         Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
         TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
       run: |
         cat > .env.dev << EOF
         CHAT_ID=$CHAT_ID
@@ -219,6 +220,7 @@ jobs:
         Tel_API_Hash=$Tel_API_Hash
         Tel_Phone_Number=$Tel_Phone_Number
         TEL_SESSION_DATA=$TEL_SESSION_DATA
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
         PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
         EOF
         

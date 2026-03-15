@@ -779,12 +779,12 @@ class ScanExecutor:
                     backtest_period, iterations, consumers, screen_results, save_results,
                     backtest_df, testing=False):
         # #region agent log
-        import json
-        log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-        try:
-            with open(log_path, 'a') as f:
-                f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"MenuManager.py:run_scanners:778","message":"run_scanners entry - scan starting","data":{"menu_option":menu_option,"num_stocks":num_stocks},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-        except: pass
+        # import json
+        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+        # try:
+        #     with open(log_path, 'a') as f:
+        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"MenuManager.py:run_scanners:778","message":"run_scanners entry - scan starting","data":{"menu_option":menu_option,"num_stocks":num_stocks},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+        # except: pass
         # #endregion
         """
         Execute scanning operations with the given parameters.
@@ -1513,7 +1513,8 @@ class TelegramNotifier:
             user: User identifier
             message: Message content
         """
-        if user is not None and message is not None and "|" in str(message):
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        if is_subscription_enabled and user is not None and message is not None and "|" in str(message):
             if int(user) > 0:
                 scan_id = message.split("|")[0].replace("*b>", "").strip()
                 from PKDevTools.classes.DBManager import DBManager

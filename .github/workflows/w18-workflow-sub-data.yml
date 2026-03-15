@@ -70,6 +70,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: SubData
+        # fetch-depth: 1 is the default - only gets the latest commit
 
     - name: Set up Python 
       uses: actions/setup-python@v5
@@ -85,18 +86,77 @@ jobs:
         pip3 install PKNSETools
 
     - name: Configure env.dev file
-      run: |
-        python3 -c "import os; file = open('.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
-        python3 -c "import os; file = open('pkscreener/.env.dev', 'w'); file.write('CHAT_ID='+os.environ['CHAT_ID_PROD']+'\n'); file.write('TOKEN='+os.environ['TOKEN_DEV']+'\n'); file.write('chat_idADMIN='+os.environ['CHAT_IDADMIN_DEV']+'\n'); file.write('GITHUB_TOKEN='+os.environ['GITHUB_TOKEN']+'\n'); file.write('TURSO_TOKEN='+os.environ['TURSO_TOKEN']+'\n'); file.write('TDU='+os.environ['TDU']+'\n'); file.write('TAT='+os.environ['TAT']+'\n'); file.close()"
       shell: bash
       env:
-        CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
-        TOKEN_DEV : ${{secrets.TOKEN_DEV}}
-        CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
-        TURSO_TOKEN : ${{secrets.TURSO_TOKEN}}
-        TDU : ${{secrets.TURSO_DATABASE_URL}}
-        TAT : ${{secrets.TURSO_AUTH_TOKEN}}
+          CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
+          CHAT_ID_DEV : ${{secrets.CHAT_ID_DEV}}
+          TOKEN_DEV : ${{secrets.TOKEN_DEV}}
+          CHAT_IDADMIN_DEV : ${{secrets.CHAT_IDADMIN_DEV}}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          TOKEN: ${{ secrets.TOKEN }}
+          chat_idADMIN: ${{ secrets.chat_idADMIN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_PAT: ${{ secrets.CI_PAT }}
+          TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+          TDU: ${{ secrets.TURSO_DATABASE_URL }}
+          TAT: ${{ secrets.TURSO_AUTH_TOKEN }}
+          MCU: ${{ secrets.MCU }}
+          MCAP: ${{ secrets.MCAP }}
+          MCL: ${{ secrets.MCL }}
+          MS: ${{ secrets.MS }}
+          PKG: ${{ secrets.PKG }}
+          REPO_URL: ${{ secrets.REPO_URL }}
+          KTOKEN: ${{ secrets.KTOKEN }}
+          KUSER: ${{ secrets.KUSER }}
+          KPWD: ${{ secrets.KPWD }}
+          KTOTP: ${{ secrets.KTOTP }}
+          DB_TYPE: "local"
+          DB_TICKS: ${{ secrets.DB_TICKS }}
+          TBTOKEN: ${{ secrets.TBTOKEN }}
+          BBTOKEN: ${{ secrets.BBTOKEN }}
+          Tel_API_ID: ${{ secrets.Tel_API_ID }}
+          Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
+          Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
+          TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+          SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
+      run: |
+          # Quote all values to handle spaces properly
+          cat > .env.dev << EOF
+          CHAT_ID_PROD='$CHAT_ID_PROD'
+          CHAT_ID_DEV='$CHAT_ID_DEV'
+          TOKEN_DEV='$TOKEN_DEV'
+          CHAT_IDADMIN_DEV='$CHAT_IDADMIN_DEV'
+          CHAT_ID='$CHAT_ID'
+          TOKEN='$TOKEN'
+          chat_idADMIN='$chat_idADMIN'
+          GITHUB_TOKEN='$GITHUB_TOKEN'
+          CI_PAT='$CI_PAT'
+          TURSO_TOKEN='$TURSO_TOKEN'
+          TDU='$TDU'
+          TAT='$TAT'
+          MCU='$MCU'
+          MCAP='$MCAP'
+          MCL='$MCL'
+          MS='$MS'
+          PKG='$PKG'
+          REPO_URL='$REPO_URL'
+          KTOKEN='$KTOKEN'
+          KUSER='$KUSER'
+          KPWD='$KPWD'
+          KTOTP='$KTOTP'
+          DB_TYPE='$DB_TYPE'
+          DB_TICKS='$DB_TICKS'
+          TBTOKEN='$TBTOKEN'
+          BBTOKEN='$BBTOKEN'
+          Tel_API_ID='$Tel_API_ID'
+          Tel_API_Hash='$Tel_API_Hash'
+          Tel_Phone_Number='$Tel_Phone_Number'
+          TEL_SESSION_DATA='$TEL_SESSION_DATA'
+          SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
+          EOF
+          
+          echo "Created .env.dev file with secrets (values quoted)"
+          cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
   
     - name: Update Sub Data
       shell: bash
@@ -128,6 +188,62 @@ jobs:
         ls -l results/Data
         git status
 
+    - name: Remove PDF files committed >=24 hours ago
+      shell: bash
+      timeout-minutes: 5
+      continue-on-error: true
+      run: |
+        echo "🔍 Checking for PDF files committed >=24 hours ago in results/Data..."
+        
+        # Get current timestamp in UTC
+        CURRENT_TIME=$(date +%s)
+        # 24 hours in seconds
+        CUTOFF_TIME=$((CURRENT_TIME - 24*60*60))
+        
+        REMOVED_COUNT=0
+        TOTAL_SIZE=0
+        
+        # Find all PDF files in results/Data
+        if [ -d "results/Data" ]; then
+          while IFS= read -r pdf_file; do
+            if [ -f "$pdf_file" ]; then
+              # Use git log with -n 1 to get only the most recent commit for this file
+              # This works with default shallow clone (fetch-depth=1)
+              COMMIT_INFO=$(git log -n 1 --pretty="format:%ct|%ci" -- "$pdf_file" 2>/dev/null)
+              
+              if [ -n "$COMMIT_INFO" ]; then
+                # Parse timestamp and date
+                COMMIT_TIMESTAMP=$(echo "$COMMIT_INFO" | cut -d'|' -f1)
+                COMMIT_DATE=$(echo "$COMMIT_INFO" | cut -d'|' -f2 | cut -d' ' -f1,2)
+                
+                if [ -n "$COMMIT_TIMESTAMP" ] && [ $COMMIT_TIMESTAMP -lt $CUTOFF_TIME ]; then
+                  FILE_SIZE=$(stat -c %s "$pdf_file" 2>/dev/null || stat -f %z "$pdf_file" 2>/dev/null)
+                  FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
+                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                  
+                  echo "  🗑️ Removing old PDF: $(basename "$pdf_file")"
+                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago, ${FILE_SIZE_MB}MB)"
+                  rm -f "$pdf_file"
+                  REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                  TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                else
+                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                  echo "  ✅ Keeping recent PDF: $(basename "$pdf_file")"
+                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago)"
+                fi
+              else
+                # If git can't find commit info, this is a new file from this run
+                echo "  📄 New file (not yet committed): $(basename "$pdf_file") - keeping"
+              fi
+            fi
+          done < <(find results/Data -name "*.pdf" -type f 2>/dev/null | sort || true)
+        fi
+        
+        TOTAL_SIZE_MB=$((TOTAL_SIZE / 1024 / 1024))
+        echo ""
+        echo "📊 Cleanup Summary: Removed $REMOVED_COUNT PDF files (${TOTAL_SIZE_MB}MB total)"
+        echo ""
+
     - name: Push Sub Data
       continue-on-error: true
       timeout-minutes: 5
@@ -137,8 +253,6 @@ jobs:
         git config user.email github-actions@github.com
         git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git config --global http.postBuffer 150000000
-        # git remote update
-        # git fetch
         git pull -v origin +SubData
         git add results/Data/*.pdf --force
         git add results/Data/*.pdf -u

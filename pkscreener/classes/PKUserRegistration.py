@@ -36,6 +36,7 @@ from PKDevTools.classes import Archiver
 from PKDevTools.classes.log import default_logger
 from pkscreener.classes import Utility, ConsoleUtility
 from pkscreener.classes.MenuOptions import menus
+from PKDevTools.classes.Environment import PKEnvironment
 
 class ValidationResult(Enum):
     Success = 0
@@ -55,6 +56,24 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
         configManager.getConfig(parser)
         PKUserRegistration().userID = configManager.userID
         PKUserRegistration().otp = configManager.otp
+
+    @classmethod
+    def resetSavedUserCreds(self):
+        configManager = tools()
+        configManager.getConfig(parser)
+        PKUserRegistration().userID = ""
+        PKUserRegistration().otp = ""
+        configManager.otp = ""
+        configManager.userID = ""
+        configManager.setConfig(parser,default=True,showFileCreatedText=False)
+
+    @classmethod
+    def savedUserCreds(self):
+        configManager = tools()
+        configManager.getConfig(parser)
+        configManager.userID = str(PKUserRegistration().userID)
+        configManager.otp = str(PKUserRegistration().otp)
+        configManager.setConfig(parser,default=True,showFileCreatedText=False)
 
     @property
     def userID(self):
@@ -80,15 +99,20 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
             PKPikey.removeSavedFile(f"{PKUserRegistration().userID}")
             resp = Utility.tools.tryFetchFromServer(cache_file=f"{PKUserRegistration().userID}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
             if resp is None or resp.status_code != 200:
+                PKUserRegistration.resetSavedUserCreds()
                 return False, ValidationResult.BadUserID
             with open(os.path.join(Archiver.get_user_data_dir(),f"{PKUserRegistration().userID}.pdf"),"wb",) as f:
                 f.write(resp.content)
             if not PKPikey.openFile(f"{PKUserRegistration().userID}.pdf",PKUserRegistration().otp):
+                PKUserRegistration.resetSavedUserCreds()
                 return False, ValidationResult.BadOTP
+            
+            PKUserRegistration.savedUserCreds()
             return True, ValidationResult.Success
         except: # pragma: no cover
             if "RUNNER" in os.environ.keys():
                 return True, ValidationResult.Success
+            PKUserRegistration.resetSavedUserCreds()
             return False, ValidationResult.BadOTP
 
     @classmethod
@@ -107,21 +131,25 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
             PKUserRegistration.populateSavedUserCreds()
             if PKUserRegistration.validateToken()[0]:
                 return ValidationResult.Success
+            else:
+                PKUserRegistration.resetSavedUserCreds()
         if trialCount >= 1:
             return PKUserRegistration.presentTrialOptions()
 
-        OutputControls().printOutput(f"[+] {colorText.GREEN}PKScreener will always remain free and open source!{colorText.END}\n[+] {colorText.FAIL}PKScreener does offer certain premium/paid features!{colorText.END}\n[+] {colorText.GREEN}Please use {colorText.END}{colorText.WARN}@nse_pkscreener_bot{colorText.END}{colorText.GREEN} in telegram app on \n    your mobile phone to request your {colorText.END}{colorText.WARN}userID{colorText.END}{colorText.GREEN} and {colorText.END}{colorText.WARN}OTP{colorText.END}{colorText.GREEN} to login:\n{colorText.END}")
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        premiumHelpText = f"\n[+] {colorText.FAIL}PKScreener does offer certain premium/paid features!{colorText.END}" if is_subscription_enabled else ""
+        OutputControls().printOutput(f"[+] {colorText.GREEN}PKScreener will always remain free and open source!{colorText.END}{premiumHelpText}\n[+] {colorText.GREEN}Please use {colorText.END}{colorText.WARN}@nse_pkscreener_bot{colorText.END}{colorText.GREEN} in telegram app on \n    your mobile phone to request your {colorText.END}{colorText.WARN}userID{colorText.END}{colorText.GREEN} and {colorText.END}{colorText.WARN}OTP{colorText.END}{colorText.GREEN} to login:\n{colorText.END}")
         username = None
         if configManager.userID is not None and len(configManager.userID) >= 1:
-            username = OutputControls().takeUserInput(f"[+] Your UserID from telegram: (Default: {colorText.GREEN}{configManager.userID}{colorText.END}): ") or configManager.userID
+            username = OutputControls().takeUserInput(f"[+] Your UserID from telegram: (Default: {colorText.GREEN}{configManager.userID}{colorText.END}): ",enableUserInput=True) or configManager.userID
         else:
-            username = OutputControls().takeUserInput(f"[+] {colorText.GREEN}Your UserID from telegram: {colorText.END}")
+            username = OutputControls().takeUserInput(f"[+] {colorText.GREEN}Your UserID from telegram: {colorText.END}",enableUserInput=True)
         if username is None or not username or len(username.strip()) <= 0:
             OutputControls().printOutput(f"{colorText.WARN}[+] We urge you to register on telegram (/OTP on @nse_pkscreener_bot) and then login to use PKScreener!{colorText.END}\n")
             OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.WARN}[+] Maybe try entering the {colorText.END}{colorText.GREEN}UserID{colorText.END}{colorText.WARN} instead of username?{colorText.END}\n[+] {colorText.WARN}If you have purchased a subscription and are still not able to login, please reach out to {colorText.END}{colorText.GREEN}@ItsOnlyPK{colorText.END} {colorText.WARN}on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
             sleep(5)
             return PKUserRegistration.presentTrialOptions()
-        otp = OutputControls().takeUserInput(f"[+] {colorText.WARN}OTP received on telegram from {colorText.END}{colorText.GREEN}@nse_pkscreener_bot (Use command /otp to get OTP): {colorText.END}") or configManager.otp
+        otp = OutputControls().takeUserInput(f"[+] {colorText.WARN}OTP received on telegram from {colorText.END}{colorText.GREEN}@nse_pkscreener_bot (Use command /otp to get OTP): {colorText.END}",enableUserInput=True) or configManager.otp
         invalidOTP = False
         try:
             otpTest = int(otp)
@@ -156,10 +184,12 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
 
                 validationResult,validationReason = PKUserRegistration.validateToken()
                 if not validationResult and validationReason == ValidationResult.BadUserID:
+                    PKUserRegistration.resetSavedUserCreds()
                     OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid userID!{colorText.END}\n{colorText.WARN}[+] Maybe try entering the {colorText.END}{colorText.GREEN}UserID{colorText.END}{colorText.WARN} instead of username?{colorText.END}\n[+] {colorText.WARN}If you have purchased a subscription and are still not able to login, please reach out to {colorText.END}{colorText.GREEN}@ItsOnlyPK{colorText.END} {colorText.WARN}on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
                     sleep(5)
                     return PKUserRegistration.presentTrialOptions()
                 if not validationResult and validationReason == ValidationResult.BadOTP:
+                    PKUserRegistration.resetSavedUserCreds()
                     OutputControls().printOutput(f"{colorText.FAIL}[+] Invalid OTP!{colorText.END}\n[+] {colorText.GREEN}If you have purchased a subscription and are still not able to login, please reach out to @ItsOnlyPK on Telegram!{colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
                     sleep(5)
                     return PKUserRegistration.login(trialCount=trialCount+1)
@@ -175,6 +205,7 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
         except Exception as e: # pragma: n`o cover
             default_logger().debug(e, exc_info=True)
             pass
+        PKUserRegistration.resetSavedUserCreds()
         OutputControls().printOutput(f"{colorText.WARN}[+] Invalid userID or OTP!{colorText.END}\n{colorText.GREEN}[+] May be try entering the {'UserID instead of username?' if userUsedUserID else 'Username instead of userID?'} {colorText.END}\n[+] {colorText.FAIL}Please try again or press Ctrl+C to exit!{colorText.END}")
         sleep(3)
         return PKUserRegistration.login(trialCount=trialCount+1)
@@ -188,6 +219,7 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
         userTypeOption = OutputControls().takeUserInput(colorText.FAIL + "  [+] Select option: ",enableUserInput=True,defaultInput="1")
         OutputControls().enableMultipleLineOutput = multilineOutputEnabled
         if str(userTypeOption).upper() in ["1"]:
+            PKUserRegistration.resetSavedUserCreds()
             return PKUserRegistration.login(trialCount=0)
         elif str(userTypeOption).upper() in ["2"]:
             return ValidationResult.Trial

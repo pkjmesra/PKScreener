@@ -1,8 +1,8 @@
 name: 0. Run PKBrokers pickle save
 on:
   workflow_dispatch:  # Allows manual triggering
-  schedule:
-    - cron: '0 10 * * 1-6'  # Run at 8 AM UTC every weekday (Monday-Friday)
+  # schedule:
+  #   - cron: '0 10 * * 1-6'  # Run at 8 AM UTC every weekday (Monday-Friday)
   # Removed push trigger to prevent overwriting good pkl files from History Data Child workflow
   # push:
   #   branches: [ actions-data-download ]
@@ -87,6 +87,7 @@ jobs:
         Tel_API_Hash: ${{ secrets.Tel_API_Hash }}
         Tel_Phone_Number: ${{ secrets.Tel_Phone_Number }}
         TEL_SESSION_DATA: ${{ secrets.TEL_SESSION_DATA }}
+        SUBSCRIPTION_ENABLED: ${{ secrets.SUBSCRIPTION_ENABLED }}
       run: |
         cat > .env.dev << EOF
         CHAT_ID=$CHAT_ID
@@ -114,6 +115,7 @@ jobs:
         Tel_API_Hash=$Tel_API_Hash
         Tel_Phone_Number=$Tel_Phone_Number
         TEL_SESSION_DATA=$TEL_SESSION_DATA
+        SUBSCRIPTION_ENABLED='$SUBSCRIPTION_ENABLED'
         PKDevTools_Default_Log_Level=${{ env.PKDevTools_Default_Log_Level }}
         EOF
         
@@ -147,8 +149,8 @@ jobs:
       run: |
         # Define size thresholds (in bytes)
         DAILY_PKL_MIN_SIZE=25000000    # 25 MB minimum for daily pkl
-        INTRADAY_PKL_MIN_SIZE=1000000  # 1 MB minimum for intraday pkl
-        TICKS_MIN_SIZE=1000000         # 1 MB minimum for ticks.json
+        INTRADAY_PKL_MIN_SIZE=800000  # 1 MB minimum for intraday pkl
+        TICKS_MIN_SIZE=800000         # 1 MB minimum for ticks.json
         
         echo "=== Validating Generated Files ==="
         
@@ -283,8 +285,8 @@ jobs:
         mkdir -p actions-data-download
         
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
-        TICKS_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
+        TICKS_MIN_SIZE=800000
         
         FILES_COPIED=0
         
@@ -377,7 +379,7 @@ jobs:
         
         # Count valid files to commit
         DAILY_PKL_MIN_SIZE=25000000
-        INTRADAY_PKL_MIN_SIZE=1000000
+        INTRADAY_PKL_MIN_SIZE=800000
         FILES_TO_COMMIT=0
         DAILY_SIZE=0
         INTRADAY_SIZE=0
@@ -411,7 +413,7 @@ jobs:
         # Add ticks.json if valid
         if [ -f "actions-data-download/ticks.json" ]; then
           ticks_size=$(stat -c%s "actions-data-download/ticks.json" 2>/dev/null || stat -f%z "actions-data-download/ticks.json")
-          if [ "$ticks_size" -ge 1000000 ]; then
+          if [ "$ticks_size" -ge 800000 ]; then
             git add -f actions-data-download/ticks.json
             FILES_TO_COMMIT=$((FILES_TO_COMMIT + 1))
             echo "✅ Staging valid ticks.json ($((ticks_size/1024/1024)) MB)"

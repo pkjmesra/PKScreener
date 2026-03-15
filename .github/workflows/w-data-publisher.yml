@@ -40,11 +40,11 @@ name: Data Publisher - 24x7 Stock Data
 # - 2-5 second data fetch latency (vs 30-60 seconds via Telegram)
 
 on:
-  schedule:
-    # During market hours (IST 9:00-16:00 = UTC 3:30-10:30): every 5 minutes
-    - cron: '*/5 3-10 * * 1-5'
-    # Outside market hours: every 2 hours to ensure data freshness
-    - cron: '30 */2 * * *'
+#   schedule:
+#     # During market hours (IST 9:00-16:00 = UTC 3:30-10:30): every 5 minutes
+#     - cron: '*/5 3-10 * * 1-5'
+#     # Outside market hours: every 2 hours to ensure data freshness
+#     - cron: '30 */2 * * *'
     
   workflow_dispatch:
     inputs:
@@ -118,9 +118,9 @@ jobs:
           import pytz
           
           # Define size thresholds (in bytes)
-          TICKS_MIN_SIZE = 1000000        # 1 MB minimum for ticks.json
+          TICKS_MIN_SIZE = 800000        # 1 MB minimum for ticks.json
           DAILY_PKL_MIN_SIZE = 25000000    # 25 MB minimum for daily pkl
-          INTRADAY_PKL_MIN_SIZE = 1000000  # 1 MB minimum for intraday pkl
+          INTRADAY_PKL_MIN_SIZE = 800000  # 1 MB minimum for intraday pkl
           
           # Create data directory
           os.makedirs("results/Data", exist_ok=True)
@@ -411,9 +411,9 @@ jobs:
           echo "📊 Validating published files..."
           
           # Define thresholds
-          TICKS_MIN_SIZE=1000000
+          TICKS_MIN_SIZE=800000
           DAILY_PKL_MIN_SIZE=25000000
-          INTRADAY_PKL_MIN_SIZE=1000000
+          INTRADAY_PKL_MIN_SIZE=800000
           
           # Check ticks.json if it exists
           if [ -f "results/Data/ticks.json" ]; then

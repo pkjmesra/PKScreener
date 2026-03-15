@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 from PKDevTools.classes.ColorText import colorText
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.log import default_logger
+from PKDevTools.classes.Environment import PKEnvironment
 from PKDevTools.classes.Telegram import (
     is_token_telegram_configured,
     send_document,
@@ -247,7 +248,10 @@ class NotificationService:
         """
         if user is None or message is None or "|" not in str(message):
             return
-        
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        if not is_subscription_enabled:
+            return
+
         try:
             user_id = int(user)
             if user_id <= 0:
@@ -539,7 +543,9 @@ def handle_alert_subscriptions_impl(user, message):
     """
     if user is None or message is None or "|" not in str(message):
         return
-    
+    is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+    if not is_subscription_enabled:
+        return
     try:
         user_id = int(user)
         if user_id <= 0:

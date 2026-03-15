@@ -43,6 +43,9 @@ import tempfile
 import time
 import traceback
 
+# Disable protobuf logging
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+os.environ['PROTOBUF_PYTHON_SILENT_WARNINGS'] = '1'
 os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["AUTOGRAPH_VERBOSITY"] = "0"
@@ -50,10 +53,96 @@ os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 import multiprocessing
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# try:
+#     logging.getLogger("tensorflow").setLevel(logging.ERROR)
+# except Exception:
+#     pass
+# =============================================================================
+# PROTOBUF PATCH - MUST BE FIRST
+# =============================================================================
+"""
+This patch fixes the 'GetPrototype' AttributeError in protobuf by monkey-patching
+the MessageFactory class before any other code imports it.
+"""
+import sys
+import os
+
+# Set environment variables to reduce protobuf logging
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+os.environ['PROTOBUF_PYTHON_SILENT_WARNINGS'] = '1'
+
+# Force import of protobuf modules first
 try:
-    logging.getLogger("tensorflow").setLevel(logging.ERROR)
-except Exception:
+    import google.protobuf.message_factory
+    
+    # Patch MessageFactory class
+    if hasattr(google.protobuf.message_factory, 'MessageFactory'):
+        # Store the original __init__
+        original_init = google.protobuf.message_factory.MessageFactory.__init__
+        
+        def patched_init(self, *args, **kwargs):
+            """Patched __init__ that adds GetPrototype method"""
+            original_init(self, *args, **kwargs)
+            
+            # Add GetPrototype if it doesn't exist
+            if not hasattr(self, 'GetPrototype'):
+                def get_prototype(self, descriptor):
+                    """Add GetPrototype method to MessageFactory instances"""
+                    try:
+                        # Try the modern method
+                        return self._GetPrototype(descriptor)
+                    except AttributeError:
+                        try:
+                            # Try the older method
+                            from google.protobuf import message_factory
+                            return message_factory.GetMessageClass(descriptor)
+                        except (ImportError, AttributeError):
+                            # Ultimate fallback - create a dummy class
+                            class DummyMessage:
+                                DESCRIPTOR = descriptor
+                                @classmethod
+                                def FromString(cls, s):
+                                    return cls()
+                            return DummyMessage
+                
+                # Bind the method to the instance
+                self.GetPrototype = get_prototype.__get__(self)
+        
+        # Apply the patch
+        google.protobuf.message_factory.MessageFactory.__init__ = patched_init
+        
+        # Also patch the module-level function if needed
+        if not hasattr(google.protobuf.message_factory, 'GetPrototype'):
+            def module_get_prototype(descriptor):
+                """Module-level GetPrototype function"""
+                try:
+                    return google.protobuf.message_factory.GetMessageClass(descriptor)
+                except AttributeError:
+                    # Create a dynamic message class
+                    from google.protobuf import descriptor_pb2
+                    from google.protobuf.message import Message
+                    
+                    class DynamicMessage(Message):
+                        DESCRIPTOR = descriptor
+                        
+                        def __init__(self, **kwargs):
+                            super().__init__(**kwargs)
+                        
+                        @classmethod
+                        def FromString(cls, s):
+                            return cls()
+                    
+                    return DynamicMessage
+            
+            google.protobuf.message_factory.GetPrototype = module_get_prototype
+    
+    # print("✓ Protobuf patched successfully", file=sys.stderr)
+    
+except ImportError:
+    # protobuf not installed, nothing to patch
     pass
+except Exception as e:
+    print(f"⚠️ Protobuf patch warning: {e}", file=sys.stderr)
 
 from time import sleep
 
@@ -63,11 +152,13 @@ from PKDevTools.classes.log import default_logger
 from PKDevTools.classes.PKDateUtilities import PKDateUtilities
 from PKDevTools.classes.OutputControls import OutputControls
 from PKDevTools.classes.FunctionTimeouts import ping
+from PKDevTools.classes.DebugConfig import DebugConfigManager
 
 from pkscreener import Imports
 from pkscreener.classes.MarketMonitor import MarketMonitor
 from pkscreener.classes.PKAnalytics import PKAnalyticsService
 import pkscreener.classes.ConfigManager as ConfigManager
+from PKDevTools.classes import Archiver
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
@@ -382,7 +473,6 @@ class LoggerSetup:
     def get_log_file_path():
         """Get the path for the log file."""
         try:
-            from PKDevTools.classes import Archiver
             file_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
             with open(file_path, "w") as f:
                 f.write("Logger file for pkscreener!")
@@ -514,7 +604,7 @@ class ApplicationRunner:
         # Handle options processing
         if self.args.options is not None:
             self.args.options = self.args.options.replace("::", ":").replace('"', "").replace("'", "")
-            if self.args.options.upper().startswith("C") or "C:" in self.args.options.upper():
+            if str(self.args.options).upper().startswith("C") or "C:" in str(self.args.options).upper():
                 self.args.runintradayanalysis = True
             self.args, _ = self._update_progress_status()
         
@@ -744,40 +834,32 @@ class ApplicationRunner:
 # =============================================================================
 
 def _get_debug_args():
-    """Get debug arguments from command line."""
-    import csv
-    import re
+    """Get debug arguments from command line - fixed version."""
+    import sys
+    import shlex
     
-    def re_split(s):
-        def strip_quotes(s):
-            if s and (s[0] == '"' or s[0] == "'") and s[0] == s[-1]:
-                return s[1:-1]
-            return s
-        return [strip_quotes(p).replace('\\"', '"').replace("\\'", "'")
-                for p in re.findall(r'(?:[^"\s]*"(?:\\.|[^"])*"[^"\s]*)+|(?:[^\'\s]*\'(?:\\.|[^\'])*\'[^\'\s]*)+|[^\s]+', s)]
-    
-    global args
     try:
         if args is not None:
-            args = list(args)
-        return args
+            # If args is already set, use it
+            if isinstance(args, str):
+                # Split the string properly, respecting quotes
+                return shlex.split(args)
+            return list(args) if args else []
     except NameError:
+        # Get from sys.argv
         args = sys.argv[1:]
-        if isinstance(args, list):
-            if len(args) == 1:
-                return re_split(args[0])
-            return args
-        return None
-    except TypeError:
+        # If there's only one argument and it contains spaces, split it
+        if len(args) == 1 and ' ' in args[0]:
+            return shlex.split(args[0])
         return args
     except Exception:
-        return None
+        pass
+    return []
 
 
 def _exit_gracefully(config_manager, arg_parser):
     """Perform graceful exit cleanup."""
     try:
-        from PKDevTools.classes import Archiver
         from pkscreener.globals import resetConfigToDefault
         
         file_path = None
@@ -801,11 +883,11 @@ def _exit_gracefully(config_manager, arg_parser):
         # Reset config if needed
         argsv = arg_parser.parse_known_args()
         args = argsv[0]
-        if args is not None and args.options is not None and not args.options.upper().startswith("T"):
+        if args is not None and args.options is not None and not str(args.options).upper().startswith("T"):
             resetConfigToDefault(force=True)
         
         if "PKDevTools_Default_Log_Level" in os.environ.keys():
-            if args is None or (args is not None and args.options is not None and "|" not in args.options):
+            if args is None or (args is not None and args.options is not None and "|" not in str(args.options)):
                 del os.environ['PKDevTools_Default_Log_Level']
         
         config_manager.logsEnabled = False
@@ -836,13 +918,14 @@ def _remove_old_instances():
 # =============================================================================
 
 # Global state
+
 args = None
 argParser = ArgumentParser.create_parser()
 configManager = ConfigManager.tools()
 
 # Parse initial arguments
 args = _get_debug_args()
-argsv = argParser.parse_known_args(args=args)
+argsv = argParser.parse_known_args(args=args) if args is not None else argParser.parse_known_args()
 args = argsv[0]
 
 
@@ -963,6 +1046,10 @@ def pkscreenercli():
                 traceback.print_exc()
     
     try:
+        debug_config_path = os.path.join(Archiver.get_user_data_dir(), "debug_config.ini")
+        if os.path.exists(debug_config_path) and os.path.isfile(debug_config_path):
+            manager = DebugConfigManager()
+            config = manager.load_from_file(debug_config_path)
         _remove_old_instances()
         OutputControls(
             enableMultipleLineOutput=(args is None or args.monitor is None or args.runintradayanalysis),
@@ -1066,6 +1153,7 @@ def pkscreenercli():
         
         # Validate premium user for system-launched
         from pkscreener.classes.PKUserRegistration import PKUserRegistration, ValidationResult
+        PKUserRegistration.populateSavedUserCreds()
         if args.systemlaunched and not PKUserRegistration.validateToken()[0]:
             result = PKUserRegistration.login()
             if result != ValidationResult.Success:
@@ -1079,7 +1167,6 @@ def pkscreenercli():
         # Handle telegram mode
         if args.telegram:
             if (PKDateUtilities.isTradingTime() and not PKDateUtilities.isTodayHoliday()[0]) or ("PKDevTools_Default_Log_Level" in os.environ.keys()):
-                from PKDevTools.classes import Archiver
                 file_path = os.path.join(Archiver.get_user_data_dir(), "monitor_outputs_1.txt")
                 if os.path.exists(file_path):
                     default_logger().info("monitor_outputs_1.txt exists! Another instance may be running. Exiting...")
@@ -1120,7 +1207,8 @@ def pkscreenercli():
         except NameError:
             LoggedIn = False
         
-        if not LoggedIn and not args.telegram and not args.bot and not args.systemlaunched and not args.testbuild:
+        auth_not_required = LoggedIn or args.telegram or args.bot or args.systemlaunched or args.testbuild
+        if not auth_not_required:
             if not PKUserRegistration.login():
                 sys.exit(0)
             LoggedIn = True
@@ -1150,6 +1238,9 @@ def pkscreenercli():
         _exit_gracefully(configManager, argParser)
         sys.exit(0)
     except Exception as e:
+        if "RUNNER" in os.environ.keys():
+            OutputControls().printOutput(e)
+            traceback.print_exc()
         if "RUNNER" not in os.environ.keys() and ('PKDevTools_Default_Log_Level' in os.environ.keys() and
                                                   os.environ["PKDevTools_Default_Log_Level"] != str(log.logging.NOTSET)):
             OutputControls().printOutput("  [+] RuntimeError with 'multiprocessing'.\n  [+] Please contact the Developer!")
@@ -1178,6 +1269,14 @@ if __name__ == "__main__":
     try:
         pkscreenercli()
     except KeyboardInterrupt:
+        from pkscreener.globals import closeWorkersAndExit
+        closeWorkersAndExit()
+        _exit_gracefully(configManager, argParser)
+        sys.exit(0)
+    except Exception as e:
+        default_logger().debug(e, exc_info=True)
+        if args.log:
+            traceback.print_exc()
         from pkscreener.globals import closeWorkersAndExit
         closeWorkersAndExit()
         _exit_gracefully(configManager, argParser)

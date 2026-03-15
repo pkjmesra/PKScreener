@@ -27,6 +27,7 @@ import os
 from time import sleep
 
 from PKDevTools.classes.log import default_logger
+from PKDevTools.classes.Environment import PKEnvironment
 from PKDevTools.classes.Telegram import (
     is_token_telegram_configured,
     send_document,
@@ -272,6 +273,9 @@ class TelegramNotifier:
             user: User ID
             message: Message text
         """
+        is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
+        if not is_subscription_enabled:
+            return
         if user is not None and message is not None and "|" in str(message):
             if int(user) > 0:
                 # Individual user

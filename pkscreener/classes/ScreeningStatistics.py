@@ -3685,10 +3685,10 @@ class ScreeningStatistics:
                     latest_date_index = recent.index[0] if not recent.empty else None
                 
                 # #region agent log
-                import json
-                log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-                with open(log_path, 'a') as f:
-                    f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"ScreeningStatistics.py:validateLTP:3687","message":"Setting Time column from latest_date_index","data":{"latest_date_index":str(latest_date_index) if latest_date_index else None,"data_empty":data.empty,"data_index_0":str(data.index[0]) if not data.empty else None,"data_index_len":len(data.index) if not data.empty else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
+                # import json
+                # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
+                # with open(log_path, 'a') as f:
+                #     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"ScreeningStatistics.py:validateLTP:3687","message":"Setting Time column from latest_date_index","data":{"latest_date_index":str(latest_date_index) if latest_date_index else None,"data_empty":data.empty,"data_index_0":str(data.index[0]) if not data.empty else None,"data_index_len":len(data.index) if not data.empty else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
                 # #endregion
                 
                 if latest_date_index is not None:
@@ -3763,7 +3763,7 @@ class ScreeningStatistics:
                 saveDict[f"LTP{prd}"] = round(ltpTdy, 2)
                 saveDict[f"Growth{prd}"] = round(ltpTdy - prevLtp, 2)
                 if prd == 22 or (prd == requestedPeriod):
-                    changePercent = round(((prevLtp-ltpTdy) if requestedPeriod ==0 else (ltpTdy - prevLtp))*100/ltpTdy, 2)
+                    changePercent = round(((prevLtp-ltpTdy) if requestedPeriod ==0 else (ltpTdy - prevLtp))*100/ltpTdy, 2) if ltpTdy != 0 else 0
                     saveDict[f"{prd}-Pd"] = f"{changePercent}%" if not pd.isna(changePercent) else '-'
                     screenDict[f"{prd}-Pd"] = ((colorText.GREEN if changePercent >=0 else colorText.FAIL) + f"{changePercent}%" + colorText.END) if not pd.isna(changePercent) else '-'
                     if (prd == requestedPeriod):

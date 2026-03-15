@@ -22,7 +22,6 @@
     SOFTWARE.
 
 """
-import datetime
 import math
 import os
 import sys
@@ -32,6 +31,10 @@ os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 
 import platform
 import time
+
+import requests
+import json
+from datetime import datetime
 
 import joblib
 import numpy as np
@@ -72,25 +75,64 @@ artText = f"{getArtText()}\n"
 
 STD_ENCODING=sys.stdout.encoding if sys.stdout is not None else 'utf-8'
 
-def marketStatus():
-    return ""
-    # task = PKTask("Nifty 50 Market Status",MarketStatus().getMarketStatus)
-    lngStatus = MarketStatus().marketStatus
-    nseStatus = ""
-    next_bell = ""
+def marketStatus(instrument_id=256265, prefix=""):
+    """
+    Fetches market data directly from the ticks.json file and returns a formatted status string.
+    
+    Args:
+        instrument_id: The instrument ID to look up (default: 256265 for NIFTY 50)
+    
+    Returns:
+        str: Formatted string with trading symbol, close price, percent change, date and time.
+        Example: "NIFTY 50 | 23142.15 | -2.10% | 25-03-13 | 15:30"
+    """
+    url = "https://raw.githubusercontent.com/pkjmesra/PKBrokers/refs/heads/main/pkbrokers/kite/examples/results/Data/ticks.json"
+    
     try:
-        nseStatus = NSEMarketStatus({},None).status
-        next_bell = NSEMarketStatus({},None).getNextBell()
-    except: # pragma: no cover
-        pass
-    # scheduleTasks(tasksList=[task])
-    if lngStatus == "":
-        lngStatus = MarketStatus().getMarketStatus(exchangeSymbol="^IXIC" if configManager.defaultIndex == 15 else "^NSEI")
-    if "close" in lngStatus and nseStatus == "open":
-        lngStatus = lngStatus.replace("Closed","open")
-    if len(next_bell) > 0 and next_bell not in lngStatus:
-        lngStatus = f"{lngStatus} | Next Bell: {colorText.WARN}{next_bell.replace('T',' ').split('+')[0]}{colorText.END}"
-    return (lngStatus +"\n") if lngStatus is not None else "\n"
+        # Fetch the JSON file directly
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        # Parse the JSON
+        all_data = response.json()
+        
+        # Get data for the requested instrument
+        instrument_data = all_data.get(str(instrument_id))
+        
+        if not instrument_data:
+            return f"Error: No data found for instrument ID: {instrument_id}"
+        
+        # Extract required fields
+        trading_symbol = instrument_data.get('trading_symbol', 'N/A')
+        close_price = instrument_data.get('ohlcv', {}).get('close', 0)
+        prev_day_close = instrument_data.get('prev_day_close', close_price)
+        timestamp_str = instrument_data.get('ohlcv', {}).get('timestamp', '')
+        
+        # Calculate percent change
+        if prev_day_close and prev_day_close != 0:
+            percent_change = ((close_price - prev_day_close) / prev_day_close) * 100
+            percent_formatted = f"{percent_change:+.2f}"
+            percent_formatted = f"{colorText.GREEN}{percent_formatted}{colorText.END}%" if percent_change >= 0 else f"{colorText.FAIL}{percent_formatted}{colorText.END}%"
+        else:
+            percent_formatted = "N/A"
+        trading_symbol = f"{colorText.GREEN}{trading_symbol}{colorText.END}" if close_price >= prev_day_close else f"{colorText.FAIL}{trading_symbol}{colorText.END}"
+        # Parse and format date and time
+        if timestamp_str:
+            # Handle timezone format
+            if timestamp_str.endswith('Z'):
+                timestamp_str = timestamp_str.replace('Z', '+00:00')
+            dt = datetime.fromisoformat(timestamp_str)
+            date_formatted = dt.strftime("%y-%m-%d")
+            time_formatted = dt.strftime("%H:%M")
+        else:
+            date_formatted = "N/A"
+            time_formatted = "N/A"
+        
+        # Construct the final string
+        result = f"{prefix}{' | ' if len(prefix) > 0 else ''}{trading_symbol} ({close_price} | {percent_formatted} | {date_formatted} | {time_formatted})"
+        return result if len(prefix) > 0 else marketStatus(instrument_id=265, prefix=result)
+    except Exception as e:
+        return "N/A"
 
 art = colorText.GREEN + f"{getArtText()}\n" + colorText.END + f"{marketStatus()}"
 
@@ -123,13 +165,12 @@ class tools:
         dealsFileSize = os.stat(dealsFile).st_size if os.path.exists(dealsFile) else 0
         if dealsFileSize > 0:
             modifiedDateTime = Archiver.get_last_modified_datetime(dealsFile)
-            curr = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
+            curr = datetime.now(pytz.timezone("Asia/Kolkata"))
             shouldFetch = modifiedDateTime.date() < curr.date()
         else:
             shouldFetch = True
         if shouldFetch:
             from PKNSETools.Benny.NSE import NSE
-            import json
             try:
                 nseFetcher = NSE(Archiver.get_user_data_dir())
                 jsonDict = nseFetcher.largeDeals()
