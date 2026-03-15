@@ -73,6 +73,7 @@ jobs:
       with:
         ref: SubData
         fetch-depth: 1  # Keep it shallow, we don't need history
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python 
       uses: actions/setup-python@v5
@@ -196,6 +197,7 @@ jobs:
         git status
 
     - name: Remove PDF files committed >=24 hours ago using GitHub API
+      id: cleanup
       shell: bash
       timeout-minutes: 5
       continue-on-error: true
@@ -230,6 +232,7 @@ jobs:
         # Check if API call was successful
         if [ $? -ne 0 ] || [ ! -s files_response.json ]; then
           echo "❌ Failed to fetch file list from GitHub API"
+          echo "removed_count=0" >> $GITHUB_OUTPUT
           exit 0
         fi
         
@@ -237,13 +240,12 @@ jobs:
         if grep -q '"message"' files_response.json; then
           ERROR_MSG=$(jq -r '.message // empty' files_response.json)
           echo "❌ GitHub API error: $ERROR_MSG"
-          echo "Response:"
-          cat files_response.json
+          echo "removed_count=0" >> $GITHUB_OUTPUT
           exit 0
         fi
         
         # Extract PDF files
-        jq -r '.[] | select(.name | endswith(".pdf")) | "\(.name)|\(.path)|\(.sha)|\(.download_url)"' files_response.json > pdf_files.txt
+        jq -r '.[] | select(.name | endswith(".pdf")) | "\(.name)|\(.path)|\(.sha)"' files_response.json > pdf_files.txt
         
         PDF_COUNT=$(wc -l < pdf_files.txt)
         echo "📋 Found $PDF_COUNT PDF files to check"
@@ -254,7 +256,7 @@ jobs:
         KEPT_COUNT=0
         
         # Process each PDF file
-        while IFS='|' read -r name path sha download_url; do
+        while IFS='|' read -r name path sha; do
           if [ -n "$name" ]; then
             echo "📄 Checking: $name"
             
@@ -325,26 +327,61 @@ jobs:
         echo "   • Kept: $KEPT_COUNT PDF files"
         echo ""
         
+        # Save removed count for later steps
+        echo "removed_count=$REMOVED_COUNT" >> $GITHUB_OUTPUT
+        
         # Cleanup temp files
         rm -f files_response.json pdf_files.txt
 
+    - name: Stage and commit changes
+      shell: bash
+      run: |
+        # Configure git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Check if there are any changes
+        if git status --porcelain | grep -q "^ D"; then
+          echo "📝 Changes detected - staging deleted files..."
+          
+          # Stage all deleted files
+          git add -u results/Data/*.pdf 2>/dev/null || true
+          
+          # Show what's being committed
+          echo "Files to be committed:"
+          git status --porcelain
+          
+          # Commit the changes
+          git commit -m "Remove PDF files older than 24 hours [automated cleanup]"
+          
+          echo "✅ Changes committed successfully"
+          echo "has_changes=true" >> $GITHUB_ENV
+        else
+          echo "✅ No changes to commit"
+          echo "has_changes=false" >> $GITHUB_ENV
+        fi
+
     - name: Push Sub Data
+      if: env.has_changes == 'true'
       continue-on-error: true
       timeout-minutes: 5
       shell: bash
       run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git config --global http.postBuffer 150000000
-        git pull -v origin +SubData
-        git add results/Data/*.pdf --force
-        git add results/Data/*.pdf -u
-        git commit -m "GitHub-Action-Workflow-SubData-(Default-Config)"
-        git push -v -u origin +SubData
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
         
+        # Pull latest changes to avoid conflicts
+        git pull --rebase origin SubData
+        
+        # Push the changes
+        if git push origin SubData; then
+          echo "✅ Successfully pushed cleanup commit"
+        else
+          echo "⚠️ Push failed, trying with force (safe since we're just cleaning old files)"
+          git push --force-with-lease origin SubData
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Squash Commits (Python)
       shell: bash
       timeout-minutes: 5
@@ -356,7 +393,7 @@ jobs:
         git pull -v origin +SubData
         python3 .github/workflows/squash.py --b SubData -m "GitHub-Action-Workflow-SubData-(Default-Config)"
       env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Delete this workflow run
       continue-on-error: true
@@ -365,4 +402,4 @@ jobs:
         gh run list --status success --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
         gh run list --status cancelled --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
       env:
-        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
