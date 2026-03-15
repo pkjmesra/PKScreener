@@ -70,7 +70,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: SubData
-        # fetch-depth: 1 is the default - only gets the latest commit
+        fetch-depth: 0  # Need full history to get accurate file commit times
 
     - name: Set up Python 
       uses: actions/setup-python@v5
@@ -200,43 +200,73 @@ jobs:
         # 24 hours in seconds
         CUTOFF_TIME=$((CURRENT_TIME - 24*60*60))
         
+        # Convert to readable date for logging
+        CUTOFF_DATE=$(date -u -d @$CUTOFF_TIME +"%Y-%m-%d %H:%M:%S" 2>/dev/null || date -u -r $CUTOFF_TIME +"%Y-%m-%d %H:%M:%S" 2>/dev/null)
+        echo "⏰ Keeping files committed after: $CUTOFF_DATE UTC"
+        
         REMOVED_COUNT=0
         TOTAL_SIZE=0
         
         # Find all PDF files in results/Data
         if [ -d "results/Data" ]; then
-          while IFS= read -r pdf_file; do
-            if [ -f "$pdf_file" ]; then
-              # Use git log with -n 1 to get only the most recent commit for this file
-              # This works with default shallow clone (fetch-depth=1)
-              COMMIT_INFO=$(git log -n 1 --pretty="format:%ct|%ci" -- "$pdf_file" 2>/dev/null)
-              
-              if [ -n "$COMMIT_INFO" ]; then
-                # Parse timestamp and date
-                COMMIT_TIMESTAMP=$(echo "$COMMIT_INFO" | cut -d'|' -f1)
-                COMMIT_DATE=$(echo "$COMMIT_INFO" | cut -d'|' -f2 | cut -d' ' -f1,2)
+          # Get list of PDF files
+          PDF_FILES=$(find results/Data -name "*.pdf" -type f 2>/dev/null | sort || true)
+          
+          if [ -n "$PDF_FILES" ]; then
+            echo ""
+            echo "📋 Found $(echo "$PDF_FILES" | wc -l) PDF files to check"
+            echo ""
+            
+            while IFS= read -r pdf_file; do
+              if [ -f "$pdf_file" ]; then
+                # Get the commit date of this file using git log with full history
+                # This requires fetch-depth: 0 to work correctly
+                COMMIT_INFO=$(git log --follow -n 1 --pretty="format:%ct|%ci" -- "$pdf_file" 2>/dev/null)
                 
-                if [ -n "$COMMIT_TIMESTAMP" ] && [ $COMMIT_TIMESTAMP -lt $CUTOFF_TIME ]; then
-                  FILE_SIZE=$(stat -c %s "$pdf_file" 2>/dev/null || stat -f %z "$pdf_file" 2>/dev/null)
-                  FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
-                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                if [ -n "$COMMIT_INFO" ]; then
+                  # Parse timestamp and date
+                  COMMIT_TIMESTAMP=$(echo "$COMMIT_INFO" | cut -d'|' -f1)
+                  COMMIT_DATE=$(echo "$COMMIT_INFO" | cut -d'|' -f2 | cut -d' ' -f1,2)
                   
-                  echo "  🗑️ Removing old PDF: $(basename "$pdf_file")"
-                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago, ${FILE_SIZE_MB}MB)"
-                  rm -f "$pdf_file"
-                  REMOVED_COUNT=$((REMOVED_COUNT + 1))
-                  TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                  if [ -n "$COMMIT_TIMESTAMP" ] && [ $COMMIT_TIMESTAMP -lt $CUTOFF_TIME ]; then
+                    FILE_SIZE=$(stat -c %s "$pdf_file" 2>/dev/null || stat -f %z "$pdf_file" 2>/dev/null)
+                    FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
+                    FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                    FILE_AGE_DAYS=$((FILE_AGE_HOURS / 24))
+                    
+                    echo "  🗑️ REMOVING: $(basename "$pdf_file")"
+                    echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_DAYS}d ${FILE_AGE_HOURS}h ago, ${FILE_SIZE_MB}MB)"
+                    rm -f "$pdf_file"
+                    REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                    TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                  else
+                    FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                    if [ $FILE_AGE_HOURS -gt 24 ]; then
+                      FILE_AGE_DAYS=$((FILE_AGE_HOURS / 24))
+                      echo "  ✅ KEEPING: $(basename "$pdf_file")"
+                      echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_DAYS}d ${FILE_AGE_HOURS}h ago) - Should have been removed?"
+                    else
+                      echo "  ✅ KEEPING: $(basename "$pdf_file")"
+                      echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago) - Recent"
+                    fi
+                  fi
                 else
-                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
-                  echo "  ✅ Keeping recent PDF: $(basename "$pdf_file")"
-                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago)"
+                  # If git can't find commit info, check if file is new
+                  if [ -f "$pdf_file" ]; then
+                    # Check if file was created in this workflow
+                    FILE_MOD_TIME=$(stat -c %Y "$pdf_file" 2>/dev/null || stat -f %m "$pdf_file" 2>/dev/null)
+                    if [ $FILE_MOD_TIME -gt $CUTOFF_TIME ]; then
+                      echo "  📄 NEW FILE: $(basename "$pdf_file") - keeping (created in this run)"
+                    else
+                      echo "  ⚠️ UNKNOWN: $(basename "$pdf_file") - no git history, keeping"
+                    fi
+                  fi
                 fi
-              else
-                # If git can't find commit info, this is a new file from this run
-                echo "  📄 New file (not yet committed): $(basename "$pdf_file") - keeping"
               fi
-            fi
-          done < <(find results/Data -name "*.pdf" -type f 2>/dev/null | sort || true)
+            done <<< "$PDF_FILES"
+          else
+            echo "No PDF files found in results/Data"
+          fi
         fi
         
         TOTAL_SIZE_MB=$((TOTAL_SIZE / 1024 / 1024))
