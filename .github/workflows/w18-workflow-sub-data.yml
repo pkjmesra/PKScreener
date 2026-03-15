@@ -334,6 +334,7 @@ jobs:
         rm -f files_response.json pdf_files.txt
 
     - name: Stage and commit changes
+      id: commit
       shell: bash
       run: |
         # Configure git
@@ -341,28 +342,48 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
         
         # Check if there are any changes
-        if git status --porcelain | grep -q "^ D"; then
-          echo "📝 Changes detected - staging deleted files..."
+        git status --porcelain > status.txt
+        
+        if [ -s status.txt ]; then
+          echo "📝 Changes detected:"
+          cat status.txt
+          echo ""
           
-          # Stage all deleted files
-          git add -u results/Data/*.pdf 2>/dev/null || true
+          # Stage ALL changes (including deletions) in the results/Data directory
+          # The -A flag stages all changes, including deletions
+          git add -A results/Data/
           
           # Show what's being committed
-          echo "Files to be committed:"
-          git status --porcelain
+          echo ""
+          echo "Files staged for commit:"
+          git status --short
+          echo ""
+          
+          # Count the number of files being committed
+          FILE_COUNT=$(git status --short | wc -l)
           
           # Commit the changes
-          git commit -m "Remove PDF files older than 24 hours [automated cleanup]"
+          git commit -m "Cleanup: Remove $FILE_COUNT old PDF files (older than 24 hours)"
           
-          echo "✅ Changes committed successfully"
-          echo "has_changes=true" >> $GITHUB_ENV
+          if [ $? -eq 0 ]; then
+            echo "✅ Changes committed successfully"
+            # Set output for this step
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Commit failed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
         else
           echo "✅ No changes to commit"
-          echo "has_changes=false" >> $GITHUB_ENV
+          echo "has_changes=false" >> $GITHUB_OUTPUT
         fi
+        
+        # Cleanup
+        rm -f status.txt
 
     - name: Push Sub Data
-      if: env.has_changes == 'true'
+      if: steps.commit.outputs.has_changes == 'true'
       continue-on-error: true
       timeout-minutes: 5
       shell: bash
