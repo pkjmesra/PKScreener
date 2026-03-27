@@ -71,7 +71,7 @@ pytz>=2024.2
 python-telegram-bot>=13.4,<20.0
 
 # HTTP requests and caching
-requests>=2.32.4
+requests>=2.33.0
 requests_cache>=1.2.1
 requests_ratelimiter>=0.7.0
 pyrate_limiter>=2.10.0
