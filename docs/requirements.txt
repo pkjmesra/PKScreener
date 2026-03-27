@@ -3,3 +3,4 @@ sphinx_rtd_theme
 sphinx-toolbox
 myst-parser
 linkify-it-py
+requests>=2.33.0 # not directly required, pinned by Snyk to avoid a vulnerability
