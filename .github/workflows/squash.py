@@ -24,6 +24,8 @@
 """
 import argparse
 import os
+import re
+import subprocess
 from time import sleep
 
 # .github/workflows/squash.py -b actions-data-download -m "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
@@ -37,6 +39,9 @@ argParser.add_argument(
 )
 args = argParser.parse_args()
 
+if not re.fullmatch(r"[A-Za-z0-9._/-]+", args.branch):
+    argParser.error("Invalid branch name")
+
 # args.message = "GitHub-Action-Workflow-Market-Data-Download-(Default-Config)"
 # args.branch = "actions-data-download"
 
@@ -44,7 +49,8 @@ c_msg = args.message  # "GitHub Action Workflow - Market Data Download (Default 
 
 print(f"[+] === SQUASHING COMMITS : {args.branch} branch ===")
 print("[+] Saving Commit messages log..")
-os.system("git log --pretty=oneline > msg.log")
+with open("msg.log", "w") as f:
+    subprocess.run(["git", "log", "--pretty=oneline"], stdout=f, check=True)
 
 sleep(5)
 
@@ -76,9 +82,9 @@ print(f"git commit -m '{c_msg}'")
 if cnt < 1:
     print("[+] No Need to Squash! Skipping...")
 else:
-    os.system(f"git reset --soft HEAD~{cnt}")
-    os.system(f"git commit -m '{c_msg}'")
-    os.system(f"git push -f -u origin {args.branch}")  # actions-data-download
+    subprocess.run(["git", "reset", "--soft", f"HEAD~{cnt}"], check=True)
+    subprocess.run(["git", "commit", "-m", c_msg], check=True)
+    subprocess.run(["git", "push", "-f", "-u", "origin", args.branch], check=True)  # actions-data-download
 
 os.remove("msg.log")
 sleep(5)
