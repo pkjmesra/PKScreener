@@ -1,10 +1,10 @@
 {
   "source": "PKBrokers-orchestrator",
-  "synced_at": "2026-04-27T14:44:39Z",
+  "synced_at": "2026-04-28T05:21:21Z",
   "workflow": "w0-workflow-ticks-update.yml",
   "files_copied": 5,
   "date_suffix": "27042026",
-  "ticks_size_mb": 0,
+  "ticks_size_mb": 1,
   "files_validated": true,
-  "triggered_by": "self_trigger_after_24977393081"
+  "triggered_by": "self_trigger_after_25015501367"
 }
