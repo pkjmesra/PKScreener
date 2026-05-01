@@ -620,7 +620,7 @@ def update_menu_choice_hierarchy_impl(
     piped_suffix = ""
     if user_passed_args is not None and user_passed_args.pipedmenus is not None:
         piped_suffix = f" (Piped Scan Mode) [{user_passed_args.pipedmenus}] {past_date}"
-    
+    ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     OutputControls().printOutput(
         f"{colorText.FAIL}  [+] You chose: {report_title} {menu_choice_hierarchy}{piped_suffix}{colorText.END}"
     )

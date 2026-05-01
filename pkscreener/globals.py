@@ -22,7 +22,13 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+PKScreener Global Module
+
+This module contains the main application logic, global variables, and core functions
+for the PKScreener stock screening application. It handles menu navigation, data fetching,
+stock screening, backtesting, and result presentation.
 """
+
 # Keep module imports prior to classes
 import os
 import random
@@ -220,22 +226,39 @@ show_saved_diff_results = False
 resultsContentsEncoded = None
 runCleanUp = False
 
-def startMarketMonitor(mp_dict,keyboardevent):
+def startMarketMonitor(mp_dict, keyboardevent):
+    """
+    Start the market monitoring process.
+    
+    Args:
+        mp_dict (multiprocessing.dict): Multiprocessing dictionary for sharing market status
+        keyboardevent (multiprocessing.Event): Event to handle keyboard interrupts
+    
+    Returns:
+        None
+    """
     if not 'pytest' in sys.modules:
         from PKDevTools.classes.NSEMarketStatus import NSEMarketStatus
         NSEMarketStatus(mp_dict,keyboardevent).startMarketMonitor()
 
-def finishScreening(
-    downloadOnly,
-    testing,
-    stockDictPrimary,
-    configManager,
-    loadCount,
-    testBuild,
-    screenResults,
-    saveResults,
-    user=None,
-):
+def finishScreening(downloadOnly, testing, stockDictPrimary, configManager, loadCount, testBuild, screenResults, saveResults, user=None):
+    """
+    Complete the screening process by saving/downloading results and sending notifications.
+    
+    Args:
+        downloadOnly (bool): Whether only downloading data (no screening)
+        testing (bool): Whether in testing mode
+        stockDictPrimary (dict): Primary stock data dictionary
+        configManager: Configuration manager instance
+        loadCount (int): Number of loaded stocks
+        testBuild (bool): Whether this is a test build
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        user (str, optional): Telegram user ID for notifications
+    
+    Returns:
+        None
+    """
     global defaultAnswer, menuChoiceHierarchy, userPassedArgs, selectedChoice
     if "RUNNER" not in os.environ.keys() or downloadOnly:
         # There's no need to prompt the user to save xls report or to save data locally.
@@ -249,6 +272,15 @@ def finishScreening(
         sendMessageToTelegramChannel(mediagroup=True,user=userPassedArgs.user)
 
 def getDownloadChoices(defaultAnswer=None):
+    """
+    Get choices for download-only mode, prompting user about existing cache files.
+    
+    Args:
+        defaultAnswer (str, optional): Default answer for prompts
+    
+    Returns:
+        tuple: (menuOption, indexOption, executeOption, selectedChoice)
+    """
     global userPassedArgs
     argsIntraday = userPassedArgs is not None and userPassedArgs.intraday is not None
     intradayConfig = configManager.isIntradayConfig()
@@ -271,8 +303,17 @@ def getDownloadChoices(defaultAnswer=None):
             configManager.deleteFileWithPattern(rootDir=Archiver.get_user_data_dir(),pattern=pattern)
     return "X", 12, 0, {"0": "X", "1": "12", "2": "0"}
 
-
 def getHistoricalDays(numStocks, testing):
+    """
+    Calculate the number of historical days needed for backtesting based on stock count.
+    
+    Args:
+        numStocks (int): Number of stocks to process
+        testing (bool): Whether in testing mode
+    
+    Returns:
+        int: Number of historical days to use
+    """
     # Generally it takes 40-50 stocks to be processed every second.
     # We would like the backtest to finish withn 10 minutes (600 seconds).
     # days = numStocks/40 per second
@@ -280,17 +321,23 @@ def getHistoricalDays(numStocks, testing):
         2 if testing else configManager.backtestPeriod
     )  # if numStocks <= 2000 else 120 # (5 if iterations < 5 else (100 if iterations > 100 else iterations))
 
-
-def getScannerMenuChoices(
-    testBuild=False,
-    downloadOnly=False,
-    startupoptions=None,
-    menuOption=None,
-    indexOption=None,
-    executeOption=None,
-    defaultAnswer=None,
-    user=None,
-):
+def getScannerMenuChoices(testBuild=False, downloadOnly=False, startupoptions=None, menuOption=None, indexOption=None, executeOption=None, defaultAnswer=None, user=None):
+    """
+    Get and process scanner menu choices from the user.
+    
+    Args:
+        testBuild (bool): Whether this is a test build
+        downloadOnly (bool): Whether only downloading data
+        startupoptions (str): Startup options string
+        menuOption (str): Selected menu option
+        indexOption (str): Selected index option
+        executeOption (str): Selected execute option
+        defaultAnswer (str): Default answer for prompts
+        user (str): Telegram user ID
+    
+    Returns:
+        tuple: (menuOption, indexOption, executeOption, selectedChoice)
+    """
     global selectedChoice
     executeOption = executeOption
     menuOption = menuOption
@@ -325,8 +372,17 @@ def getScannerMenuChoices(
         default_logger().debug(e, exc_info=True)
     return menuOption, indexOption, executeOption, selectedChoice
 
-
 def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
+    """
+    Get summary and detail DataFrames for strategy correctness from backtest reports.
+    
+    Args:
+        resultdf (DataFrame): Results DataFrame
+        summaryRequired (bool): Whether summary is required
+    
+    Returns:
+        tuple: (summarydf, detaildf) DataFrames with summary and detail information
+    """
     summarydf = None
     detaildf = None
     try:
@@ -390,8 +446,18 @@ def getSummaryCorrectnessOfStrategy(resultdf, summaryRequired=True):
         pass
     return summarydf, detaildf
 
-
 def getTestBuildChoices(indexOption=None, executeOption=None, menuOption=None):
+    """
+    Get choices for test build mode with default values.
+    
+    Args:
+        indexOption (str): Index option
+        executeOption (str): Execute option
+        menuOption (str): Menu option
+    
+    Returns:
+        tuple: (menuOption, indexOption, executeOption, selectedChoice)
+    """
     if menuOption is not None:
         return (
             str(menuOption),
@@ -405,8 +471,19 @@ def getTestBuildChoices(indexOption=None, executeOption=None, menuOption=None):
         )
     return "X", 1, 0, {"0": "X", "1": "1", "2": "0"}
 
-
 def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly, defaultAnswer=None):
+    """
+    Parse top-level menu choices from startup options.
+    
+    Args:
+        startupoptions (str): Startup options string
+        testBuild (bool): Whether this is a test build
+        downloadOnly (bool): Whether only downloading data
+        defaultAnswer (str): Default answer for prompts
+    
+    Returns:
+        tuple: (options, menuOption, indexOption, executeOption)
+    """
     global selectedChoice, userPassedArgs, lastScanOutputStockCodes
     executeOption = None
     menuOption = None
@@ -434,8 +511,17 @@ def getTopLevelMenuChoices(startupoptions, testBuild, downloadOnly, defaultAnswe
     indexOption = 0 if lastScanOutputStockCodes is not None else indexOption
     return options, menuOption, indexOption, executeOption
 
-
 def handleScannerExecuteOption4(executeOption, options):
+    """
+    Handle execution option 4 (lowest volume scanner) by getting days for calculation.
+    
+    Args:
+        executeOption (int): Execute option number
+        options (list): List of option arguments
+    
+    Returns:
+        int: Number of days for lowest volume calculation
+    """
     try:
         # m2.find(str(executeOption))
         if len(options) >= 4:
@@ -466,10 +552,19 @@ def handleScannerExecuteOption4(executeOption, options):
     nValueForMenu = daysForLowestVolume
     return daysForLowestVolume
 
-
-def handleSecondaryMenuChoices(
-    menuOption, testing=False, defaultAnswer=None, user=None
-):
+def handleSecondaryMenuChoices(menuOption, testing=False, defaultAnswer=None, user=None):
+    """
+    Handle secondary menu choices like Help, User Config, Telegram, etc.
+    
+    Args:
+        menuOption (str): Selected menu option
+        testing (bool): Whether in testing mode
+        defaultAnswer (str): Default answer for prompts
+        user (str): Telegram user ID
+    
+    Returns:
+        The result from handling secondary menu choices
+    """
     """Handle secondary menu choices - delegates to MainLogic module"""
     global userPassedArgs, resultsContentsEncoded
     return handle_secondary_menu_choices_impl(
@@ -479,6 +574,16 @@ def handleSecondaryMenuChoices(
     )
 
 def showSendConfigInfo(defaultAnswer=None, user=None):
+    """
+    Show configuration information and optionally send to Telegram.
+    
+    Args:
+        defaultAnswer (str): Default answer for prompts
+        user (str): Telegram user ID for sending config
+    
+    Returns:
+        None
+    """
     configData = configManager.showConfigFile(defaultAnswer=('Y' if user is not None else defaultAnswer))
     if user is not None:
         sendMessageToTelegramChannel(message=ImageUtility.PKImageTools.removeAllColorStyles(configData), user=user)
@@ -486,13 +591,34 @@ def showSendConfigInfo(defaultAnswer=None, user=None):
         input("Press any key to continue...")
 
 def showSendHelpInfo(defaultAnswer=None, user=None):
+    """
+    Show help information and optionally send to Telegram.
+    
+    Args:
+        defaultAnswer (str): Default answer for prompts
+        user (str): Telegram user ID for sending help
+    
+    Returns:
+        None
+    """
     helpData = ConsoleUtility.PKConsoleTools.showDevInfo(defaultAnswer=('Y' if user is not None else defaultAnswer))
     if user is not None:
         sendMessageToTelegramChannel(message=ImageUtility.PKImageTools.removeAllColorStyles(helpData), user=user)
     if defaultAnswer is None:
         input("Press any key to continue...")
 
-def ensureMenusLoaded(menuOption=None,indexOption=None,executeOption=None):
+def ensureMenusLoaded(menuOption=None, indexOption=None, executeOption=None):
+    """
+    Ensure all menu levels are loaded into memory.
+    
+    Args:
+        menuOption (str): Menu option for level 0
+        indexOption (str): Index option for level 1
+        executeOption (str): Execute option for level 2
+    
+    Returns:
+        None
+    """
     try:
         if len(m0.menuDict.keys()) == 0:
             m0.renderForMenu(asList=True)
@@ -506,6 +632,15 @@ def ensureMenusLoaded(menuOption=None,indexOption=None,executeOption=None):
         default_logger().debug(f"Error loading menus: {e}")
 
 def initExecution(menuOption=None):
+    """
+    Initialize menu execution and get user's top-level menu selection.
+    
+    Args:
+        menuOption (str): Pre-selected menu option
+    
+    Returns:
+        menus: Selected menu item object
+    """
     global selectedChoice, userPassedArgs
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     if (userPassedArgs is not None and userPassedArgs.pipedmenus is not None):
@@ -560,10 +695,20 @@ def initExecution(menuOption=None):
     showOptionErrorMessage()
     return initExecution()
 
-
-def initPostLevel0Execution(
-    menuOption=None, indexOption=None, executeOption=None, skip=[], retrial=False
-):
+def initPostLevel0Execution(menuOption=None, indexOption=None, executeOption=None, skip=[], retrial=False):
+    """
+    Initialize post level-0 menu execution (level 1 menu selection).
+    
+    Args:
+        menuOption (str): Menu option for level 0
+        indexOption (str): Index option (can be modified)
+        executeOption (str): Execute option
+        skip (list): Options to skip in menu
+        retrial (bool): Whether this is a retry attempt
+    
+    Returns:
+        tuple: (indexOption, executeOption)
+    """
     global newlyListedOnly, selectedChoice, userPassedArgs
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     if menuOption is None:
@@ -572,7 +717,7 @@ def initPostLevel0Execution(
     OutputControls().printOutput(
         colorText.FAIL
         + "  [+] You chose: "
-        + level0MenuDict[menuOption].strip() 
+        + level0MenuDict[menuOption].strip()
         + (f" (Piped Scan Mode) [{userPassedArgs.pipedmenus}]" if (userPassedArgs is not None and userPassedArgs.pipedmenus is not None) else "")
         + colorText.END
     )
@@ -634,8 +779,19 @@ def initPostLevel0Execution(
                 )
     return indexOption, executeOption
 
-
 def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=False):
+    """
+    Initialize post level-1 menu execution (level 2 menu selection).
+    
+    Args:
+        indexOption (str): Index option from level 1
+        executeOption (str): Execute option (can be modified)
+        skip (list): Options to skip in menu
+        retrial (bool): Whether this is a retry attempt
+    
+    Returns:
+        tuple: (indexOption, executeOption)
+    """
     global selectedChoice, userPassedArgs, listStockCodes
     listStockCodes = [] if listStockCodes is None or len(listStockCodes) == 0 else listStockCodes
     if executeOption is None:
@@ -714,6 +870,21 @@ def initPostLevel1Execution(indexOption, executeOption=None, skip=[], retrial=Fa
     return indexOption, executeOption
 
 def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio, executeOption, reversalOption, menuOption):
+    """
+    Label data for printing with appropriate formatting.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        configManager: Configuration manager
+        volumeRatio (float): Volume ratio for formatting
+        executeOption (int): Execute option number
+        reversalOption (str): Reversal option
+        menuOption (str): Menu option
+    
+    Returns:
+        tuple: (screenResults, saveResults) with labeled data
+    """
     """Label data for printing - delegates to ResultsLabeler module"""
     global menuChoiceHierarchy, userPassedArgs
     return label_data_for_printing_impl(
@@ -729,10 +900,22 @@ def labelDataForPrinting(screenResults, saveResults, configManager, volumeRatio,
     )
 
 def isInterrupted():
+    """
+    Check if keyboard interrupt has been triggered.
+    
+    Returns:
+        bool: True if interrupt has been fired, False otherwise
+    """
     global keyboardInterruptEventFired
     return keyboardInterruptEventFired
 
 def resetUserMenuChoiceOptions():
+    """
+    Reset user menu choice options and global state variables.
+    
+    Returns:
+        None
+    """
     global menuChoiceHierarchy, userPassedArgs, media_group_dict
     media_group_dict = {}
     menuChoiceHierarchy = ""
@@ -740,6 +923,15 @@ def resetUserMenuChoiceOptions():
 
 @Halo(text='', spinner='dots')
 def refreshStockData(startupoptions=None):
+    """
+    Refresh stock data by loading from database or fetching from source.
+    
+    Args:
+        startupoptions (str): Startup options string
+    
+    Returns:
+        None
+    """
     global consumers,stockDictPrimary, loadedStockData, listStockCodes, stockDictSecondary, menuChoiceHierarchy
     menuChoiceHierarchy = ""
     options = startupoptions.replace("|","").split(" ")[0].replace(":i","")
@@ -760,11 +952,27 @@ def refreshStockData(startupoptions=None):
     PKScanRunner.refreshDatabase(consumers,stockDictPrimary,stockDictSecondary)
 
 def closeWorkersAndExit():
+    """
+    Terminate all worker processes and exit gracefully.
+    
+    Returns:
+        None
+    """
     global consumers, tasks_queue,userPassedArgs
     if consumers is not None:
         PKScanRunner.terminateAllWorkers(userPassedArgs=userPassedArgs,consumers=consumers, tasks_queue=tasks_queue, testing=userPassedArgs.testbuild)
 
 def normalize_datetime_index(data, target_tz='Asia/Kolkata'):
+    """
+    Normalize DataFrame index to handle mixed timezone-aware/naive values.
+    
+    Args:
+        data (DataFrame): DataFrame with datetime index
+        target_tz (str): Target timezone (default: 'Asia/Kolkata')
+    
+    Returns:
+        DataFrame: DataFrame with normalized datetime index
+    """
     """Normalize DataFrame index to handle mixed timezone-aware/naive values."""
     if data is None or data.empty:
         return data
@@ -780,7 +988,20 @@ def normalize_datetime_index(data, target_tz='Asia/Kolkata'):
     
     return data
 
-def main(userArgs=None,optionalFinalOutcome_df=None):
+def main(userArgs=None, optionalFinalOutcome_df=None):
+    """
+    Main entry point for the PKScreener application.
+    
+    This function orchestrates the entire screening process including menu navigation,
+    data loading, scanning, backtesting, and result presentation.
+    
+    Args:
+        userArgs: User provided command line arguments
+        optionalFinalOutcome_df (DataFrame, optional): Optional final outcome DataFrame
+    
+    Returns:
+        tuple: (screenResults, saveResults) or (optionalFinalOutcome_df, saveResults) for analysis mode
+    """
     global lastScanOutputStockCodes,scanCycleRunning,runCleanUp,test_messages_queue,show_saved_diff_results, criteria_dateTime, analysis_dict, mp_manager, listStockCodes, screenResults, selectedChoice, defaultAnswer, menuChoiceHierarchy, screenCounter, screenResultsCounter, stockDictPrimary, stockDictSecondary, userPassedArgs, loadedStockData, keyboardInterruptEvent, loadCount, maLength, newlyListedOnly, keyboardInterruptEventFired,strategyFilter, elapsed_time, start_time
     selectedChoice = {"0": "", "1": "", "2": "", "3": "", "4": ""}
     elapsed_time = 0 if not scanCycleRunning else elapsed_time
@@ -1022,14 +1243,16 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         else:
             listStockCodes = ",".join(list(screenResults.index))
     if executeOption == 26:
-        dividend_df, bonus_df, stockSplit_df = mstarFetcher.getCorporateActions()
+        mFetcher = morningstarDataFetcher()
+        dividend_df, bonus_df, stockSplit_df = mFetcher.getCorporateActions()
         ca_dfs = [dividend_df, bonus_df, stockSplit_df]
         listStockCodes = []
         for df in ca_dfs:
-            df = df[
-                df["Stock"].astype(str).str.contains("BSE:") == False
-            ]
-            listStockCodes.extend(list(df["Stock"]))
+            if df is not None and not df.empty:
+                df = df[
+                    df["Stock"].astype(str).str.contains("BSE:") == False
+                ]
+                listStockCodes.extend(list(df["Stock"]))
     if executeOption == 29 and not PKDateUtilities.isTradingTime():
         message = "\n[👉🏻] Bid/Ask build up report can only be generated during trading hours."
         OutputControls().printOutput(
@@ -1145,7 +1368,6 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     PKAnalyticsService().send_event("app_exit")
                     sys.exit(0)
             elif indexOption == "N":
-                import pandas as pd
                 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
                 # import tensorflow as tf
                 # tf.get_logger().setLevel('ERROR')
@@ -1278,7 +1500,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
         missingStocks = set(listStockCodes) - set([ x.replace("-BE","").replace("-BZ","") for x in savedOrDownloadedKeys ])
         # print(missingStocks)
         # default_logger().debug(missingStocks)
-        OutputControls().printOutput(f"{colorText.GREEN}  [+] Adding {len(savedOrDownloadedKeys)-len(missingStocks)} stocks out of {len(savedOrDownloadedKeys)} to the queue...{colorText.END}")
+        OutputControls().printOutput(f"{colorText.GREEN}  [+] Adding {len(savedOrDownloadedKeys)+1-len(missingStocks)} stocks out of {len(savedOrDownloadedKeys)} to the queue...{colorText.END}")
         listStockCodes = list(set(savedOrDownloadedKeys)-set(missingStocks)) if not downloadOnly else savedOrDownloadedKeys
         if downloadOnly:
             OutputControls().printOutput(
@@ -1353,7 +1575,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
             if menuOption in ["C"]:
                 runOptionName = PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)
                 if ((":0:" in runOptionName or "_0_" in runOptionName) and userPassedArgs.progressstatus is not None) or userPassedArgs.progressstatus is not None:
-                    runOptionName = userPassedArgs.progressstatus.split("=>")[0].split("  [+] ")[1]
+                    runOptionName = userPassedArgs.progressstatus.split("=>")[0].split("  [+] ")[1].strip()
                 if saveResults is not None and not saveResults.empty:
                     saveResults, screenResults = PKMarketOpenCloseAnalyser.runOpenCloseAnalysis(stockDictPrimary,endOfdayCandles,screenResults, saveResults,runOptionName=runOptionName,filteredListOfStocks=listStockCodes)
             if downloadOnly and menuOption in ["X"]:
@@ -1408,9 +1630,9 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     removedUnusedColumns(screenResults, saveResults, ["Date"],userArgs=userPassedArgs)
                     screen_copy = screenResults.copy()
                     screen_copy.reset_index(inplace=True)
-                    dividend_df = pd.merge(screen_copy, dividend_df, on='Stock')
-                    bonus_df = pd.merge(screen_copy, bonus_df, on='Stock')
-                    stockSplit_df = pd.merge(screen_copy, stockSplit_df, on='Stock')
+                    dividend_df = pd.merge(screen_copy, dividend_df, on='Stock') if dividend_df is not None and not dividend_df.empty else None
+                    bonus_df = pd.merge(screen_copy, bonus_df, on='Stock') if bonus_df is not None and not bonus_df.empty else None
+                    stockSplit_df = pd.merge(screen_copy, stockSplit_df, on='Stock') if stockSplit_df is not None and not stockSplit_df.empty else None 
                     corp_dfs = [dividend_df, bonus_df, stockSplit_df]
                     shareable_strings = []
                     shouldSend = False
@@ -1418,7 +1640,7 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                     caption_df = None
                     caption_results = ""
                     for corp_df in corp_dfs:
-                        if corp_df is None:
+                        if corp_df is None or corp_df.empty:
                             continue
                         tab_results = ""
                         if corp_df is not None and not corp_df.empty:
@@ -1461,14 +1683,14 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
                         sendQuickScanResult(
                             menuChoiceHierarchy,
                             user,
-                            shareable_strings[0],
+                            shareable_strings[0] if len(shareable_strings) > 0 else "",
                             ImageUtility.PKImageTools.removeAllColorStyles(shareable_strings[0]),
                             caption,
                             png_file,
                             png_ext,
-                            addendum=shareable_strings[1],
+                            addendum=shareable_strings[1] if len(shareable_strings) > 1 else "",
                             addendumLabel="NSE Stocks giving bonus:",
-                            backtestSummary=shareable_strings[2],
+                            backtestSummary=shareable_strings[2] if len(shareable_strings) > 2 else "",
                             backtestDetail="",
                             summaryLabel = "NSE Stocks with corporate action type stock split:",
                             detailLabel = None,
@@ -1668,8 +1890,8 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
     if userPassedArgs is not None:
         existingTitle = f"{userPassedArgs.pipedtitle}|" if userPassedArgs.pipedtitle is not None else ""
         choiceSegments = menuChoiceHierarchy.split(">")
-        choiceSegments = f"{choiceSegments[-2]} > {choiceSegments[-1]}" if len(choiceSegments)>=4 else f"{choiceSegments[-1]}"
-        userPassedArgs.pipedtitle = f'{existingTitle}{choiceSegments}[{len(saveResults)}]'
+        choiceSegments = f"{choiceSegments[-2]} > {choiceSegments[-1]}" if len(choiceSegments)>=4 else f"{str(choiceSegments[-1]).strip()}"
+        userPassedArgs.pipedtitle = f'{existingTitle.strip()}{choiceSegments.strip()}[{len(saveResults)}]'
         if userPassedArgs.runintradayanalysis:
             return analysisFinalResults(screenResults,saveResults,optionalFinalOutcome_df,runOptionName)
         else:
@@ -1677,10 +1899,25 @@ def main(userArgs=None,optionalFinalOutcome_df=None):
 
 @Halo(text='', spinner='dots')
 def getPerformanceStats():
+    """
+    Fetch performance statistics from Morningstar.
+    
+    Returns:
+        DataFrame: Performance statistics data
+    """
     return mstarFetcher.fetchMorningstarStocksPerformanceForExchange()
 
 @Halo(text='', spinner='dots')
 def getMFIStats(popOption):
+    """
+    Get MFI (Money Flow Index) statistics from Morningstar.
+    
+    Args:
+        popOption (int): Option number (1,2,4 for different types)
+    
+    Returns:
+        DataFrame: MFI statistics data
+    """
     if popOption == 4:
         screenResults = mstarFetcher.fetchMorningstarTopDividendsYieldStocks()
     elif popOption in [1,2]:
@@ -1690,7 +1927,19 @@ def getMFIStats(popOption):
     return screenResults
 
 @Halo(text='', spinner='dots')
-def analysisFinalResults(screenResults,saveResults,optionalFinalOutcome_df,runOptionName=None):
+def analysisFinalResults(screenResults, saveResults, optionalFinalOutcome_df, runOptionName=None):
+    """
+    Prepare final analysis results for intraday analysis mode.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        optionalFinalOutcome_df (DataFrame, optional): Optional final outcome DataFrame
+        runOptionName (str, optional): Name of the run option
+    
+    Returns:
+        tuple: (optionalFinalOutcome_df, saveResults)
+    """
     global analysis_dict, userPassedArgs
     if screenResults is not None:
         analysis_df = screenResults.copy()
@@ -1729,6 +1978,12 @@ def analysisFinalResults(screenResults,saveResults,optionalFinalOutcome_df,runOp
 
 @exit_after(10)
 def tryLoadDataOnBackgroundThread():
+    """
+    Attempt to load stock data in a background thread (with timeout).
+    
+    Returns:
+        None
+    """
     global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
     if stockDictPrimary is None:
         stockDictPrimary = {}
@@ -1741,15 +1996,19 @@ def tryLoadDataOnBackgroundThread():
         listStockCodes = fetcher.fetchStockCodes(int(configManager.defaultIndex), stockCode=None)
     loadDatabaseOrFetch(downloadOnly=True,listStockCodes=listStockCodes,menuOption="X",indexOption=int(configManager.defaultIndex))            
 
-def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption): 
-    # #region agent log
-    # import json
-    # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-    # try:
-    #     with open(log_path, 'a') as f:
-    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1712","message":"loadDatabaseOrFetch entry","data":{"menuOption":menuOption,"listStockCodes_len":len(listStockCodes) if listStockCodes else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    # except: pass
-    # #endregion
+def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption):
+    """
+    Load stock data from cache or fetch from source.
+    
+    Args:
+        downloadOnly (bool): Whether only downloading data
+        listStockCodes (list): List of stock codes to load
+        menuOption (str): Menu option
+        indexOption (str): Index option
+    
+    Returns:
+        tuple: (stockDictPrimary, stockDictSecondary)
+    """
     global stockDictPrimary,stockDictSecondary, configManager, defaultAnswer, userPassedArgs, loadedStockData
     if menuOption not in ["C"]:
         stockDictPrimary = AssetsManager.PKAssetsManager.loadStockData(
@@ -1796,18 +2055,19 @@ def loadDatabaseOrFetch(downloadOnly, listStockCodes, menuOption, indexOption):
         configManager.period = prevPeriod
         configManager.setConfig(ConfigManager.parser,default=True,showFileCreatedText=False)
     loadedStockData = True
-    # #region agent log
-    # try:
-    #     sample_stock = list(stockDictPrimary.keys())[0] if stockDictPrimary else None
-    #     sample_index = stockDictPrimary[sample_stock]['index'][-1] if sample_stock and stockDictPrimary.get(sample_stock, {}).get('index') else None
-    #     with open(log_path, 'a') as f:
-    #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"globals.py:loadDatabaseOrFetch:1758","message":"loadDatabaseOrFetch exit","data":{"stockDictPrimary_len":len(stockDictPrimary) if stockDictPrimary else 0,"sample_stock":sample_stock,"sample_index_last":str(sample_index) if sample_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    # except: pass
-    # #endregion
     Utility.tools.loadLargeDeals()
     return stockDictPrimary, stockDictSecondary
 
 def getLatestTradeDateTime(stockDictPrimary):
+    """
+    Get the latest trade date and time from stock data.
+    
+    Args:
+        stockDictPrimary (dict): Primary stock data dictionary
+    
+    Returns:
+        tuple: (lastTradeDate, lastTradeTime)
+    """
     stocks = list(stockDictPrimary.keys())
     stock = stocks[0]
     try:
@@ -1827,6 +2087,16 @@ def getLatestTradeDateTime(stockDictPrimary):
     return lastTradeDate, lastTradeTime
 
 def FinishBacktestDataCleanup(backtest_df, df_xray):
+    """
+    Finish backtest data cleanup process.
+    
+    Args:
+        backtest_df (DataFrame): Backtest results DataFrame
+        df_xray (DataFrame): X-ray DataFrame
+    
+    Returns:
+        tuple: (summary_df, sorting, sortKeys)
+    """
     """Finish backtest data cleanup - delegates to BacktestUtils module"""
     global defaultAnswer
     return finish_backtest_data_cleanup_impl(
@@ -1839,12 +2109,22 @@ def FinishBacktestDataCleanup(backtest_df, df_xray):
     )
 
 def addOrRunPipedMenus():
-    global userPassedArgs
+    """
+    Add or run piped (chained) menu scans.
+    
+    Returns:
+        tuple: (None, None) or runs piped scans
+    """
+    global userPassedArgs, menuChoiceHierarchy
     # User must have selected menu "P" earlier
     savedPipes = f"{userPassedArgs.pipedmenus}:>|" if len(userPassedArgs.pipedmenus) > 0 else ""
     userPassedArgs.pipedmenus = f"{savedPipes}{userPassedArgs.options}:D:D:D:"
-    userPassedArgs.pipedmenus = userPassedArgs.pipedmenus.replace("::",":D:")
+    userPassedArgs.pipedmenus = userPassedArgs.pipedmenus.replace("::", ":D:")
     userPassedArgs.pipedmenus = f"{userPassedArgs.pipedmenus}{('i '+configManager.duration) if configManager.isIntradayConfig() else ''}"
+    
+    # Reset piped results counts for new piped scan
+    userPassedArgs.piped_results_counts = []
+    
     updateMenuChoiceHierarchy()
     OutputControls().printOutput(
             colorText.GREEN
@@ -1864,12 +2144,12 @@ def addOrRunPipedMenus():
         shouldRunIntradayAnalysis = shouldRunIntradayAnalysis.lower() == 'y'
         if shouldRunIntradayAnalysis:
             analysisOptions = userPassedArgs.pipedmenus.split("|")
-            analysisOptions[-1] = analysisOptions[-1].replace("X:","C:")
+            analysisOptions[-1] = analysisOptions[-1].replace("X:", "C:")
             userPassedArgs.pipedmenus = "|".join(analysisOptions)
         launcher = f'"{sys.argv[0]}"' if " " in sys.argv[0] else sys.argv[0]
         launcher = f"python3.12 {launcher}" if (launcher.endswith(".py\"") or launcher.endswith(".py")) else launcher
         monitorOption = f'"{userPassedArgs.pipedmenus}"'
-        scannerOptionQuoted = monitorOption.replace("'",'"').replace(":>",":D:D:D:>").replace("::",":")
+        scannerOptionQuoted = monitorOption.replace("'", '"').replace(":>", ":D:D:D:>").replace("::", ":")
         requestingUser = f" -u {userPassedArgs.user}" if userPassedArgs.user is not None else ""
         enableLog = f" -l" if userPassedArgs.log else ""
         enableTelegramMode = f" --telegram" if userPassedArgs is not None and userPassedArgs.telegram else ""
@@ -1880,7 +2160,43 @@ def addOrRunPipedMenus():
         fnameParam = f" --fname {resultsContentsEncoded}" if resultsContentsEncoded else ""
         OutputControls().printOutput(f"{colorText.GREEN}Launching PKScreener with piped scanners. If it does not launch, please try with the following:{colorText.END}\n{colorText.FAIL}{launcher} -a Y -e -o {scannerOptionQuoted}{requestingUser}{enableLog}{backtestParam}{runIntradayAnalysisParam}{enableTelegramMode}{stockListParam}{slicewindowParam}{fnameParam}{colorText.END}")
         sleep(2)
-        os.system(f"{launcher} --systemlaunched -a Y -e -o {scannerOptionQuoted}{requestingUser}{enableLog}{backtestParam}{runIntradayAnalysisParam}{enableTelegramMode}{stockListParam}{slicewindowParam}{fnameParam}")
+        
+        # Capture the output of the piped scan to get the final counts
+        import subprocess
+        result = subprocess.run(
+            f"{launcher} --systemlaunched -a Y -e -o {scannerOptionQuoted}{requestingUser}{enableLog}{backtestParam}{runIntradayAnalysisParam}{enableTelegramMode}{stockListParam}{slicewindowParam}{fnameParam}",
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        
+        # Parse the output to get the final counts for each piped component
+        # The output lines show: "Found X results" or similar
+        output_lines = result.stdout.split('\n')
+        
+        # Extract counts from the output
+        import re
+        found_counts = []
+        for line in output_lines:
+            # Look for patterns like "Found 58 results" or "[+] Found 58 stocks"
+            match = re.search(r'Found\s+(\d+)\s+(?:results?|stocks?)', line, re.IGNORECASE)
+            if match:
+                found_counts.append(int(match.group(1)))
+        
+        # Store the counts for each piped component
+        # The counts should be in the order of execution
+        if found_counts:
+            userPassedArgs.piped_results_counts = found_counts
+            # Update the hierarchy with the final counts
+            updateMenuChoiceHierarchy()
+        
+        # Print the final results summary
+        OutputControls().printOutput(
+            colorText.GREEN
+            + f"  [+] Pipe Results Found: {menuChoiceHierarchy}"
+            + colorText.END
+        )
+        
         userPassedArgs.pipedmenus = None
         OutputControls().printOutput(
                 colorText.GREEN
@@ -1889,13 +2205,19 @@ def addOrRunPipedMenus():
             )
         if defaultAnswer is None:
             OutputControls().takeUserInput("Press <Enter> to continue...")
-        ConsoleUtility.PKConsoleTools.clearScreen(clearAlways=True,forceTop=True)
+        ConsoleUtility.PKConsoleTools.clearScreen(clearAlways=True, forceTop=True)
         return None, None
     else:
         userPassedArgs.options = None
         return None, None
 
 def describeUser():
+    """
+    Collect and send user analytics data (if enabled).
+    
+    Returns:
+        None
+    """
     if not configManager.enableUsageAnalytics:
         return
     service = PKAnalyticsService()
@@ -1913,6 +2235,16 @@ def describeUser():
 
 @Halo(text='', spinner='dots')
 def prepareGroupedXRay(backtestPeriod, backtest_df):
+    """
+    Prepare grouped X-Ray analysis from backtest data.
+    
+    Args:
+        backtestPeriod (int): Backtest period in days
+        backtest_df (DataFrame): Backtest results DataFrame
+    
+    Returns:
+        DataFrame: Grouped X-Ray results
+    """
     """Prepare grouped X-Ray - delegates to BacktestUtils module"""
     global userPassedArgs
     return prepare_grouped_xray_impl(
@@ -1923,6 +2255,17 @@ def prepareGroupedXRay(backtestPeriod, backtest_df):
     )
 
 def showSortedBacktestData(backtest_df, summary_df, sortKeys):
+    """
+    Show sorted backtest data with user interaction for sorting.
+    
+    Args:
+        backtest_df (DataFrame): Backtest results DataFrame
+        summary_df (DataFrame): Summary DataFrame
+        sortKeys (list): Keys to sort by
+    
+    Returns:
+        bool: Whether to continue sorting
+    """
     """Show sorted backtest data - delegates to BacktestUtils module"""
     global defaultAnswer
     return show_sorted_backtest_data_impl(
@@ -1934,6 +2277,15 @@ def showSortedBacktestData(backtest_df, summary_df, sortKeys):
     )
 
 def resetConfigToDefault(force=False):
+    """
+    Reset configuration to default values.
+    
+    Args:
+        force (bool): Whether to force reset even with logs enabled
+    
+    Returns:
+        None
+    """
     global userPassedArgs
     # isIntraday = userPassedArgs is not None and userPassedArgs.intraday is not None
     # if configManager.isIntradayConfig() or isIntraday:
@@ -1948,6 +2300,18 @@ def resetConfigToDefault(force=False):
     configManager.setConfig(ConfigManager.parser,default=True,showFileCreatedText=False)
 
 def prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption):
+    """
+    Prepare list of stock codes for screening based on index option.
+    
+    Args:
+        testing (bool): Whether in testing mode
+        downloadOnly (bool): Whether only downloading data
+        listStockCodes (list): Existing list of stock codes
+        indexOption (int): Index option number
+    
+    Returns:
+        list: Prepared list of stock codes
+    """
     if not downloadOnly:
         updateMenuChoiceHierarchy()
     indexOption = int(indexOption)
@@ -1990,6 +2354,12 @@ def prepareStocksForScreening(testing, downloadOnly, listStockCodes, indexOption
     return listStockCodes
 
 def handleMonitorFiveEMA():
+    """
+    Monitor 5-period Exponential Moving Average in real-time.
+    
+    Returns:
+        None (runs in infinite loop until interrupted)
+    """
     result_df = pd.DataFrame(
                     columns=["Time", "Stock/Index", "Action", "SL", "Target", "R:R"]
                 )
@@ -2050,6 +2420,16 @@ def handleMonitorFiveEMA():
         return
 
 def handleRequestForSpecificStocks(options, indexOption):
+    """
+    Handle requests for specific stock codes from command line options.
+    
+    Args:
+        options (list): Command line options
+        indexOption (int): Index option
+    
+    Returns:
+        list: List of specific stock codes
+    """
     global listStockCodes
     listStockCodes = [] if listStockCodes is None or len(listStockCodes) ==0 else listStockCodes
     strOptions = ""
@@ -2069,6 +2449,15 @@ def handleRequestForSpecificStocks(options, indexOption):
     return listStockCodes
 
 def handleExitRequest(executeOption):
+    """
+    Handle exit request from user.
+    
+    Args:
+        executeOption (str): Execute option
+    
+    Returns:
+        None
+    """
     if executeOption == "Z":
         OutputControls().takeUserInput(
             colorText.FAIL
@@ -2079,6 +2468,17 @@ def handleExitRequest(executeOption):
         sys.exit(0)
 
 def handleMenu_XBG(menuOption, indexOption, executeOption):
+    """
+    Handle rendering of X, B, G menu options.
+    
+    Args:
+        menuOption (str): Menu option
+        indexOption (str): Index option
+        executeOption (str): Execute option
+    
+    Returns:
+        None
+    """
     if menuOption in ["X", "B", "G", "C"]:
         selMenu = m0.find(menuOption)
         m1.renderForMenu(selMenu, asList=True)
@@ -2089,24 +2489,213 @@ def handleMenu_XBG(menuOption, indexOption, executeOption):
                 selMenu = m2.find(executeOption)
                 m3.renderForMenu(selMenu, asList=True)
 
-
 def updateMenuChoiceHierarchy():
-    """Update menu choice hierarchy - delegates to MenuNavigation module"""
+    """
+    Update the menu choice hierarchy string for display.
+    
+    Returns:
+        str: Updated menu choice hierarchy
+    """
+    """Update menu choice hierarchy - handles both single and piped scans with actual scan names"""
     global userPassedArgs, selectedChoice, menuChoiceHierarchy, nValueForMenu
-    menuChoiceHierarchy = update_menu_choice_hierarchy_impl(
-        userPassedArgs, selectedChoice, configManager, nValueForMenu,
-        level0MenuDict, level1_X_MenuDict, level1_P_MenuDict,
-        level2_X_MenuDict, level2_P_MenuDict,
-        level3_X_Reversal_MenuDict, level3_X_ChartPattern_MenuDict,
-        level3_X_PopularStocks_MenuDict, level3_X_PotentialProfitable_MenuDict,
-        level4_X_Lorenzian_MenuDict, level4_X_ChartPattern_Confluence_MenuDict,
-        level4_X_ChartPattern_BBands_SQZ_MenuDict, level4_X_ChartPattern_MASignalMenuDict,
-        PRICE_CROSS_SMA_EMA_DIRECTION_MENUDICT, PRICE_CROSS_SMA_EMA_TYPE_MENUDICT,
-        PRICE_CROSS_PIVOT_POINT_TYPE_MENUDICT, CANDLESTICK_DICT
-    )
+    
+    # Add count if we have results for single scan
+    if hasattr(userPassedArgs, 'last_result_count') and userPassedArgs.last_result_count:
+        menuChoiceHierarchy = f"{menuChoiceHierarchy.strip()}[{userPassedArgs.last_result_count}]"
+    
+    # Check if this is a piped scan (contains "|")
+    if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+        # Parse the piped scan options
+        piped_parts = userPassedArgs.options.split("|")
+        
+        # Store the mapping of part to scan name and scan key
+        part_info = []  # List of (scan_key, scan_name)
+        
+        for part in piped_parts:
+            part = part.strip()
+            if not part:
+                continue
+                
+            part_options = part.split(":")
+            
+            if len(part_options) >= 3:
+                scan_key = part_options[2]
+                scan_name = level2_X_MenuDict.get(scan_key, f"Option {scan_key}")
+                clean_name = scan_name.split('(')[0].strip()
+                part_info.append((scan_key, clean_name))
+        
+        # Get unique scan names (preserving order, first occurrence wins)
+        unique_scans = []
+        for scan_key, scan_name in part_info:
+            if scan_name not in [s[1] for s in unique_scans]:
+                unique_scans.append((scan_key, scan_name))
+        if not hasattr(userPassedArgs, 'all_scans'):
+            userPassedArgs.all_scans = unique_scans
+        # Build the hierarchy with counts if available
+        if hasattr(userPassedArgs, 'piped_results_counts') and userPassedArgs.piped_results_counts:
+            # The counts array may have more entries than unique scans
+            # We need to take the LAST count for each unique scan name
+            # Create a mapping from scan_name to its final count
+            final_counts = {}
+            
+            # Iterate through part_info (which includes duplicates) and their corresponding counts
+            for i, (scan_key, scan_name) in enumerate(part_info):
+                if i < len(userPassedArgs.piped_results_counts):
+                    # Always update with the latest count for this scan name
+                    final_counts[scan_name] = userPassedArgs.piped_results_counts[i]
+            
+            # Build the final hierarchy with unique scans and their final counts
+            hierarchy_parts = []
+            for scan_key, scan_name in unique_scans:
+                if scan_name in final_counts:
+                    count = final_counts[scan_name]
+                    hierarchy_parts.append(f"{scan_name.strip()}[{count}]")
+                else:
+                    hierarchy_parts.append(scan_name.strip())
+            
+            menuChoiceHierarchy = "|".join(hierarchy_parts)
+        else:
+            # No counts yet, just show the scan names
+            menuChoiceHierarchy = str(part_info[0][1]).strip()
+
+        # Add the index/sector info if present
+        if selectedChoice.get("1") and selectedChoice["1"] not in ["", "0"]:
+            level1_key = str(selectedChoice["1"])
+            if level1_key in INDICES_MAP and len(part_info) == len(userPassedArgs.all_scans):
+                menuChoiceHierarchy = f"{INDICES_MAP[level1_key].strip()}: {menuChoiceHierarchy.strip()}"
+            elif level1_key in level1_X_MenuDict:
+                level1_text = level1_X_MenuDict[level1_key] #.split('(')[0].strip()
+                menuChoiceHierarchy = f"{menuChoiceHierarchy.strip()} for {level1_text}"
+        
+    else:
+        # Original single-scan hierarchy building (keep as is)
+        hierarchy_parts = []
+        
+        # Level 0 - Top level menu
+        if selectedChoice.get("0") and selectedChoice["0"] not in ["", "0"]:
+            level0_text = level0MenuDict.get(selectedChoice["0"], selectedChoice["0"])
+            level0_text = level0_text.strip() #.split('(')[0].strip()
+            hierarchy_parts.append(level0_text)
+        
+        # Level 1 - Index/Sector selection
+        if selectedChoice.get("1") and selectedChoice["1"] not in ["", "0"]:
+            level1_key = str(selectedChoice["1"])
+            if level1_key in level1_X_MenuDict:
+                level1_text = level1_X_MenuDict[level1_key]
+            elif level1_key in INDICES_MAP:
+                level1_text = INDICES_MAP[level1_key]
+            else:
+                level1_text = level1_X_MenuDict.get(level1_key, level1_key)
+            level1_text = level1_text.strip() #.split('(')[0].strip()
+            hierarchy_parts.append(level1_text)
+        
+        # Level 2 - Scan type
+        if selectedChoice.get("2") and selectedChoice["2"] not in ["", "0"]:
+            level2_key = str(selectedChoice["2"])
+            if level2_key in level2_X_MenuDict:
+                level2_text = level2_X_MenuDict[level2_key]
+                level2_text = level2_text.strip() #.split('(')[0].strip()
+                hierarchy_parts.append(level2_text)
+            elif hasattr(m2, 'menuDict') and level2_key in m2.menuDict:
+                level2_text = m2.menuDict[level2_key].menuText
+                level2_text = level2_text.strip() #.split('(')[0].strip()
+                hierarchy_parts.append(level2_text)
+        
+        # Level 3 - Sub-option (if exists)
+        if selectedChoice.get("3") and selectedChoice["3"] not in ["", "0"]:
+            level3_key = str(selectedChoice["3"])
+            level2_key = str(selectedChoice.get("2", ""))
+            
+            level3_text = None
+            if level2_key == "6":  # Reversal Signals
+                if hasattr(sys.modules[__name__], 'level3_X_Reversal_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level3_X_Reversal_MenuDict
+                    if level3_key in level3_X_Reversal_MenuDict:
+                        level3_text = level3_X_Reversal_MenuDict[level3_key]
+            elif level2_key == "7":  # Chart Patterns
+                if hasattr(sys.modules[__name__], 'level3_X_ChartPattern_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level3_X_ChartPattern_MenuDict
+                    if level3_key in level3_X_ChartPattern_MenuDict:
+                        level3_text = level3_X_ChartPattern_MenuDict[level3_key]
+            elif level2_key == "21":  # Popular Stocks
+                if hasattr(sys.modules[__name__], 'level3_X_PopularStocks_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level3_X_PopularStocks_MenuDict
+                    if level3_key in level3_X_PopularStocks_MenuDict:
+                        level3_text = level3_X_PopularStocks_MenuDict[level3_key]
+            elif level2_key == "33":  # Potential Profitable
+                if hasattr(sys.modules[__name__], 'level3_X_PotentialProfitable_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level3_X_PotentialProfitable_MenuDict
+                    if level3_key in level3_X_PotentialProfitable_MenuDict:
+                        level3_text = level3_X_PotentialProfitable_MenuDict[level3_key]
+            elif level2_key in ["30", "32"]:  # Lorenzian
+                if hasattr(sys.modules[__name__], 'level4_X_Lorenzian_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level4_X_Lorenzian_MenuDict
+                    if level3_key in level4_X_Lorenzian_MenuDict:
+                        level3_text = level4_X_Lorenzian_MenuDict[level3_key]
+            
+            if level3_text:
+                level3_text = level3_text.strip() #.split('(')[0].strip()
+                hierarchy_parts.append(level3_text)
+        
+        # Level 4 - Further sub-option (if exists)
+        if selectedChoice.get("4") and selectedChoice["4"] not in ["", "0"]:
+            level4_key = str(selectedChoice["4"])
+            level2_key = str(selectedChoice.get("2", ""))
+            level3_key = str(selectedChoice.get("3", ""))
+            
+            level4_text = None
+            if level2_key == "7" and level3_key == "3":  # Confluence
+                if hasattr(sys.modules[__name__], 'level4_X_ChartPattern_Confluence_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level4_X_ChartPattern_Confluence_MenuDict
+                    if level4_key in level4_X_ChartPattern_Confluence_MenuDict:
+                        level4_text = level4_X_ChartPattern_Confluence_MenuDict[level4_key]
+            elif level2_key == "7" and level3_key == "6":  # Bollinger Bands Squeeze
+                if hasattr(sys.modules[__name__], 'level4_X_ChartPattern_BBands_SQZ_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level4_X_ChartPattern_BBands_SQZ_MenuDict
+                    if level4_key in level4_X_ChartPattern_BBands_SQZ_MenuDict:
+                        level4_text = level4_X_ChartPattern_BBands_SQZ_MenuDict[level4_key]
+            elif level2_key == "7" and level3_key == "9":  # MA Signals
+                if hasattr(sys.modules[__name__], 'level4_X_ChartPattern_MASignalMenuDict'):
+                    from pkscreener.classes.MenuOptions import level4_X_ChartPattern_MASignalMenuDict
+                    if level4_key in level4_X_ChartPattern_MASignalMenuDict:
+                        level4_text = level4_X_ChartPattern_MASignalMenuDict[level4_key]
+            elif level2_key == "6" and level3_key in ["7", "10"]:  # Lorenzian under Reversal
+                if hasattr(sys.modules[__name__], 'level4_X_Lorenzian_MenuDict'):
+                    from pkscreener.classes.MenuOptions import level4_X_Lorenzian_MenuDict
+                    if level4_key in level4_X_Lorenzian_MenuDict:
+                        level4_text = level4_X_Lorenzian_MenuDict[level4_key]
+            
+            if level4_text:
+                level4_text = level4_text.strip() #.split('(')[0].strip()
+                hierarchy_parts.append(level4_text)
+        
+        # Join with " > " separator
+        menuChoiceHierarchy = " > ".join(hierarchy_parts)
+        
+        # Remove any duplicate consecutive parts
+        parts = menuChoiceHierarchy.split(" > ")
+        unique_parts = []
+        for part in parts:
+            if not unique_parts or part != unique_parts[-1]:
+                unique_parts.append(part.strip())
+        menuChoiceHierarchy = " > ".join(unique_parts)
+    
+    # If nValueForMenu is set, append it
+    if nValueForMenu not in [0, None]:
+        menuChoiceHierarchy = f"{menuChoiceHierarchy} [{nValueForMenu}]"
+    
     return menuChoiceHierarchy
 
-def saveScreenResultsEncoded(encodedText:None):
+def saveScreenResultsEncoded(encodedText: None):
+    """
+    Save encoded screen results to a temporary file.
+    
+    Args:
+        encodedText (None): Encoded text (parameter name misleading - actually the text to save)
+    
+    Returns:
+        str: Filename with timestamp encoded
+    """
     import uuid
     uuidFileName = str(uuid.uuid4())
     os.makedirs(os.path.dirname(os.path.join(Archiver.get_user_outputs_dir(),f"DeleteThis{os.sep}")), exist_ok=True)
@@ -2120,6 +2709,15 @@ def saveScreenResultsEncoded(encodedText:None):
     return f'{uuidFileName}~{PKDateUtilities.currentDateTime().strftime("%Y-%m-%d %H:%M:%S.%f%z").replace(" ","~")}'
 
 def readScreenResultsDecoded(fileName=None):
+    """
+    Read and decode saved screen results from a file.
+    
+    Args:
+        fileName (str, optional): Name of the file to read
+    
+    Returns:
+        str: Decoded contents or None if error
+    """
     os.makedirs(os.path.dirname(os.path.join(Archiver.get_user_outputs_dir(),f"DeleteThis{os.sep}")), exist_ok=True)
     toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(),"DeleteThis")
     filePath = os.path.join(toBeDeletedFolder, fileName)
@@ -2131,38 +2729,102 @@ def readScreenResultsDecoded(fileName=None):
         pass
     return contents
 
-def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr,menuOption="X"):
+def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr, menuOption="X"):
+    """
+    Process piped scan results and combine them properly.
+    
+    Args:
+        df_scr (DataFrame): Screen results DataFrame
+        df_sr (DataFrame): Save results DataFrame
+        menuOption (str): Menu option (default: "X")
+    
+    Returns:
+        tuple: (df_scr, df_sr) processed DataFrames
+    """
+    """Process piped scan results and combine them properly"""
     if menuOption not in ["F"] or "ScanOption" not in df_sr.columns:
         return df_scr, df_sr
+    
     df_grouped_sr = df_sr.groupby("Stock")
     df_grouped_scr = df_scr.groupby("Stock")
     signalDictScr = {}
     signalDict = {}
     grp_scr = {}
     grp_sr = {}
-    _,scanDescriptions = menus.allMenus()
+    _, scanDescriptions = menus.allMenus()
+    
+    # Process each stock's results
     for stock_name, df_group in df_grouped_scr:
         items = []
         for item in list(df_group["MA-Signal"]):
-            items.extend(item.replace("'","").replace("\"","").replace(" ","").split(","))
-        maSignalsScr = sorted(list(filter(None,list(set(items)))))
+            items.extend(item.replace("'", "").replace("\"", "").replace(" ", "").split(","))
+        maSignalsScr = sorted(list(filter(None, list(set(items)))))
         stockName = ImageUtility.PKImageTools.stockNameFromDecoratedName(stock_name)
         signalDictScr[stockName] = maSignalsScr
         grp_scr[stockName] = df_group
 
+    # Track piped results counts for the final combination
+    if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+        # Initialize or reset counts
+        userPassedArgs.piped_results_counts = []
+        
+        # Get the number of piped components
+        piped_parts = userPassedArgs.options.split("|")
+        
+        # For each piped component, we'll track the count of stocks that passed
+        component_counts = [0] * len(piped_parts)
+        
+        # Process each stock to determine which components it passed
+        for stock_name, df_group in df_grouped_sr:
+            saveResults = df_group
+            screenResults = grp_scr.get(stock_name, pd.DataFrame())
+            
+            # Extract scan options for this stock
+            items = []
+            for item in list(saveResults["MA-Signal"]):
+                items.extend(item.replace("'", "").replace("\"", "").replace(" ", "").split(","))
+            maSignals = sorted(list(filter(None, list(set(items)))))
+            signalDict[stock_name] = maSignals
+            
+            # Check which piped components this stock passed
+            from pkscreener.classes.MenuOptions import PREDEFINED_PIPED_MENU_OPTIONS
+            predefinedKeys = PREDEFINED_PIPED_MENU_OPTIONS.keys()
+            resultScanOptions = list(saveResults["ScanOption"])
+            
+            for comp_idx, part in enumerate(piped_parts):
+                # Parse the component to get its scan key
+                part_options = part.strip().split(":")
+                if len(part_options) >= 3:
+                    scan_key = part_options[2]
+                    scan_name = level2_X_MenuDict.get(scan_key, "")
+                    
+                    # Check if this stock passed this component
+                    # This logic may need adjustment based on how your results are structured
+                    for scanOption in resultScanOptions:
+                        if scan_key in str(scanOption) or scan_name in str(scanOption):
+                            component_counts[comp_idx] += 1
+                            break
+        
+        # Store the counts for the hierarchy
+        userPassedArgs.piped_results_counts = component_counts
+    
+    # Continue with existing processing to combine results
     for stock_name, df_group in df_grouped_sr:
-        items = []
         grp_sr[stock_name] = df_group
         saveResults = df_group
-        screenResults = grp_scr[stock_name]
+        screenResults = grp_scr.get(stock_name, pd.DataFrame())
+        
+        items = []
         for item in list(saveResults["MA-Signal"]):
-            items.extend(item.replace("'","").replace("\"","").replace(" ","").split(","))
-        maSignals = sorted(list(filter(None,list(set(items)))))
+            items.extend(item.replace("'", "").replace("\"", "").replace(" ", "").split(","))
+        maSignals = sorted(list(filter(None, list(set(items)))))
         signalDict[stock_name] = maSignals
+        
         from pkscreener.classes.MenuOptions import PREDEFINED_PIPED_MENU_OPTIONS
         predefinedKeys = PREDEFINED_PIPED_MENU_OPTIONS.keys()
         matchingKeys = []
         resultScanOptions = list(saveResults["ScanOption"])
+        
         for key in predefinedKeys:
             predefinedScanOptions = PREDEFINED_PIPED_MENU_OPTIONS[key]
             hasMatchingKeyCount = 0
@@ -2181,24 +2843,26 @@ def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr,menuOption="X"):
                         with pd.option_context('mode.chained_assignment', None):
                             saveResults["ScanOption"].iloc[index] = f'{saveResults["ScanOption"].iloc[index]}, {key}'
                             screenResults["ScanOption"].iloc[index] = f'{screenResults["ScanOption"].iloc[index]}, {key}'
-                    except: # pragma: no cover
+                    except:
                         pass
+        
         items = []
         for item in list(screenResults["ScanOption"]):
-            items.extend(item.replace("'","").replace("\"","").replace(" ","").split(","))
-        items = sorted(list(filter(None,list(set(items)))))
+            items.extend(item.replace("'", "").replace("\"", "").replace(" ", "").split(","))
+        items = sorted(list(filter(None, list(set(items)))))
+        
         try:
             with pd.option_context('mode.chained_assignment', None):
                 saveResults["ScanOption"].iloc[0] = "\n".join(items)
                 screenResults["ScanOption"].iloc[0] = "\n".join(items)
                 saveResults["MA-Signal"].iloc[0] = " ,".join(maSignals)
-                screenResults["MA-Signal"].iloc[0] = " ,".join(signalDictScr[stock_name])
+                screenResults["MA-Signal"].iloc[0] = " ,".join(signalDictScr.get(stock_name, []))
                 descs = []
                 for item in items:
                     if item in scanDescriptions.keys():
                         descs.append(scanDescriptions[item])
                     elif str(item).startswith("P"):
-                        descs.append(PREDEFINED_SCAN_MENU_TEXTS[int(str(item).split("_")[-1])-1])
+                        descs.append(PREDEFINED_SCAN_MENU_TEXTS[int(str(item).split("_")[-1]) - 1])
                 screenResults["ScanDescription"] = "\n".join(descs)
                 saveResults["ScanDescription"] = "\n".join(descs)
                 saveResults.reset_index(inplace=True)
@@ -2211,31 +2875,49 @@ def findPipedScannerOptionFromStdScanOptions(df_scr, df_sr,menuOption="X"):
                 # For some reason, last column is not wrapped if it's large
                 columns = ["ScanOption"]
                 indexOfColumn = list(screenResults.columns).index("ScanOption")
-                columns.extend(list(screenResults.columns[:-(len(list(screenResults.columns))-indexOfColumn)]))
-                columns.extend(list(screenResults.columns[-(len(list(screenResults.columns))-indexOfColumn)+1:]))
+                columns.extend(list(screenResults.columns[:-(len(list(screenResults.columns)) - indexOfColumn)]))
+                columns.extend(list(screenResults.columns[-(len(list(screenResults.columns)) - indexOfColumn) + 1:]))
                 screenResults = screenResults[columns]
                 saveResults = saveResults[columns]
                 grp_scr[stock_name] = screenResults
                 grp_sr[stock_name] = saveResults
         except: # pragma: no cover
             pass
+    
     df_scr = pd.concat([x for x in grp_scr.values()], axis=0)
     df_sr = pd.concat([x for x in grp_sr.values()], axis=0)
     return df_scr, df_sr
 
-def printNotifySaveScreenedResults(
-    screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None,executeOption=None,menuOption=None
-):
-    global scanCycleRunning,userPassedArgs, elapsed_time, media_group_dict, saved_screen_results, resultsContentsEncoded,criteria_dateTime
+def printNotifySaveScreenedResults(screenResults, saveResults, selectedChoice, menuChoiceHierarchy, testing, user=None, executeOption=None, menuOption=None):
+    """
+    Print, notify, and save screened results.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        selectedChoice (dict): Selected menu choices
+        menuChoiceHierarchy (str): Hierarchy string for display
+        testing (bool): Whether in testing mode
+        user (str, optional): Telegram user ID
+        executeOption (int, optional): Execute option
+        menuOption (str, optional): Menu option
+    
+    Returns:
+        None
+    """
+    global scanCycleRunning, userPassedArgs, elapsed_time, media_group_dict, saved_screen_results, resultsContentsEncoded, criteria_dateTime
     diff_from_prev_scan = None
     onlyInCurrent_df = None
-    common_df  = None
+    common_df = None
     addedList = []
     printableColumns = []
     lastReportDateTime = "Unknown"
+    
     if userPassedArgs.monitor is not None:
         return
-    screenResults, saveResults = findPipedScannerOptionFromStdScanOptions(screenResults, saveResults,menuOption)
+    
+    screenResults, saveResults = findPipedScannerOptionFromStdScanOptions(screenResults, saveResults, menuOption)
+    
     if userPassedArgs.stocklist is not None and saved_screen_results is not None and show_saved_diff_results:
         diff_from_prev_scan = pd.concat([saved_screen_results, screenResults])
         diff_from_prev_scan = diff_from_prev_scan.reset_index()
@@ -2248,11 +2930,12 @@ def printNotifySaveScreenedResults(
             fnames = resultsContentsEncoded.split("~")
             lastReportDateTime = f"{fnames[1]} {fnames[2]}"
             resultsContentsDecoded = readScreenResultsDecoded(fnames[0])
-            toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(),"DeleteThis")
+            toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(), "DeleteThis")
             try:
                 os.remove(os.path.join(toBeDeletedFolder, fnames[0]))
             except: # pragma: no cover
                 pass
+    
     if userPassedArgs.stocklist is not None:
         passedList = userPassedArgs.stocklist.split(",")
         onlyInCurrent_df = screenResults[~screenResults.index.isin(passedList)]
@@ -2263,9 +2946,12 @@ def printNotifySaveScreenedResults(
     tabulated_backtest_summary = ""
     tabulated_backtest_detail = ""
     recordDate = PKDateUtilities.tradingDate().strftime('%Y-%m-%d') if (userPassedArgs.backtestdaysago is None) else (PKDateUtilities.nthPastTradingDateStringFromFutureDate(int(userPassedArgs.backtestdaysago)))
+    
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
+    
     ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
+    
     if screenResults is not None and len(screenResults) > 0 and menuOption not in ["F"]:
         screenResults = screenResults[~screenResults.index.duplicated(keep='first')]
         saveResults = saveResults[~saveResults.index.duplicated(keep='first')]
@@ -2274,37 +2960,67 @@ def printNotifySaveScreenedResults(
         if "Stock" in saveResults.columns:
             saveResults.drop_duplicates(keep="first", inplace=True)
 
-    runOptionName = PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)
+    runOptionName = PKScanRunner.getFormattedChoices(userPassedArgs, selectedChoice)
     if ((":0:" in runOptionName or "_0_" in runOptionName) and userPassedArgs.progressstatus is not None) or userPassedArgs.progressstatus is not None:
         runOptionName = userPassedArgs.progressstatus.split("=>")[0].split("  [+] ")[1].strip()
+    
     indexName = ""
     if runOptionName.startswith("P"):
         indexName = f" for {INDICES_MAP[runOptionName.split('_')[-1]]}" if runOptionName is not None and len(runOptionName.split('_')) >= 4 and str(runOptionName.split('_')[-1]).isnumeric() and int(str(runOptionName.split('_')[-1])) <= int(list(INDICES_MAP.keys())[-2]) else ""
-    userPassedArgs.pipedtitle = f"{userPassedArgs.pipedtitle}{indexName}" if userPassedArgs.pipedtitle is not None else ""
-    reportTitle = f"{userPassedArgs.pipedtitle}|" if userPassedArgs is not None and userPassedArgs.pipedtitle is not None else ""
-    reportTitle = f"{runOptionName} | {reportTitle}" if runOptionName is not None else reportTitle
     
+    # userPassedArgs.pipedtitle = f"{userPassedArgs.pipedtitle}{indexName}" if userPassedArgs.pipedtitle is not None else ""
+    
+    result_count = len(screenResults) if screenResults is not None else 0
+    final_count = result_count
+    # BUILD THE REPORT TITLE WITH COUNTS
+    if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+        # For piped scans, use the menuChoiceHierarchy which already has counts
+        reportTitle = menuChoiceHierarchy.strip()
+        # Also update the pipedtitle to show the final pipe results
+        if screenResults is not None and len(screenResults) > 0:
+            # Store the count for the last component
+            if not hasattr(userPassedArgs, 'piped_results_counts'):
+                userPassedArgs.piped_results_counts = []
+            # Update or append the count
+            if len(userPassedArgs.piped_results_counts) > 0:
+                userPassedArgs.piped_results_counts[-1] = final_count
+            else:
+                userPassedArgs.piped_results_counts.append(final_count)
+            # Update the hierarchy to show the final count
+            updateMenuChoiceHierarchy()
+            reportTitle = menuChoiceHierarchy.strip()
+    else:
+        # For single scans, add count to the title
+        reportTitle = f"{menuChoiceHierarchy.strip()}[{result_count}]"
+    
+    reportTitle = f"{userPassedArgs.pipedtitle}|" if userPassedArgs is not None and userPassedArgs.pipedtitle is not None else reportTitle
+    last_scan_name = f"{(str(menuChoiceHierarchy.split(' > ')[-1]).strip()+'['+str(final_count)+']') if menuChoiceHierarchy is not None and len(menuChoiceHierarchy.split(' > ')) > 1 else ''}"
+    reportTitle = reportTitle.replace(last_scan_name,'')
+    reportTitle = f"{runOptionName} {'|' if len(str(runOptionName)) > 0 else ''}{reportTitle.strip()}{last_scan_name.strip()}"
+    ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
     OutputControls().printOutput(
         colorText.FAIL
-        + f"  [+] You chose: {reportTitle}{menuChoiceHierarchy}[{len(screenResults) if screenResults is not None and not screenResults.empty else 0}]"
+        + f"  [+] You chose: {reportTitle}"
         + (f" (Piped Scan Mode) [{userPassedArgs.pipedmenus}]" if (userPassedArgs is not None and userPassedArgs.pipedmenus is not None) else "")
         + colorText.END
         , enableMultipleLineOutput=True
     )
+    
     pngName = f'PKS_{"IA_" if userPassedArgs is not None and userPassedArgs.runintradayanalysis else ""}{runOptionName}_{PKDateUtilities.currentDateTime().strftime("%d-%m-%y_%H.%M.%S")}'
     pngExtension = ".png"
     eligible = is_token_telegram_configured()
     targetDateG10k = prepareGrowthOf10kResults(saveResults, selectedChoice, menuChoiceHierarchy, testing, user, pngName, pngExtension, eligible)
+    
     if saveResults is not None and "Date" in saveResults.columns and len(saveResults) > 0:
-        recordDate = saveResults["Date"].iloc[0].replace("/","-")
-    summaryReturns = removedUnusedColumns(screenResults, saveResults, ["Date","Breakout","Resistance"],userArgs=userPassedArgs)
+        recordDate = saveResults["Date"].iloc[0].replace("/", "-")
+    summaryReturns = removedUnusedColumns(screenResults, saveResults, ["Date", "Breakout", "Resistance"], userArgs=userPassedArgs)
 
     tabulated_results = ""
     console_results = ""
     if screenResults is not None and len(screenResults) > 0:
         try:
-            screenResults = screenResults.loc[:,(screenResults!='-').any(axis=0)] # .all for at least 1 contianing -
-            saveResults = saveResults.loc[:,(saveResults!='-').any(axis=0)]
+            screenResults = screenResults.loc[:,(screenResults != '-').any(axis=0)]
+            saveResults = saveResults.loc[:,(saveResults != '-').any(axis=0)]
         except ValueError:
             # The truth value of a Series is ambiguous.
             pass
@@ -2339,25 +3055,20 @@ def printNotifySaveScreenedResults(
             console_results = tabulated_results
             printableColumns = screenResults.columns
         resultsContentsEncoded = saveScreenResultsEncoded(encodedText=console_results)
+    
     if userPassedArgs.stocklist is None:
         OutputControls().printOutput(f"{console_results}\n", enableMultipleLineOutput=True)
     else:
         if diff_from_prev_scan is not None:
-            # diff_from_prev_scan = diff_from_prev_scan[printableColumns]
             saved_screen_results = copyScreenResults
-            # tabulated_diff_from_prev = colorText.miniTabulator().tabulate(
-            #     diff_from_prev_scan, headers="keys", tablefmt=colorText.No_Pad_GridFormat,
-            #     maxcolwidths=Utility.tools.getMaxColumnWidths(diff_from_prev_scan)
-            # ).encode("utf-8").decode(STD_ENCODING)
-            # OutputControls().printOutput(f"{colorText.WARN}\n  [+] Diff. from previous scan:\n\n{colorText.END}{tabulated_diff_from_prev}\n\n", enableMultipleLineOutput=True)
         if userPassedArgs.fname is not None:
             fnames = userPassedArgs.fname.split("~")
             lastReportDateTime = f"{fnames[1]} {fnames[2]}"
             resultsContentsDecoded = readScreenResultsDecoded(fnames[0])
-            toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(),"DeleteThis")
+            toBeDeletedFolder = os.path.join(Archiver.get_user_outputs_dir(), "DeleteThis")
             try:
                 os.remove(os.path.join(toBeDeletedFolder, fnames[0]))
-            except: # pragma: no cover
+            except:
                 pass
         if onlyInCurrent_df is not None and not onlyInCurrent_df.empty and len(onlyInCurrent_df) > 0:
             onlyInCurrent_df = onlyInCurrent_df[printableColumns]
@@ -2394,7 +3105,7 @@ def printNotifySaveScreenedResults(
     _, reportNameInsights = getBacktestReportFilename(
         sortKey="Date", optionalName="Insights"
     )
-    strategy_df = PortfolioXRay.bestStrategiesFromSummaryForReport(reportNameInsights,includeLargestDatasets=True)
+    strategy_df = PortfolioXRay.bestStrategiesFromSummaryForReport(reportNameInsights, includeLargestDatasets=True)
     addendumLabel = (
         "  [+] Strategies that have best results in the past for this scan option (calculated with 1 stock each with matching strategy in the result):"
     )
@@ -2409,13 +3120,33 @@ def printNotifySaveScreenedResults(
         ).encode("utf-8").decode(STD_ENCODING)
         OutputControls().printOutput(addendumLabel)
         OutputControls().printOutput(tabulated_strategy)
+    
     if screenResults is not None and len(screenResults) >= 1:
         choiceSegments = menuChoiceHierarchy.split(">")
-        choiceSegments = f"{choiceSegments[-2]} > {choiceSegments[-1]}" if len(choiceSegments)>=4 else f"{choiceSegments[-1]}"
+        choiceSegments = f"{choiceSegments[-2]} > {choiceSegments[-1]}" if len(choiceSegments) >= 4 else f"{choiceSegments[-1]}"
         pipedTitle = f"{userPassedArgs.pipedtitle}|" if userPassedArgs.pipedtitle is not None else ""
-        pipedTitle = f'| Piped Results: {pipedTitle}{choiceSegments}[{len(saveResults)}]' if len(pipedTitle) > 0 else ""
-        pipedTitle = pipedTitle.replace("[","<b>[").replace("]","]</b>")
-        title = f'<b>{reportTitle}{choiceSegments}</b>{"" if selectedChoice["0"] != "G" else " for Date:"+ targetDateG10k}'
+        pipedTitle = f'|Piped Results: {pipedTitle}{choiceSegments}[{len(saveResults)}]' if len(pipedTitle) > 0 else ""
+        pipedTitle = pipedTitle.replace("[", "<b>[").replace("]", "]</b>")
+        title = f'<b>{reportTitle}</b>{"" if selectedChoice["0"] != "G" else " for Date:" + targetDateG10k}'
+        
+        # For piped scans, print the final pipe results summary
+        if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+            # Update the hierarchy one more time with the final counts
+            if screenResults is not None and len(screenResults) > 0:
+                final_count = len(screenResults)
+                # Update the last component's count
+                if hasattr(userPassedArgs, 'piped_results_counts') and userPassedArgs.piped_results_counts:
+                    if len(userPassedArgs.piped_results_counts) > 0:
+                        userPassedArgs.piped_results_counts[-1] = final_count
+                # Rebuild the hierarchy with final counts
+                updateMenuChoiceHierarchy()
+            
+            OutputControls().printOutput(
+                colorText.GREEN
+                + f"  [+] Pipe Results Found: {menuChoiceHierarchy}"
+                + colorText.END
+            )
+        
         if (
             ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] != "LOCAL_RUN_SCANNER")
             or "PKDevTools_Default_Log_Level" in os.environ.keys()
@@ -2433,7 +3164,7 @@ def printNotifySaveScreenedResults(
                     else ""
                 )
                 caption = f"{title}"
-                elapsed_text = f"<i>({len(saveResults)}{'+' if (len(saveResults) > MAX_ALLOWED) else ''} stocks found in {str(int(elapsed_time))} sec. Queue Wait Time:{int(PKDateUtilities.currentDateTimestamp()-userPassedArgs.triggertimestamp-int(elapsed_time))}s){warn_text}</i>"
+                elapsed_text = f"<i>({len(saveResults)}{'+' if (len(saveResults) > MAX_ALLOWED) else ''} {'stocks' if len(saveResults) > 1 else 'stock'} found in {str(int(elapsed_time))}s. Queue Wait Time:{int(PKDateUtilities.currentDateTimestamp()-userPassedArgs.triggertimestamp-int(elapsed_time))}s){warn_text}</i>"
                 backtestExtension = "_backtest.png"
                 if len(screenResultsTrimmed) > MAX_ALLOWED:
                     screenResultsTrimmed = screenResultsTrimmed.head(MAX_ALLOWED)
@@ -2486,14 +3217,14 @@ def printNotifySaveScreenedResults(
                         caption_df,
                         headers="keys",
                         tablefmt=colorText.No_Pad_GridFormat,
-                        maxcolwidths=[None,None,4,3]
+                        maxcolwidths=[None, None, 4, 3]
                     ).encode("utf-8").decode(STD_ENCODING).replace("-K-----S-----C-----R","-K-----S----C---R").replace("%  ","% ").replace("=K=====S=====C=====R","=K=====S====C===R").replace("Vol  |","Vol|").replace("Hgh  |","Hgh|").replace("EoD  |","EoD|").replace("x  ","x")
                     caption_results = ImageUtility.PKImageTools.removeAllColorStyles(caption_results.replace("-E-----N-----E-----R","-E-----N----E---R").replace("=E=====N=====E=====R","=E=====N====E===R"))
-                    suggestion_text = "Try @nse_pkscreener_bot for more scans! <i><b><u>You agree that you have read</u></b>:https://pkjmesra.github.io/PKScreener/Disclaimer.txt</i> <b>and accept TOS</b>: https://pkjmesra.github.io/PKScreener/tos.txt <b>STOP using and exit from channel/group, if you do not</b>"
-                    finalCaption = f"{caption}.Feel free to share on social media.open attached image for more. Samples:<pre>{caption_results}</pre>{elapsed_text} {suggestion_text}"
+                    suggestion_text = "Try @nse_pkscreener_bot for more scans! <i><b><u>You agree that you have read</u></b>:<a href='https://pkjmesra.github.io/PKScreener/Disclaimer.txt'>Disclaimer</a></i> <b>and accept</b>:<a href='https://pkjmesra.github.io/PKScreener/tos.txt'>TOS</a>.<b>Kindly STOP and EXIT from channel/group otherwise.</b>"
+                    finalCaption = f"{caption}.Do share on social media! Open attachments for more. Samples<pre>{caption_results}</pre>{elapsed_text} {suggestion_text}"
                 if not testing:
                     if PKDateUtilities.isTradingTime() and not PKDateUtilities.isTodayHoliday()[0]:
-                        kite_file_path, kite_caption = sendKiteBasketOrderReviewDetails(saveResultsTrimmed,runOptionName,caption,user)
+                        kite_file_path, kite_caption = sendKiteBasketOrderReviewDetails(saveResultsTrimmed, runOptionName, caption, user)
                     else:
                         kite_file_path, kite_caption = "Dummy.html", "Dummy"
                     sendQuickScanResult(
@@ -2507,10 +3238,10 @@ def printNotifySaveScreenedResults(
                         addendum=tabulated_strategy,
                         addendumLabel=addendumLabel,
                     )
-                    png_filepath = pngName+pngExtension
+                    png_filepath = pngName + pngExtension
                     if not userPassedArgs.runintradayanalysis or (userPassedArgs.runintradayanalysis and "Intraday Analysis" in finalCaption):
-                        media_group_dict["ATTACHMENTS"] = [{"FILEPATH":kite_file_path,"CAPTION":kite_caption.replace('&','n')},
-                                                        {"FILEPATH":png_filepath,"CAPTION":finalCaption.replace('&','n')}]
+                        media_group_dict["ATTACHMENTS"] = [{"FILEPATH": kite_file_path, "CAPTION": kite_caption.replace('&', 'n')},
+                                                        {"FILEPATH": png_filepath, "CAPTION": finalCaption.replace('&', 'n')}]
                         media_group_dict["CAPTION"] = caption
                     # Let's send the backtest results now only if the user requested 1-on-1 for scan.
                     if user is not None:
@@ -2522,7 +3253,6 @@ def printNotifySaveScreenedResults(
                             saveResultsTrimmed, maxAllowed=MAX_ALLOWED, force=True
                         )
                         try:
-                            # import traceback
                             if tabulated_backtest_summary is not None:
                                 ImageUtility.PKImageTools.tableToImage(
                                     "",
@@ -2543,8 +3273,6 @@ def printNotifySaveScreenedResults(
                         except Exception as e:  # pragma: no cover
                             default_logger().debug(e, exc_info=True)
                             pass
-                            # OutputControls().printOutput(e)
-                            # traceback.print_exc()
                     else:
                         tabulateBacktestResults(saveResults)
             else:
@@ -2564,13 +3292,34 @@ def printNotifySaveScreenedResults(
             message=f"No scan results found for {menuChoiceHierarchy}", user=user
         )
     if not testing:
-        runOptionName = PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice)
+        runOptionName = PKScanRunner.getFormattedChoices(userPassedArgs, selectedChoice)
         if ((":0:" in runOptionName or "_0_" in runOptionName) and userPassedArgs.progressstatus is not None) or userPassedArgs.progressstatus is not None:
             runOptionName = userPassedArgs.progressstatus.split("=>")[0].split("  [+] ")[1].strip()
         ConsoleUtility.PKConsoleTools.setLastScreenedResults(screenResults, saveResults, f"{runOptionName}_{recordDate if recordDate is not None else ''}")
+    
+    # For piped scans, print the final pipe results summary if not already printed
+    if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options and screenResults is not None:
+        OutputControls().printOutput(
+            colorText.GREEN
+            + f"  [+] Pipe Results Found: {menuChoiceHierarchy}"
+            + colorText.END
+        )
+    
     scanCycleRunning = False
 
-def sendKiteBasketOrderReviewDetails(saveResultsTrimmed,runOptionName,caption,user):
+def sendKiteBasketOrderReviewDetails(saveResultsTrimmed, runOptionName, caption, user):
+    """
+    Generate and send Kite basket order review HTML file.
+    
+    Args:
+        saveResultsTrimmed (DataFrame): Trimmed save results
+        runOptionName (str): Name of the run option
+        caption (str): Caption for the message
+        user (str): Telegram user ID
+    
+    Returns:
+        tuple: (kite_file_path, kite_caption)
+    """
     kite_file_path = os.path.join(Archiver.get_user_data_dir(), f"{runOptionName}_Kite_Basket.html")
     kite_caption=f"Review Kite(Zerodha) Basket order for {runOptionName}  - {caption}"
     global userPassedArgs
@@ -2613,6 +3362,22 @@ def sendKiteBasketOrderReviewDetails(saveResultsTrimmed,runOptionName,caption,us
 
 @Halo(text='', spinner='dots')
 def prepareGrowthOf10kResults(saveResults, selectedChoice, menuChoiceHierarchy, testing, user, pngName, pngExtension, eligible):
+    """
+    Prepare Growth of 10k portfolio results for display.
+    
+    Args:
+        saveResults (DataFrame): Results to save
+        selectedChoice (dict): Selected menu choices
+        menuChoiceHierarchy (str): Hierarchy string
+        testing (bool): Whether in testing mode
+        user (str): Telegram user ID
+        pngName (str): PNG file name
+        pngExtension (str): PNG file extension
+        eligible (bool): Whether Telegram is configured
+    
+    Returns:
+        str: Target date for growth calculation
+    """
     targetDateG10k = None
     if selectedChoice["0"] == "G" or \
         (userPassedArgs.backtestdaysago is not None and 
@@ -2654,8 +3419,19 @@ def prepareGrowthOf10kResults(saveResults, selectedChoice, menuChoiceHierarchy, 
             
     return targetDateG10k
 
-
 def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[], userArgs=None):
+    """
+    Remove unused columns from results DataFrames.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        dropAdditionalColumns (list): Additional columns to drop
+        userArgs: User arguments
+    
+    Returns:
+        str: Summary returns string
+    """
     periods = configManager.periodsRange
     if userArgs is not None and userArgs.backtestdaysago is not None and int(userArgs.backtestdaysago) < 22:
         dropAdditionalColumns.append("22-Pd")
@@ -2689,8 +3465,18 @@ def removedUnusedColumns(screenResults, saveResults, dropAdditionalColumns=[], u
                             screenResults.drop(col, axis=1, inplace=True, errors="ignore")
     return summaryReturns
 
-
 def tabulateBacktestResults(saveResults, maxAllowed=0, force=False):
+    """
+    Tabulate backtest results for display.
+    
+    Args:
+        saveResults (DataFrame): Results to save
+        maxAllowed (int): Maximum allowed results
+        force (bool): Whether to force tabulation
+    
+    Returns:
+        tuple: (tabulated_backtest_summary, tabulated_backtest_detail)
+    """
     """Tabulate backtest results - delegates to BacktestUtils module"""
     return tabulate_backtest_results_impl(
         save_results=saveResults,
@@ -2700,24 +3486,30 @@ def tabulateBacktestResults(saveResults, maxAllowed=0, force=False):
         get_summary_cb=getSummaryCorrectnessOfStrategy
     )
 
-
-def sendQuickScanResult(
-    menuChoiceHierarchy,
-    user,
-    tabulated_results,
-    markdown_results,
-    caption,
-    pngName,
-    pngExtension,
-    addendum=None,
-    addendumLabel=None,
-    backtestSummary="",
-    backtestDetail="",
-    summaryLabel = None,
-    detailLabel = None,
-    legendPrefixText = "",
-    forceSend=False
-):
+def sendQuickScanResult(menuChoiceHierarchy, user, tabulated_results, markdown_results, caption, pngName, pngExtension, addendum=None, addendumLabel=None, backtestSummary="", backtestDetail="", summaryLabel=None, detailLabel=None, legendPrefixText="", forceSend=False):
+    """
+    Send quick scan results to Telegram as an image.
+    
+    Args:
+        menuChoiceHierarchy (str): Menu hierarchy string
+        user (str): Telegram user ID
+        tabulated_results (str): Tabulated results
+        markdown_results (str): Markdown formatted results
+        caption (str): Caption for the image
+        pngName (str): PNG file name
+        pngExtension (str): PNG file extension
+        addendum (str, optional): Additional content
+        addendumLabel (str, optional): Label for addendum
+        backtestSummary (str): Backtest summary
+        backtestDetail (str): Backtest detail
+        summaryLabel (str, optional): Label for summary
+        detailLabel (str, optional): Label for detail
+        legendPrefixText (str): Prefix text for legend
+        forceSend (bool): Whether to force sending
+    
+    Returns:
+        None
+    """
     if "PKDevTools_Default_Log_Level" not in os.environ.keys():
         if (("RUNNER" not in os.environ.keys()) or ("RUNNER" in os.environ.keys() and os.environ["RUNNER"] == "LOCAL_RUN_SCANNER")):
             return
@@ -2733,9 +3525,9 @@ def sendQuickScanResult(
             backtestDetail=backtestDetail,
             addendum=addendum,
             addendumLabel=addendumLabel,
-            summaryLabel = summaryLabel,
-            detailLabel = detailLabel,
-            legendPrefixText = legendPrefixText
+            summaryLabel=summaryLabel,
+            detailLabel=detailLabel,
+            legendPrefixText=legendPrefixText
         )
         if forceSend:
             sendMessageToTelegramChannel(
@@ -2749,8 +3541,19 @@ def sendQuickScanResult(
         default_logger().debug(e, exc_info=True)
         pass
 
-
 def reformatTable(summaryText, headerDict, colored_text, sorting=True):
+    """
+    Reformat HTML table with sorting capabilities and styled colors.
+    
+    Args:
+        summaryText (str): Summary text to prepend to the table
+        headerDict (dict): Dictionary mapping column indices to header text
+        colored_text (str): Colored HTML table text
+        sorting (bool): Whether to enable JavaScript sorting functionality
+    
+    Returns:
+        str: Reformatted HTML table with sorting and styling
+    """
     if sorting:
         tableText = "<!DOCTYPE html><html><head><script type='application/javascript' src='https://pkjmesra.github.io/pkjmesra/pkscreener/classes/tableSorting.js' ></script><style type='text/css'>body, table {background-color: black; color: white;} table, th, td {border: 1px solid white;} th {cursor: pointer; color:white; text-decoration:underline;} .r {color:red;font-weight:bold;} .br {border-color:green;border-width:medium;} .w {color:white;font-weight:bold;} .g {color:lightgreen;font-weight:bold;} .y {color:yellow;} .bg {background-color:darkslategrey;} .bb {background-color:black;} input#searchReports { width: 220px; } table thead tr th { background-color: black; position: sticky; z-index: 100; top: 0; } </style></head><body><span style='color:white;' >"
         colored_text = colored_text.replace(
@@ -2778,15 +3581,24 @@ def reformatTable(summaryText, headerDict, colored_text, sorting=True):
     colored_text = colored_text.replace(f"{colorText.FAIL}", "<span class='r'>")
     colored_text = colored_text.replace(f"{colorText.WARN}", "<span class='y'>")
     colored_text = colored_text.replace(f"{colorText.WHITE}", "<span class='w'>")
-    colored_text = colored_text.replace("<td><span class='w'>","<td class='br'><span class='w'>")
+    colored_text = colored_text.replace("</tr><span class='w'>","<td class='br'><span class='w'>")
     colored_text = colored_text.replace(colorText.END, "</span>")
     colored_text = colored_text.replace("\n", "")
     if sorting:
-        colored_text = colored_text.replace("</table>", "</table></span></body></html>")
+        colored_text = colored_text.replace("</table>", "<tr></span></body></html>")
     return colored_text
 
-
 def removeUnknowns(screenResults, saveResults):
+    """
+    Remove rows containing 'Unknown' values from results DataFrames.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+    
+    Returns:
+        tuple: (screenResults, saveResults) with unknown values removed
+    """
     for col in screenResults.keys():
         screenResults = screenResults[
             screenResults[col].astype(str).str.contains("Unknown") == False
@@ -2797,41 +3609,38 @@ def removeUnknowns(screenResults, saveResults):
         ]
     return screenResults, saveResults
 
-# def apply_df_style(x):
-#     red = 'color: red'
-#     noColor = '' 
-#     green = 'color: green'
-#     #compare columns
-#     mask_green_bid = x['BidQty'] > x['AskQty']
-#     mask_red_bid = x['BidQty'] <= x['AskQty']
-#     mask_green_vwap = x['VWAP'] >= x['LTP']
-#     #DataFrame with same index and columns names as original filled empty strings
-#     df1 =  pd.DataFrame(noColor, index=x.index, columns=x.columns)
-#     #modify values of df1 column by boolean mask
-#     df1.loc[mask_green_bid, 'BidQty'] = green
-#     df1.loc[mask_red_bid, 'AskQty'] = red
-#     df1.loc[mask_green_vwap, 'VWAP'] = green
-#     return df1
-
-def runScanners(
-    menuOption,
-    items,
-    tasks_queue,
-    results_queue,
-    numStocks,
-    backtestPeriod,
-    iterations,
-    consumers,
-    screenResults,
-    saveResults,
-    backtest_df,
-    testing=False,
-):
+def runScanners(menuOption, items, tasks_queue, results_queue, numStocks, backtestPeriod, iterations, consumers, screenResults, saveResults, backtest_df, testing=False):
+    """
+    Execute the scanner/backtest process across multiple stocks/scans.
+    
+    Args:
+        menuOption (str): Selected menu option ('X', 'B', 'G', 'C', 'F')
+        items (list): List of items to process (stocks or scan options)
+        tasks_queue (multiprocessing.Queue): Queue for distributing tasks
+        results_queue (multiprocessing.Queue): Queue for collecting results
+        numStocks (int): Total number of stocks to process
+        backtestPeriod (int): Number of periods for backtesting
+        iterations (int): Number of iterations/tranches
+        consumers (list): List of consumer processes
+        screenResults (DataFrame): DataFrame to store screening results
+        saveResults (DataFrame): DataFrame to store results to save
+        backtest_df (DataFrame): DataFrame for backtest results
+        testing (bool): Whether in testing mode
+    
+    Returns:
+        tuple: (screenResults, saveResults, backtest_df) with updated results
+    """
     global scanCycleRunning,selectedChoice, userPassedArgs, elapsed_time, start_time,userPassedArgs,criteria_dateTime
     result = None
     backtest_df = None
     reviewDate = getReviewDate(userPassedArgs) if criteria_dateTime is None else criteria_dateTime
     max_allowed = getMaxAllowedResultsCount(iterations, testing)
+    
+    # Initialize piped results tracking - store results for each piped component
+    if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+        userPassedArgs.piped_results_counts = []
+        userPassedArgs.piped_results_accumulated = []  # Store all results for each component
+    
     try:
         originalNumberOfStocks = numStocks
         iterations, numStocksPerIteration = getIterationsAndStockCounts(numStocks, iterations)
@@ -2854,7 +3663,6 @@ def runScanners(
                 + colorText.END
             )
         bar, spinner = Utility.tools.getProgressbarStyle()
-        # OutputControls().moveCursorUpLines(1)
         with alive_bar(numStocks, bar=bar, spinner=spinner) as progressbar:
             lstscreen = []
             lstsave = []
@@ -2862,7 +3670,20 @@ def runScanners(
             backtest_df = None
             start_time = time.time() if not scanCycleRunning else start_time
             scanCycleRunning = True
-            def processResultsCallback(resultItem, processedCount,result_df, *otherArgs):
+            
+            def processResultsCallback(resultItem, processedCount, result_df, *otherArgs):
+                """
+                Callback function to process individual scan results.
+                
+                Args:
+                    resultItem: Individual scan result
+                    processedCount: Number of items processed
+                    result_df: Result DataFrame
+                    *otherArgs: Additional arguments (menuOption, backtestPeriod, result, lstscreen, lstsave)
+                
+                Returns:
+                    tuple: (should_continue, backtest_df)
+                """
                 global userPassedArgs
                 (menuOption, backtestPeriod, result, lstscreen, lstsave) = otherArgs
                 numStocks = processedCount
@@ -2891,24 +3712,25 @@ def runScanners(
                             )
                         tableLength = 2*len(lstscreen)+5
                         OutputControls().printOutput('\n'+tabulated_results)
-                        # Move the cursor up, back to the top because we want the progress bar to keep showing at the top
-                        # sys.stdout.write(f"\x1b[{tableLength}A")  # cursor up one line
                         OutputControls().moveCursorUpLines(tableLength)
                 if keyboardInterruptEventFired:
                     return False, backtest_df
                 return not ((testing and len(lstscreen) >= 1) or len(lstscreen) >= max_allowed), backtest_df
+            
             otherArgs = (menuOption, backtestPeriod, result, lstscreen, lstsave)
-            backtest_df, result =PKScanRunner.runScan(userPassedArgs,testing,numStocks,iterations,items,numStocksPerIteration,tasks_queue,results_queue,originalNumberOfStocks,backtest_df,*otherArgs,resultsReceivedCb=processResultsCallback)
+            backtest_df, result = PKScanRunner.runScan(userPassedArgs,testing,numStocks,iterations,items,numStocksPerIteration,tasks_queue,results_queue,originalNumberOfStocks,backtest_df,*otherArgs,resultsReceivedCb=processResultsCallback)
 
-        # OutputControls().printOutput(f"\x1b[{3 if OutputControls().enableMultipleLineOutput else 1}A")
-        # if len(lstscreen) == 0 and userPassedArgs is not None and userPassedArgs.monitor is None:
-        #     OutputControls().printOutput("\x1b[2K") # Delete the progress bar line
         OutputControls().moveCursorUpLines(3 if OutputControls().enableMultipleLineOutput else 1)
         elapsed_time = time.time() - start_time
+        
         if menuOption in ["X", "G", "C", "F"]:
             # create extension
             screenResults = pd.DataFrame(lstscreen)
             saveResults = pd.DataFrame(lstsave)
+            
+            # Store the last result count for single scans
+            if userPassedArgs and not (userPassedArgs.options and "|" in userPassedArgs.options):
+                userPassedArgs.last_result_count = len(screenResults) if screenResults is not None else 0
 
     except KeyboardInterrupt: # pragma: no cover
         try:
@@ -2948,7 +3770,7 @@ def runScanners(
         # Ensure data is sorted to get the latest date
         if not temp_df.empty and hasattr(temp_df.index, 'sort_values'):
             try:
-                temp_df = temp_df.sort_index(ascending=False)  # Latest first
+                temp_df = temp_df.sort_index(ascending=False)
             except:
                 pass
         temp_df.reset_index(inplace=True)
@@ -2963,8 +3785,21 @@ def runScanners(
         saveResults["Date"] = str(targetDate).split(" ")[0]
     return screenResults, saveResults, backtest_df
 
-        
 def processResults(menuOption, backtestPeriod, result, lstscreen, lstsave, backtest_df):
+    """
+    Process individual scan result and update result lists.
+    
+    Args:
+        menuOption (str): Current menu option
+        backtestPeriod (int): Backtest period in days
+        result (tuple): Individual scan result tuple containing (screened_data, save_data, chart_data, etc.)
+        lstscreen (list): List to accumulate screen results
+        lstsave (list): List to accumulate save results
+        backtest_df (DataFrame): Backtest results DataFrame
+    
+    Returns:
+        DataFrame: Updated backtest_df
+    """
     if result is not None:
         lstscreen.append(result[0])
         lstsave.append(result[1])
@@ -2977,25 +3812,76 @@ def processResults(menuOption, backtestPeriod, result, lstscreen, lstsave, backt
                             sampleDays,
                             backtest_df,
                         )
+        
+        # Track piped results counts - each result is for a component
+        if userPassedArgs and userPassedArgs.options and "|" in userPassedArgs.options:
+            # Get current result count
+            current_count = len(lstscreen) if lstscreen else 0
+            
+            # If we have a new result (not just an update)
+            if current_count > len(userPassedArgs.piped_results_counts):
+                # This is a new result for the current component
+                # We need to track the count for this specific component
+                # For now, we'll track the count for each component separately
+                pass
             
     return backtest_df
 
 def getReviewDate(userPassedArgs=None):
+    """
+    Get the review date for screening/backtesting.
+    
+    Args:
+        userPassedArgs: User passed arguments containing backtestdaysago or slicewindow
+    
+    Returns:
+        str: Formatted review date string
+    """
     """Get review date - delegates to CoreFunctions module"""
     return _get_review_date(userPassedArgs, criteria_dateTime)
 
 def getMaxAllowedResultsCount(iterations, testing):
+    """
+    Calculate maximum allowed results count based on iterations and testing mode.
+    
+    Args:
+        iterations (int): Number of iterations
+        testing (bool): Whether in testing mode
+    
+    Returns:
+        int: Maximum allowed number of results
+    """
     """Get max allowed results count - delegates to CoreFunctions module"""
     return _get_max_allowed_results_count(iterations, testing, configManager, userPassedArgs)
 
 def getIterationsAndStockCounts(numStocks, iterations):
+    """
+    Calculate optimal iterations and stocks per iteration for processing.
+    
+    Args:
+        numStocks (int): Total number of stocks
+        iterations (int): Number of iterations
+    
+    Returns:
+        tuple: (iterations, numStocksPerIteration)
+    """
     """Get iterations and stock counts - delegates to CoreFunctions module"""
     return _get_iterations_and_stock_counts(numStocks, iterations)
 
-
-def updateBacktestResults(
-    backtestPeriod, start_time, result, sampleDays, backtest_df
-):
+def updateBacktestResults(backtestPeriod, start_time, result, sampleDays, backtest_df):
+    """
+    Update backtest results with new data.
+    
+    Args:
+        backtestPeriod (int): Backtest period in days
+        start_time (float): Start time of backtest
+        result (tuple): Scan result tuple
+        sampleDays (int): Number of sample days
+        backtest_df (DataFrame): Existing backtest DataFrame
+    
+    Returns:
+        DataFrame: Updated backtest DataFrame
+    """
     global elapsed_time
     sellSignal = (
         str(selectedChoice["2"]) in ["6", "7"] and str(selectedChoice["3"]) in ["2"]
@@ -3013,8 +3899,20 @@ def updateBacktestResults(
     elapsed_time = time.time() - start_time
     return backtest_df
 
-
 def saveDownloadedData(downloadOnly, testing, stockDictPrimary, configManager, loadCount):
+    """
+    Save downloaded stock data to cache files.
+    
+    Args:
+        downloadOnly (bool): Whether only downloading data
+        testing (bool): Whether in testing mode
+        stockDictPrimary (dict): Primary stock data dictionary
+        configManager: Configuration manager instance
+        loadCount (int): Number of loaded stocks
+    
+    Returns:
+        None
+    """
     """Save downloaded stock data - delegates to DataLoader module"""
     global userPassedArgs, keyboardInterruptEventFired
     save_downloaded_data_impl(
@@ -3029,10 +3927,20 @@ def saveDownloadedData(downloadOnly, testing, stockDictPrimary, configManager, l
         dev_channel_id=DEV_CHANNEL_ID
     )
 
-
-def saveNotifyResultsFile(
-    screenResults, saveResults, defaultAnswer, menuChoiceHierarchy, user=None
-):
+def saveNotifyResultsFile(screenResults, saveResults, defaultAnswer, menuChoiceHierarchy, user=None):
+    """
+    Save results to file and send notifications.
+    
+    Args:
+        screenResults (DataFrame): Screening results
+        saveResults (DataFrame): Results to save
+        defaultAnswer (str): Default answer for prompts
+        menuChoiceHierarchy (str): Menu hierarchy string
+        user (str, optional): Telegram user ID
+    
+    Returns:
+        None
+    """
     global userPassedArgs, elapsed_time, selectedChoice, media_group_dict,criteria_dateTime
     if user is None and userPassedArgs.user is not None:
         user = userPassedArgs.user
@@ -3082,8 +3990,17 @@ def saveNotifyResultsFile(
             OutputControls().takeUserInput("Press <Enter> to continue...")
 
 def sendGlobalMarketBarometer(userArgs=None):
+    """
+    Generate and send global market barometer report to Telegram.
+    
+    Args:
+        userArgs: User arguments containing Telegram user ID
+    
+    Returns:
+        None
+    """
     from pkscreener.classes import Barometer
-    suggestion_text = "Feel free to share on social media.Try @nse_pkscreener_bot for more scans! <i><b><u>You agree that you have read</u></b>:https://pkjmesra.github.io/PKScreener/Disclaimer.txt</i> <b>and accept TOS</b>: https://pkjmesra.github.io/PKScreener/tos.txt <b>STOP using and exit from channel/group, if you do not.</b>"
+    suggestion_text = "Do share on social media.Try @nse_pkscreener_bot for more scans!<i><b><u>You agree that you have read</u></b>:<a href='https://pkjmesra.github.io/PKScreener/Disclaimer.txt'>Disclaimer</a></i> <b>and accept</b>:<a href='https://pkjmesra.github.io/PKScreener/tos.txt'>TOS</a>.<b>Kindly STOP and EXIT from channel/group otherwise.</b>"
     caption = f"Global Market Barometer with India market Performance (top) and Valuation (bottom).{suggestion_text}"
     gmbPath = Barometer.getGlobalMarketBarometerValuation()
     try:
@@ -3106,9 +4023,21 @@ def sendGlobalMarketBarometer(userArgs=None):
         default_logger().debug(e,exc_info=True)
         pass
 
-def sendMessageToTelegramChannel(
-    message=None, photo_filePath=None, document_filePath=None, caption=None, user=None, mediagroup=False
-):
+def sendMessageToTelegramChannel(message=None, photo_filePath=None, document_filePath=None, caption=None, user=None, mediagroup=False):
+    """
+    Send message to Telegram channel (delegates to NotificationService module).
+    
+    Args:
+        message (str, optional): Text message to send
+        photo_filePath (str, optional): Path to photo file
+        document_filePath (str, optional): Path to document file
+        caption (str, optional): Caption for media
+        user (str, optional): Telegram user/channel ID
+        mediagroup (bool): Whether to send as media group
+    
+    Returns:
+        tuple: (test_messages_queue, media_group_dict) updated queues/dicts
+    """
     """Send message to Telegram channel - delegates to NotificationService module"""
     global userPassedArgs, test_messages_queue, media_group_dict, menuChoiceHierarchy
     test_messages_queue, media_group_dict = send_message_to_telegram_channel_impl(
@@ -3124,20 +4053,50 @@ def sendMessageToTelegramChannel(
         menu_choice_hierarchy=menuChoiceHierarchy
     )
 
-
 def handleAlertSubscriptions(user, message):
+    """
+    Handle alert subscriptions from users (delegates to NotificationService module).
+    
+    Args:
+        user (str): Telegram user ID
+        message (str): Alert subscription message
+    
+    Returns:
+        None
+    """
     """Handle alert subscriptions - delegates to NotificationService module"""
     handle_alert_subscriptions_impl(user, message)
 
-            
 def sendTestStatus(screenResults, label, user=None):
+    """
+    Send test status notification to Telegram.
+    
+    Args:
+        screenResults (DataFrame): Screening results to check
+        label (str): Label for the test
+        user (str, optional): Telegram user ID
+    
+    Returns:
+        None
+    """
     msg = "<b>SUCCESS</b>" if (screenResults is not None and len(screenResults) >= 1) else "<b>FAIL</b>"
     sendMessageToTelegramChannel(
         message=f"{msg}: Found {len(screenResults) if screenResults is not None else 0} Stocks for {label}", user=user
     )
 
-
-def showBacktestResults(backtest_df:pd.DataFrame, sortKey="Stock", optionalName="backtest_result", choices=None):
+def showBacktestResults(backtest_df: pd.DataFrame, sortKey="Stock", optionalName="backtest_result", choices=None):
+    """
+    Display backtest results in formatted HTML table (delegates to BacktestUtils module).
+    
+    Args:
+        backtest_df (pd.DataFrame): Backtest results DataFrame
+        sortKey (str): Column to sort by
+        optionalName (str): Optional name for the report
+        choices (str, optional): Choice string for filename
+    
+    Returns:
+        None
+    """
     """Show backtest results - delegates to BacktestUtils module"""
     global menuChoiceHierarchy, selectedChoice, userPassedArgs, elapsed_time
     show_backtest_results_impl(
@@ -3156,6 +4115,15 @@ def showBacktestResults(backtest_df:pd.DataFrame, sortKey="Stock", optionalName=
     )
 
 def scanOutputDirectory(backtest=False):
+    """
+    Get or create the output directory for scan/backtest reports.
+    
+    Args:
+        backtest (bool): Whether this is for backtest reports
+    
+    Returns:
+        str: Path to the output directory
+    """
     dirName = 'actions-data-scan' if not backtest else "Backtest-Reports"
     outputFolder = os.path.join(os.getcwd(),dirName)
     if not os.path.isdir(outputFolder):
@@ -3163,7 +4131,18 @@ def scanOutputDirectory(backtest=False):
         os.makedirs(os.path.dirname(os.path.join(os.getcwd(),f"{dirName}{os.sep}")), exist_ok=True)
     return outputFolder
 
-def getBacktestReportFilename(sortKey="Stock", optionalName="backtest_result",choices=None):
+def getBacktestReportFilename(sortKey="Stock", optionalName="backtest_result", choices=None):
+    """
+    Generate backtest report filename.
+    
+    Args:
+        sortKey (str): Sort key for filename
+        optionalName (str): Optional name component
+        choices (str, optional): Choice string for filename
+    
+    Returns:
+        tuple: (choices, filename) for the report
+    """
     global userPassedArgs,selectedChoice
     if choices is None:
         choices = PKScanRunner.getFormattedChoices(userPassedArgs,selectedChoice).strip()
@@ -3171,12 +4150,28 @@ def getBacktestReportFilename(sortKey="Stock", optionalName="backtest_result",ch
     return choices.strip(), filename.strip()
 
 def showOptionErrorMessage():
+    """
+    Display error message for invalid option selection.
+    
+    Returns:
+        None
+    """
     """Show option error message - delegates to OutputFunctions module"""
     _show_option_error_message()
 
-def takeBacktestInputs(
-    menuOption=None, indexOption=None, executeOption=None, backtestPeriod=0
-):
+def takeBacktestInputs(menuOption=None, indexOption=None, executeOption=None, backtestPeriod=0):
+    """
+    Get backtest period input from user.
+    
+    Args:
+        menuOption (str, optional): Menu option
+        indexOption (str, optional): Index option
+        executeOption (str, optional): Execute option
+        backtestPeriod (int): Current backtest period
+    
+    Returns:
+        tuple: (indexOption, executeOption, backtestPeriod) with user input
+    """
     g10k = '"Growth of 10k"'
     OutputControls().printOutput(
         colorText.GREEN
@@ -3212,6 +4207,12 @@ def takeBacktestInputs(
     return indexOption, executeOption, backtestPeriod
 
 def toggleUserConfig():
+    """
+    Toggle user configuration between intraday and daily modes.
+    
+    Returns:
+        None
+    """
     configManager.toggleConfig(
         candleDuration="1d" if configManager.isIntradayConfig() else "1m"
     )
@@ -3225,8 +4226,16 @@ def toggleUserConfig():
     )
     input("\nPress <Enter> to Continue...\n")
 
-
 def userReportName(userMenuOptions):
+    """
+    Generate report name based on user menu options.
+    
+    Args:
+        userMenuOptions (dict): Dictionary of user menu selections
+    
+    Returns:
+        str: Formatted report name
+    """
     global userPassedArgs
     choices = ""
     for choice in userMenuOptions:
@@ -3240,6 +4249,15 @@ def userReportName(userMenuOptions):
     return choices
 
 def cleanupLocalResults():
+    """
+    Clean up local non-essential system generated data files.
+    
+    Prompts user before deletion and removes cache files, temporary files,
+    and optionally user-generated reports.
+    
+    Returns:
+        None
+    """
     global userPassedArgs, runCleanUp
     runCleanUp = True
     # No need to ask and show prompts if launched by system

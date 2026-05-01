@@ -65,17 +65,40 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
-    - name: Restore Dependencies from Cache
+    # ============================================================================
+    # CACHING STRATEGY 1: Global pip cache (fastest)
+    # ============================================================================
+    - name: Cache pip packages
       uses: actions/cache@v4
+      id: pip-cache
       with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        # This path varies by OS, but actions/cache handles it
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        # Key includes Python version and requirements files
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/pyproject.toml', '**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Load Cache for Linux Dependencies
+    # ============================================================================
+    # CACHING STRATEGY 2: Virtual environment (most comprehensive)
+    # ============================================================================
+    - name: Cache Python virtual environment
+      id: venv-cache
       uses: actions/cache@v4
+      with:
+        path: .venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/pyproject.toml', '**/setup.py') }}-${{ inputs.targetPythonVersion }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
+
+    # ============================================================================
+    # CACHING STRATEGY 3: TA-Lib compiled libraries (Linux only)
+    # ============================================================================
+    - name: Load Cache for Linux TA-Lib
       if: startsWith(runner.os, 'Linux')
+      uses: actions/cache@v4
       with:
         path: |
           /usr/include/ta-lib
@@ -85,87 +108,71 @@ jobs:
         key: ${{ runner.os }}-talib
         restore-keys: |
           ${{ runner.os }}-talib
-          
-    - name: Restore Dependencies from Ubuntu Cache
-      if: startsWith(runner.os, 'Linux')
-      uses: actions/cache@v4
-      id: cache-venv  # name for referring later
-      with:
-        path: ./.venv/  # what we cache: the virtualenv
-        # The cache key depends on requirements.txt
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-venv-
+
+    # ============================================================================
+    # INSTALLATION STEPS (using caches when available)
+    # ============================================================================
+    
+    # Create virtual environment if cache miss
+    - name: Create virtual environment (if needed)
+      if: steps.venv-cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv .venv
+
+    # Activate virtual environment for all subsequent Python steps
+    - name: Activate virtual environment
+      run: |
+        echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+        echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
+        echo "PATH=${{ github.workspace }}/.venv/bin:$PATH" >> $GITHUB_ENV
+
+    # Upgrade pip (always do this, it's fast)
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade pip
 
     - name: Install TA-Lib for Windows
       if: ${{ startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install requests
         cd .github/dependencies/
-        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] || [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]]; then
+          pip install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]]; then
+          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]]; then
+          pip install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
         fi
 
     - name: Install TA-Lib for Linux
       if: ${{ startsWith(runner.os, 'Linux') }}
       run: |
         cd .github/dependencies/
-        pwd
         sudo dpkg -i ta-lib_0.6.4_amd64.deb
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib
-          
-    - name: Environment setup to get latest EXE
-      shell: bash
-      id: releaseurlsetter
-      run: |
-        pip3 install requests
-        python3 .github/workflows/githubutilities.py -d
-  
-    - name: Download latest executable on Windows
-      shell: cmd
-      if: ${{ startsWith(runner.os, 'Windows' ) }}
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        curl -o pkscreenercli.exe -JL %exe_path%
+        pip install ta-lib
 
-    - name: Download latest executable on Ubuntu
-      shell: bash
-      if: ${{ startsWith(runner.os, 'Linux' ) }}
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
-        chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-        # Validate binary format
-        if ! file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin | grep -q "ELF 64-bit"; then
-          echo "ERROR: Downloaded file is not a valid Linux ELF binary"
-          file /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-          exit 1
-        fi
-
+    # Install Python dependencies (will use pip cache if available)
     - name: Install Python Dependencies
       run: |
-        pip3 install -r requirements.txt
-        pip3 install .
+        # Install from requirements first (cached packages will be used)
+        pip install -r requirements.txt
+        # Install the package itself
+        pip install -e .
+        # Install TensorFlow and Keras (these are large, benefit greatly from cache)
+        pip install tensorflow==2.16.1
+        pip install keras==3.6.0
 
-    - name: Environment setup to check the market status
-      shell: bash
-      id: marketsetter
+    # ============================================================================
+    # POST-CACHE: Save virtual environment if it was just created
+    # ============================================================================
+    - name: Save virtual environment to cache
+      if: steps.venv-cache.outputs.cache-hit != 'true'
       run: |
-        python3 .github/workflows/workflowtriggers.py
+        # The cache action will automatically save after this step
+        echo "Virtual environment created and will be cached for future runs"
 
     - name: Configure env.dev file
-      if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
       shell: bash
       env:
         CHAT_ID_PROD : ${{secrets.CHAT_ID_PROD}}
@@ -238,14 +245,23 @@ jobs:
         echo "Created .env.dev file with secrets (values quoted)"
         cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
 
-    - name: 1. Next day Nifty/Market AI prediction
-      if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
+    - name: Environment setup to check the market status
       shell: bash
+      id: marketsetter
+      run: |
+        python3 .github/workflows/workflowtriggers.py
+
+    - name: Run Scan on Ubuntu from src
+      shell: bash
+      if : ${{ steps.marketsetter.outputs.MARKET_STATUS == 'Open' || steps.marketsetter.outputs.MARKET_TRADED_TODAY == '1' }}
+      timeout-minutes: 10
       env:
         RUNNER : "GitHub_Actions"
-        ALERT_TRIGGER : "Y"
+        GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
+        GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
       run: |
-        /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -a Y -l -o X:N -e
+        cd /home/runner/work/PKScreener/PKScreener/
+        python3 pkscreener/pkscreenercli.py  -a Y -l -o X:N -e
 
   HOLIDAYS_UPDATE:
     runs-on: ${{ inputs.runson || 'ubuntu-latest' }} #ubuntu-latest #windows-latest
@@ -266,10 +282,23 @@ jobs:
         with:
           python-version: ${{ inputs.targetPythonVersion || 3.11 }}
 
+      # ============================================================================
+      # CACHING for HOLIDAYS job
+      # ============================================================================
+      - name: Cache pip packages (Holidays job)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-holiday-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-holiday-pip-
+
       - name: Install Python Dependencies
         run: |
-          pip3 install -r requirements.txt
-          pip3 install .
+          pip install -r requirements.txt
+          pip install -e .
 
       - name: Configure env.dev file
         shell: bash
@@ -350,22 +379,3 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
           python3 .github/workflows/workflowtriggers.py --updateholidays
-        
-  # Delete_Workflow_Run:
-  #   runs-on: ubuntu-latest
-  #   needs: [NIFTY_Prediction_Alert]
-  #   name: Delete workflow run
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: main
-          
-  #     - name: Delete this workflow run
-  #       if: startsWith(runner.os, 'Linux')
-  #       shell: bash
-  #       run: |
-  #         for id in $(gh run list --limit 100 --jq ".[] | select (.status == \"success\" ) | .databaseId" --json databaseId,status); do gh run delete $id; done
-  #         # Cancel runs queued or in_progress. See https://cli.github.com/manual/gh_run_list
-  #         # for id in $(gh run list -w "13. Backtest for Generic" --limit 100 --jq ".[] | select (.status == \"queued\" ) | .databaseId" --json databaseId,status); do gh run cancel $id; done 
-  #       env:
-  #         GH_TOKEN : ${{secrets.GITHUB_TOKEN}}

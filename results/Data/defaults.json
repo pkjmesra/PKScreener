@@ -1,0 +1,803 @@
+{
+  "X:0:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:3:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:4:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:5:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:1:D:D:D": {
+    "reversalOption": 1,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:2:D:D:D": {
+    "reversalOption": 2,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:3:D:D:D": {
+    "reversalOption": 3,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:4:D:D:D": {
+    "reversalOption": 4,
+    "maLength": 50,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:5:D:D:D": {
+    "reversalOption": 5,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:6:D:D:D": {
+    "reversalOption": 6,
+    "maLength": 4,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:7:1:D:D:D": {
+    "reversalOption": 7,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:7:2:D:D:D": {
+    "reversalOption": 7,
+    "maLength": 2,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:7:3:D:D:D": {
+    "reversalOption": 7,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:8:D:D:D": {
+    "reversalOption": 8,
+    "maLength": 40,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:9:D:D:D": {
+    "reversalOption": 9,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:10:1:D:D:D": {
+    "reversalOption": 10,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:10:2:D:D:D": {
+    "reversalOption": 10,
+    "maLength": 2,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:6:10:3:D:D:D": {
+    "reversalOption": 10,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 1,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 2,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:3:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 3,
+    "insideBarToLookback": 5
+  },
+  "X:0:7:3:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 3,
+    "insideBarToLookback": 5
+  },
+  "X:0:7:3:3:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 3,
+    "insideBarToLookback": 5
+  },
+  "X:0:7:3:4:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 3,
+    "insideBarToLookback": 5
+  },
+  "X:0:7:4:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 4,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:5:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 5,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:6:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 6,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:6:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": 2,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 6,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:6:3:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 6,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:6:4:D:D:D": {
+    "reversalOption": null,
+    "maLength": 4,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 6,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:7:D:D:D": {
+    "reversalOption": null,
+    "maLength": 0,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 7,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:8:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 8,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": 2,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:3:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:4:D:D:D": {
+    "reversalOption": null,
+    "maLength": 4,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:5:D:D:D": {
+    "reversalOption": null,
+    "maLength": 5,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:6:D:D:D": {
+    "reversalOption": null,
+    "maLength": 6,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:7:9:7:D:D:D": {
+    "reversalOption": null,
+    "maLength": 7,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 9,
+    "insideBarToLookback": 7
+  },
+  "X:0:8:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": -100,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:9:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:10:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:11:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:12:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:13:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:14:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:15:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:16:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:17:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:18:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:19:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:20:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:1:D:D:D": {
+    "reversalOption": 1,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:2:D:D:D": {
+    "reversalOption": 2,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:3:D:D:D": {
+    "reversalOption": 3,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:4:D:D:D": {
+    "reversalOption": 4,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:5:D:D:D": {
+    "reversalOption": 5,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:6:D:D:D": {
+    "reversalOption": 6,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:7:D:D:D": {
+    "reversalOption": 7,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:8:D:D:D": {
+    "reversalOption": 8,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:21:9:D:D:D": {
+    "reversalOption": 9,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:23:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:24:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:25:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:27:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:28:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:30:1:D:D:D": {
+    "reversalOption": null,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:30:2:D:D:D": {
+    "reversalOption": null,
+    "maLength": 2,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:30:3:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:31:D:D:D": {
+    "reversalOption": null,
+    "maLength": 1,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:32:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:33:D:D:D": {
+    "reversalOption": null,
+    "maLength": 3,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:34:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:35:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:36:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:37:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:38:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:39:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:40:D:D:D": {
+    "reversalOption": true,
+    "maLength": 0,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": true,
+    "insideBarToLookback": [9,10,20,21,50,200]
+  },
+  "X:0:41:D:D:D": {
+    "reversalOption": true,
+    "maLength": 0,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": 1,
+    "insideBarToLookback": 7
+  },
+  "X:0:42:D:D:D": {
+    "reversalOption": null,
+    "maLength": 15,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:43:D:D:D": {
+    "reversalOption": null,
+    "maLength": -15,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:44:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:45:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:46:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:47:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:48:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  },
+  "X:0:49:D:D:D": {
+    "reversalOption": null,
+    "maLength": null,
+    "daysForLowestVolume": 30,
+    "minRSI": 0,
+    "maxRSI": 100,
+    "respChartPattern": null,
+    "insideBarToLookback": 7
+  }
+}

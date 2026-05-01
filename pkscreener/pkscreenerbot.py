@@ -26,7 +26,8 @@
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
 
-"""Simple inline keyboard bot with multiple CallbackQueryHandlers.
+"""
+Simple inline keyboard bot with multiple CallbackQueryHandlers.
 
 This Bot uses the Application class to handle the bot.
 First, a few callback functions are defined as callback query handler. Then, those functions are
@@ -49,8 +50,11 @@ import re
 import sys
 import threading
 import traceback
-from datetime import datetime
-from time import sleep
+from datetime import datetime, time as dt_time
+from time import sleep, time
+import threading
+import pytz
+import telegram
 
 # =============================================================================
 # MOCK PKG_RESOURCES FOR APSCHEDULER COMPATIBILITY
@@ -244,6 +248,10 @@ try:
 except ImportError:
     import _thread as thread
 from telegram import __version__ as TG_VER
+from typing import Optional
+_trigger_thread: Optional[threading.Thread] = None
+_trigger_stop_event: Optional[threading.Event] = None
+
 # from telegram.constants import ParseMode
 
 start_time = datetime.now()
@@ -269,6 +277,7 @@ try:
 except: # pragma: no cover
     pass
 
+# Global variables
 monitor_proc = None
 configManager = ConfigManager.tools()
 bot_available=True
@@ -333,71 +342,152 @@ m3 = menus()
 m4 = menus()
 int_timer = None
 _updater = None
-QR_CODE_PAYMENT_LINK="upi://pay?pa=PKSCREENER@APL&pn=PKSCREENER&tn=undefined&am=undefined"
+QR_CODE_PAYMENT_LINK = "upi://pay?pa=PKSCREENER@APL&pn=PKSCREENER&tn=undefined&am=undefined"
 
-TOP_LEVEL_SCANNER_MENUS = ["X", "B","DV", "P"] # 
-TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "MI", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"] # Last item will be skipped.
+# Menu configuration constants
+TOP_LEVEL_SCANNER_MENUS = ["X", "B","DV", "P"]
+TOP_LEVEL_SCANNER_SKIP_MENUS = ["M", "MI", "S", "F", "G", "C", "T", "D", "I", "E", "U", "L", "Z", "P"]
 TOP_LEVEL_MARKUP_SKIP_MENUS = TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1]
 TOP_LEVEL_MARKUP_SKIP_MENUS.extend(["X","P","B"])
 INDEX_SKIP_MENUS_1_To_4 = ["W","E","M","Z","0","5","6","7","8","9","10","11","12","13","14","S","15"]
 INDEX_SKIP_MENUS_5_TO_9 = ["W","E","M","Z","N","0","1","2","3","4","10","11","12","13","14","S","15"]
 INDEX_SKIP_MENUS_10_TO_15 = ["W","E","M","Z","N","0","1","2","3","4","5","6","7","8","9","S"]
-SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_26_TO_31 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_32_TO_37 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","38","39","40","41","42","43","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_SKIP_MENUS_38_TO_43 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","44","45","46","47","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_1_TO_6 = ["0","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_7_TO_12 = ["0","1","2","3","4","5","6","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_13_TO_18 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_19_TO_25 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_26_TO_31 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_32_TO_37 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","38","39","40","41","42","43","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
+SCANNER_SKIP_MENUS_38_TO_43 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","44","45","46","47","48","49","M","Z",str(MAX_MENU_OPTION)]
 SCANNER_SKIP_MENUS_44_TO_47 = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","M","Z",str(MAX_MENU_OPTION)]
-SCANNER_MENUS_WITH_NO_SUBMENUS = ["1","2","3","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47"]
+SCANNER_MENUS_WITH_NO_SUBMENUS = ["1","2","3","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49"]
 SCANNER_MENUS_WITH_SUBMENU_SUPPORT = ["6", "7", "21","22","30","32","33","40"]
 SCANNER_SUBMENUS_CHILDLEVEL_SUPPORT = {"6":[ "7","10"], "7":[ "3","6","7","9"],}
-
 INDEX_COMMANDS_SKIP_MENUS_SCANNER = ["W", "E", "M", "Z", "S"]
 INDEX_COMMANDS_SKIP_MENUS_BACKTEST = ["W", "E", "M", "Z", "S", "N", "0", "15"]
 PIPED_SCAN_SKIP_COMMAND_MENUS =["2", "3", "M", "0", "4"]
 PIPED_SCAN_SKIP_INDEX_MENUS =["W","N","E","S","0","Z","M","15"]
 UNSUPPORTED_COMMAND_MENUS =["22","M","Z","0",str(MAX_MENU_OPTION)]
 SUPPORTED_COMMAND_MENUS = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47"]
+
+# Conversation states
+START_ROUTES, END_ROUTES = map(chr, range(2))
+
+# Menu instances
+m0 = menus()
+m1 = menus()
+m2 = menus()
+m3 = menus()
+m4 = menus()
+
+# User state storage
 user_states = {}
 
-def registerUser(user,forceFetch=False):
-    otpValue, subsModel,subsValidity,alertUser = 0,0,None,None
+# Channel and group IDs
+chat_idADMIN = 123456789
+Channel_Id = 12345678
+GROUP_CHAT_ID = 1001907892864
+
+# Thread control variables for workflow trigger
+_trigger_thread: Optional[threading.Thread] = None
+_trigger_stop_event: Optional[threading.Event] = None
+
+
+class PKLocalCache(SingletonMixin, metaclass=SingletonType):
+    """
+    Singleton class for managing local cache of registered user IDs.
+    
+    This class maintains a thread-safe cache of user IDs that have been
+    registered with the system to avoid redundant database lookups.
+    """
+    
+    def __init__(self):
+        """Initialize the cache with an empty list of registered IDs."""
+        super(PKLocalCache, self).__init__()
+        self.registeredIDs = []
+
+
+# Enable logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+# set higher logging level for httpx to avoid all GET and POST requests being logged
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
+
+
+def registerUser(user, forceFetch=False):
+    """
+    Register a user in the system and retrieve their OTP and subscription information.
+    
+    Args:
+        user: Telegram user object containing user.id, username, first_name, last_name
+        forceFetch (bool): If True, forces fetching from database even if already cached
+        
+    Returns:
+        tuple: (otpValue, subsModel, subsValidity, alertUser) containing:
+            - otpValue: One-time password for user authentication
+            - subsModel: User's subscription model
+            - subsValidity: Subscription expiration date
+            - alertUser: User's alert subscription information
+    """
+    otpValue, subsModel, subsValidity, alertUser = 0, 0, None, None
     if user is not None and (user.id not in PKLocalCache().registeredIDs or forceFetch):
         dbManager = DBManager()
-        otpValue, subsModel,subsValidity,alertUser = dbManager.getOTP(user.id,user.username,f"{user.first_name} {user.last_name}",validityIntervalInSeconds=configManager.otpInterval)
+        otpValue, subsModel, subsValidity, alertUser = dbManager.getOTP(
+            user.id, user.username, f"{user.first_name} {user.last_name}",
+            validityIntervalInSeconds=configManager.otpInterval
+        )
         if str(otpValue).strip() != '0' and user.id not in PKLocalCache().registeredIDs:
             PKLocalCache().registeredIDs.append(user.id)
     is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if not is_subscription_enabled:
         from PKDevTools.classes.DBManager import LocalOTPCache
-        otpValue,_ = LocalOTPCache().generate_emergency_otp_with_pdf(userid=user.id,username=user.username)
-    return otpValue, subsModel,subsValidity,alertUser
+        otpValue, _ = LocalOTPCache().generate_emergency_otp_with_pdf(userid=user.id, username=user.username)
+    return otpValue, subsModel, subsValidity, alertUser
+
 
 def loadRegisteredUsers():
+    """Load all registered user IDs from the database into the local cache."""
     dbManager = DBManager()
     users = dbManager.getUsers(fieldName="userid")
     userIDs = [user.userid for user in users]
     PKLocalCache().registeredIDs.extend(userIDs)
 
+
 def isInMarketHours():
+    """
+    Check if current time falls within NSE market trading hours.
+    
+    Returns:
+        bool: True if current time is between market open and close hours
+              and it's not a holiday, False otherwise
+    """
     now = PKDateUtilities.currentDateTime()
-    marketStartTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().openHour,minute=MarketHours().openMinute)
-    marketCloseTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().closeHour,minute=MarketHours().closeMinute)
+    marketStartTime = PKDateUtilities.currentDateTime(simulate=True, hour=MarketHours().openHour, minute=MarketHours().openMinute)
+    marketCloseTime = PKDateUtilities.currentDateTime(simulate=True, hour=MarketHours().closeHour, minute=MarketHours().closeMinute)
     # We are in between market open and close hours
     return not PKDateUtilities.isTodayHoliday()[0] and now >= marketStartTime and now <= marketCloseTime
 
+
 def initializeIntradayTimer():
+    """
+    Initialize and start the intraday monitor timer based on market hours.
+    
+    Sets up a timer to launch the intraday monitor at market open time.
+    If already within market hours, launches immediately.
+    Only runs if subscription system is enabled.
+    """
     is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if not is_subscription_enabled:
         return
     try:
         if (not PKDateUtilities.isTodayHoliday()[0]):
             now = PKDateUtilities.currentDateTime()
-            marketStartTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().openHour,minute=MarketHours().openMinute-1)
-            marketCloseTime = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().closeHour,minute=MarketHours().closeMinute)
-            marketOpenAnHourandHalfPrior = PKDateUtilities.currentDateTime(simulate=True,hour=MarketHours().openHour-2,minute=MarketHours().openMinute+30)
+            marketStartTime = PKDateUtilities.currentDateTime(simulate=True, hour=MarketHours().openHour, minute=MarketHours().openMinute-1)
+            marketCloseTime = PKDateUtilities.currentDateTime(simulate=True, hour=MarketHours().closeHour, minute=MarketHours().closeMinute)
+            marketOpenAnHourandHalfPrior = PKDateUtilities.currentDateTime(simulate=True, hour=MarketHours().openHour-2, minute=MarketHours().openMinute+30)
             if now < marketStartTime and now >= marketOpenAnHourandHalfPrior: # Telegram bot might keep running beyond an hour. So let's start watching around 7:45AM
                 difference = (marketStartTime - now).total_seconds() + 1
                 global int_timer
@@ -410,18 +500,40 @@ def initializeIntradayTimer():
         launchIntradayMonitor()
         pass
 
+
 def sanitiseTexts(text):
+    """
+    Sanitize and truncate text to meet Telegram's message length limit.
+    
+    Args:
+        text (str): Input text to be sanitized
+        
+    Returns:
+        str: Text truncated to maximum allowed length (4096 characters)
+    """
     MAX_MSG_LENGTH = 4096
     if len(text) > MAX_MSG_LENGTH:
         return text[:MAX_MSG_LENGTH]
     return text
 
-def updateSubscription(userid,subvalue,subtype = "add"):
+
+def updateSubscription(userid, subvalue, subtype="add"):
+    """
+    Update user subscription information via GitHub workflow.
+    
+    Args:
+        userid (int): User ID to update
+        subvalue (float): Subscription value or balance amount
+        subtype (str): Type of update - "add" or "remove"
+        
+    Returns:
+        str: Error message if update fails, None if successful
+    """
     workflow_name = "w18-workflow-sub-data.yml"
     branch = "main"
     updatedResults = None
     try:
-        workflow_postData  = (
+        workflow_postData = (
             '{"ref":"'
             + branch
             + '","inputs":{"userid":"'
@@ -433,7 +545,7 @@ def updateSubscription(userid,subvalue,subtype = "add"):
             + '"}}'
         )
         ghp_token = PKEnvironment().allSecrets["PKG"]
-        resp = run_workflow(workflowType="O",repo="PKScreener",owner="pkjmesra",branch=branch,ghp_token=ghp_token,workflow_name=workflow_name,workflow_postData=workflow_postData)
+        resp = run_workflow(workflowType="O", repo="PKScreener", owner="pkjmesra", branch=branch, ghp_token=ghp_token, workflow_name=workflow_name, workflow_postData=workflow_postData)
         if resp is not None and resp.status_code != 204:
             updatedResults = f"{updatedResults} Uh oh! We ran into a problem enabling your subscription.\nPlease reach out to @ItsOnlyPK to resolve."
     except Exception as e:
@@ -442,7 +554,20 @@ def updateSubscription(userid,subvalue,subtype = "add"):
         pass
     return updatedResults
 
+
 def matchUTR(update: Update, context: CallbackContext) -> str:
+    """
+    Handle /check command to verify UPI transaction reference number.
+    
+    Validates UTR number and enables subscription if transaction is found.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     global bot_available
     updateCarrier = None
     if update is None:
@@ -452,6 +577,7 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
             updateCarrier = update.callback_query
         if update.message is not None:
             updateCarrier = update.message
+            updateCarrier.reply_chat_action(telegram.ChatAction.TYPING)
         if updateCarrier is None:
             return
     # Get user that sent /start and log his name
@@ -480,7 +606,7 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
             if matchedTran is not None:
                 updatedResults = f"We have found the following transaction for the provided UTR:\n{matchedTran}\nYour subscription is being enabled soon!\nPlease check with /OTP in the next couple of minutes!\nThank you for trusting PKScreener!"
                 try:
-                    results = updateSubscription(user.id,int(float(matchedTran.get("amountPaid"))))
+                    results = updateSubscription(user.id, int(float(matchedTran.get("amountPaid"))))
                     if results is not None:
                         updatedResults = results
                 except Exception as e:
@@ -491,22 +617,57 @@ def matchUTR(update: Update, context: CallbackContext) -> str:
                 updatedResults = "We could not find any transaction details with the provided UTR.\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
         else:
             updatedResults = "Did you forget to include the UTR number with /Check ?\nYou should use it like this:\n/Check UTR_Here\nUPI transaction reference number is a 12-digit alphanumeric/numeric code that serves as a unique identifier for transactions. It is also known as the Unique Transaction Reference (UTR) number.\nYou can find your UPI reference number in the UPI-enabled app you used to make the transaction.\nFor example, you can find your UPI reference number in the History section of Google Pay. \nIn the Paytm app, you can find it by clicking View Details.\nIf you still cannot find it, please drop a message with transaction details/snapshot to @ItsOnlyPK to enable subscription."
-    update.message.reply_text(sanitiseTexts(updatedResults), reply_markup=default_markup(user=user),parse_mode="HTML")
+    update.message.reply_text(sanitiseTexts(updatedResults), reply_markup=default_markup(user=user), parse_mode="HTML")
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
 
-def editMessageText(query,editedText,reply_markup):
+
+def editMessageText(query, editedText, reply_markup):
+    """
+    Edit an existing message with new text and markup.
+    
+    Args:
+        query: Telegram callback query object
+        editedText (str): New text content for the message
+        reply_markup: Inline keyboard markup for the edited message
+    """
     # .replace(microsecond=0).isoformat()
     editedText = f"PKScreener <b>v{VERSION}</b>\n{PKDateUtilities.currentDateTime()}:\n{editedText}"
     if query is not None and hasattr(query, "edit_message_text"):
-        query.edit_message_text(text=editedText, reply_markup=reply_markup,parse_mode="HTML")
+        query.edit_message_text(text=editedText, reply_markup=reply_markup, parse_mode="HTML")
+
 
 def otp(update: Update, context: CallbackContext) -> str:
-    viewSubscriptionOptions(update,context,sendOTP=True)
-    return START_ROUTES
+    """
+    Handle /otp command to generate and display user OTP.
     
-def start(update: Update, context: CallbackContext, updatedResults=None, monitorIndex=0,chosenBotMenuOption="") -> str:
-    """Send message on `/start`."""
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
+    if update.message is not None:
+        update.message.reply_chat_action(telegram.ChatAction.TYPING)
+    viewSubscriptionOptions(update, context, sendOTP=True)
+    return START_ROUTES
+
+
+def start(update: Update, context: CallbackContext, updatedResults=None, monitorIndex=0, chosenBotMenuOption="") -> str:
+    """
+    Handle /start command - initialize bot session and display main menu.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        updatedResults (str, optional): Results to display instead of default menu
+        monitorIndex (int): Index for intraday monitor display
+        chosenBotMenuOption (str): Additional menu option text
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     global bot_available
     updateCarrier = None
     if update is None:
@@ -516,6 +677,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
             updateCarrier = update.callback_query
         if update.message is not None:
             updateCarrier = update.message
+            updateCarrier.reply_chat_action(telegram.ChatAction.TYPING)
         if updateCarrier is None:
             return
     # Get user that sent /start and log his name
@@ -534,7 +696,7 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
     # The keyboard is a list of button rows, where each row is in turn
     # a list (hence `[[...]]`).
     if bot_available:
-        reply_markup = default_markup(user=user,monitorIndex=monitorIndex)
+        reply_markup = default_markup(user=user, monitorIndex=monitorIndex)
         cmds = m0.renderForMenu(
             selectedMenu=None,
             skip=TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1],
@@ -586,12 +748,18 @@ def start(update: Update, context: CallbackContext, updatedResults=None, monitor
     # Tell ConversationHandler that we're in state `FIRST` now
     return START_ROUTES
 
+
 def removeMonitorFile():
+    """
+    Remove intraday monitor output files from the filesystem.
+    
+    Cleans up all monitor output files based on configured dashboard dimensions.
+    """
     from PKDevTools.classes import Archiver
     configManager.getConfig(ConfigManager.parser)
     filePath = os.path.join(Archiver.get_user_data_dir(), "monitor_outputs")
     index = 0
-    while index < configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
+    while index < configManager.maxDashboardWidgetsPerRow * configManager.maxNumResultRowsInMonitor:
         try:
             os.remove(f"{filePath}_{index}.txt")
         except Exception as e: # pragma: no cover
@@ -599,7 +767,14 @@ def removeMonitorFile():
             pass
         index += 1
 
+
 def launchIntradayMonitor():
+    """
+    Launch the intraday monitor process to track stock movements.
+    
+    Returns:
+        tuple: (result_outputs, filePath) containing status message and output file path
+    """
     from PKDevTools.classes import Archiver
     global int_timer
     if int_timer is not None:
@@ -623,7 +798,7 @@ def launchIntradayMonitor():
     appLogsEnabled = ("PKDevTools_Default_Log_Level" in os.environ.keys() or sys.argv[0].endswith(".py"))
     # User wants an Int. Monitor
     from PKDevTools.classes.System import PKSystem
-    _,_,_,_,sysArch = PKSystem.get_platform()
+    _, _, _, _, sysArch = PKSystem.get_platform()
     launcher = f"/home/runner/work/PKScreener/PKScreener/pkscreenercli_{sysArch}.bin" if "MONITORING_BOT_RUNNER" in os.environ.keys() else "pkscreener"
     launcher = f"python3.12 {launcher}" if launcher.endswith(".py") else launcher
     
@@ -635,7 +810,7 @@ def launchIntradayMonitor():
             # If we don't remove, it might just exit assuming that there's another instance
             # already running.
             removeMonitorFile()
-            appArgs = [f"{launcher}","-a","Y","-m","X","--telegram",]
+            appArgs = [f"{launcher}", "-a", "Y", "-m", "X", "--telegram",]
             if appLogsEnabled:
                 appArgs.append("-l")
             else:
@@ -652,9 +827,26 @@ def launchIntradayMonitor():
         pass
     return result_outputs, filePath
 
+
 def XDevModeHandler(update: Update, context: CallbackContext) -> str:
-    """Show new choice of buttons"""
+    """
+    Handle developer mode operations (DV menu).
+    
+    Provides developer options like enabling/disabling logging and restarting the bot.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     query = update.callback_query
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     data = str(query.data).upper().replace("CX", "X").replace("CB", "B").replace("CG", "G").replace("CMI", "MI").replace("CDV","DV")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         return start(update, context)
@@ -681,14 +873,24 @@ def XDevModeHandler(update: Update, context: CallbackContext) -> str:
                     pass
             
             launchIntradayMonitor()
-            start(update, context,chosenBotMenuOption=chosenBotMenuOption)
+            start(update, context, chosenBotMenuOption=chosenBotMenuOption)
         elif devModeIndex == 1: # Restart the bot service
-            resp = run_workflow(None, None,None, workflowType="R")
-            start(update, context,chosenBotMenuOption=f"{resp.status_code}: {resp.text}")
+            resp = run_workflow(None, None, None, workflowType="R")
+            start(update, context, chosenBotMenuOption=f"{resp.status_code}: {resp.text}")
     return START_ROUTES
 
+
 def PScanners(update: Update, context: CallbackContext) -> str:
-    """Show new choice of buttons"""
+    """
+    Handle piped scanner menu navigation.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     updateCarrier = None
     if update is None:
         return
@@ -705,6 +907,11 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     data = str(query.data).upper().replace("C", "")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         # Someone is trying to send commands we do not support
@@ -736,7 +943,7 @@ def PScanners(update: Update, context: CallbackContext) -> str:
         .replace("    ", "")
         .replace("  ", "")
         .replace("\t", "")
-        .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+        .replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "")
     )
     menuText = f"{menuText}\n\nH > Home"
     # menuText = f"{menuText}\n\nP2 > More Options"
@@ -750,7 +957,6 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     mns.append(menu().create("H", "Home", 2))
     # mns.append(menu().create("P2", "Next", 2))
     inlineMenus = []
-    query.answer()
     for mnu in mns:
         inlineMenus.append(
             InlineKeyboardButton(
@@ -760,11 +966,22 @@ def PScanners(update: Update, context: CallbackContext) -> str:
     keyboard = [inlineMenus]
     reply_markup = InlineKeyboardMarkup(keyboard)
     menuText = f"{menuText}\nClick /start if you want to restart the session."
-    editMessageText(query=query,editedText=menuText,reply_markup=reply_markup)
+    editMessageText(query=query, editedText=menuText, reply_markup=reply_markup)
     registerUser(user)
     return START_ROUTES
 
+
 def addNewButtonsToReplyMarkup(reply_markup, buttonKeyTextDict={}):
+    """
+    Add new buttons to an existing inline keyboard markup.
+    
+    Args:
+        reply_markup: Existing InlineKeyboardMarkup object
+        buttonKeyTextDict (dict): Dictionary mapping callback_data to button text
+        
+    Returns:
+        InlineKeyboardMarkup: Updated keyboard markup with new buttons added
+    """
     # Get the existing inline keyboard
     keyboard = reply_markup.inline_keyboard if reply_markup else []
     inlineMenus = []  # Temporary list to hold a row of buttons
@@ -779,9 +996,20 @@ def addNewButtonsToReplyMarkup(reply_markup, buttonKeyTextDict={}):
         keyboard.append(inlineMenus)
     return InlineKeyboardMarkup(keyboard)
 
-def cancelAlertSubscription(update:Update,context:CallbackContext):
+
+def cancelAlertSubscription(update: Update, context: CallbackContext):
+    """
+    Cancel a user's alert subscription for a specific scanner.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     global bot_available
-    updatedResults= ""
+    updatedResults = ""
     updateCarrier = None
     if update is None:
         return
@@ -794,6 +1022,12 @@ def cancelAlertSubscription(update:Update,context:CallbackContext):
             return
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
+    query = update.callback_query if update.callback_query is not None else None
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     scanId = str(updateCarrier.data).upper().replace("CAN_", "")
     logger.info("User %s started the conversation.", user.first_name)
     if not bot_available:
@@ -804,28 +1038,40 @@ def cancelAlertSubscription(update:Update,context:CallbackContext):
         # without incurring heavy charges. Let's run in the 
         # unavailable mode instead until this gets fixed.
         updatedResults = APOLOGY_TEXT
-    reply_markup=default_markup(user=user)
+    reply_markup = default_markup(user=user)
     try:
         dbManager = DBManager()
-        result = dbManager.removeScannerJob(user.id,scanId)
+        result = dbManager.removeScannerJob(user.id, scanId)
         if result:
             updatedResults = f"<b>{scanId}</b> has been successfully removed from your alert subscription(s). If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. For any feedback, please reach out to @ItsOnlyPK. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
         else:
             updatedResults = f"We encountered some <b>error</b> while trying to remove <b>{scanId}</b> from your alert subscription(s). Please try again or reach out to @ItsOnlyPK with feedback. If you re-subscribe, the associated charges will be deducted from your alerts remaining balance. You can use the <b>Subscriptions</b> button below to check/view your existing subscriptions. We thank you for your support and trust! Keep exploring!"
         if hasattr(updateCarrier, "reply_text"):
-            updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
+            updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup, parse_mode="HTML")
         elif hasattr(updateCarrier, "edit_message_text"):
-            editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
+            editMessageText(query=updateCarrier, editedText=sanitiseTexts(updatedResults), reply_markup=reply_markup)
         shareUpdateWithChannel(update=update, context=context, optionChoices=f"/CAN_{scanId}_{user.id}\n{updatedResults}")
     except Exception as e: # pragma: no cover
         logger.error(e)
         pass
     return START_ROUTES
 
-def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False):
+
+def viewSubscriptionOptions(update: Update, context: CallbackContext, sendOTP=False):
+    """
+    Display user's subscription information and available subscription options.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        sendOTP (bool): If True, includes OTP in the response
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     global bot_available
     updateCarrier = None
-    updatedResults= ""
+    updatedResults = ""
     if update is None:
         return
     else:
@@ -835,6 +1081,12 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             updateCarrier = update.message
         if updateCarrier is None:
             return
+    query = update.callback_query if update.callback_query is not None else None
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
     logger.info("User %s started the conversation.", user.first_name)
@@ -847,7 +1099,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         # unavailable mode instead until this gets fixed.
         updatedResults = APOLOGY_TEXT
     
-    reply_markup=default_markup(user=user)
+    reply_markup = default_markup(user=user)
     # Initialize variables to avoid UnboundLocalError
     scannerJobsSubscribed = ""
     alertUser = None
@@ -859,7 +1111,7 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             otpValue = 0
             alertUser = None
             dbManager = DBManager()
-            otpValue, subsModel,subsValidity,alertUser = registerUser(user,forceFetch=True)
+            otpValue, subsModel, subsValidity, alertUser = registerUser(user, forceFetch=True)
             if is_subscription_enabled:
                 if alertUser is not None and len(alertUser.scannerJobs) > 0:
                     scannerJobsSubscribed = ", ".join(alertUser.scannerJobs)
@@ -874,12 +1126,12 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
         try:
             if is_subscription_enabled:
                 subscriptionModelNames = "\n<pre>Following basic and premium subscription models are available. Premium subscription allows for unlimited premium scans:\n"
-                for name,value in PKUserSusbscriptions().subscriptionKeyValuePairs.items():
+                for name, value in PKUserSusbscriptions().subscriptionKeyValuePairs.items():
                     if name == PKSubscriptionModel.No_Subscription.name:
                         subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name} (Only Basic Scans are free)\n"
                     else:
                         subscriptionModelNames = f"{subscriptionModelNames}\n₹ {str(value).ljust(6)}: {name}"
-                subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'><b>sponsor</b></a>\nPlease send\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n. If it is not auto-enabled, please drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually."
+                subscriptionModelNames = f"{subscriptionModelNames}</pre>\nPlease pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra&cache={int(time() / 86400)}'><b>sponsor</b></a>\nPlease send\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically enable subscription after making payment via UPI\n. If it is not auto-enabled, please drop a message to @ItsOnlyPK on Telegram after paying to enable subscription manually."
 
                 subscriptionModelName = PKUserSusbscriptions().subscriptionValueKeyPairs[subsModel]
                 if subscriptionModelName != PKSubscriptionModel.No_Subscription.name:
@@ -905,17 +1157,29 @@ def viewSubscriptionOptions(update:Update,context:CallbackContext,sendOTP=False)
             for scannerJob in alertUser.scannerJobs:
                 if len(scannerJob) > 0:
                     buttonDict[f"CAN_{scannerJob}"] = f"Stop {scannerJob} 🔔"
-            reply_markup = addNewButtonsToReplyMarkup(reply_markup,buttonDict)
+            reply_markup = addNewButtonsToReplyMarkup(reply_markup, buttonDict)
 
     if hasattr(updateCarrier, "reply_text"):
-        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup,parse_mode="HTML")
+        updateCarrier.reply_text(text=sanitiseTexts(updatedResults), reply_markup=reply_markup, parse_mode="HTML")
     elif hasattr(updateCarrier, "edit_message_text"):
-        editMessageText(query=updateCarrier,editedText=sanitiseTexts(updatedResults),reply_markup=reply_markup)
+        editMessageText(query=updateCarrier, editedText=sanitiseTexts(updatedResults), reply_markup=reply_markup)
     shareUpdateWithChannel(update=update, context=context, optionChoices=f"/otp\n{updatedResults}")
     return START_ROUTES
 
+
 def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
-    """Show Subscription options, check if user has paid or already subscribed"""
+    """
+    Subscribe a user to automated scanner alerts for a specific scanner.
+    
+    Checks user's balance and subscription status before processing subscription.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     updateCarrier = None
     if update is None:
         return
@@ -932,6 +1196,11 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     scanId = str(query.data).upper().replace("SUB_", "").strip()
     global bot_available
     if not bot_available:
@@ -946,40 +1215,53 @@ def subscribeToScannerAlerts(update: Update, context: CallbackContext) -> str:
         return START_ROUTES
     dbManager = DBManager()
     alertUser = dbManager.alertsForUser(int(user.id))
-    query.answer()
     menuText = ""
     is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if not is_subscription_enabled:
         menuText = "Alert subscription is currently unavailable. Please check back later."
-        editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=default_markup(user=user))
+        editMessageText(query=query, editedText=sanitiseTexts(menuText), reply_markup=default_markup(user=user))
         return START_ROUTES
 
     requiredBalance = 40 if str(scanId).upper().startswith("P") else 31
     # upi://pay?pa=PKScreener@APL&pn=PKScreener&cu=INR
-    payWall = "Please pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>\nPlease use\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI.\nAfter that you can try re-subscribing!\nIf you still face any problem, please drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually."
+    payWall = f"Please pay to subscribe:\n1. Using UPI(India) to <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> or\n2. Proudly <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra&cache={int(time() / 86400)}'>sponsor</a>\nPlease use\n/check UPI_UTR_HERE_After_Making_Payment to share transaction reference number to automatically update your balance after making payment via UPI.\nAfter that you can try re-subscribing!\nIf you still face any problem, please drop a message to @ItsOnlyPK along with UTR and Scan details on Telegram after paying to enable subscription manually."
     if alertUser is not None and alertUser.balance >= 0:
         # User has some balance
         if len(alertUser.scannerJobs) > 0:
             # User is already subscribed to some alerts
             if str(scanId) in alertUser.scannerJobs:
                 menuText = f"You are already subscribed to {scanId} ! Alerts will be delivered as and when they are raised during market hours on a market-open day. <b>You need to subscribe every morning for any spcific alert.</b>"
-                kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
+                kickOffScannerJobIfNotKickedOff(scanId, user, dbManager, requiredBalance, alertUser)
             else:
-                if  alertUser.balance < requiredBalance:
+                if alertUser.balance < requiredBalance:
                     # Insufficient balance
                     menuText = f"You need at least <b>₹ {requiredBalance}</b> to subscribe to <b>{scanId} alerts for a day</b> ! Your current balance <b>₹ {alertUser.balance}</b> is <b>insufficient</b>. {payWall}"
                 else:
-                    menuText = kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser)
+                    menuText = kickOffScannerJobIfNotKickedOff(scanId, user, dbManager, requiredBalance, alertUser)
     
     elif alertUser is None or alertUser.balance == 0:
         # Either user is not subscribed or has 0 balance
         menuText = f"You need at least <b>₹ {requiredBalance}</b> to subscribe to <b>{scanId} alerts for a day</b> ! Your current balance <b>₹ 0</b> is <b>insufficient</b>. {payWall}"
 
     menuText = f"{menuText}\nClick /start if you want to restart the session."
-    editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=default_markup(user=user))
+    editMessageText(query=query, editedText=sanitiseTexts(menuText), reply_markup=default_markup(user=user))
     return START_ROUTES
+
+
+def kickOffScannerJobIfNotKickedOff(scanId, user, dbManager, requiredBalance, alertUser):
+    """
+    Start a scanner job for a user if it hasn't been started already.
+    
+    Args:
+        scanId (str): Scanner identifier
+        user: User object
+        dbManager: Database manager instance
+        requiredBalance (float): Required balance for subscription
+        alertUser: User's alert subscription information
         
-def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertUser):
+    Returns:
+        str: Status message for the user
+    """
     # Sufficient balance to subscribe to scanId
     needsNewJobKickedOff = False
     menuText = ""
@@ -994,17 +1276,243 @@ def kickOffScannerJobIfNotKickedOff(scanId,user,dbManager,requiredBalance,alertU
         # This is the first user who's requesting this scanner
         needsNewJobKickedOff = True
     if alertUser is None or str(scanId) not in alertUser.scannerJobs:
-        subscribed = dbManager.updateAlertSubscriptionModel(user.id,requiredBalance,scanId)
+        subscribed = dbManager.updateAlertSubscriptionModel(user.id, requiredBalance, scanId)
     if subscribed:
         menuText = f"You have been added to receive the alerts for <b>{scanId}</b>. Please note that it is valid only for today during Market Hours and resets right after that. <b>You will need to re-subscribe again if you need it on the next market open day</b>. Thank you for trusting PKScreener!"
         if needsNewJobKickedOff:
-            run_workflow(f"{scanId}_{user.id}", str(user.id), f'--systemlaunched -a y -m {str(scanId).upper().replace("_",":")}', workflowType="S")
+            run_workflow(f"{scanId}_{user.id}", str(user.id), f'--systemlaunched -a y -m {str(scanId).upper().replace("_", ":")}', workflowType="S")
     else:
         menuText = "We encountered an error updating your subscription! Please reach out to @ItsOnlyPK on Telegram with your UTR and subscription scanner details."
     return menuText
 
+def trigger_prod_scans_workflow():
+    """
+    Trigger the production scans workflow via GitHub Actions.
+    
+    Returns:
+        bool: True if workflow was triggered successfully, False otherwise
+    """
+    try:
+        logger.info("Attempting to trigger production scans workflow...")
+        
+        # Get GitHub token from environment
+        github_token = os.environ.get('GITHUB_TOKEN') or os.environ.get('CI_PAT') or PKEnvironment().allSecrets.get("PKG")
+        
+        if not github_token:
+            logger.error("No GitHub token found, cannot trigger workflow")
+            return False
+        
+        # Use run_workflow with correct parameters
+        result = run_workflow(
+            repo="PKScreener", 
+            owner="pkjmesra",
+            workflow_name="w7-workflow-prod-scans-trigger.yml",
+            ghp_token=github_token,
+            workflowType=""
+        )
+        
+        if result and result.status_code == 204:
+            logger.info("✅ Successfully triggered production scans workflow at 9:30 AM IST")
+            return True
+        else:
+            logger.error(f"Failed to trigger workflow: {result.status_code if result else 'No response'}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error triggering production scans workflow: {e}")
+        return False
+
+
+def scheduled_workflow_trigger():
+    """
+    Background thread that triggers the production scans workflow at scheduled times.
+    
+    Runs with optimized polling intervals:
+    - Every 10 minutes until 9:30 AM IST
+    - Every 1 minute from 9:30 AM to 9:40 AM IST
+    - Stops immediately after triggering the workflow
+    """
+    global _trigger_stop_event
+    
+    ist_tz = pytz.timezone('Asia/Kolkata')
+    last_trigger_date = None
+    ALERT_HOUR = 9
+    ALERT_PRE_MINUTE = 30
+    ALERT_MINUTE = 33
+    target_time = dt_time(ALERT_HOUR, ALERT_MINUTE, 0)
+    
+    logger.info("🕐 Started scheduled workflow trigger thread")
+    
+    while not _trigger_stop_event.is_set():
+        try:
+            now = datetime.now(ist_tz)
+            current_time = now.time()
+            current_hour = current_time.hour
+            current_minute = current_time.minute
+            
+            # Check if we've already triggered today
+            if last_trigger_date == now.date():
+                # Already triggered today, check if we should stop
+                if _trigger_stop_event.is_set():
+                    break
+                # Sleep for an hour before checking again (no need to check frequently)
+                sleep(3600)
+                continue
+            
+            # Determine sleep interval based on time
+            if current_hour < ALERT_HOUR or (current_hour == ALERT_HOUR and current_minute < ALERT_PRE_MINUTE):
+                # Before 9:30 AM - check every 10 minutes
+                sleep_interval = 600  # 10 minutes
+                logger.debug(f"Before {ALERT_HOUR}:{ALERT_PRE_MINUTE} - checking every 10 minutes. Current time: {current_time}")
+            elif current_hour == ALERT_HOUR and current_minute < ALERT_MINUTE:
+                # Between 9:30 AM and 9:40 AM - check every 1 minute
+                sleep_interval = 60  # 1 minute
+                logger.debug(f"Approaching {ALERT_HOUR}:{ALERT_MINUTE} - checking every minute. Current time: {current_time}")
+            else:
+                # After 9:40 AM - check every hour (already passed for today)
+                sleep_interval = 3600  # 1 hour
+                logger.debug(f"After {ALERT_HOUR}:{ALERT_MINUTE} - checking hourly. Current time: {current_time}")
+            
+            # Check if it's exactly 9:40 AM (within the same minute)
+            if (current_hour == target_time.hour and 
+                current_minute == target_time.minute):
+                
+                logger.info(f"🕐 It's {ALERT_HOUR}:{ALERT_MINUTE} AM IST on {now.date()} - triggering production scans workflow")
+                
+                # Trigger the workflow
+                success = trigger_prod_scans_workflow()
+                
+                if success:
+                    # Mark as triggered for today
+                    last_trigger_date = now.date()
+                    
+                    # Stop the trigger thread immediately after successful trigger
+                    logger.info("✅ Workflow triggered successfully. Stopping trigger thread.")
+                    _trigger_stop_event.set()
+                    break
+                else:
+                    logger.warning("⚠️ Workflow trigger failed. Will retry next minute.")
+                    # Don't mark as triggered, will retry next minute
+                    sleep_interval = 60  # Keep checking every minute on failure
+            
+            # Sleep for the determined interval, but check stop event periodically
+            for _ in range(sleep_interval // 10):
+                if _trigger_stop_event.is_set():
+                    break
+                sleep(10)
+                
+        except Exception as e:
+            logger.error(f"Error in scheduled workflow trigger: {e}")
+            sleep(60)  # Sleep for a minute on error
+    
+    logger.info("🛑 Scheduled workflow trigger thread stopped")
+
+
+def start_scheduled_workflow():
+    """Start the background thread for daily workflow trigger."""
+    global _trigger_thread, _trigger_stop_event
+    
+    # Stop existing thread if running
+    stop_scheduled_workflow()
+    
+    # Create new stop event and thread
+    _trigger_stop_event = threading.Event()
+    _trigger_thread = threading.Thread(target=scheduled_workflow_trigger, daemon=True)
+    _trigger_thread.start()
+    logger.info("✅ Started background thread for daily 9:30 AM IST workflow trigger")
+
+
+def stop_scheduled_workflow():
+    """Stop the background workflow trigger thread."""
+    global _trigger_thread, _trigger_stop_event
+    
+    if _trigger_stop_event is not None:
+        _trigger_stop_event.set()
+        _trigger_stop_event = None
+    
+    if _trigger_thread is not None and _trigger_thread.is_alive():
+        _trigger_thread.join(timeout=5)
+        _trigger_thread = None
+        logger.info("🛑 Stopped background workflow trigger thread")
+
+
+def manual_trigger(update: Update, context: CallbackContext) -> None:
+    """
+    Manual command to test the workflow trigger. Usage: /trigger_scans
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+    """
+    if _shouldAvoidResponse(update):
+        return
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+            update.message.reply_chat_action(telegram.ChatAction.TYPING)
+        if updateCarrier is None:
+            return
+    user = update.effective_user
+    # Only allow owner or admins to manually trigger
+    if user.username != OWNER_USER:
+        update.message.reply_text("❌ You don't have permission to manually trigger scans.")
+        return
+    
+    update.message.reply_text("🔄 Manually triggering production scans workflow...")
+    success = trigger_prod_scans_workflow()
+    if success:
+        update.message.reply_text("✅ Workflow triggered successfully!")
+    else:
+        update.message.reply_text("❌ Failed to trigger workflow. Check logs for details.")
+
+
+def stop_trigger(update: Update, context: CallbackContext) -> None:
+    """
+    Manual command to stop the scheduled workflow trigger. Usage: /stop_trigger
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+    """
+    if _shouldAvoidResponse(update):
+        return
+    updateCarrier = None
+    if update is None:
+        return
+    else:
+        if update.callback_query is not None:
+            updateCarrier = update.callback_query
+        if update.message is not None:
+            updateCarrier = update.message
+            update.message.reply_chat_action(telegram.ChatAction.TYPING)
+        if updateCarrier is None:
+            return
+    user = update.effective_user
+    # Only allow owner or admins
+    if user.username != OWNER_USER:
+        update.message.reply_text("❌ You don't have permission to stop the trigger.")
+        return
+    
+    stop_scheduled_workflow()
+    update.message.reply_text("🛑 Scheduled workflow trigger stopped.")
+
+
 def XScanners(update: Update, context: CallbackContext) -> str:
-    """Show new choice of buttons"""
+    """
+    Handle scanner menu navigation for X (scanner) commands.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     updateCarrier = None
     if update is None:
         return
@@ -1021,6 +1529,12 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     if query is None:
         start(update, context)
         return START_ROUTES
+    # This must be done before any time-consuming operations
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     data = str(query.data).upper().replace("C", "")
     if data[0:2] not in TOP_LEVEL_SCANNER_MENUS:
         # Someone is trying to send commands we do not support
@@ -1043,20 +1557,20 @@ def XScanners(update: Update, context: CallbackContext) -> str:
         if filePath is not None:
             filePath = f"{filePath}_{monitorIndex}.txt"
         monitorIndex += 1
-        if monitorIndex >= configManager.maxDashboardWidgetsPerRow*configManager.maxNumResultRowsInMonitor:
+        if monitorIndex >= configManager.maxDashboardWidgetsPerRow * configManager.maxNumResultRowsInMonitor:
             monitorIndex = 0
         try:
             if filePath is not None and os.path.exists(filePath):
                 f = open(filePath, "r")
                 result_outputs = f.read()
                 f.close()
-            start(update, context, updatedResults=result_outputs,monitorIndex=monitorIndex)
+            start(update, context, updatedResults=result_outputs, monitorIndex=monitorIndex)
             return START_ROUTES
         except Exception as e: # pragma: no cover
             result_outputs = "Hmm...It looks like you caught us taking a break! Try again later :-)\nCycleTime shows how much it's taking us to download latest data and then perform each cycle of analysis for all configured scanners. We may be downloading the latest data right now."
             logger.info(e)
             logger.info(f"Could not read {filePath}")
-            start(update, context, updatedResults=result_outputs,monitorIndex=monitorIndex)
+            start(update, context, updatedResults=result_outputs, monitorIndex=monitorIndex)
             return START_ROUTES
 
     ########################### Scanners ##############################
@@ -1074,7 +1588,7 @@ def XScanners(update: Update, context: CallbackContext) -> str:
         .replace("    ", "")
         .replace("  ", "")
         .replace("\t", "")
-        .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+        .replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "")
     )
     menuText = f"{menuText}\n\nH > Home"
     menuText = f"{menuText}\n\nP2 > More Options"
@@ -1088,7 +1602,6 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     mns.append(menu().create("H", "Home", 2))
     mns.append(menu().create("P2", "Next", 2))
     inlineMenus = []
-    query.answer()
     for mnu in mns:
         inlineMenus.append(
             InlineKeyboardButton(
@@ -1098,17 +1611,40 @@ def XScanners(update: Update, context: CallbackContext) -> str:
     keyboard = [inlineMenus]
     reply_markup = InlineKeyboardMarkup(keyboard)
     menuText = f"{menuText}\nClick /start if you want to restart the session."
-    editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=reply_markup)
+    editMessageText(query=query, editedText=sanitiseTexts(menuText), reply_markup=reply_markup)
     registerUser(user)
     return START_ROUTES
 
+
 def getinlineMenuListRow(keyboardRows=[]):
+    """
+    Get the first row from keyboard rows that has 7 or fewer buttons.
+    
+    Args:
+        keyboardRows (list): List of keyboard row lists
+        
+    Returns:
+        list: First row with 7 or fewer buttons, or None if no such row exists
+    """
     for list in keyboardRows:
         if len(list) <= 7:
             return list
 
+
 def Level2(update: Update, context: CallbackContext) -> str:
-    """Show new choice of buttons"""
+    """
+    Handle second-level menu navigation for scanner options.
+    
+    Processes user selections at level 2 of the menu hierarchy and
+    either displays more options or launches the selected scanner.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     keyboardRows = []
     index = 0
     while index <= 10:
@@ -1132,7 +1668,11 @@ def Level2(update: Update, context: CallbackContext) -> str:
     user = updateCarrier.from_user
 
     query = update.callback_query
-    query.answer()
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     preSelection = (
         str(query.data).upper().replace("C", "")
     )
@@ -1180,7 +1720,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
             .replace("    ", "")
             .replace("  ", "")
             .replace("\t", "")
-            .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+            .replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "")
         )
         menuText = f"{menuText}\n\nH > Home"
         menuText = f"{menuText}\n\n{nextOption} > More Options"
@@ -1193,7 +1733,6 @@ def Level2(update: Update, context: CallbackContext) -> str:
         )
         mns.append(menu().create("H", "Home", 2))
         mns.append(menu().create(f"{nextOption}", "More Options", 2))
-        query.answer()
         for mnu in mns:
             activeInlineRow = getinlineMenuListRow(keyboardRows)
             prefix = (selection[0]+'_'+selection[1]+'_'+selection[2]) if selection[0] == "P" else selection[0]
@@ -1203,7 +1742,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
         keyboard = keyboardRows
         reply_markup = InlineKeyboardMarkup(keyboard)
         menuText = f"{menuText}\nClick /start if you want to restart the session."
-        editMessageText(query=query,editedText=sanitiseTexts(menuText),reply_markup=reply_markup)
+        editMessageText(query=query, editedText=sanitiseTexts(menuText), reply_markup=reply_markup)
         return START_ROUTES
     if len(selection) == 2 or (len(selection) == 3 and selection[2] == "P"):
         if str(selection[1]).isnumeric():
@@ -1213,6 +1752,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 skip=SCANNER_SKIP_MENUS_1_TO_6,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
+            menuText = menuText if menuText is not None else ""
             menuText = menuText + "\n\nP1 > More options"
             menuText = menuText + "\nH > Home"
             mns = m2.renderForMenu(
@@ -1221,8 +1761,9 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            mns.append(menu().create("P1", "More Options", 2))
-            mns.append(menu().create("H", "Home", 2))
+            if mns is not None:
+                mns.append(menu().create("P1", "More Options", 2))
+                mns.append(menu().create("H", "Home", 2))
         elif selection[1] in ["P1", "N"]:
             selection.extend(["", ""])
     elif len(selection) == 3:
@@ -1435,7 +1976,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
             if mns is not None:
                 for mnu in mns:
                     activeInlineRow = getinlineMenuListRow(keyboardRows)
-                    activeInlineRow.append(InlineKeyboardButton(mnu.menuKey,callback_data="C" + str(f"{preSelection}_{mnu.menuKey}"),))
+                    activeInlineRow.append(InlineKeyboardButton(mnu.menuKey, callback_data="C" + str(f"{preSelection}_{mnu.menuKey}"),))
                 keyboard = keyboardRows
                 reply_markup = InlineKeyboardMarkup(keyboard)
             if len(mns) == 0:
@@ -1456,7 +1997,7 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     .replace("    ", "")
                     .replace("  ", "")
                     .replace("\t", "")
-                    .replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+                    .replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "")
                 )
                 menuText = f"{menuText}\n\nH > Home"
                 menuText = f"{menuText}\n\nP2 > More Options"
@@ -1470,7 +2011,6 @@ def Level2(update: Update, context: CallbackContext) -> str:
                 mns.append(menu().create("H", "Home", 2))
                 mns.append(menu().create("P2", "Next", 2))
                 inlineMenus = []
-                query.answer()
                 for mnu in mns:
                     inlineMenus.append(
                         InlineKeyboardButton(
@@ -1484,15 +2024,15 @@ def Level2(update: Update, context: CallbackContext) -> str:
         
         if menuText is None or len(menuText) == 0:
             optionChoices = (
-                f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}".replace(" > >","").strip()
+                f"{selection[0]} > {selection[1]} > {selection[2]} > {selection[3]}".replace(" > >", "").strip()
             )
-            optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}".replace(" > >","").strip()
+            optionChoices = f"{optionChoices}{f' > {selection[4]}' if len(selection) > 4 else ''}".replace(" > >", "").strip()
             expectedTime = f"{'10 to 15' if '> 15' in optionChoices else '1 to 2'}"
             is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
             if is_subscription_enabled:
-                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ', '')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener had been free for a long time, but owing to cost/budgeting issues, only a basic set of features will always remain free for everyone. Consider donating to help cover the basic server costs or subscribe to premium, if not subscribed yet:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra&cache={int(time() / 86400)}'>sponsor</a>"
             else:
-                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ','')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener is being made available for free for a long time. We incur costs to maintain the service. Consider donating to help cover the basic server and maintenance costs:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
+                menuText = f"Thank you for choosing {optionChoices.replace(' >  > ', '')}. You will receive the notification/results in about {expectedTime} minutes. It generally takes 1-2 minutes for NSE (2000+) stocks.\nPKScreener is being made available for free for a long time. We incur costs to maintain the service. Consider donating to help cover the basic server and maintenance costs:\nUPI (India): <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a>\nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra&cache={int(time() / 86400)}'>sponsor</a>"
 
             reply_markup = default_markup(user=user)
             options = ":".join(selection)
@@ -1513,20 +2053,34 @@ def Level2(update: Update, context: CallbackContext) -> str:
                     text=f"Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> submitted scan request <b>{optionChoices}</b> to the bot!",
                     parse_mode="HTML",
                 )
-        except Exception as e:# pragma: no cover
+        except Exception as e: # pragma: no cover
             logger.error(e)
             start(update, context)
-    menuText =  menuText.replace("\n     ","\n").replace("\n    ","\n").replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"")
+    menuText = menuText.replace("\n     ", "\n").replace("\n    ", "\n").replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "")
     if not str(optionChoices.upper()).startswith("B"):
         sendUpdatedMenu(
             menuText=menuText, update=update, context=context, reply_markup=reply_markup
         )
-        scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
-        sendSubscriptionOption(update,context,scanRequest)
+        scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
+        sendSubscriptionOption(update, context, scanRequest)
     registerUser(user)
     return START_ROUTES
 
+
 def handleHousekeeping(update: Update, context: CallbackContext) -> str:
+    """
+    Handle housekeeping commands for admin users.
+    
+    Provides admin functions like viewing active users, paying users,
+    and updating user balances/subscriptions.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     updateCarrier = None
     menuText = "Not implemented yet..."
     shouldSendUpdate = False
@@ -1542,7 +2096,11 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
     query = update.callback_query
-    query.answer()
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     preSelection = (str(query.data).upper().replace("C", ""))
     selection = preSelection.split("_")[1]
     if query is None:
@@ -1558,10 +2116,10 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
         payingUsers = dbMgr.getPayingUsers()
         if payingUsers is not None and len(payingUsers) > 0:
             menuText = "Here are all the paying users:"
-            header = "UserID".ljust(10,'#') + " : " + "UserName".ljust(10,'#') + " : " + "Subs.".ljust(5,'#') + " : " + "Bal.".ljust(5,'#')
+            header = "UserID".ljust(10, '#') + " : " + "UserName".ljust(10, '#') + " : " + "Subs.".ljust(5, '#') + " : " + "Bal.".ljust(5, '#')
             menuText = f"{menuText}\n{header}"
             for payingUser in payingUsers:
-                menuText = f"{menuText}\n{str(payingUser.userid).ljust(10,'#')} : {str(payingUser.username).ljust(10,'#')} : {str(payingUser.subscriptionmodel).ljust(5,'#')} : {str(payingUser.balance).ljust(5,'#')}"
+                menuText = f"{menuText}\n{str(payingUser.userid).ljust(10, '#')} : {str(payingUser.username).ljust(10, '#')} : {str(payingUser.subscriptionmodel).ljust(5, '#')} : {str(payingUser.balance).ljust(5, '#')}"
     elif selection == "UUB":
         user_states[user.id] = f"{selection}_awaiting_input_1"  # Set user state
         menuText = "Please enter a userID for whom to update balance:"
@@ -1579,10 +2137,21 @@ def handleHousekeeping(update: Update, context: CallbackContext) -> str:
                     menuText = f"{menuText}\nScanner: {scanID} : Users: {subUsers}"
             else:
                 menuText = "No users are subscribed for alerts today!"
-    editMessageText(query=query,editedText=menuText,reply_markup=reply_markup)
+    editMessageText(query=query, editedText=menuText, reply_markup=reply_markup)
     return START_ROUTES
 
-def default_markup(user=None,monitorIndex=0):
+
+def default_markup(user=None, monitorIndex=0):
+    """
+    Generate the default inline keyboard markup for the bot.
+    
+    Args:
+        user: Telegram user object (for admin-specific buttons)
+        monitorIndex (int): Index for intraday monitor button
+        
+    Returns:
+        InlineKeyboardMarkup: Keyboard markup with main menu buttons
+    """
     mns = m0.renderForMenu(selectedMenu=None,
             skip=TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1],
             asList=True,
@@ -1606,10 +2175,10 @@ def default_markup(user=None,monitorIndex=0):
     lastRowMenus = []
     rowIndex = 0
     # https://emojidb.org/otp-emojis
-    iconDict = {"X":"🕵️‍♂️ 🔍 ","B":"📈 🎯 ","P":"🧨 💥 ","MI":"","DV":"","VS":"🔔 📣 ","start":"🟢 🏁 ", "HS":"🕵️‍♂️ ","otp":"🔐 "}
+    iconDict = {"X": "🕵️‍♂️ 🔍 ", "B": "📈 🎯 ", "P": "🧨 💥 ", "MI": "", "DV": "", "VS": "🔔 📣 ", "start": "🟢 🏁 ", "HS": "🕵️‍♂️ ", "otp": "🔐 "}
     for mnu in mns:
         if mnu.menuKey[0:2] in TOP_LEVEL_SCANNER_MENUS:
-            rowIndex +=1
+            rowIndex += 1
             inlineMenus.append(
                 InlineKeyboardButton(
                     iconDict.get(str(mnu.menuKey[0:2])) + mnu.menuText.split("(")[0],
@@ -1646,7 +2215,7 @@ def default_markup(user=None,monitorIndex=0):
     rowIndex = 0
     inlineMenus = []
     for hskMenu in hskMenus:
-        rowIndex +=1
+        rowIndex += 1
         inlineMenus.append(
             InlineKeyboardButton(
                 iconDict.get(str(hskMenu.menuKey[0:2])) + hskMenu.menuText.split("(")[0],
@@ -1663,30 +2232,64 @@ def default_markup(user=None,monitorIndex=0):
 
 
 def sendUpdatedMenu(menuText, update: Update, context, reply_markup, replaceWhiteSpaces=True):
+    """
+    Send or update a menu message with the provided text and markup.
+    
+    Args:
+        menuText (str): Menu text to display
+        update: Telegram update object
+        context: Callback context
+        reply_markup: Inline keyboard markup
+        replaceWhiteSpaces (bool): Whether to clean up whitespace in the text
+    """
     try:
-        menuText.replace("     ", "").replace("    ", "").replace("\t", "").replace(colorText.FAIL,"").replace(colorText.END,"").replace(colorText.WHITE,"") if replaceWhiteSpaces else menuText
+        menuText.replace("     ", "").replace("    ", "").replace("\t", "").replace(colorText.FAIL, "").replace(colorText.END, "").replace(colorText.WHITE, "") if replaceWhiteSpaces else menuText
         menuText = f"{menuText}\nClick /start if you want to restart the session." if "/start" not in menuText else menuText
-        editMessageText(query=update.callback_query,editedText=sanitiseTexts(menuText),reply_markup=reply_markup)
-    except Exception as e:# pragma: no cover
+        editMessageText(query=update.callback_query, editedText=sanitiseTexts(menuText), reply_markup=reply_markup)
+    except Exception as e: # pragma: no cover
         logger.log(e)
         start(update, context)
 
+
 def isUserSubscribed(user):
+    """
+    Check if a user has an active subscription.
+    
+    Args:
+        user: Telegram user object
+        
+    Returns:
+        bool: True if user has active subscription, False otherwise
+    """
     if user is not None:
         return PKUserSusbscriptions.userSubscribed(userID=str(user.id))
     return False
 
+
 def launchScreener(options, user, context, optionChoices, update):
+    """
+    Launch a scanner workflow based on user's selected options.
+    
+    Args:
+        options (str): Scanner options in colon-separated format
+        user: Telegram user object
+        context: Callback context
+        optionChoices (str): Human-readable option choices
+        update: Telegram update object
+        
+    Returns:
+        bool: True if scan was launched successfully, False otherwise
+    """
     try:
-        scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
+        scanRequest = optionChoices.replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
         userSubs = isUserSubscribed(user)
         try:
-            PKAnalyticsService().send_event("bot_scan",{"bot_userid":str(user.id), "bot_username":str(user.username),"scan_id":str(scanRequest),"user_subscribed":userSubs})
+            PKAnalyticsService().send_event("bot_scan", {"bot_userid": str(user.id), "bot_username": str(user.username), "scan_id": str(scanRequest), "user_subscribed": userSubs})
         except Exception as e:
             pass
         is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
         if is_subscription_enabled and not userSubs:
-            basicSubscriptions = ["X_0","X_N","X_1_"]
+            basicSubscriptions = ["X_0", "X_N", "X_1_"]
             isBasicScanRequest = False
             for basicSub in basicSubscriptions:
                 if basicSub in scanRequest:
@@ -1695,16 +2298,16 @@ def launchScreener(options, user, context, optionChoices, update):
             if not isBasicScanRequest:
                 responseText = f"Thank you for choosing {scanRequest}!\n This {'Backtest' if str(scanRequest).startswith('B') else 'Scan'} request is, however, protected and is only available to premium subscribers. It seems like you are not subscribed to the paid/premium subscription to PKScreener.\nPlease checkout all premium options by sending out a request:\n/OTP\nFor basic/unpaid users, you can try out the following:\n/X_0 StockCode1,StockCode2,etc.\n/X_N\n/X_1\n"
                 if update is not None and update.message is not None:
-                    update.message.reply_text(sanitiseTexts(responseText),reply_markup=default_markup(user=user),parse_mode="HTML")
+                    update.message.reply_text(sanitiseTexts(responseText), reply_markup=default_markup(user=user), parse_mode="HTML")
                 else:
                     responseText = f"{responseText}\nClick /start if you want to restart the session."
-                editMessageText(query=update.callback_query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(user=user))
+                editMessageText(query=update.callback_query, editedText=sanitiseTexts(responseText), reply_markup=default_markup(user=user))
                 shareUpdateWithChannel(update=update, context=context, optionChoices=responseText)
-                sendSubscriptionOption(update,context,scanRequest)
+                sendSubscriptionOption(update, context, scanRequest)
                 return False
 
         if str(optionChoices).upper().startswith("B"):
-            optionChoices = optionChoices.replace(" ", "").replace(">", "_").replace(":","_").replace("_D","")
+            optionChoices = optionChoices.replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "")
             while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
             if str(optionChoices).split("_")[2] == "6" and str(optionChoices).split("_")[3] == "7":
@@ -1714,10 +2317,10 @@ def launchScreener(options, user, context, optionChoices, update):
             responseText = f"{responseText}\nStock-wise: https://pkjmesra.github.io/PKScreener/Backtest-Reports/PKScreener_{optionChoices}_backtest_result_StockSorted.html"
             responseText = f"{responseText}\nOther Reports: https://pkjmesra.github.io/PKScreener/BacktestReports.html"
             if update is not None and update.message is not None:
-                update.message.reply_text(sanitiseTexts(responseText),reply_markup=default_markup(user=user),parse_mode="HTML")
+                update.message.reply_text(sanitiseTexts(responseText), reply_markup=default_markup(user=user), parse_mode="HTML")
             else:
                 responseText = f"{responseText}\nClick /start if you want to restart the session."
-                editMessageText(query=update.callback_query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(user=user))
+                editMessageText(query=update.callback_query, editedText=sanitiseTexts(responseText), reply_markup=default_markup(user=user))
             shareUpdateWithChannel(
                 update=update, context=context, optionChoices=optionChoices
             )
@@ -1737,22 +2340,9 @@ def launchScreener(options, user, context, optionChoices, update):
             while optionChoices.endswith("_"):
                 optionChoices = optionChoices[:-1]
             run_workflow(
-                optionChoices, str(user.id), str(str(options).upper().replace(":7:3:4",":7:3:0.008:4")), workflowType="X"
+                optionChoices, str(user.id), str(str(options).upper().replace(":7:3:4", ":7:3:0.008:4")), workflowType="X"
             )
             return True
-            # Popen(
-            #     [
-            #         "pkscreener",
-            #         "-a",
-            #         "Y",
-            #         "-e",
-            #         "-p",
-            #         "-o",
-            #         str(options.upper()),
-            #         "-u",
-            #         str(user.id),
-            #     ]
-            # )
     except Exception as e: # pragma: no cover
         import traceback
         traceback.print_exc()
@@ -1761,7 +2351,16 @@ def launchScreener(options, user, context, optionChoices, update):
 
 
 def BBacktests(update: Update, context: CallbackContext) -> str:
-    """Show new choice of buttons"""
+    """
+    Handle backtesting menu option - currently not implemented in the bot.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state
+    """
     updateCarrier = None
     if update is None:
         return
@@ -1775,7 +2374,11 @@ def BBacktests(update: Update, context: CallbackContext) -> str:
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
     query = update.callback_query
-    query.answer()
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
     keyboard = [
         [
             InlineKeyboardButton("Try Scanners", callback_data=str("CX")),
@@ -1783,13 +2386,22 @@ def BBacktests(update: Update, context: CallbackContext) -> str:
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    responseText = "Backtesting NOT implemented yet in this Bot!\nYou can use backtesting by downloading the software from https://github.com/pkjmesra/PKScreener/"
+    responseText = f"Backtesting NOT implemented yet in this Bot!\nYou can use backtesting by downloading the software from https://github.com/pkjmesra/PKScreener/?cache={int(time() / 86400)}"
     responseText = f"{responseText}\nClick /start if you want to restart the session."
-    editMessageText(query=query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(user=user))
+    editMessageText(query=query, editedText=sanitiseTexts(responseText), reply_markup=default_markup(user=user))
     registerUser(user)
     return START_ROUTES
 
-def sendSubscriptionOption(update:Update,context:CallbackContext,scanId):
+
+def sendSubscriptionOption(update: Update, context: CallbackContext, scanId):
+    """
+    Send a subscription prompt to the user for a specific scanner alert.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        scanId (str): Scanner identifier to subscribe to
+    """
     updateCarrier = None
     if update is None:
         return
@@ -1809,33 +2421,47 @@ def sendSubscriptionOption(update:Update,context:CallbackContext,scanId):
     }
     is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))
     if is_subscription_enabled:
-        message=f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
+        message = f"🔴 <b>Please check your current alerts, balance and subscriptions using /OTP before subscribing for alerts</b>.🔴 If you are not already subscribed to this alert, would you like to subscribe to this (<b>{scanId}</b>) automated scan alert for a day during market hours (NSE - IST timezone)? You will need to pay ₹ {'40' if str(scanId).upper().startswith('P') else '31'} (One time) for automated alerts to <b>{scanId}</b> all day on the day of subscription. 🔴 If you say <b>Yes</b>, the corresponding charges will be deducted from your alerts balance!🔴"
         if len(str(scanId).strip()) > 0 and not str(scanId).startswith("B"):
             context.bot.send_message(
                 chat_id=user.id, text=message, reply_markup=reply_markup, parse_mode="HTML"
             )
-        
+
+
 def end(update: Update, context: CallbackContext) -> str:
-    """Returns `ConversationHandler.END`, which tells the
-    ConversationHandler that the conversation is over.
+    """
+    End the conversation and provide exit information.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: ConversationHandler.END state
     """
     query = update.callback_query
-    query.answer()
-    responseText = "See https://github.com/pkjmesra/PKScreener/ for more details or join https://t.me/PKScreener. \nSee you next time!"
+    if query is not None:
+        try:
+            query.answer(text="Processing your request...", show_alert=False)
+        except Exception as e:
+            logger.error(f"Error answering callback query: {e}")
+    responseText = f"See https://github.com/pkjmesra/PKScreener/?cache={int(time() / 86400)} for more details or join https://t.me/PKScreener. \nSee you next time!"
     responseText = f"{responseText}\nClick /start if you want to restart the session."
-    editMessageText(query=query,editedText=sanitiseTexts(responseText),reply_markup=default_markup(query.from_user))
+    editMessageText(query=query, editedText=sanitiseTexts(responseText), reply_markup=default_markup(query.from_user))
     return ConversationHandler.END
 
 
-# This can be your own ID, or one for a developer group/channel.
-# You can use the /start command of this bot to see your chat id.
-chat_idADMIN = 123456789
-Channel_Id = 12345678
-GROUP_CHAT_ID = 1001907892864
-
-
 def error_handler(update: object, context: CallbackContext) -> None:
-    """Log the error and send a telegram message to notify the developer."""
+    """
+    Handle errors that occur during bot operation.
+    
+    Logs the error, sends notification to the channel, and handles
+    conflict errors by gracefully shutting down the bot.
+    
+    Args:
+        update: Telegram update object that caused the error
+        context: Callback context containing the error
+    """
     # Log the error before we do anything else, so we can see it even if something breaks.
     logger.error("Exception while handling an update:", exc_info=context.error)
 
@@ -1905,7 +2531,7 @@ def error_handler(update: object, context: CallbackContext) -> None:
             context.bot.send_message(
                 chat_id=int(f"-{Channel_Id}"), text=message, parse_mode="HTML"
             )
-    except Exception:# pragma: no cover
+    except Exception: # pragma: no cover
         try:
             if "telegram.error.Conflict" not in tb_string and Channel_Id is not None and len(str(Channel_Id)) > 0:
                 context.bot.send_message(
@@ -1913,11 +2539,31 @@ def error_handler(update: object, context: CallbackContext) -> None:
                     text=tb_string,
                     parse_mode="HTML",
                 )
-        except Exception:# pragma: no cover
+        except Exception: # pragma: no cover
             print(tb_string)
+    finally:
+        if "telegram.error.Conflict" not in message:
+            sendUpdatedMenu(
+                menuText="Aw snap! We encountered an error. Please try again using /start .\n", 
+                update=update, context=context, 
+                reply_markup=default_markup()
+            )
 
 
 def command_handler(update: Update, context: CallbackContext) -> None:
+    """
+    Handle text commands sent to the bot.
+    
+    Processes various command formats including scanner commands,
+    piped commands, and special commands like /start, /help.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state (or None)
+    """
     if _shouldAvoidResponse(update):
         return
     global bot_available
@@ -1946,7 +2592,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
         args = [arg for arg in re.split(r"\s+", m.group(2)) if len(arg)]
     except:
         pass
-        return start(update,context)
+        return start(update, context)
     if cmd.startswith("cx_") or cmd.startswith("cb_") or cmd.startswith("cg_"):
         Level2(update=update, context=context)
         return START_ROUTES
@@ -1969,7 +2615,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
     cmdText = f"{cmdText}\n/F_0 STOCK_CODE1,STOCK_CODE2 To find which all scanners had these stock codes(Reverse look up)"
 
     if cmd.upper() in TOP_LEVEL_SCANNER_MENUS:
-        shareUpdateWithChannel(update=update, context=context,optionChoices=msg)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=msg)
         m0.renderForMenu(
             selectedMenu=None,
             skip=TOP_LEVEL_SCANNER_SKIP_MENUS[:len(TOP_LEVEL_SCANNER_SKIP_MENUS)-1],
@@ -1979,21 +2625,21 @@ def command_handler(update: Update, context: CallbackContext) -> None:
         selectedMenu = m0.find(cmd.upper())
         cmds = m1.renderForMenu(
             selectedMenu=selectedMenu,
-            skip=(INDEX_COMMANDS_SKIP_MENUS_SCANNER  if cmd in ["x"] else (INDEX_COMMANDS_SKIP_MENUS_BACKTEST if cmd in ["b"] else PIPED_SCAN_SKIP_COMMAND_MENUS)),
+            skip=(INDEX_COMMANDS_SKIP_MENUS_SCANNER if cmd in ["x"] else (INDEX_COMMANDS_SKIP_MENUS_BACKTEST if cmd in ["b"] else PIPED_SCAN_SKIP_COMMAND_MENUS)),
             asList=True,
             renderStyle=MenuRenderStyle.STANDALONE,
         )
-        for cmd in cmds:
-            if cmd in ["N", "0"]:
+        for cmd_item in cmds:
+            if cmd_item in ["N", "0"]:
                 continue
             cmdText = (
-                f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+                f"{cmdText}\n\n{cmd_item.commandTextKey()} for {cmd_item.commandTextLabel()}"
             )
         if cmd in ["x"]:
             cmdText = f"{cmdText}\n\nFor option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN\n or \n/X_0_0 SBIN\nand hit send where SBIN is the NSE stock code.For multiple stocks, you can type in \n/X_0 SBIN,ICICIBANK,OtherStocks\nYou can put in any number of stocks separated by space or comma(,)."
         """Send a message when the command /help is issued."""
         cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-        update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+        update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
         return START_ROUTES
 
     if update.message is None:
@@ -2001,7 +2647,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
         return START_ROUTES
 
     if "x_0" in cmd or "x_0_0" in cmd or "b_0" in cmd or "g_0" in cmd or "f_0" in cmd:
-        shareUpdateWithChannel(update=update, context=context,optionChoices=msg)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=msg)
         shouldScan = False
         if len(args) > 0:
             shouldScan = True
@@ -2022,19 +2668,19 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             )
             if result:
                 sendRequestSubmitted(cmd.upper(), update=update, context=context)
-                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
-                sendSubscriptionOption(update,context,scanRequest)
+                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
+                sendSubscriptionOption(update, context, scanRequest)
             return START_ROUTES
         else:
             if cmd in ["x"]:
                 cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks . You can put in any number of stocks separated by space or comma(,)."
             """Send a message when the command /help is issued."""
             cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
             return START_ROUTES
 
     if "p_" in cmd:
-        shareUpdateWithChannel(update=update, context=context,optionChoices=msg)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=msg)
         selection = cmd.split("_")
         if len(selection) == 2:
             m0.renderForMenu(
@@ -2057,12 +2703,12 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            for cmd in cmds:
+            for cmd_item in cmds:
                 cmdText = (
-                    f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+                    f"{cmdText}\n\n{cmd_item.commandTextKey()} for {cmd_item.commandTextLabel()}"
                 )
             cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
             return START_ROUTES
         elif len(selection) == 3:
             m0.renderForMenu(
@@ -2071,13 +2717,13 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            cmds = m1.renderForMenu(m0.find(key="X"),skip=PIPED_SCAN_SKIP_INDEX_MENUS,asList=True,renderStyle=MenuRenderStyle.STANDALONE)
+            cmds = m1.renderForMenu(m0.find(key="X"), skip=PIPED_SCAN_SKIP_INDEX_MENUS, asList=True, renderStyle=MenuRenderStyle.STANDALONE)
             for indexCmd in cmds:
                 cmdText = (
-                    f"{cmdText}\n\n/{cmd.upper()}{indexCmd.commandTextKey().replace('/X','')} for Piped scan of {indexCmd.commandTextLabel().replace('Scanners >',cmd.upper()+' >')}"
+                    f"{cmdText}\n\n/{cmd.upper()}{indexCmd.commandTextKey().replace('/X', '')} for Piped scan of {indexCmd.commandTextLabel().replace('Scanners >', cmd.upper() + ' >')}"
                 )
             cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
             return START_ROUTES
         elif len(selection) == 4:
             options = ":".join(selection)
@@ -2090,12 +2736,12 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             )
             if result:
                 sendRequestSubmitted(cmd.upper(), update=update, context=context)
-                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
-                sendSubscriptionOption(update,context,scanRequest)
+                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
+                sendSubscriptionOption(update, context, scanRequest)
             return START_ROUTES
         
     if "x_" in cmd or "b_" in cmd or "g_" in cmd:
-        shareUpdateWithChannel(update=update, context=context,optionChoices=msg)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=msg)
         selection = cmd.split("_")
         if len(selection) == 2:
             m0.renderForMenu(
@@ -2127,8 +2773,8 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                 )
                 if result:
                     sendRequestSubmitted(cmd.upper(), update=update, context=context)
-                    scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
-                    sendSubscriptionOption(update,context,scanRequest)
+                    scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
+                    sendSubscriptionOption(update, context, scanRequest)
                 return START_ROUTES
             elif (
                 "x_" in cmd and selectedMenu.menuKey == "0"
@@ -2136,7 +2782,7 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                 cmdText = "For option 0 <Screen stocks by the stock name>, please type in the command in the following format\n/X_0 SBIN or /X_0_0 SBIN and hit send where SBIN is the NSE stock code.For multiple stocks, you can type in /X_0 SBIN,ICICIBANK,OtherStocks. You can put in any number of stocks separated by space or comma(,)."
                 """Send a message when the command /help is issued."""
                 cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-                update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+                update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
                 return START_ROUTES
             cmds = m2.renderForMenu(
                 selectedMenu=selectedMenu,
@@ -2144,12 +2790,12 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                 asList=True,
                 renderStyle=MenuRenderStyle.STANDALONE,
             )
-            for cmd in cmds:
+            for cmd_item in cmds:
                 cmdText = (
-                    f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+                    f"{cmdText}\n\n{cmd_item.commandTextKey()} for {cmd_item.commandTextLabel()}"
                 )
             cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+            update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
             return START_ROUTES
         elif len(selection) == 3:
             m0.renderForMenu(
@@ -2184,10 +2830,10 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                     renderStyle=MenuRenderStyle.STANDALONE,
                     skip=["0","M","Z"],
                 )
-                for cmd in cmds:
-                    cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+                for cmd_item in cmds:
+                    cmdText = f"{cmdText}\n\n{cmd_item.commandTextKey()} for {cmd_item.commandTextLabel()}"
                 cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-                update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+                update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
                 return START_ROUTES
             else:
                 if selection[2] == "4":  # Last N days
@@ -2242,10 +2888,10 @@ def command_handler(update: Update, context: CallbackContext) -> None:
                             renderStyle=MenuRenderStyle.STANDALONE,
                             skip=["0","M","Z"],
                         )
-                        for cmd in cmds:
-                            cmdText = f"{cmdText}\n\n{cmd.commandTextKey()} for {cmd.commandTextLabel()}"
+                        for cmd_item in cmds:
+                            cmdText = f"{cmdText}\n\n{cmd_item.commandTextKey()} for {cmd_item.commandTextLabel()}"
                         cmdText = f"{cmdText}\nClick /start if you want to restart the session."
-                        update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"),reply_markup=default_markup(user=user),parse_mode="HTML")
+                        update.message.reply_text(sanitiseTexts(f"Choose an option:\n{cmdText}"), reply_markup=default_markup(user=user), parse_mode="HTML")
                         return START_ROUTES
 
             options = ":".join(selection)
@@ -2258,22 +2904,30 @@ def command_handler(update: Update, context: CallbackContext) -> None:
             )
             if result:
                 sendRequestSubmitted(cmd.upper(), update=update, context=context)
-                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":","_").replace("_D","").upper()
-                sendSubscriptionOption(update,context,scanRequest)
+                scanRequest = cmd.upper().replace(" ", "").replace(">", "_").replace(":", "_").replace("_D", "").upper()
+                sendSubscriptionOption(update, context, scanRequest)
             return START_ROUTES
     if cmd == "y" or cmd == "h":
-        shareUpdateWithChannel(update=update, context=context,optionChoices=msg)
+        shareUpdateWithChannel(update=update, context=context, optionChoices=msg)
         from pkscreener.globals import showSendConfigInfo, showSendHelpInfo
         if cmd == "y":
-            showSendConfigInfo(defaultAnswer='Y',user=str(update.message.from_user.id))
+            showSendConfigInfo(defaultAnswer='Y', user=str(update.message.from_user.id))
         elif cmd == "h":
-            showSendHelpInfo(defaultAnswer='Y',user=str(update.message.from_user.id))
+            showSendHelpInfo(defaultAnswer='Y', user=str(update.message.from_user.id))
         return START_ROUTES
-    update.message.reply_text(sanitiseTexts(f"{cmd.upper()} : Not implemented yet!"),reply_markup=default_markup(user=user),parse_mode="HTML")
+    update.message.reply_text(sanitiseTexts(f"{cmd.upper()} : Not implemented yet!"), reply_markup=default_markup(user=user), parse_mode="HTML")
     help_command(update=update, context=context)
 
 
 def sendRequestSubmitted(optionChoices, update, context):
+    """
+    Send confirmation message that a scan request has been submitted.
+    
+    Args:
+        optionChoices (str): Selected scanner options
+        update: Telegram update object
+        context: Callback context
+    """
     updateCarrier = None
     if update is None:
         return
@@ -2288,8 +2942,8 @@ def sendRequestSubmitted(optionChoices, update, context):
             return
     # Get user that sent /start and log his name
     user = updateCarrier.from_user
-    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \nConsider donating to help cover the basic server and maintenance costs:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra'>sponsor</a>"
-    update.message.reply_text(sanitiseTexts(menuText),reply_markup=default_markup(user=user),parse_mode="HTML")
+    menuText = f"Thank you for choosing {optionChoices}. You will receive the notification/results in about 1-2 minutes! \nConsider donating to help cover the basic server and maintenance costs:\nUPI: <a href='https://tinyurl.com/v7h3t233'>PKScreener@APL</a> \nor <a href='https://github.com/sponsors/pkjmesra?frequency=recurring&sponsor=pkjmesra&cache={int(time() / 86400)}'>sponsor</a>"
+    update.message.reply_text(sanitiseTexts(menuText), reply_markup=default_markup(user=user), parse_mode="HTML")
     # help_command(update=update, context=context)
     shareUpdateWithChannel(
         update=update, context=context, optionChoices=optionChoices
@@ -2297,6 +2951,14 @@ def sendRequestSubmitted(optionChoices, update, context):
 
 
 def shareUpdateWithChannel(update, context, optionChoices=""):
+    """
+    Share user activity updates with the configured channel.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        optionChoices (str): Additional information about the user's action
+    """
     query = update.message or update.callback_query
     message = f"Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using ({optionChoices}) the bot!"
     if Channel_Id is not None and len(str(Channel_Id)) > 0:
@@ -2306,6 +2968,16 @@ def shareUpdateWithChannel(update, context, optionChoices=""):
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
+    """
+    Handle /help command - display available commands and usage information.
+    
+    Args:
+        update: Telegram update object
+        context: Callback context
+        
+    Returns:
+        str: START_ROUTES conversation state (or None)
+    """
     if _shouldAvoidResponse(update):
         return
     global bot_available
@@ -2320,6 +2992,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
             updateCarrier = update.callback_query
         if update.message is not None:
             updateCarrier = update.message
+            update.message.reply_chat_action(telegram.ChatAction.TYPING)
         if updateCarrier is None:
             return
     # Get user that sent /start and log his name
@@ -2334,7 +3007,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
         elif "_awaiting_input_2_" in user_states[user.id]:
             hskCmd = user_states[user.id].split("_")[0]
             userID = user_states[user.id].split("_")[-1]
-            results = updateSubscription(int(userID),float(updateCarrier.text),subtype="remove" if hskCmd=="DUS" else "add")
+            results = updateSubscription(int(userID), float(updateCarrier.text), subtype="remove" if hskCmd == "DUS" else "add")
             if results is None:
                 update.message.reply_text(f"✅ {'Balance' if hskCmd == 'UUB' else 'Subscription'} update for userID: {userID} with {'Balance' if hskCmd == 'UUB' else 'Subscription'} value: {updateCarrier.text} triggered!\nPlease check with Get Paying users in a few minutes!")
             # Clear user state
@@ -2356,7 +3029,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     if update is not None and update.message is not None:
         update.message.reply_text(
             sanitiseTexts(f"You can begin by typing in /start (Recommended) and hit send!\nOR\nChoose an option:\n{cmdText}\nWe recommend you start by clicking on this /start"),
-            reply_markup=default_markup(user=user),parse_mode="HTML"
+            reply_markup=default_markup(user=user), parse_mode="HTML"
         )  #  \n\nThis bot restarts every hour starting at 5:30am IST until 10:30pm IST to keep it running on free servers. If it does not respond, please try again in a minutes to avoid the restart duration!
         query = update.message
         message = f"Name: <b>{query.from_user.first_name}</b>, Username:@{query.from_user.username} with ID: <b>@{str(query.from_user.id)}</b> began using the bot!"
@@ -2366,7 +3039,20 @@ def help_command(update: Update, context: CallbackContext) -> None:
             )
     registerUser(user)
 
+
 def _shouldAvoidResponse(update):
+    """
+    Determine if the bot should avoid responding to a message.
+    
+    Prevents the bot from responding to its own messages or messages
+    from channels/groups where it might cause loops.
+    
+    Args:
+        update: Telegram update object
+        
+    Returns:
+        bool: True if response should be avoided, False otherwise
+    """
     sentFrom = []
     if update.callback_query is not None:
         sentFrom.append(abs(update.callback_query.from_user.id))
@@ -2399,6 +3085,14 @@ def _shouldAvoidResponse(update):
 
 
 def addCommandsForMenuItems(application):
+    """
+    Register all menu command handlers with the application.
+    
+    Dynamically creates command handlers for all menu items at various levels.
+    
+    Args:
+        application: Telegram application/dispatcher instance
+    """
     # Add commands for x_0, x_0_0 and f_0
     application.add_handler(CommandHandler("X_0", command_handler))
     application.add_handler(CommandHandler("X_0_0", command_handler))
@@ -2409,7 +3103,7 @@ def addCommandsForMenuItems(application):
         asList=True,
         renderStyle=MenuRenderStyle.STANDALONE,
     )
-    cmds3p = m4.renderForMenu(m0.find(key="X"),skip=PIPED_SCAN_SKIP_INDEX_MENUS,asList=True,renderStyle=MenuRenderStyle.STANDALONE)
+    cmds3p = m4.renderForMenu(m0.find(key="X"), skip=PIPED_SCAN_SKIP_INDEX_MENUS, asList=True, renderStyle=MenuRenderStyle.STANDALONE)
     for mnu0 in cmds0:
         p0 = mnu0.menuKey.upper()
         application.add_handler(CommandHandler(p0, command_handler))
@@ -2477,54 +3171,18 @@ def addCommandsForMenuItems(application):
                                         CommandHandler(f"{p0}_{p1}_{p2}_{p3}_{p4}", command_handler)
                                     )
 
-# def send_stuff(context: CallbackContext):
-#   job = context.job
 
-#   keyboard = [ 
-#     [   
-#         InlineKeyboardButton("NEVER", callback_data="NEVER"),
-#         InlineKeyboardButton("UNLIKELY", callback_data="UNLIKELY")
-#     ],  
-#     [   
-#         InlineKeyboardButton("MEH", callback_data="MEH"),
-#         InlineKeyboardButton("MAYBE", callback_data="MAYBE")
-#     ],  
-#     [   
-#         InlineKeyboardButton("YES", callback_data="YES"),
-#         InlineKeyboardButton("ABSOLUTELY", callback_data="ABSOLUTELY")
-#     ],  
-#     [   
-#         InlineKeyboardButton("RATHER NOT SAY", callback_data="UNKNOWN")
-#     ]   
-#   ]
-
-#   reply_markup = InlineKeyboardMarkup(keyboard)
-
-#   context.bot.send_photo(job.context, photo=open(PATH+thefile, 'rb'))
-#   # return values of send_message are saved in the 'msg' var
-#   msg = context.bot.send_message(job.context, text='RATE', reply_markup=reply_markup)
-
-#   # the following job is created every time the send_stuff function is called
-#   context.job_queue.run_once(
-#     callback=cleanup,
-#     when=5,
-#     context=msg,
-#     name='cleanup'
-#   )
-
-# # the function called by the job
-# def cleanup(context: CallbackContext):
-#   job = context.job
-
-#   context.bot.edit_message_text(
-#     chat_id=job.context.chat.id,
-#     text='NO ANSWER PROVIDED',
-#     message_id=job.context.message_id
-#   )
-
-@ping(interval=300,instance=PKAnalyticsService(),prefix="bot_")
-# Add this to the beginning of runpkscreenerbot() to debug
+@ping(interval=300, instance=PKAnalyticsService(), prefix="bot_")
 def runpkscreenerbot(availability=True) -> None:
+    """
+    Main entry point to run the PKScreener Telegram bot.
+    
+    Initializes the bot, sets up command handlers, conversation handlers,
+    and starts polling for updates.
+    
+    Args:
+        availability (bool): Whether the bot should be marked as available
+    """
     print(f"Python-telegram-bot version: {TG_VER}")
     print(f"Python version: {sys.version}")
     print(f"Working directory: {os.getcwd()}")
@@ -2586,6 +3244,8 @@ def runpkscreenerbot(availability=True) -> None:
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, help_command)
     )
+    dispatcher.add_handler(CommandHandler("trigger_scans", manual_trigger))
+    dispatcher.add_handler(CommandHandler("stop_trigger_scans", stop_trigger))
     # application.add_handler(MessageHandler(filters.TEXT & filters.COMMAND, command_handler))
     # application.add_handler(MessageHandler(filters.COMMAND, command_handler))
     # Add ConversationHandler to application that will be used for handling updates
@@ -2597,6 +3257,7 @@ def runpkscreenerbot(availability=True) -> None:
         # Run the intraday monitor
         initializeIntradayTimer()
         loadRegisteredUsers()
+        start_scheduled_workflow()
     # Run the bot until the user presses Ctrl-C
     # application.run_polling(allowed_updates=Update.ALL_TYPES)
     # Start the Bot
@@ -2612,6 +3273,7 @@ def runpkscreenerbot(availability=True) -> None:
     except Exception as e:
         print(f"Exception in runpkscreenerbot: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     runpkscreenerbot()

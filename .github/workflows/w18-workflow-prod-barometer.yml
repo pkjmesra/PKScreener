@@ -15,8 +15,8 @@ on:
         description: 'Runner OS. e.g: ubuntu-latest, windows-latest or macos-latest'
         required: false
         default: 'macos-latest'
-  schedule:
-  - cron: '30 1 * * 0-5'
+  # schedule:
+  # - cron: '30 1 * * 0-5'
 
 jobs:
 

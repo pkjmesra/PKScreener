@@ -424,7 +424,7 @@ class PKImageTools:
             )
             im = PKImageTools.addQuickWatermark(
                 im, dimensions.get('xVertical', None),
-                dataSrc="Yahoo!finance; Morningstar, Inc; National Stock Exchange of India Ltd;TradingHours.com;",
+                dataSrc="Zerodha;Morningstar;NNSE;TradingHours;",
                 dataSrcFontSize=ART_FONT_SIZE
             )
             im.save(
@@ -521,6 +521,8 @@ class PKImageTools:
         rowPixelRunValue += dimensions['arttext_height'] + 1
         
         # Draw report title
+        if "Scanners >" in label:
+            label = str(label.split("Scanners >")[0])
         reportTitle = f"  [+] As of {PKDateUtilities.currentDateTime().strftime('%d-%m-%y %H.%M.%S')} IST > You chose {label}"
         draw.text((startColValue, rowPixelRunValue), reportTitle, font=stdfont, fill=menuColor)
         rowPixelRunValue += dimensions['label_height'] + 1
@@ -528,6 +530,8 @@ class PKImageTools:
         # Prepare data frames and labels for rendering
         dfs_to_print = [styledTable, backtestSummary, backtestDetail]
         unstyled_dfs = [table, backtestSummary, backtestDetail]
+        if "Scanners >" in label:
+            label = str(label.split("Scanners >")[0])
         titleLabels = [
             f"  [+] Scan results for {label} :",
             summaryLabel or "  [+] For chosen scan, summary of correctness from past:",

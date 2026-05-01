@@ -53,10 +53,6 @@ os.environ["AUTOGRAPH_VERBOSITY"] = "0"
 import multiprocessing
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# try:
-#     logging.getLogger("tensorflow").setLevel(logging.ERROR)
-# except Exception:
-#     pass
 # =============================================================================
 # PROTOBUF PATCH - MUST BE FIRST
 # =============================================================================
@@ -81,13 +77,34 @@ try:
         original_init = google.protobuf.message_factory.MessageFactory.__init__
         
         def patched_init(self, *args, **kwargs):
-            """Patched __init__ that adds GetPrototype method"""
+            """Patched __init__ that adds GetPrototype method to MessageFactory instances.
+            
+            This function monkey-patches the MessageFactory constructor to add a
+            GetPrototype method if it doesn't exist, ensuring compatibility with
+            different versions of protobuf.
+            
+            Args:
+                self: The MessageFactory instance
+                *args: Variable length argument list
+                **kwargs: Arbitrary keyword arguments
+            """
             original_init(self, *args, **kwargs)
             
             # Add GetPrototype if it doesn't exist
             if not hasattr(self, 'GetPrototype'):
                 def get_prototype(self, descriptor):
-                    """Add GetPrototype method to MessageFactory instances"""
+                    """Add GetPrototype method to MessageFactory instances.
+                    
+                    This method provides a GetPrototype implementation that works
+                    across different protobuf versions by trying multiple fallback methods.
+                    
+                    Args:
+                        self: The MessageFactory instance
+                        descriptor: The protobuf descriptor to get prototype for
+                    
+                    Returns:
+                        A message class or dummy message for the given descriptor
+                    """
                     try:
                         # Try the modern method
                         return self._GetPrototype(descriptor)
@@ -114,7 +131,17 @@ try:
         # Also patch the module-level function if needed
         if not hasattr(google.protobuf.message_factory, 'GetPrototype'):
             def module_get_prototype(descriptor):
-                """Module-level GetPrototype function"""
+                """Module-level GetPrototype function for protobuf compatibility.
+                
+                This function provides a module-level GetPrototype implementation
+                that works across different protobuf versions.
+                
+                Args:
+                    descriptor: The protobuf descriptor to get prototype for
+                
+                Returns:
+                    A message class or dynamic message for the given descriptor
+                """
                 try:
                     return google.protobuf.message_factory.GetMessageClass(descriptor)
                 except AttributeError:
@@ -135,8 +162,6 @@ try:
                     return DynamicMessage
             
             google.protobuf.message_factory.GetPrototype = module_get_prototype
-    
-    # print("✓ Protobuf patched successfully", file=sys.stderr)
     
 except ImportError:
     # protobuf not installed, nothing to patch
@@ -171,11 +196,24 @@ if __name__ == '__main__':
 # =============================================================================
 
 class ArgumentParser:
-    """Handles command line argument parsing for PKScreener."""
+    """Handles command line argument parsing for PKScreener.
+    
+    This class provides static methods to create and configure the argument
+    parser for the PKScreener CLI application, defining all available command
+    line options and their behaviors.
+    """
     
     @staticmethod
     def create_parser():
-        """Create and configure the argument parser."""
+        """Create and configure the argument parser.
+        
+        This method creates an ArgumentParser instance with all available command
+        line options for PKScreener, including scanning, monitoring, backtesting,
+        and telegram integration options.
+        
+        Returns:
+            argparse.ArgumentParser: Configured argument parser instance
+        """
         parser = argparse.ArgumentParser(
             description="PKScreener - Stock Screening Tool",
             formatter_class=argparse.RawDescriptionHelpFormatter
@@ -414,7 +452,12 @@ class ArgumentParser:
 # =============================================================================
 
 class OutputController:
-    """Controls output (stdout/stderr) for production mode."""
+    """Controls output (stdout/stderr) for production mode.
+    
+    This class provides methods to disable or enable system output streams,
+    which is useful for production builds where console output should be suppressed.
+    It uses a decorator pattern to conditionally execute print and input functions.
+    """
     
     _print_enabled = False
     _original_stdout = None
@@ -424,7 +467,17 @@ class OutputController:
     
     @staticmethod
     def _decorator(func):
-        """Decorator to conditionally execute print."""
+        """Decorator to conditionally execute print/input functions.
+        
+        This decorator wraps a function (print or input) and only executes it
+        if output is currently enabled.
+        
+        Args:
+            func (callable): The function to decorate (print or input)
+        
+        Returns:
+            callable: Wrapped function that checks output state before executing
+        """
         def new_func(*args, **kwargs):
             if OutputController._print_enabled:
                 try:
@@ -435,7 +488,17 @@ class OutputController:
     
     @classmethod
     def disable_output(cls, disable_input=True, disable=True):
-        """Disable or enable system output."""
+        """Disable or enable system output.
+        
+        This method redirects stdout to devnull and optionally disables input
+        functions to suppress console output in production mode.
+        
+        Args:
+            disable_input (bool, optional): Whether to also disable input functions.
+                Defaults to True.
+            disable (bool, optional): True to disable output, False to re-enable.
+                Defaults to True.
+        """
         cls._print_enabled = not disable
         
         if disable:
@@ -467,11 +530,22 @@ class OutputController:
 # =============================================================================
 
 class LoggerSetup:
-    """Handles logging configuration for the application."""
+    """Handles logging configuration for the application.
+    
+    This class provides static methods to configure logging for PKScreener,
+    including setting up log file paths and configuring log levels.
+    """
     
     @staticmethod
     def get_log_file_path():
-        """Get the path for the log file."""
+        """Get the path for the log file.
+        
+        This method determines the appropriate location for the log file,
+        preferring the user data directory and falling back to temp directory.
+        
+        Returns:
+            str: Path to the log file
+        """
         try:
             file_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
             with open(file_path, "w") as f:
@@ -482,7 +556,17 @@ class LoggerSetup:
     
     @staticmethod
     def setup(should_log=False, trace=False):
-        """Setup logging based on configuration."""
+        """Setup logging based on configuration.
+        
+        This method configures the logging system for the application,
+        setting up log levels, file output, and optional trace mode.
+        
+        Args:
+            should_log (bool, optional): Whether logging should be enabled.
+                Defaults to False.
+            trace (bool, optional): Whether to enable trace-level logging.
+                Defaults to False.
+        """
         if not should_log:
             if "PKDevTools_Default_Log_Level" in os.environ.keys():
                 del os.environ['PKDevTools_Default_Log_Level']
@@ -517,11 +601,19 @@ class LoggerSetup:
 # =============================================================================
 
 class DependencyChecker:
-    """Checks and warns about missing dependencies."""
+    """Checks and warns about missing dependencies.
+    
+    This class provides methods to verify that required dependencies
+    (like TA-Lib) are installed and to warn users about missing packages.
+    """
     
     @staticmethod
     def warn_about_dependencies():
-        """Check for required dependencies and warn if missing."""
+        """Check for required dependencies and warn if missing.
+        
+        This method checks for TA-Lib and pandas_ta_classic dependencies,
+        displaying appropriate warnings and fallback information to the user.
+        """
         if not Imports["talib"]:
             OutputControls().printOutput(
                 colorText.FAIL + "  [+] TA-Lib is not installed. Looking for pandas_ta_classic." + colorText.END
@@ -557,7 +649,23 @@ class DependencyChecker:
 # =============================================================================
 
 class ApplicationRunner:
-    """Manages the main application execution flow."""
+    """Manages the main application execution flow.
+    
+    This class orchestrates the entire execution of the PKScreener application,
+    handling different modes (standard scan, intraday analysis, test mode, monitor mode)
+    and managing the flow of data between components.
+    
+    Attributes:
+        config_manager: Configuration manager instance
+        args: Parsed command line arguments
+        arg_parser: Argument parser instance
+        results: Store for scan results
+        result_stocks: Store for result stock symbols
+        plain_results: Store for plain results data
+        db_timestamp: Database timestamp for monitoring
+        elapsed_time: Elapsed time for current operation
+        start_time: Start time of current operation
+    """
     
     def __init__(self, config_manager, args, arg_parser):
         """
@@ -579,7 +687,11 @@ class ApplicationRunner:
         self.start_time = None
     
     def run(self):
-        """Run the main application."""
+        """Run the main application.
+        
+        This method determines the appropriate execution mode based on command
+        line arguments and routes to the correct handler method.
+        """
         from pkscreener.globals import (
             main, sendQuickScanResult, sendMessageToTelegramChannel,
             sendGlobalMarketBarometer, updateMenuChoiceHierarchy, isInterrupted,
@@ -621,7 +733,14 @@ class ApplicationRunner:
                                    updateMenuChoiceHierarchy, refreshStockData)
     
     def _refresh_args(self):
-        """Refresh arguments from parser."""
+        """Refresh arguments from parser.
+        
+        This method re-parses command line arguments to ensure the latest
+        values are used, especially after potential modifications.
+        
+        Returns:
+            argparse.Namespace: Refreshed arguments
+        """
         args = _get_debug_args()
         if not isinstance(args, argparse.Namespace) and not hasattr(args, "side_effect"):
             argsv = self.arg_parser.parse_known_args(args=args)
@@ -632,7 +751,11 @@ class ApplicationRunner:
         return args
     
     def _setup_user_and_timestamp(self):
-        """Setup user ID and trigger timestamp."""
+        """Setup user ID and trigger timestamp.
+        
+        This method configures the user ID for Telegram notifications and
+        sets up the trigger timestamp for scheduled operations.
+        """
         if self.args.user is None:
             from PKDevTools.classes.Environment import PKEnvironment
             channel_id, _, _, _ = PKEnvironment().secrets
@@ -648,7 +771,17 @@ class ApplicationRunner:
             self.args.systemlaunched = self.args.options
     
     def _update_progress_status(self, monitor_options=None):
-        """Update progress status for display."""
+        """Update progress status for display.
+        
+        This method updates the progress status text shown during scans
+        based on the current menu options being executed.
+        
+        Args:
+            monitor_options (str, optional): Monitor options to use instead of args
+            
+        Returns:
+            tuple: Updated args and choices string
+        """
         from pkscreener.classes.MenuOptions import (
             PREDEFINED_SCAN_MENU_TEXTS, PREDEFINED_SCAN_MENU_VALUES, INDICES_MAP
         )
@@ -675,13 +808,25 @@ class ApplicationRunner:
         return self.args, choices
     
     def _run_intraday_analysis(self):
-        """Run intraday analysis reports."""
+        """Run intraday analysis reports.
+        
+        This method executes the intraday analysis mode, generating reports
+        comparing morning and end-of-day data.
+        """
         from pkscreener.classes.cli.PKCliRunner import IntradayAnalysisRunner
         runner = IntradayAnalysisRunner(self.config_manager, self.args)
         runner.generate_reports()
     
     def _test_all_options(self, menus, main_func):
-        """Test all menu options."""
+        """Test all menu options.
+        
+        This method runs through all available menu options for testing purposes,
+        executing scans for each predefined menu choice.
+        
+        Args:
+            menus: Menu options object
+            main_func: Main function to execute for each option
+        """
         all_menus, _ = menus.allMenus(index=0)
         for scan_option in all_menus:
             self.args.options = f"{scan_option}:SBIN,"
@@ -690,7 +835,18 @@ class ApplicationRunner:
     
     def _run_standard_scan(self, main, close_workers, is_interrupted,
                           update_menu_hierarchy, refresh_data):
-        """Run standard scanning mode."""
+        """Run standard scanning mode.
+        
+        This method executes the standard screening process, handling monitor mode,
+        piped scans, and result processing.
+        
+        Args:
+            main: Main scanning function
+            close_workers: Function to close worker processes
+            is_interrupted: Function to check for interruption
+            update_menu_hierarchy: Function to update menu hierarchy
+            refresh_data: Function to refresh stock data
+        """
         from pkscreener.classes.cli.PKCliRunner import PKCliRunner
         
         cli_runner = PKCliRunner(self.config_manager, self.args)
@@ -719,7 +875,15 @@ class ApplicationRunner:
                 traceback.print_exc()
     
     def _setup_monitor_mode(self, cli_runner, refresh_data):
-        """Setup monitor mode."""
+        """Setup monitor mode.
+        
+        This method configures the application for monitor mode, which continuously
+        watches for screening opportunities.
+        
+        Args:
+            cli_runner: CLI runner instance
+            refresh_data: Function to refresh stock data
+        """
         self.args.monitor = self.args.monitor.replace("::", ":").replace('"', "").replace("'", "")
         self.config_manager.getConfig(ConfigManager.parser)
         self.args.answerdefault = self.args.answerdefault or 'Y'
@@ -736,7 +900,19 @@ class ApplicationRunner:
     
     def _execute_scan(self, main, close_workers, is_interrupted,
                      update_menu_hierarchy, cli_runner, monitor_option_org):
-        """Execute the scanning process."""
+        """Execute the scanning process.
+        
+        This method performs the actual stock screening, handling piped scans
+        and managing result data.
+        
+        Args:
+            main: Main scanning function
+            close_workers: Function to close worker processes
+            is_interrupted: Function to check for interruption
+            update_menu_hierarchy: Function to update menu hierarchy
+            cli_runner: CLI runner instance
+            monitor_option_org: Original monitor option
+        """
         self.results = None
         self.plain_results = None
         self.result_stocks = None
@@ -781,7 +957,15 @@ class ApplicationRunner:
         self._process_results(update_menu_hierarchy, monitor_option_org)
     
     def _process_results(self, update_menu_hierarchy, monitor_option_org):
-        """Process scan results."""
+        """Process scan results.
+        
+        This method processes the scan results, removing duplicates, saving
+        results for monitoring, and checking market closure.
+        
+        Args:
+            update_menu_hierarchy: Function to update menu hierarchy
+            monitor_option_org: Original monitor option
+        """
         if self.plain_results is not None and not self.plain_results.empty:
             try:
                 self.plain_results.set_index("Stock", inplace=True)
@@ -812,7 +996,11 @@ class ApplicationRunner:
             self._check_market_close()
     
     def _check_market_close(self):
-        """Check if market has closed and exit if needed."""
+        """Check if market has closed and exit if needed.
+        
+        This method checks whether the market has closed and exits the monitor
+        mode if appropriate.
+        """
         if "RUNNER" in os.environ.keys() and self.args.triggertimestamp is not None:
             from datetime import timezone
             from PKDevTools.classes.MarketHours import MarketHours
@@ -834,7 +1022,14 @@ class ApplicationRunner:
 # =============================================================================
 
 def _get_debug_args():
-    """Get debug arguments from command line - fixed version."""
+    """Get debug arguments from command line - fixed version.
+    
+    This function retrieves command line arguments, handling quoted strings
+    and spaces properly using shell-style parsing.
+    
+    Returns:
+        list: List of command line arguments
+    """
     import sys
     import shlex
     
@@ -858,7 +1053,15 @@ def _get_debug_args():
 
 
 def _exit_gracefully(config_manager, arg_parser):
-    """Perform graceful exit cleanup."""
+    """Perform graceful exit cleanup.
+    
+    This function performs cleanup operations before exiting the application,
+    including removing temporary files and resetting configuration.
+    
+    Args:
+        config_manager: Configuration manager instance
+        arg_parser: Argument parser instance for accessing arguments
+    """
     try:
         from pkscreener.globals import resetConfigToDefault
         
@@ -900,7 +1103,11 @@ def _exit_gracefully(config_manager, arg_parser):
 
 
 def _remove_old_instances():
-    """Remove old CLI instances."""
+    """Remove old CLI instances.
+    
+    This function removes old executable instances of pkscreenercli to prevent
+    conflicts and ensure only the current version is running.
+    """
     import glob
     pattern = "pkscreenercli*"
     this_instance = sys.argv[0]
@@ -918,7 +1125,6 @@ def _remove_old_instances():
 # =============================================================================
 
 # Global state
-
 args = None
 argParser = ArgumentParser.create_parser()
 configManager = ConfigManager.tools()
@@ -930,14 +1136,22 @@ args = argsv[0]
 
 
 def runApplication():
-    """Run the main application."""
+    """Run the main application.
+    
+    This function creates an ApplicationRunner instance and executes the
+    main application logic.
+    """
     global args
     runner = ApplicationRunner(configManager, args, argParser)
     runner.run()
 
 
 def runApplicationForScreening():
-    """Run application in screening mode."""
+    """Run application in screening mode.
+    
+    This function handles the screening mode execution, including scheduling
+    for cron jobs and handling errors appropriately.
+    """
     from pkscreener.globals import closeWorkersAndExit
     
     try:
@@ -993,7 +1207,11 @@ def runApplicationForScreening():
 _cron_runs = 0
 
 def _schedule_next_run():
-    """Schedule next run based on cron interval."""
+    """Schedule next run based on cron interval.
+    
+    This function manages the scheduling of recurring scans, handling
+    non-trading hours by sleeping until market open.
+    """
     global _cron_runs
     
     sleep_until_next = not PKDateUtilities.isTradingTime()
@@ -1031,7 +1249,25 @@ def _schedule_next_run():
 
 @ping(interval=60, instance=PKAnalyticsService())
 def pkscreenercli():
-    """Main CLI entry point."""
+    """Main CLI entry point.
+    
+    This is the main function for the PKScreener CLI application. It handles
+    initial setup, argument parsing, dependency checking, and routes to the
+    appropriate execution mode.
+    
+    The function performs the following steps:
+    1. Sets up multiprocessing for macOS
+    2. Configures debug settings
+    3. Validates terms of service acceptance
+    4. Configures logging
+    5. Sets up monitoring if requested
+    6. Checks dependencies
+    7. Validates user registration for premium features
+    8. Routes to appropriate execution mode (normal, bot, telegram, test)
+    
+    Returns:
+        None
+    """
     global args
     
     # Setup multiprocessing for macOS
@@ -1257,6 +1493,11 @@ exitGracefully = lambda: _exit_gracefully(configManager, argParser)
 
 
 if __name__ == "__main__":
+    """Main entry point when script is executed directly.
+    
+    This block checks that the repository is the official PKScreener repository
+    before executing, then calls the main CLI function.
+    """
     if "RUNNER" in os.environ.keys():
         try:
             owner = os.popen('git ls-remote --get-url origin | cut -d/ -f4').read().replace("\n", "")

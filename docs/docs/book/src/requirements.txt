@@ -1,0 +1,93 @@
+# PKScreener Dependencies - Python 3.12
+# Last updated: 2024-12 (compatible with v0.46.20250914.779)
+#
+# IMPORTANT: numpy version MUST be 1.26.4 for compatibility with:
+# - tensorflow 2.16.1 (requires numpy<2.0.0)
+# - scipy 1.12.0 (compiled against numpy 1.x)
+# - scikit-learn 1.4.2 (requires compatible scipy)
+# - advanced-ta 0.1.8 (requires numpy<2.0.0)
+#
+# Do NOT allow pip to upgrade numpy above 1.26.4!
+
+# Core technical analysis libraries
+advanced_ta==0.1.8
+TA-Lib>=0.6.0  # Install separately if needed. See README.
+
+# Progress and CLI
+alive-progress==1.6.2
+click>=8.1.7
+Halo>=0.0.31
+rich>=13.9.2
+tabulate>=0.9.0
+
+# Web scraping and parsing
+bs4>=0.0.2
+lxml==4.9.4  # 5.0.0 or above causes problems
+
+# Git and version control
+gitpython>=3.1.43
+
+# Google Sheets integration
+gspread>=5.12.4
+gspread_pandas>=3.3.0
+
+# Job scheduling and processing
+joblib>=1.4.2
+
+# Machine Learning and Data Science - ORDER MATTERS!
+# Install numpy first, then scipy, then sklearn to avoid version conflicts
+numpy==1.26.4  # CRITICAL: Must be exactly 1.26.4 for tensorflow/scipy compatibility
+scipy==1.12.0  # CRITICAL: Must be exactly 1.12.0 (compiled with numpy 1.x)
+scikit-learn==1.4.2  # Compatible with scipy 1.12.0 and numpy 1.26.4
+pandas>=2.2.3,<2.3  # Avoid pandas 2.3+ which may require numpy 2.x
+keras==3.6.0  # Compatible with tensorflow 2.16.1
+# tensorflow==2.16.1  # https://github.com/tensorflow/tensorflow/issues/62075
+
+# Data formats and file handling
+openpyxl>=3.1.5
+Pyarrow>=17.0.0
+xlsxwriter>=3.2.0
+
+# This is required because https://github.com/erocarrera/pefile/issues/420
+# and https://github.com/pyinstaller/pyinstaller/issues/8762
+# and https://github.com/pyinstaller/pyinstaller/issues/7269
+pefile>=2023.2.7,<2024.8.26
+
+# Image processing
+Pillow>=9.5.0
+
+# PKScreener ecosystem packages
+PKDevTools>=0.13.20260428.334
+PKNSETools>=0.1.20260316.150
+PKBrokers>=0.1.20260313.67
+
+# Browser automation
+pyppeteer>=2.0.0
+
+# Timezone handling
+pytz>=2024.2
+
+# Telegram bot
+python-telegram-bot>=13.4,<20.0
+
+# HTTP requests and caching
+requests>=2.32.4
+requests_cache>=1.2.1
+requests_ratelimiter>=0.7.0
+pyrate_limiter>=2.10.0
+urllib3>=1.26.20
+
+# Backtesting and trading
+vectorbt>=0.26.2
+
+setuptools>=78.1.1
+# Note: pandas-ta-classic is excluded due to numpy>=2.0.0 requirement
+# which conflicts with tensorflow 2.16.1. A fallback VWAP implementation
+# is provided in Pktalib.py. TA-Lib should be used for full functionality.
+autobahn>=19.11.2
+cryptography>=46.0.5
+filelock>=3.20.3
+protobuf>=5.29.6
+pyasn1>=0.6.2
+tornado>=6.5.3
+zipp>=3.19.1

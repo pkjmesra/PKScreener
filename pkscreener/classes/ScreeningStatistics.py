@@ -236,21 +236,294 @@ class ScreeningStatistics:
                 #     self.default_logger.debug(e, exc_info=True)
                 continue
 
-    # Find stocks that have broken through 52 week high.
-    def find52WeekHighBreakout(self, df):
-        # https://chartink.com/screener/52-week-low-breakout
+    # Find stocks that have broken through 52 week high with quality confirmation
+    def find52WeekHighBreakout(self, df, screenDict=None, saveDict=None):
+        """
+        Identify high-quality 52-week high breakout patterns.
+        
+        A genuine 52-week high breakout should have:
+        1. Price closing above previous 52-week high (not just intraday spike)
+        2. Above-average volume confirming institutional interest
+        3. Proper base/consolidation before breakout
+        4. Not already overextended
+        5. Strong relative strength
+        
+        Args:
+            df: DataFrame with OHLCV data (latest first)
+            screenDict: Optional dict for output formatting  
+            saveDict: Optional dict for saving results
+        
+        Returns:
+            bool: True if quality 52-week high breakout detected
+        """
         if df is None or len(df) == 0:
             return False
+        
         data = df.copy()
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
+        
+        # Need at least 260 days (52 weeks * 5 days) of data
+        if len(data) < 260:
+            return False
+        
+        # Ensure data is sorted with most recent first
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        
         one_week = 5
-        recent = data.head(1)["high"].iloc[0]
-        full52Week = data.head(50 * one_week)
-        full52WeekHigh = full52Week["high"].max()
-        # if self.shouldLog:
-        #     self.default_logger.debug(data.head(10))
-        return recent >= full52WeekHigh
+        week_52 = 50 * one_week  # 250 trading days (approx 52 weeks)
+        
+        today = data.iloc[0]
+        
+        # =============================================================
+        # STEP 1: GET 52-WEEK DATA (excluding today)
+        # =============================================================
+        historical_data = data.iloc[1:week_52 + 1]  # Last 52 weeks excluding today
+        previous_52_week_high = historical_data["high"].max()
+        previous_52_week_close_high = historical_data["close"].max()
+        
+        if previous_52_week_high == 0:
+            return False
+        
+        # =============================================================
+        # STEP 2: PRIMARY BREAKOUT CONDITIONS
+        # =============================================================
+        
+        # Condition 1: Close above previous 52-week high (more reliable than intraday high)
+        close_breakout = today["close"] > previous_52_week_high
+        
+        # Alternative: Allow high breakout if close is very close (within 0.5%)
+        high_breakout = today["high"] > previous_52_week_high
+        close_near_high = (today["close"] / previous_52_week_high) > 0.995 if previous_52_week_high > 0 else False
+        
+        price_breakout = close_breakout or (high_breakout and close_near_high)
+        
+        if not price_breakout:
+            return False
+        
+        # =============================================================
+        # STEP 3: VOLUME CONFIRMATION (Critical for breakouts)
+        # =============================================================
+        
+        # Calculate volume averages
+        avg_volume_20 = data.iloc[1:21]["volume"].mean() if len(data) > 20 else 0
+        avg_volume_50 = data.iloc[1:51]["volume"].mean() if len(data) > 50 else 0
+        avg_volume_10 = data.iloc[1:11]["volume"].mean() if len(data) > 10 else 0
+        
+        # Volume should be significantly above average on breakout day
+        volume_ratio_vs_20 = today["volume"] / avg_volume_20 if avg_volume_20 > 0 else 1
+        volume_ratio_vs_50 = today["volume"] / avg_volume_50 if avg_volume_50 > 0 else 1
+        volume_ratio_vs_10 = today["volume"] / avg_volume_10 if avg_volume_10 > 0 else 1
+        
+        # Quality breakout needs volume at least 1.5x the 50-day average
+        volume_confirmation = (
+            volume_ratio_vs_50 >= 1.5 or 
+            (volume_ratio_vs_20 >= 1.3 and today["volume"] > 100000)  # For liquid stocks
+        )
+        
+        # =============================================================
+        # STEP 4: CONSOLIDATION/BASE CHECK (Avoid extended moves)
+        # =============================================================
+        
+        # Check if stock has been consolidating near highs (not already extended)
+        days_to_check = min(60, len(historical_data))
+        recent_highs = historical_data["high"].iloc[:days_to_check]
+        recent_high_max = recent_highs.max()
+        
+        # Calculate how close recent prices are to 52-week high
+        # A good setup has price within 10-15% of 52-week high before breakout
+        price_proximity = (previous_52_week_high - historical_data["close"].iloc[0]) / previous_52_week_high if previous_52_week_high > 0 else 1
+        
+        # Stock should be within 20% of 52-week high (not too far down)
+        consolidation_check = price_proximity <= 0.20
+        
+        # Check for proper base (at least 4 weeks of consolidation)
+        # Look for tight trading range in last 20 days
+        last_20_days = historical_data.iloc[:20]
+        if len(last_20_days) >= 20:
+            price_range_pct = (last_20_days["high"].max() - last_20_days["low"].min()) / last_20_days["low"].min() * 100
+            tight_base = price_range_pct <= 15  # Less than 15% range indicates consolidation
+        else:
+            tight_base = True
+        
+        # =============================================================
+        # STEP 5: RELATIVE STRENGTH CHECK
+        # =============================================================
+        
+        # Stock should show strength relative to its own history
+        # Check if stock is making higher highs recently
+        last_10_highs = historical_data["high"].iloc[:10]
+        higher_highs_trend = all(
+            last_10_highs.iloc[i] > last_10_highs.iloc[i+1] 
+            for i in range(len(last_10_highs) - 1)
+        ) if len(last_10_highs) >= 2 else False
+        
+        # Check RSI if available (should be strong but not extremely overbought)
+        rsi_value = None
+        if 'RSI' in data.columns:
+            rsi_value = data['RSI'].iloc[0]
+        else:
+            # Quick RSI calculation
+            from pkscreener.classes.Pktalib import pktalib
+            rsi_series = pktalib.RSI(data["close"], timeperiod=14)
+            rsi_value = rsi_series.iloc[0] if len(rsi_series) > 0 else None
+        
+        rsi_ok = rsi_value is None or (55 <= rsi_value <= 80)  # Strong but not extreme overbought
+        
+        # =============================================================
+        # STEP 6: CANDLE QUALITY CHECK
+        # =============================================================
+        
+        # Bullish candle (close > open)
+        is_bullish = today["close"] > today["open"]
+        
+        # Close in top 40% of daily range (buyer control)
+        daily_range = today["high"] - today["low"]
+        if daily_range > 0:
+            close_position = (today["close"] - today["low"]) / daily_range
+            strong_close = close_position > 0.40
+        else:
+            strong_close = False
+        
+        # Check if it's a fresh breakout (not already up huge today)
+        intraday_move = (today["high"] - today["low"]) / today["low"] * 100 if today["low"] > 0 else 0
+        not_too_extended = intraday_move <= 7  # Less than 7% intraday range
+        
+        # =============================================================
+        # STEP 7: RESISTANCE CHECK (No prior resistance above)
+        # =============================================================
+        
+        # Look for any higher highs in the dataset (ensures it's truly 52-week)
+        all_time_high = data["high"].max()
+        is_all_time_high = today["high"] >= all_time_high - (all_time_high * 0.001) if all_time_high > 0 else False
+        
+        # =============================================================
+        # STEP 8: FINAL QUALITY SCORING
+        # =============================================================
+        
+        # Primary conditions (must have)
+        primary_conditions = [
+            price_breakout,
+            volume_confirmation,
+            consolidation_check,
+            is_bullish or strong_close  # Either condition is acceptable
+        ]
+        
+        # Secondary conditions (at least 2 of 3)
+        secondary_conditions = [
+            tight_base,
+            higher_highs_trend or rsi_ok,  # Either strength indicator
+            not_too_extended
+        ]
+        
+        secondary_score = sum(secondary_conditions)
+        
+        is_quality_breakout = all(primary_conditions) and secondary_score >= 2
+        
+        # =============================================================
+        # STEP 9: STORE RESULTS (if dictionaries provided)
+        # =============================================================
+        
+        if screenDict is not None and saveDict is not None and is_quality_breakout:
+            saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            
+            # Build breakout description
+            breakout_type = "ATH" if is_all_time_high else "52WH"
+            volume_multiple = round(volume_ratio_vs_50, 1) if volume_ratio_vs_50 > 0 else 1
+            
+            breakout_details = f"{breakout_type}-BO (H:{previous_52_week_high:.2f}, V:{volume_multiple}x)"
+            
+            if close_breakout:
+                breakout_details += " [Close]"
+            
+            screenDict["Pattern"] = saved[0] + colorText.GREEN + breakout_details + colorText.END
+            saveDict["Pattern"] = saved[1] + breakout_details
+            
+            # Store additional metrics for sorting
+            saveDict["BreakoutStrength"] = volume_multiple
+            saveDict["BreakoutType"] = breakout_type
+        
+        return is_quality_breakout
+
+
+    # Complementary method: Find stocks approaching 52-week high (pre-breakout)
+    def findApproaching52WeekHigh(self, df, screenDict=None, saveDict=None, proximity_pct=5):
+        """
+        Find stocks approaching 52-week high (setups for potential breakout).
+        
+        Useful for finding candidates before the actual breakout.
+        
+        Args:
+            df: DataFrame with OHLCV data (latest first)
+            screenDict: Optional dict for output formatting
+            saveDict: Optional dict for saving results
+            proximity_pct: How close to 52-week high (default 5%)
+        
+        Returns:
+            bool: True if stock is approaching 52-week high with good setup
+        """
+        if df is None or len(df) < 250:
+            return False
+        
+        data = df.copy()
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        
+        one_week = 5
+        week_52 = 50 * one_week
+        
+        today = data.iloc[0]
+        historical_data = data.iloc[1:week_52 + 1]
+        previous_52_week_high = historical_data["high"].max()
+        
+        if previous_52_week_high == 0:
+            return False
+        
+        # Calculate distance to 52-week high
+        distance_to_high = (previous_52_week_high - today["close"]) / previous_52_week_high * 100
+        
+        # Within specified proximity
+        is_approaching = 0 <= distance_to_high <= proximity_pct
+        
+        if not is_approaching:
+            return False
+        
+        # Check for constructive consolidation (tight range)
+        last_20_days = historical_data.iloc[:20]
+        if len(last_20_days) >= 20:
+            price_range_pct = (last_20_days["high"].max() - last_20_days["low"].min()) / last_20_days["low"].min() * 100
+            tight_consolidation = price_range_pct <= 10  # Very tight for pre-breakout
+        else:
+            tight_consolidation = True
+        
+        # Volume should be drying up (accumulation phase)
+        avg_volume_50 = historical_data["volume"].iloc[:50].mean() if len(historical_data) >= 50 else 0
+        volume_contraction = today["volume"] < avg_volume_50 * 0.8 if avg_volume_50 > 0 else True
+        
+        # Above key moving averages
+        sma_50 = historical_data["close"].iloc[:50].mean() if len(historical_data) >= 50 else 0
+        sma_200 = historical_data["close"].iloc[:200].mean() if len(historical_data) >= 200 else 0
+        above_mas = today["close"] > sma_50 > sma_200 if sma_50 > 0 and sma_200 > 0 else False
+        
+        quality_setup = tight_consolidation and volume_contraction and above_mas
+        
+        if screenDict is not None and saveDict is not None and quality_setup:
+            saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            setup_details = f"Approaching-52WH ({distance_to_high:.1f}%)"
+            screenDict["Pattern"] = saved[0] + colorText.WARN + setup_details + colorText.END
+            saveDict["Pattern"] = saved[1] + setup_details
+        
+        return quality_setup
 
     #@measure_time
     # Find stocks' 52 week high/low.
@@ -291,25 +564,210 @@ class ScreeningStatistics:
         # if self.shouldLog:
         #     self.default_logger.debug(data.head(10))
 
-    # Find stocks that have broken through 10 days low.
-    def find10DaysLowBreakout(self, df):
+    # Find stocks that have broken through 10 days low (bearish breakout)
+    def find10DaysLowBreakout(self, df, screenDict=None, saveDict=None):
+        """
+        Identify genuine 10-day low breakout patterns with confirmation.
+        A quality 10-day low breakout should have:
+        1. Price breaking below recent support levels
+        2. Increased volume confirming selling pressure
+        3. Bearish candle confirmation
+        4. Stock not already oversold (avoid false bottoms)
+        
+        Args:
+            df: DataFrame with OHLCV data (latest first)
+            screenDict: Optional dict for output formatting
+            saveDict: Optional dict for saving results
+        
+        Returns:
+            bool: True if quality 10-day low breakout detected
+        """
         if df is None or len(df) == 0:
             return False
+        
         data = df.copy()
         data = data.fillna(0)
         data = data.replace([np.inf, -np.inf], 0)
-        one_week = 5
-        recent = data.head(1)["low"].iloc[0]
-        last1Week = data.head(one_week)
-        last2Week = data.head(2 * one_week)
-        previousWeek = last2Week.tail(one_week)
-        last1WeekLow = last1Week["low"].min()
-        previousWeekLow = previousWeek["low"].min()
-        # if self.shouldLog:
-        #     self.default_logger.debug(data.head(10))
-        return (recent <= min(previousWeekLow, last1WeekLow)) and (
-            last1WeekLow <= previousWeekLow
+        
+        # Need at least 15 days of data for proper analysis (10 days + buffer)
+        if len(data) < 15:
+            return False
+        
+        # Ensure data is sorted with most recent first
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        
+        # Get recent data
+        today = data.iloc[0]
+        yesterday = data.iloc[1] if len(data) > 1 else None
+        
+        if yesterday is None:
+            return False
+        
+        # Calculate 10-day low (excluding today)
+        ten_day_data = data.iloc[1:11]  # Last 10 trading days excluding today
+        ten_day_low = ten_day_data['low'].min() if len(ten_day_data) > 0 else 0
+        ten_day_high = ten_day_data['high'].max() if len(ten_day_data) > 0 else 0
+        
+        # Calculate 5-day average volume for confirmation
+        five_day_avg_volume = data.iloc[1:6]['volume'].mean() if len(data) > 5 else 0
+        
+        # QUALITY BREAKOUT CONDITIONS:
+        
+        # 1. Today's low breaks below 10-day low (actual breakout)
+        price_breakout = today['low'] < ten_day_low
+        
+        if not price_breakout:
+            return False
+        
+        # 2. Volume confirmation - higher volume on breakout day
+        volume_confirmation = today['volume'] > five_day_avg_volume * 1.2
+        
+        # 3. Close is near low of day (seller conviction) - close in bottom 25% of daily range
+        daily_range = today['high'] - today['low']
+        if daily_range > 0:
+            close_position = (today['close'] - today['low']) / daily_range
+            close_confirmation = close_position < 0.25  # Close in bottom 25%
+        else:
+            close_confirmation = False
+        
+        # 4. Not already oversold (avoid chasing extended moves)
+        # Check if RSI exists, if not calculate it
+        rsi_value = None
+        if 'RSI' in data.columns:
+            rsi_value = data['RSI'].iloc[0]
+        else:
+            # Quick RSI calculation for confirmation
+            close_prices = data['close'].iloc[:14].values
+            if len(close_prices) >= 14:
+                from pkscreener.classes.Pktalib import pktalib
+                rsi_series = pktalib.RSI(data['close'], timeperiod=14)
+                rsi_value = rsi_series.iloc[0] if len(rsi_series) > 0 else None
+        
+        # Breakout is more reliable when RSI is between 30-60 (not already oversold)
+        rsi_confirmation = rsi_value is None or (30 <= rsi_value <= 70)
+        
+        # 5. Trend confirmation - price below 20-day SMA (downtrend context)
+        sma_20 = data['close'].iloc[1:21].mean() if len(data) > 20 else 0
+        trend_confirmation = today['close'] < sma_20 if sma_20 > 0 else True
+        
+        # 6. Previous day not already at low (genuine fresh breakdown)
+        fresh_breakout = yesterday['low'] > ten_day_low
+        
+        # Combined quality check
+        is_quality_breakout = (
+            price_breakout and
+            volume_confirmation and
+            close_confirmation and
+            rsi_confirmation and
+            trend_confirmation and
+            fresh_breakout
         )
+        
+        # Optional: Add additional bearish confirmation
+        # Check if today is a bearish candle
+        is_bearish_candle = today['close'] < today['open']
+        
+        # Check if making lower low vs yesterday
+        lower_low = today['low'] < yesterday['low']
+        
+        # Final quality score (at least 3 of 4 additional conditions)
+        additional_conditions = sum([
+            is_bearish_candle,
+            lower_low,
+            today['close'] < yesterday['close'],  # Lower close
+            today['volume'] > yesterday['volume'] * 1.5  # Volume spike
+        ])
+        
+        quality_breakout = is_quality_breakout and additional_conditions >= 2
+        
+        # Store results for display if dictionaries provided
+        if screenDict is not None and saveDict is not None and quality_breakout:
+            saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            breakout_details = f"10D-Low-BO (L:{ten_day_low:.2f}, V:{today['volume']/five_day_avg_volume:.1f}x)"
+            screenDict["Pattern"] = saved[0] + colorText.FAIL + breakout_details + colorText.END
+            saveDict["Pattern"] = saved[1] + breakout_details
+        
+        return quality_breakout
+
+
+    # Alternative: Bullish 10-day high breakout (complementary method)
+    def find10DaysHighBreakout(self, df, screenDict=None, saveDict=None):
+        """
+        Identify bullish 10-day high breakout patterns (breakout to upside).
+        Conditions:
+        1. Price breaks above 10-day high
+        2. Volume confirmation
+        3. Close near high of day (buyer conviction)
+        4. Uptrend context
+        """
+        if df is None or len(df) == 0:
+            return False
+        
+        data = df.copy()
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        
+        if len(data) < 15:
+            return False
+        
+        # Ensure sorted with most recent first
+        if not data.empty and hasattr(data.index, 'sort_values'):
+            try:
+                data = data.sort_index(ascending=False)
+            except:
+                pass
+        
+        today = data.iloc[0]
+        yesterday = data.iloc[1] if len(data) > 1 else None
+        
+        if yesterday is None:
+            return False
+        
+        # Calculate 10-day high (excluding today)
+        ten_day_data = data.iloc[1:11]
+        ten_day_high = ten_day_data['high'].max() if len(ten_day_data) > 0 else 0
+        
+        # Calculate averages
+        five_day_avg_volume = data.iloc[1:6]['volume'].mean() if len(data) > 5 else 0
+        sma_20 = data['close'].iloc[1:21].mean() if len(data) > 20 else 0
+        
+        # Breakout conditions
+        price_breakout = today['high'] > ten_day_high
+        volume_confirmation = today['volume'] > five_day_avg_volume * 1.2
+        
+        # Close in top 25% of daily range (buyer conviction)
+        daily_range = today['high'] - today['low']
+        if daily_range > 0:
+            close_position = (today['close'] - today['low']) / daily_range
+            close_confirmation = close_position > 0.75
+        else:
+            close_confirmation = False
+        
+        # Uptrend context
+        trend_confirmation = today['close'] > sma_20 if sma_20 > 0 else True
+        
+        # Bullish candle
+        is_bullish = today['close'] > today['open']
+        
+        quality_breakout = (
+            price_breakout and
+            volume_confirmation and
+            close_confirmation and
+            trend_confirmation and
+            is_bullish
+        )
+        
+        if screenDict is not None and saveDict is not None and quality_breakout:
+            saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            breakout_details = f"10D-High-BO (H:{ten_day_high:.2f}, V:{today['volume']/five_day_avg_volume:.1f}x)"
+            screenDict["Pattern"] = saved[0] + colorText.GREEN + breakout_details + colorText.END
+            saveDict["Pattern"] = saved[1] + breakout_details
+        
+        return quality_breakout
 
     # Find stocks that have broken through 52 week low.
     def find52WeekLowBreakout(self, df):
@@ -3684,13 +4142,6 @@ class ScreeningStatistics:
                     # Fallback to recent if data is empty
                     latest_date_index = recent.index[0] if not recent.empty else None
                 
-                # #region agent log
-                # import json
-                # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-                # with open(log_path, 'a') as f:
-                #     f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"ScreeningStatistics.py:validateLTP:3687","message":"Setting Time column from latest_date_index","data":{"latest_date_index":str(latest_date_index) if latest_date_index else None,"data_empty":data.empty,"data_index_0":str(data.index[0]) if not data.empty else None,"data_index_len":len(data.index) if not data.empty else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-                # #endregion
-                
                 if latest_date_index is not None:
                     dateTimePart = str(latest_date_index).split(" ")
                     if len(dateTimePart) == 1:
@@ -4202,136 +4653,409 @@ class ScreeningStatistics:
     def validateVCP(
         self, df, screenDict, saveDict, stockName=None, window=3, percentageFromTop=3
     ):
+        """
+        Validate Volatility Contraction Pattern (VCP) - Mark Minervini style.
+        
+        A VCP is characterized by:
+        1. Series of peaks and troughs with decreasing amplitude
+        2. Progressive tightening (each pullback is smaller than previous)
+        3. Rising lows (higher lows indicating support)
+        4. Volume contraction during pullbacks
+        5. Price near all-time highs
+        
+        The 3-2-1 Tightening Rule (when enableAdditionalVCPFilters is True):
+        - Leg 2 pullback must be ≤ 70% of Leg 1 pullback
+        - Leg 3 pullback must be ≤ 70% of Leg 2 pullback
+        Example: 20% → 14% (70% of 20) → 10% (71% of 14)
+        This creates the characteristic "tightening" pattern.
+        
+        Args:
+            df: DataFrame in descending order (newest first, oldest last)
+                Required columns: 'open', 'high', 'low', 'close', 'volume'
+            screenDict: Dictionary to store formatted results for screen display
+            saveDict: Dictionary to store raw results for persistence
+            stockName: Name of the stock (for logging)
+            window: Window size for finding local extrema (default: 3)
+            percentageFromTop: Percentage threshold for top tightening (default: 3%)
+        
+        Returns:
+            bool: True if VCP pattern is detected, False otherwise
+        """
         if df is None or len(df) == 0:
             return False
+        
         data = df.copy()
+        
         try:
+            # =====================================================================
+            # STEP 1: OPTIONAL EMA FILTERS
+            # Ensures stock is above key moving averages (bullish condition)
+            # =====================================================================
             if self.configManager.enableAdditionalVCPEMAFilters:
                 reversedData = data[::-1] 
                 ema = pktalib.EMA(reversedData["close"], timeperiod=50)
                 sema20 = pktalib.EMA(reversedData["close"], timeperiod=20)
-                if not (data["close"].iloc[0] >= ema.tail(1).iloc[0] and data["close"].iloc[0] >= sema20.tail(1).iloc[0]):
+                if not (data["close"].iloc[0] >= ema.tail(1).iloc[0] and 
+                        data["close"].iloc[0] >= sema20.tail(1).iloc[0]):
                     return False
+            
+            # =====================================================================
+            # STEP 2: DETECT PEAKS (TOPS) AND TROUGHS (BOTS)
+            # =====================================================================
             percentageFromTop /= 100
             data.reset_index(inplace=True)
             data.rename(columns={"index": "Date"}, inplace=True)
-            data["tops"] = (data["high"].iloc[list(pktalib.argrelextrema(np.array(data["high"]), np.greater_equal, order=window)[0])].head(4))
-            data["bots"] = (data["low"].iloc[list(pktalib.argrelextrema(np.array(data["low"]), np.less_equal, order=window)[0])].head(4))
+            
+            # Find local maxima (peaks) and minima (troughs)
+            top_indices = list(pktalib.argrelextrema(
+                np.array(data["high"]), np.greater_equal, order=window
+            )[0])
+            data["tops"] = data["high"].iloc[top_indices].head(6)  # Look at up to 6 tops
+            
+            bot_indices = list(pktalib.argrelextrema(
+                np.array(data["low"]), np.less_equal, order=window
+            )[0])
+            data["bots"] = data["low"].iloc[bot_indices].head(6)
+            
             data = data.fillna(0)
             data = data.replace([np.inf, -np.inf], 0)
+            
             tops = data[data.tops > 0]
-            # bots = data[data.bots > 0]
+            
+            # Need at least 3 tops for a meaningful VCP pattern
+            if len(tops) < 3:
+                return False
+            
+            # =====================================================================
+            # STEP 3: ALL-TIME HIGH PROXIMITY CHECK
+            # =====================================================================
             highestTop = round(tops.describe()["high"]["max"], 1)
             allTimeHigh = max(data["high"])
-            withinATHRange = data["close"].iloc[0] >= (allTimeHigh-allTimeHigh * float(self.configManager.vcpRangePercentageFromTop)/100)
+            withinATHRange = data["close"].iloc[0] >= (
+                allTimeHigh - allTimeHigh * float(self.configManager.vcpRangePercentageFromTop) / 100
+            )
+            
             if not withinATHRange and self.configManager.enableAdditionalVCPFilters:
                 # Last close is not within all time high range
                 return False
-            filteredTops = tops[
-                tops.tops > (highestTop - (highestTop * percentageFromTop))
-            ]
-            if filteredTops.equals(tops):  # Tops are in the range
-                lowPoints = []
-                for i in range(len(tops) - 1):
-                    endDate = tops.iloc[i]["Date"]
-                    startDate = tops.iloc[i + 1]["Date"]
-                    lowPoints.append(
-                        data[
-                            (data.Date >= startDate) & (data.Date <= endDate)
-                        ].describe()["low"]["min"]
-                    )
-                lowPointsOrg = lowPoints
-                lowPoints.sort(reverse=True)
-                lowPointsSorted = lowPoints
-                if data.empty or len(lowPoints) < 1:
-                    return False
-                ltp = data.head(1)["close"].iloc[0]
-                if (
-                    lowPointsOrg == lowPointsSorted
-                    and ltp < highestTop
-                    and ltp > lowPoints[0]
-                ):
-                    saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
-                    isTightening, consolidations, deviationScore = self.validateConsolidationContraction(df=df.copy(),legsToCheck=(int(self.configManager.vcpLegsToCheckForConsolidation) if self.configManager.enableAdditionalVCPFilters else 0),stockName=stockName)
-                    consolidations = [f"{str(x)}%" for x in consolidations]
-                    if isTightening:
-                        screenDict["Pattern"] = (
-                            saved[0] 
-                            + colorText.GREEN
-                            + f"VCP (BO: {highestTop}, Cons.:{','.join(consolidations)})"
-                            + colorText.END
+            
+            # =====================================================================
+            # STEP 4: TOP TIGHTENING ANALYSIS
+            # Check if recent tops are within percentage range (clustering)
+            # =====================================================================
+            recent_tops_count = min(3, len(tops))
+            recent_tops = tops.tail(recent_tops_count)
+            tops_in_range = recent_tops[recent_tops.tops > (highestTop - (highestTop * percentageFromTop))]
+            
+            # At least 66% of recent tops should be tightening (2 out of 3)
+            if len(tops_in_range) / recent_tops_count < 0.66:
+                return False
+            
+            # =====================================================================
+            # STEP 5: LOW POINT ANALYSIS (RISING LOWS)
+            # Calculate low points between successive tops
+            # =====================================================================
+            lowPoints = []
+            
+            for i in range(len(tops) - 1):
+                endDate = tops.iloc[i]["Date"]
+                startDate = tops.iloc[i + 1]["Date"]
+                segment_data = data[(data.Date >= startDate) & (data.Date <= endDate)]
+                if not segment_data.empty:
+                    lowPoint = segment_data.describe()["low"]["min"]
+                    lowPoints.append(lowPoint)
+            
+            if len(lowPoints) < 2:
+                return False
+            
+            # Check if low points are rising (higher lows = bullish contraction)
+            rising_lows = all(lowPoints[i] < lowPoints[i+1] for i in range(len(lowPoints)-1))
+            
+            # Check if the last 2-3 low points are rising
+            recent_lows_rising = all(
+                lowPoints[i] < lowPoints[i+1] 
+                for i in range(-min(2, len(lowPoints)-1), -1)
+            ) if len(lowPoints) >= 2 else False
+            
+            ltp = data.head(1)["close"].iloc[0]
+            
+            # =====================================================================
+            # STEP 6: PRICE POSITION VALIDATION
+            # Price must be below highest top (not breaking out yet)
+            # but above the most recent low point (support)
+            # =====================================================================
+            if not ((rising_lows or recent_lows_rising) and ltp < highestTop and ltp > lowPoints[-1]):
+                return False
+            
+            # =====================================================================
+            # STEP 7: 3-2-1 TIGHTENING RULE (when additional filters enabled)
+            # This is the progressive contraction that defines a true VCP
+            # =====================================================================
+            if self.configManager.enableAdditionalVCPFilters:
+                # Calculate pullback percentages from tops
+                pullback_percentages = []
+                for i in range(1, len(tops)):
+                    prev_top = tops.iloc[i-1]["tops"]
+                    current_top = tops.iloc[i]["tops"]
+                    
+                    # Find lowest point between these two tops
+                    start_idx = tops.iloc[i-1].name  # Using index position
+                    end_idx = tops.iloc[i].name
+                    
+                    if start_idx < end_idx:
+                        lowest_in_between = min(data.iloc[start_idx:end_idx+1]["low"])
+                        # Calculate pullback percentage from previous peak
+                        pullback_pct = ((prev_top - lowest_in_between) / prev_top) * 100
+                        pullback_percentages.append(pullback_pct)
+                
+                # Apply 3-2-1 Tightening Rule
+                # Each pullback should be ≤70% of the previous pullback
+                if len(pullback_percentages) >= 2:
+                    rule_passed = True
+                    rule_details = []
+                    
+                    for i in range(1, len(pullback_percentages)):
+                        prev = pullback_percentages[i-1]
+                        curr = pullback_percentages[i]
+                        ratio = curr / prev if prev > 0 else 1
+                        
+                        if ratio <= float(self.configManager.vcp321RulePullbackPercentage) / 100 or self.configManager.vcp321RulePullbackPercentage == 0 or self.configManager.vcp321RulePullbackPercentage == 100:
+                            rule_details.append(f"✓ Leg {i+1}: {curr:.1f}% ≤ {self.configManager.vcp321RulePullbackPercentage}% of {prev:.1f}%")
+                        else:
+                            rule_passed = False
+                            rule_details.append(f"✗ Leg {i+1}: {curr:.1f}% > {self.configManager.vcp321RulePullbackPercentage}% of {prev:.1f}%")
+                            break
+                    
+                    if not rule_passed:
+                        # Log the failure for debugging
+                        if stockName:
+                            self.default_logger.debug(
+                                f"{stockName}: 3-2-1 tightening rule failed - {', '.join(rule_details)}"
+                            )
+                        return False
+                    
+                    # Log successful tightening for debugging
+                    if stockName and len(pullback_percentages) >= 2:
+                        self.default_logger.debug(
+                            f"{stockName}: 3-2-1 tightening passed - "
+                            f"Pullbacks: {' → '.join([f'{p:.1f}%' for p in pullback_percentages[:3]])}"
                         )
-                        saveDict["Pattern"] = saved[1] + f"VCP (BO: {highestTop}, Cons.:{','.join(consolidations)})"
-                        screenDict["deviationScore"] = deviationScore
-                        saveDict["deviationScore"] = deviationScore
-                        return True
-                    return False
-        except KeyboardInterrupt: # pragma: no cover
+            
+            # =====================================================================
+            # STEP 8: VALIDATE CONSOLIDATION CONTRACTION
+            # =====================================================================
+            saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            isTightening, consolidations, deviationScore = self.validateConsolidationContraction(
+                df=df.copy(),
+                legsToCheck=(
+                    int(self.configManager.vcpLegsToCheckForConsolidation) 
+                    if self.configManager.enableAdditionalVCPFilters else 0
+                ),
+                stockName=stockName
+            )
+            consolidations = [f"{str(x)}%" for x in consolidations]
+            
+            if isTightening:
+                screenDict["Pattern"] = (
+                    saved[0] 
+                    + colorText.GREEN
+                    + f"VCP (BO: {highestTop}, Cons.:{','.join(consolidations)})"
+                    + colorText.END
+                )
+                saveDict["Pattern"] = saved[1] + f"VCP (BO: {highestTop}, Cons.:{','.join(consolidations)})"
+                screenDict["deviationScore"] = deviationScore
+                saveDict["deviationScore"] = deviationScore
+                return True
+                
+            return False
+            
+        except KeyboardInterrupt:
             raise KeyboardInterrupt
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             self.default_logger.debug(e, exc_info=True)
-        return False
+            return False
 
     # Validate VCP as per Mark Minervini
     # https://chartink.com/screener/volatility-compression
-    def validateVCPMarkMinervini(self, df:pd.DataFrame, screenDict, saveDict):
-        if df is None or len(df) == 0:
+    def validateVCPMarkMinervini(self, df: pd.DataFrame, screenDict, saveDict):
+        """
+        Validate Mark Minervini's VCP (Volatility Contraction Pattern) criteria.
+        
+        Key Elements:
+        1. Uptrend: Price above key MAs with MA alignment (EMA13 > EMA26 > SMA50)
+        2. Tightening: Each pullback is ≤70% of previous pullback
+        3. Volume contraction: Volume dries up during pullbacks
+        4. Pivot: Breakout attempt on above-average volume
+        
+        Args:
+            df: Daily OHLCV data (newest first)
+            screenDict: Dictionary for screen display
+            saveDict: Dictionary for saving results
+            
+        Returns:
+            bool: True if VCP pattern detected
+        """
+        if df is None or len(df) < 90:  # Minervini needs ~1 year of data
             return False
+        
         data = df.copy()
         ohlc_dict = {
-            "open":'first',
-            "high":'max',
-            "low":'min',
-            "close":'last',
-            "volume":'sum'
+            "open": 'first',
+            "high": 'max',
+            "low": 'min',
+            "close": 'last',
+            "volume": 'sum'
         }
-        # final_df = df.resample('W-FRI', closed='left').agg(ohlc_dict).shift('1d')
-        weeklyData = data.resample('W').agg(ohlc_dict)
-        reversedData = data[::-1]  # Reverse the dataframe
-        recent_close = data["close"].head(1).iloc[0]
-        w_ema_13 = pktalib.EMA(weeklyData["close"],timeperiod=13).tail(1).iloc[0]
-        w_ema_26 = pktalib.EMA(weeklyData["close"],timeperiod=26).tail(1).iloc[0]
-        w_sma_50 = pktalib.SMA(weeklyData["close"],timeperiod=50).tail(1).iloc[0]
-        w_sma_40 = pktalib.SMA(weeklyData["close"],timeperiod=40).tail(1).iloc[0]
-        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["close"],timeperiod=40).tail(1).iloc[0]
-        w_min_50 = min(1.3*weeklyData.tail(50)["low"])
-        w_max_50 = max(0.75*weeklyData.tail(50)["high"])
-        w_ema_26_20w_ago = pktalib.EMA(weeklyData.head(len(weeklyData)-20)["close"],timeperiod=26).tail(1).iloc[0]
-        recent_ema_13_20d_ago = pktalib.EMA(reversedData.head(len(reversedData)-20)["close"],timeperiod=13).tail(1).iloc[0]
-        w_sma_40_5w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-5)["close"],timeperiod=40).tail(1).iloc[0]
-        w_sma_40_10w_ago = pktalib.SMA(weeklyData.head(len(weeklyData)-10)["close"],timeperiod=40).tail(1).iloc[0]
-        recent_sma_50 = pktalib.SMA(reversedData["close"],timeperiod=50).tail(1).iloc[0]
-        w_wma_8 = pktalib.WMA(weeklyData["close"],timeperiod=8).tail(1).iloc[0]
-        w_sma_8 = pktalib.SMA(weeklyData["close"],timeperiod=8).tail(1).iloc[0]
-        numPreviousCandles = 20
-        pullbackData = data.head(numPreviousCandles)
-        pullbackData.loc[:,'PullBack'] = pullbackData["close"].lt(pullbackData["open"]) #.shift(periods=1)) #& data["low"].lt(data["low"].shift(periods=1))
-        shrinkedVolData = pullbackData[pullbackData["PullBack"] == True].head(numPreviousCandles)
-        recentLargestVolume = max(pullbackData[pullbackData["PullBack"] == False].head(3)["volume"])
-        # pullbackData.loc[:,'PBVolRatio'] = pullbackData["volume"]/recentLargestVolume
-        volInPreviousPullbacksShrinked = False
-        if not shrinkedVolData.empty:
-            index = 0
-            while index < len(shrinkedVolData):
-                volInPreviousPullbacksShrinked = shrinkedVolData["volume"].iloc[index] < self.configManager.vcpVolumeContractionRatio * recentLargestVolume
-                if not volInPreviousPullbacksShrinked:
-                    break
-                index += 1
-        recentVolumeHasAboveAvgVol = recentLargestVolume >= self.configManager.volumeRatio * data["VolMA"].iloc[0]
-        isVCP = w_ema_13 > w_ema_26 and \
-                w_ema_26 > w_sma_50 and \
-                w_sma_40 > w_sma_40_5w_ago and \
-                recent_close >= w_min_50 and \
-                recent_close >= w_max_50 and \
-                recent_ema_13_20d_ago > w_ema_26_20w_ago and \
-                w_sma_40_5w_ago > w_sma_40_10w_ago and \
-                recent_close > recent_sma_50 and \
-                (w_wma_8 - w_sma_8)*6/29 < 0.5 and \
-                volInPreviousPullbacksShrinked and \
-                recentVolumeHasAboveAvgVol and \
-                recent_close > 10
-        if isVCP:
+        
+        # Weekly timeframe for trend analysis
+        weeklyData = data.resample('W-FRI').agg(ohlc_dict)
+        weeklyData = weeklyData.dropna()
+        
+        if len(weeklyData) < 50:
+            return False
+        
+        # =========================================================
+        # PART 1: TREND ANALYSIS (Minervini's "Stage 2" Uptrend)
+        # =========================================================
+        try:
+            w_ema_13 = pktalib.EMA(weeklyData["close"], timeperiod=13).tail(1).iloc[0]
+            w_ema_26 = pktalib.EMA(weeklyData["close"], timeperiod=26).tail(1).iloc[0]
+            w_sma_50 = pktalib.SMA(weeklyData["close"], timeperiod=50).tail(1).iloc[0]
+        except:
+            return False
+        
+        # Uptrend condition: 13EMA > 26EMA > 50SMA
+        if not (w_ema_13 > w_ema_26 > w_sma_50):
+            return False
+        
+        current_price = data["close"].iloc[0]
+        
+        # =========================================================
+        # PART 2: DETECT SWING HIGHS AND MEASURE PULLBACKS
+        # =========================================================
+        # Find swing highs (peaks) using argrelextrema
+        from scipy.signal import argrelextrema
+        import numpy as np
+        
+        highs = data['high'].values
+        lows = data['low'].values
+        closes = data['close'].values
+        
+        # Find local maxima (peaks) over 10-day window
+        window = 10
+        peak_indices = argrelextrema(highs, np.greater_equal, order=window)[0]
+        trough_indices = argrelextrema(lows, np.less_equal, order=window)[0]
+        
+        # Filter to last 90 days only
+        peak_indices = [i for i in peak_indices if i < 90]
+        trough_indices = [i for i in trough_indices if i < 90]
+        
+        if len(peak_indices) < 3:
+            return False
+        
+        # Get most recent 4 peaks
+        peaks = [(idx, highs[idx]) for idx in peak_indices[-4:]]
+        
+        # Measure pullback percentages between peaks
+        pullbacks = []
+        for i in range(1, len(peaks)):
+            prev_peak_price = peaks[i-1][1]
+            current_peak_price = peaks[i][1]
+            
+            # Find lowest point between these two peaks
+            start_idx = peaks[i-1][0]
+            end_idx = peaks[i][0]
+            if start_idx < end_idx:
+                lowest_in_between = min(lows[start_idx:end_idx+1])
+                pullback_pct = ((prev_peak_price - lowest_in_between) / prev_peak_price) * 100
+                pullbacks.append(pullback_pct)
+        
+        # Need at least 2 pullbacks for valid VCP
+        if len(pullbacks) < 2:
+            return False
+        
+        # =========================================================
+        # PART 3: PROGRESSIVE TIGHTENING CHECK (70% RULE)
+        # =========================================================
+        is_tightening = True
+        tightening_details = []
+        
+        for i in range(1, len(pullbacks)):
+            prev = pullbacks[i-1]
+            current = pullbacks[i]
+            ratio = current / prev if prev > 0 else 1
+            
+            if ratio <= 0.70:
+                tightening_details.append(f"Leg {i}: {current:.1f}% ≤ 70% of {prev:.1f}% ✓")
+            else:
+                is_tightening = False
+                tightening_details.append(f"Leg {i}: {current:.1f}% > 70% of {prev:.1f}% ✗")
+                break
+        
+        if not is_tightening:
+            return False
+        
+        # =========================================================
+        # PART 4: VOLUME CONTRACTION DURING PULLBACKS
+        # =========================================================
+        # Volume should dry up significantly during pullbacks
+        has_volume_contraction = True
+        
+        # Get average volume on up days vs down days in recent pullback
+        last_peak_idx = peaks[-1][0]
+        if last_peak_idx + 10 < len(data):
+            # Check volume in last pullback
+            pullback_start = peaks[-2][0] if len(peaks) >= 2 else 0
+            pullback_end = last_peak_idx
+            
+            if pullback_start < pullback_end:
+                pullback_volumes = data['volume'].iloc[pullback_start:pullback_end+1]
+                avg_pullback_volume = pullback_volumes.mean()
+                
+                # Get average volume on up days in last 10 days
+                up_day_volumes = data['volume'].iloc[:10][data['close'].iloc[:10] > data['close'].shift(1).iloc[:10]]
+                avg_up_volume = up_day_volumes.mean() if len(up_day_volumes) > 0 else avg_pullback_volume
+                
+                if avg_pullback_volume and avg_up_volume:
+                    vol_ratio = avg_pullback_volume / avg_up_volume
+                    if vol_ratio > 0.7:  # Pullback volume should be less than 70% of up-day volume
+                        has_volume_contraction = False
+        
+        # =========================================================
+        # PART 5: ABOVE-AVERAGE VOLUME ON RECENT UPTICK
+        # =========================================================
+        recent_avg_volume = data['volume'].iloc[1:11].mean()
+        current_volume = data['volume'].iloc[0]
+        has_recent_volume_surge = current_volume > recent_avg_volume * 1.2
+        
+        # =========================================================
+        # PART 6: PRICE POSITION (near recent high, not extended)
+        # =========================================================
+        recent_high = max(highs[:20])  # Highest in last 20 days
+        price_position = (current_price / recent_high) * 100 if recent_high > 0 else 0
+        
+        # Price should be within 10% of recent high (not extended)
+        is_near_high = price_position > 90
+        
+        # Price should be above key moving averages
+        sma_50 = pktalib.SMA(data['close'], timeperiod=50).tail(1).iloc[0]
+        sma_150 = pktalib.SMA(data['close'], timeperiod=150).tail(1).iloc[0]
+        sma_200 = pktalib.SMA(data['close'], timeperiod=200).tail(1).iloc[0]
+        
+        above_key_ma = current_price > sma_50 > sma_150 > sma_200
+        
+        # =========================================================
+        # PART 7: FINAL VALIDATION
+        # =========================================================
+        is_vcp = (is_tightening and 
+                is_near_high and 
+                above_key_ma and 
+                has_recent_volume_surge and
+                has_volume_contraction)
+        
+        if is_vcp:
             saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+            tightening_str = " → ".join([f"{p:.1f}%" for p in pullbacks[:3]])
             screenDict["Pattern"] = (
                 saved[0] 
                 + colorText.GREEN
@@ -4339,7 +5063,9 @@ class ScreeningStatistics:
                 + colorText.END
             )
             saveDict["Pattern"] = saved[1] + f"VCP(Minervini)"
-        return isVCP
+            saveDict["Pattern_Details"] = f"Pullbacks: {tightening_str}"
+        
+        return is_vcp
 
     # Validate if volume of last day is higher than avg
     def validateVolume(

@@ -346,11 +346,11 @@ class TelegramNotifier:
         from PKDevTools.classes.Environment import PKEnvironment
         
         suggestion_text = (
-            "Feel free to share on social media.Try @nse_pkscreener_bot for more scans! "
+            "Do share on social media.Try @nse_pkscreener_bot for more scans!"
             "<i><b><u>You agree that you have read</u></b>:"
-            "https://pkjmesra.github.io/PKScreener/Disclaimer.txt</i> "
-            "<b>and accept TOS</b>: https://pkjmesra.github.io/PKScreener/tos.txt "
-            "<b>STOP using and exit from channel/group, if you do not.</b>"
+            "<a href='https://pkjmesra.github.io/PKScreener/Disclaimer.txt'>Disclaimer</a></i> "
+            "<b>and accept</b>:<a href='https://pkjmesra.github.io/PKScreener/tos.txt'>TOS</a>."
+            "<b>Kindly STOP and EXIT from channel/group otherwise.</b>"
         )
         caption = f"Global Market Barometer with India market Performance (top) and Valuation (bottom).{suggestion_text}"
         gmb_path = Barometer.getGlobalMarketBarometerValuation()

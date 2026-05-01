@@ -94,8 +94,22 @@ class StockScreener:
         assert (
             hostRef is not None
         ), "hostRef argument must not be None. It should be an instance of PKMultiProcessorClient"
-        if stock is None or len(stock) == 0:
+        # Define invalid patterns once (outside your loop/function)
+        INVALID_STOCK_PREFIXES = ("NIFTY", "BOND-", "DEBT-", "PREF-", "NCD-", "PSU-", 
+                                "MUTUALFUND-", "ETF-", "FOF-", "LIQUID-", "ULTRALIQUID-")
+        INVALID_STOCK_NAMES = ("NIFTY", "BANKNIFTY", "FINNIFTY", "INDIAVIX")
+
+        if not stock:
             return None
+
+        stock_upper = stock.upper()
+
+        if (" " in stock or 
+            stock_upper in INVALID_STOCK_NAMES or
+            any(name in stock_upper for name in INVALID_STOCK_NAMES) or
+            any(prefix in stock_upper for prefix in INVALID_STOCK_PREFIXES)):
+            return None
+        
         self.setupLogger(log_level=logLevel)
         configManager = hostRef.configManager
         self.configManager = configManager
@@ -823,7 +837,7 @@ class StockScreener:
 
     def performValidityCheckForExecuteOptions(self,executeOption,screener,fullData,screeningDictionary,saveDictionary,processedData,configManager,subMenuOption=3,intraday_data=None):
         isValid = True
-        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47]:
+        if executeOption not in [11,12,13,14,15,16,17,18,19,20,23,24,25,27,28,30,31,32,33,34,35,36,37,38,39,42,43,44,45,46,47,48,49]:
             return True
         if executeOption == 11:
             isValid = screener.validateShortTermBullish(
@@ -842,9 +856,9 @@ class StockScreener:
         elif executeOption == 15:
             isValid = screener.find52WeekLowBreakout(fullData)
         elif executeOption == 16:
-            isValid = screener.find10DaysLowBreakout(fullData)
+            isValid = screener.find10DaysLowBreakout(fullData, screeningDictionary, saveDictionary)
         elif executeOption == 17:
-            isValid = screener.find52WeekHighBreakout(fullData)
+            isValid = screener.find52WeekHighBreakout(fullData, screeningDictionary, saveDictionary)
         elif executeOption == 18:
             isValid = screener.findAroonBullishCrossover(fullData)
         elif executeOption == 19:
@@ -900,6 +914,10 @@ class StockScreener:
             isValid = screener.findAllBuySignals(fullData, screeningDictionary, saveDictionary)
         elif executeOption == 47:  # All Sell Signals
             isValid = screener.findAllSellSignals(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 48:
+            isValid = screener.find10DaysHighBreakout(fullData, screeningDictionary, saveDictionary)
+        elif executeOption == 49:
+            isValid = screener.find52WeekHighApproachingBreakout(fullData, screeningDictionary, saveDictionary)
         return isValid        
                     
     def performBasicVolumeChecks(self, executeOption, volumeRatio, screeningDictionary, saveDictionary, processedData, configManager, screener):
@@ -942,131 +960,274 @@ class StockScreener:
         saveDictionary["Stock"] = stock
 
     def getCleanedDataForDuration(self, backtestDuration, portfolio, screeningDictionary, saveDictionary, configManager, screener, data):
+        """
+        Get cleaned data for specified duration with guaranteed newest-first ordering.
+        
+        This function ensures that the returned data is always sorted with newest dates first,
+        regardless of input format or resampling operations.
+        
+        Args:
+            backtestDuration: Number of periods for backtesting
+            portfolio: Whether this is for portfolio calculation
+            screeningDictionary: Dictionary for screening results
+            saveDictionary: Dictionary for saving results
+            configManager: Configuration manager
+            screener: Screener instance
+            data: Input DataFrame (can be any order)
+            
+        Returns:
+            Tuple of (fullData, processedData, data) with newest-first ordering
+        """
+        import pandas as pd
+        from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+        
         fullData = None
         processedData = None
+        
+        # Helper function to ensure datetime index with newest-first order
+        def ensure_newest_first(df):
+            """Ensure DataFrame has datetime index sorted newest first."""
+            if df is None or df.empty:
+                return df
+            
+            df_copy = df.copy()
+            
+            # Try to get datetime index
+            if not isinstance(df_copy.index, pd.DatetimeIndex):
+                # Try to convert index to datetime
+                try:
+                    # Check if index is the date column name
+                    if df_copy.index.name and 'date' in df_copy.index.name.lower():
+                        df_copy.index = pd.to_datetime(df_copy.index, errors='coerce')
+                    elif 'Date' in df_copy.columns:
+                        df_copy.set_index('Date', inplace=True)
+                        df_copy.index = pd.to_datetime(df_copy.index, errors='coerce')
+                    else:
+                        # Try to find any date-like column
+                        for col in df_copy.columns:
+                            if 'date' in col.lower() or 'time' in col.lower():
+                                df_copy.set_index(col, inplace=True)
+                                df_copy.index = pd.to_datetime(df_copy.index, errors='coerce')
+                                break
+                except Exception:
+                    pass
+            
+            # Remove rows with NaT index
+            df_copy = df_copy[~df_copy.index.isna()]
+            
+            # Sort newest first (descending)
+            if not df_copy.empty:
+                df_copy = df_copy.sort_index(ascending=False)
+            
+            return df_copy
+        
         ohlc_dict = {
-            "open":'first',
-            "high":'max',
-            "low":'min',
-            "close":'last',
+            "open": 'first',
+            "high": 'max',
+            "low": 'min',
+            "close": 'last',
             'Adj Close': 'last',
-            "volume":'sum'
+            "volume": 'sum'
         }
+        
         candleDuration = self.configManager.candleDurationInt
         candleDurationFrequency = self.configManager.candleDurationFrequency
-        durationFrequency = "T" if candleDurationFrequency=="m" else ("H" if candleDurationFrequency=="h" else ("M" if candleDurationFrequency=="mo" else ("W" if candleDurationFrequency=="wk" else "T")))
-        if int(candleDuration) >= 1 and (candleDurationFrequency in ["m","h","mo","wk"]):
+        durationFrequency = "T" if candleDurationFrequency == "m" else ("H" if candleDurationFrequency == "h" else ("M" if candleDurationFrequency == "mo" else ("W" if candleDurationFrequency == "wk" else "T")))
+        
+        # Ensure input data is newest-first before resampling
+        data = ensure_newest_first(data)
+        
+        if int(candleDuration) >= 1 and (candleDurationFrequency in ["m", "h", "mo", "wk"]):
             data = data.resample(f'{candleDuration}{durationFrequency}', offset='15min').agg(ohlc_dict)
-            data = data[data["high"]>0] # resampling can introduce 0 value rows for non-market hours
+            data = data[data["high"] > 0]  # resampling can introduce 0 value rows for non-market hours
+            # Resampled data is in ascending order, so reverse to newest-first
+            data = data.sort_index(ascending=False)
+        
         if backtestDuration == 0:
             fullData, processedData = screener.preprocessData(
-                    data, daysToLookback=configManager.effectiveDaysToLookback
-                )
+                data, daysToLookback=configManager.effectiveDaysToLookback
+            )
             if processedData.empty:
                 raise StockDataEmptyException(f"Empty processedData with data length ({len(data)})")
+            
             if portfolio:
-                data = data[::-1]
-                
+                # Portfolio calculation expects oldest-first temporarily
+                data_ascending = data.sort_index(ascending=True)
                 screener.validateLTPForPortfolioCalc(
-                        data, screeningDictionary, saveDictionary,requestedPeriod=backtestDuration
-                    )
-                data = data[::-1]
+                    data_ascending, screeningDictionary, saveDictionary, requestedPeriod=backtestDuration
+                )
+                # Keep data as newest-first for return
+                data = data.sort_index(ascending=False)
         else:
             if data is None or fullData is None or processedData is None:
-                    # data will have the oldest date at the top and the most recent
-                    # date will be at the bottom
-                    # We want to have the nth day treated as today when pre-processing where n = backtestDuration row from the bottom
-                inputData = data.head(len(data) - backtestDuration)
-                    # imputData will have the last row as the date for which the entire calculation
-                    # and prediction is being done
-                data = data.tail(
-                        backtestDuration + 1
-                    )  # .head(backtestPeriodToLookback+1)
-                    # Let's get today's data
+                # data is newest-first, so ascending order is needed for slicing
+                data_ascending = data.sort_index(ascending=True)
+                
+                # We want to have the nth day treated as today when pre-processing where n = backtestDuration row from the bottom
+                inputData = data_ascending.head(len(data_ascending) - backtestDuration)
+                # inputData will have the last row as the date for which the entire calculation and prediction is being done
+                data_descending = data_ascending.tail(backtestDuration + 1).sort_index(ascending=False)
+                
                 if portfolio:
                     screener.validateLTPForPortfolioCalc(
-                            data, screeningDictionary, saveDictionary,requestedPeriod=backtestDuration
-                        )
-                    # data has the last row from inputData at the top.
-                fullData, processedData = screener.preprocessData(
-                        inputData, daysToLookback=configManager.daysToLookback
+                        data_descending, screeningDictionary, saveDictionary, requestedPeriod=backtestDuration
                     )
                 
-        return fullData,processedData,data
+                fullData, processedData = screener.preprocessData(
+                    inputData, daysToLookback=configManager.daysToLookback
+                )
+                
+                # Ensure processed data is newest-first
+                if fullData is not None and not fullData.empty:
+                    fullData = ensure_newest_first(fullData)
+                if processedData is not None and not processedData.empty:
+                    processedData = ensure_newest_first(processedData)
+                
+                data = data_descending
+        
+        # Final assurance that all returns are newest-first
+        data = ensure_newest_first(data)
+        if fullData is not None:
+            fullData = ensure_newest_first(fullData)
+        if processedData is not None:
+            processedData = ensure_newest_first(processedData)
+        
+        return fullData, processedData, data
 
-    def getRelevantDataForStock(self, totalSymbols, shouldCache, stock, downloadOnly, printCounter, backtestDuration, hostRef,objectDictionary, configManager, fetcher, period, duration, testData=None,exchangeName="INDIA"):
-        # #region agent log
-        # import json
-        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-        # try:
-        #     with open(log_path, 'a') as f:
-        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:996","message":"getRelevantDataForStock entry","data":{"stock":stock},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-        # except: pass
-        # #endregion
+    def getRelevantDataForStock(self, totalSymbols, shouldCache, stock, downloadOnly, printCounter, 
+                            backtestDuration, hostRef, objectDictionary, configManager, fetcher, 
+                            period, duration, testData=None, exchangeName="INDIA"):
+        """
+        Retrieve and prepare stock data with guaranteed newest-first ordering.
+        
+        This function handles mixed date formats (string, timestamp, datetime objects)
+        and ensures the returned DataFrame is always sorted with newest dates first.
+        
+        Returns:
+            DataFrame with index sorted in descending order (newest first, oldest last)
+        """
+        import pandas as pd
+        from datetime import datetime
+        from PKDevTools.classes.PKDateUtilities import PKDateUtilities
+        
         hostData = objectDictionary.get(stock) if (objectDictionary is not None and len(objectDictionary) > 0) else None
-        # #region agent log
-        # try:
-        #     hostData_type = type(hostData).__name__ if hostData is not None else None
-        #     hostData_keys = list(hostData.keys())[:3] if hostData and isinstance(hostData, dict) else None
-        #     hostData_index = hostData.get('index', [])[-1] if hostData and isinstance(hostData, dict) and 'index' in hostData and len(hostData.get('index', [])) > 0 else None
-        #     hostData_index_first = hostData.get('index', [])[0] if hostData and isinstance(hostData, dict) and 'index' in hostData and len(hostData.get('index', [])) > 0 else None
-        #     with open(log_path, 'a') as f:
-        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:1005","message":"hostData retrieved from objectDictionary","data":{"stock":stock,"hostData_type":hostData_type,"hostData_keys":hostData_keys,"hostData_index_last":str(hostData_index) if hostData_index else None,"hostData_index_first":str(hostData_index_first) if hostData_index_first else None,"hostData_index_len":len(hostData.get('index', [])) if hostData and isinstance(hostData, dict) and 'index' in hostData else 0},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-        # except: pass
-        # #endregion
         data = None
         hostDataLength = 0 if hostData is None else (0 if "data" not in hostData.keys() else len(hostData["data"]))
         start = None
         lastTradingDate = PKDateUtilities.tradingDate().strftime("%Y-%m-%d")
-        if (configManager.candlePeriodFrequency in ["d","mo"] and configManager.candleDurationFrequency in ["m","h"]):
-            if backtestDuration > 0: # We are backtesting
+        
+        # Helper function to robustly parse mixed date formats
+        def parse_mixed_date(date_value):
+            """Parse various date formats to datetime object."""
+            if date_value is None or pd.isna(date_value):
+                return pd.NaT
+            
+            # If already a datetime or Timestamp
+            if isinstance(date_value, (datetime, pd.Timestamp)):
+                return date_value
+            
+            # If it's a Unix timestamp (seconds since epoch)
+            if isinstance(date_value, (int, float)):
+                if date_value > 1000000000:  # Year 2001+
+                    try:
+                        return datetime.fromtimestamp(date_value)
+                    except (ValueError, OSError):
+                        pass
+                return pd.NaT
+            
+            # If it's a string
+            if isinstance(date_value, str):
+                # Try ISO format with microseconds
+                try:
+                    if 'T' in date_value:
+                        return datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                except ValueError:
+                    pass
+                
+                # Try common formats
+                formats = [
+                    '%Y-%m-%d %H:%M:%S',  # 2026-04-30 14:33:53
+                    '%Y-%m-%d',           # 2026-04-30
+                    '%d-%m-%Y %H:%M:%S',  # 30-04-2026 14:33:53
+                    '%d/%m/%Y %H:%M:%S',  # 30/04/2026 14:33:53
+                    '%Y%m%d',             # 20260430
+                    '%d-%b-%Y',           # 30-Apr-2026
+                ]
+                for fmt in formats:
+                    try:
+                        return datetime.strptime(date_value, fmt)
+                    except ValueError:
+                        continue
+                
+                # Try pandas parser as last resort
+                try:
+                    result = pd.to_datetime(date_value, errors='coerce')
+                    if not pd.isna(result):
+                        return result
+                except Exception:
+                    pass
+            
+            return pd.NaT
+        
+        # Helper function to ensure DataFrame has newest-first order
+        def ensure_newest_first(df):
+            """Ensure DataFrame is sorted with newest dates first."""
+            if df is None or df.empty:
+                return df
+            
+            df_copy = df.copy()
+            
+            # Ensure index is datetime
+            if not isinstance(df_copy.index, pd.DatetimeIndex):
+                # Try to convert index to datetime
+                try:
+                    df_copy.index = pd.to_datetime(df_copy.index, errors='coerce')
+                except Exception:
+                    # If index conversion fails, try to use Date column
+                    if 'Date' in df_copy.columns:
+                        df_copy['Date'] = df_copy['Date'].apply(parse_mixed_date)
+                        df_copy.set_index('Date', inplace=True)
+                    elif df_copy.index.name and 'date' in df_copy.index.name.lower():
+                        new_index = [parse_mixed_date(idx) for idx in df_copy.index]
+                        df_copy.index = new_index
+            
+            # Remove rows with NaT index
+            df_copy = df_copy[~df_copy.index.isna()]
+            
+            # Sort newest first (descending)
+            if not df_copy.empty:
+                df_copy = df_copy.sort_index(ascending=False)
+            
+            return df_copy
+        
+        if (configManager.candlePeriodFrequency in ["d", "mo"] and configManager.candleDurationFrequency in ["m", "h"]):
+            if backtestDuration > 0:  # We are backtesting
                 start = PKDateUtilities.nthPastTradingDateStringFromFutureDate(backtestDuration)
-                end = PKDateUtilities.nthPastTradingDateStringFromFutureDate(backtestDuration-1)
+                end = PKDateUtilities.nthPastTradingDateStringFromFutureDate(backtestDuration - 1)
             else:
                 # Since this is intraday data, we'd just need to start from the last trading session
                 start = lastTradingDate
                 end = PKDateUtilities.currentDateTime().strftime("%Y-%m-%d")
-        if (
-                not shouldCache
-                or (downloadOnly and hostData is None)
-                or (hostData is None and self.isTradingTime)
-                or hostData is None or hostDataLength == 0
-            ):
+        
+        if (not shouldCache or (downloadOnly and hostData is None) or 
+            (hostData is None and self.isTradingTime) or hostData is None or hostDataLength == 0):
+            
             if testData is not None:
                 data = testData
                 data.reset_index(inplace=True)
-                data["Date"] = pd.to_datetime(data['index'].astype(int)/1000,unit='s')
+                # Parse timestamp column robustly
+                if 'index' in data.columns:
+                    data['Date'] = data['index'].apply(
+                        lambda x: parse_mixed_date(x) if not isinstance(x, (datetime, pd.Timestamp)) else x
+                    )
+                elif data.index.name:
+                    data['Date'] = data.index.to_series().apply(
+                        lambda x: parse_mixed_date(x) if not isinstance(x, (datetime, pd.Timestamp)) else x
+                    )
                 data.set_index("Date", inplace=True)
-                data.drop("index",axis=1,inplace=True)
+                if 'index' in data.columns:
+                    data.drop("index", axis=1, inplace=True)
             else:
-                # The following code tries to re-fetch the missing stock data
-                # It has been commented because it's less likely to fetch the data again
-                # within seconds of the first try when we must have tried to fetch data
-                # in batches.
-                # data = fetcher.fetchStockData(
-                #         stock,
-                #         period,
-                #         configManager.duration if duration is None else duration,
-                #         hostRef.proxyServer,
-                #         hostRef.processingResultsCounter,
-                #         hostRef.processingCounter,
-                #         totalSymbols,
-                #         start=start,
-                #         end=start,
-                #         exchangeSuffix=".NS" if exchangeName == "INDIA" else "",
-                #         printCounter=printCounter
-                #     )
-                # #region agent log
-                # import json
-                # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
-                # try:
-                #     hostData_type = type(hostData).__name__ if hostData is not None else None
-                #     hostData_keys = list(hostData.keys())[:3] if hostData and isinstance(hostData, dict) else None
-                #     hostData_index = hostData.get('index', [])[-1] if hostData and isinstance(hostData, dict) and 'index' in hostData else None
-                #     with open(log_path, 'a') as f:
-                #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"StockScreener.py:getRelevantDataForStock:1040","message":"hostData before DataFrame creation","data":{"stock":stock,"hostData_type":hostData_type,"hostData_keys":hostData_keys,"hostData_index_last":str(hostData_index) if hostData_index else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-                # except: pass
-                # #endregion
                 if hostData is not None and data is not None:
                     # During the market trading hours, we don't want to go for MFI/FV value fetching
                     # So let's copy the old saved ones.
@@ -1086,98 +1247,87 @@ class StockScreener:
                         pass
         else:
             self.printProcessingCounter(totalSymbols, stock, printCounter, hostRef)
-            # data = hostData
             try:
                 columns = hostData["columns"]
-                # Parse index to datetime before creating DataFrame to ensure proper date handling
                 index_data = hostData["index"]
-                # if index_data and len(index_data) > 0:
-                #     # Try to parse index as datetime with multiple format support
-                #     try:
-                #         parsed_index = index_data # pd.to_datetime(index_data, format='mixed', utc=True, errors='coerce')
-                #         # Convert to tz-naive for consistency
-                #         # if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
-                #         #     parsed_index = parsed_index.tz_localize(None)
-                #     except:
-                #         # Fallback: try without format specification
-                #         try:
-                #             parsed_index = pd.to_datetime(index_data, errors='coerce')
-                #             if hasattr(parsed_index, 'tz') and parsed_index.tz is not None:
-                #                 parsed_index = parsed_index.tz_localize(None)
-                #         except:
-                #             # Last resort: use as-is
-                #             parsed_index = index_data
-                # else:
-                #     parsed_index = index_data
                 
-                data = pd.DataFrame(
-                        hostData["data"], columns=columns, index=index_data
-                    )
-            except (ValueError, AssertionError) as e: # pragma: no cover
-                # 9 columns passed, passed data had 11 columns
-                # 10 columns passed, passed data had 11 columns
+                # Parse index to datetime with robust format handling
+                parsed_index = []
+                for idx in index_data:
+                    parsed_idx = parse_mixed_date(idx)
+                    parsed_index.append(parsed_idx)
+                
+                data = pd.DataFrame(hostData["data"], columns=columns, index=parsed_index)
+                
+            except (ValueError, AssertionError) as e:
                 excLookingFor = " columns passed, passed data had "
                 if excLookingFor in str(e):
-                    e_diff = str(e).replace(excLookingFor,",").replace(" columns","").split(",")
+                    e_diff = str(e).replace(excLookingFor, ",").replace(" columns", "").split(",")
                     num_diff = int(e_diff[1]) - int(e_diff[0])
-                    while (num_diff > 0):
+                    while num_diff > 0:
                         columns.append(f"temp{num_diff}")
                         num_diff -= 1
-                    # Use parsed index here too
-                    data = pd.DataFrame(
-                            hostData["data"], columns=columns, index=index_data
-                        )
+                    data = pd.DataFrame(hostData["data"], columns=columns, index=parsed_index)
                 else:
                     hostRef.default_logger.debug(e, exc_info=True)
-                pass
-        if "Datetime" in data.columns: # for intraday data, the column name is Datetime
-            with pd.option_context('mode.chained_assignment', None):
-                data["Date"] = data["Datetime"]
-        try:
-            data.reset_index(inplace=True)
-            if "Datetime" in data.columns and "Date" not in data.columns:
-                data.rename(columns={"Datetime": "Date"}, inplace=True)
-            else:
-                data.rename(columns={"index": "Date"}, inplace=True)
-            data.set_index("Date", inplace=True)
-            # Ensure index is datetime and tz-naive
-            # data.index = pd.to_datetime(data.index, format='mixed', utc=True, errors='coerce')
-            # if hasattr(data.index, 'tz') and data.index.tz is not None:
-            #     data.index = data.index.tz_localize(None)
-            # Sort by index in descending order to ensure latest date is at the beginning (index[0])
-            # This is the expected format for validation functions like validate15MinutePriceVolumeBreakout
-            data = data.sort_index(ascending=False)
-            # #region agent log
-            # import json
-            # log_path = os.path.join(Archiver.get_user_data_dir(),"pkscreener-logs.txt")
-            # try:
-            #     with open(log_path, 'a') as f:
-            #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"D","location":"StockScreener.py:getRelevantDataForStock:1119","message":"DataFrame sorted, checking index[0]","data":{"stock":stock,"index_0":str(data.index[0]) if not data.empty else None,"index_len":len(data.index) if not data.empty else 0,"index_first_3":[str(x) for x in list(data.index[:3])] if not data.empty and len(data.index) >= 3 else None},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-            # except: pass
-            # #endregion
-            # Log date range for debugging (only for first few stocks to avoid spam)
-            if hasattr(hostRef, '_data_date_logged_count'):
-                hostRef._data_date_logged_count = getattr(hostRef, '_data_date_logged_count', 0) + 1
-            else:
-                hostRef._data_date_logged_count = 1
+        
+        # Handle Datetime column if present
+        if data is not None:
+            if "Datetime" in data.columns:
+                with pd.option_context('mode.chained_assignment', None):
+                    data["Date"] = data["Datetime"]
             
-            if hostRef._data_date_logged_count <= 3 and not data.empty:
-                latest_date = data.index[0]
-                oldest_date = data.index[-1]
-                hostRef.default_logger.info(f"Data date range for {stock}: {oldest_date} to {latest_date} ({len(data)} rows)")
-        except Exception as e: # pragma: no cover
-            hostRef.default_logger.debug(f"Error parsing date index: {e}", exc_info=True)
-            pass
-        if ((shouldCache and not self.isTradingTime and (hostData is None  or hostDataLength == 0)) or downloadOnly) \
-            or (shouldCache and hostData is None):  # and backtestDuration == 0 # save only if we're NOT backtesting
-                if start is None or start is lastTradingDate and data is not None:
-                    objectDictionary[stock] = data.to_dict("split")
-                if downloadOnly:
-                    with hostRef.processingResultsCounter.get_lock():
-                        hostRef.processingResultsCounter.value += 1
-                    raise ScreeningStatistics.DownloadDataOnly
+            try:
+                # Ensure we have a proper datetime index
+                if data.index.name != 'Date' and 'Date' not in data.columns:
+                    data.reset_index(inplace=True)
+                    data.rename(columns={"index": "Date"}, inplace=True)
+                
+                # If Date is a column, parse and set as index
+                if 'Date' in data.columns:
+                    data['Date'] = data['Date'].apply(parse_mixed_date)
+                    data.set_index("Date", inplace=True)
+                
+                # CRITICAL: Ensure newest-first order
+                data = ensure_newest_first(data)
+                
+                # Log date range for debugging (only for first few stocks to avoid spam)
+                if hasattr(hostRef, '_data_date_logged_count'):
+                    hostRef._data_date_logged_count = getattr(hostRef, '_data_date_logged_count', 0) + 1
                 else:
-                    hostData = objectDictionary.get(stock)
+                    hostRef._data_date_logged_count = 1
+                
+                if hostRef._data_date_logged_count <= 3 and not data.empty:
+                    latest_date = data.index[0]
+                    oldest_date = data.index[-1]
+                    hostRef.default_logger.info(f"Data date range for {stock}: {oldest_date} to {latest_date} ({len(data)} rows) - NEWEST FIRST")
+                    
+            except Exception as e:
+                hostRef.default_logger.debug(f"Error parsing date index: {e}", exc_info=True)
+                # Fallback: try to sort if possible
+                if data is not None and not data.empty:
+                    try:
+                        data = ensure_newest_first(data)
+                    except Exception:
+                        pass
+        
+        # Cache the data if needed
+        if ((shouldCache and not self.isTradingTime and (hostData is None or hostDataLength == 0)) or downloadOnly) or (shouldCache and hostData is None):
+            if start is None or start == lastTradingDate and data is not None:
+                # Ensure data is in oldest-first order for storage (consistent with existing format)
+                data_for_storage = data.sort_index(ascending=True) if data is not None and not data.empty else data
+                objectDictionary[stock] = data_for_storage.to_dict("split")
+            if downloadOnly:
+                with hostRef.processingResultsCounter.get_lock():
+                    hostRef.processingResultsCounter.value += 1
+                raise ScreeningStatistics.DownloadDataOnly
+            else:
+                hostData = objectDictionary.get(stock)
+        
+        # Final assurance: return data in newest-first order
+        if data is not None and not data.empty:
+            data = ensure_newest_first(data)
+        
         return data
 
     def determineBasicConfigs(self, stock, newlyListedOnly, volumeRatio, logLevel, hostRef, configManager, screener, userArgsLog):

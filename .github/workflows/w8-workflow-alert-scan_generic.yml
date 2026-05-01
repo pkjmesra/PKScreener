@@ -86,96 +86,194 @@ jobs:
       with:
         python-version: ${{ inputs.targetPythonVersion || 3.12 }}
 
-    - name: Restore Dependencies from Windows Cache
-      if: startsWith(runner.os, 'Windows')
+    # ============================================================================
+    # CHECK FOR TENSORFLOW REQUIREMENT
+    # ============================================================================
+    - name: Check if TensorFlow is required (X:N pattern)
+      id: check-tensorflow
+      shell: bash
+      run: |
+        PARAMS="${{ inputs.params }}"
+        echo "Checking parameters: $PARAMS"
+        
+        # Look for -o followed by anything containing the literal "X:N"
+        # This will match:
+        #   -o X:N
+        #   -o X:N:
+        #   -o X:N::
+        #   -o X:N:D:D:D:D:D
+        #   -o X:N::D:D:D:D:D
+        #   etc.
+        if [[ "$PARAMS" =~ -o[[:space:]]*[^[:space:]]*X:N[^[:space:]]*([[:space:]]|$) ]]; then
+          MATCHED="${BASH_REMATCH[0]}"
+          echo "✅ X:N pattern detected in: $MATCHED"
+          echo "requires_tensorflow=true" >> $GITHUB_OUTPUT
+          echo "TF_VERSION=2.16.1" >> $GITHUB_OUTPUT
+        else
+          echo "❌ No X:N pattern detected"
+          echo "requires_tensorflow=false" >> $GITHUB_OUTPUT
+        fi
+
+    # ============================================================================
+    # CACHING STRATEGY 1: Global pip cache (fast)
+    # ============================================================================
+    - name: Cache pip packages
       uses: actions/cache@v4
+      id: pip-cache
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
       with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/pyproject.toml', '**/setup.py') }}-${{ inputs.targetPythonVersion }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Load Cache for Linux Dependencies
+    # ============================================================================
+    # CACHING STRATEGY 2: Virtual environment (most comprehensive)
+    # ============================================================================
+    - name: Cache Python virtual environment
+      id: venv-cache
       uses: actions/cache@v4
-      if: startsWith(runner.os, 'Linux')
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      with:
+        path: .venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt', '**/pyproject.toml', '**/setup.py') }}-${{ inputs.targetPythonVersion }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
+
+    # ============================================================================
+    # CACHING STRATEGY 3: TA-Lib compiled libraries (Linux only)
+    # ============================================================================
+    - name: Load Cache for Linux Dependencies
+      if: startsWith(runner.os, 'Linux') && steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      uses: actions/cache@v4
       with:
         path: |
           /usr/include/ta-lib
           /usr/bin/ta-lib-config
           /usr/lib/libta_lib.la
           /usr/lib/libta_lib.a
-        key: ${{ runner.os }}-talib
+        key: ${{ runner.os }}-talib-${{ inputs.installtalib }}
         restore-keys: |
-          ${{ runner.os }}-talib
-        
-    - name: Restore Dependencies from Ubuntu Cache
-      if: startsWith(runner.os, 'Linux')
-      uses: actions/cache@v4
-      id: cache-venv  # name for referring later
-      with:
-        path: ./.venv/  # what we cache: the virtualenv
-        # The cache key depends on requirements.txt
-        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-venv-
+          ${{ runner.os }}-talib-
+
+    # ============================================================================
+    # INSTALLATION STEPS (using caches when available)
+    # ============================================================================
+    
+    # Create virtual environment if cache miss
+    - name: Create virtual environment (if needed)
+      if: steps.venv-cache.outputs.cache-hit != 'true' && steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      run: |
+        python -m venv .venv
+
+    # Activate virtual environment for all subsequent Python steps
+    - name: Activate virtual environment
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      run: |
+        echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+        echo "VIRTUAL_ENV=${{ github.workspace }}/.venv" >> $GITHUB_ENV
+        echo "PATH=${{ github.workspace }}/.venv/bin:$PATH" >> $GITHUB_ENV
+
+    # Upgrade pip (always do this, it's fast)
+    - name: Upgrade pip
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      run: |
+        python -m pip install --upgrade pip
 
     - name: Install TA-Lib for Windows
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Windows') }}
       shell: bash
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install requests
+        pip install requests
         cd .github/dependencies/
-        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]] ;then
-          pip3 install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]] ;then
-          pip3 install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
-        elif [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]] ;then
-          pip3 install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        if [[ "${{ inputs.targetPythonVersion }}" == "" ]] || [[ "${{ inputs.targetPythonVersion }}" == "3.12" ]]; then
+          pip install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.9" ]]; then
+          pip install TA_Lib-0.4.19-cp39-cp39-win_amd64.whl
+        elif [[ "${{ inputs.targetPythonVersion }}" == "3.11" ]]; then
+          pip install TA_Lib-0.4.29-cp311-cp311-win_amd64.whl
         fi
 
     - name: Install TA-Lib for Linux
       if: ${{ inputs.installtalib != 'N' && startsWith(runner.os, 'Linux') }}
       run: |
         cd .github/dependencies/
-        pwd
         sudo dpkg -i ta-lib_0.6.4_amd64.deb
         cd /home/runner/work/PKScreener/PKScreener/
-        pip3 install ta-lib==0.6.0
+        pip install ta-lib==0.6.0
+
+    # Install base Python dependencies (will use pip cache if available)
+    - name: Install base Python dependencies
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      run: |
+        # Install from requirements first (cached packages will be used)
+        pip install -r requirements.txt
+        # Install the package itself
+        pip install -e .
+        
+    - name: Install TensorFlow and Keras (when required)
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      shell: bash
+      run: |
+        echo "📦 Installing TensorFlow ${{ steps.check-tensorflow.outputs.TF_VERSION }}..."
+        
+        # Install TensorFlow with specific version
+        pip install tensorflow==${{ steps.check-tensorflow.outputs.TF_VERSION }}
+        
+        # Verify installation
+        python -c "
+        import tensorflow as tf
+        print(f'✅ TensorFlow {tf.__version__} installed successfully')
+        print(f'   GPU available: {tf.config.list_physical_devices(\"GPU\")}')"
+        
+        # Install Keras
+        pip install keras==3.6.0
+        python -c "
+        import keras
+        print(f'✅ Keras {keras.__version__} installed successfully')"
+
+    # ============================================================================
+    # POST-CACHE: Save virtual environment if it was just created
+    # ============================================================================
+    - name: Save virtual environment to cache
+      if: steps.venv-cache.outputs.cache-hit != 'true' && steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      run: |
+        echo "✅ Virtual environment created and will be cached for future runs"
+        # The cache action will automatically save after this step
 
     - name: Environment setup to get latest EXE
       shell: bash
       id: releaseurlsetter
       run: |
-        pip3 install requests
+        pip install requests
         python3 .github/workflows/githubutilities.py -d
 
     # Phase 1: Binary caching to reduce scan latency by 30-60s
-    - name: Cache PKScreener Binary (Linux)
-      if: startsWith(runner.os, 'Linux')
-      uses: actions/cache@v4
-      id: binary-cache-linux
-      with:
-        path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
-        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
-        restore-keys: |
-          ${{ runner.os }}-pkscreener-bin-
+    # - name: Cache PKScreener Binary (Linux)
+    #   if: startsWith(runner.os, 'Linux')
+    #   uses: actions/cache@v4
+    #   id: binary-cache-linux
+    #   with:
+    #     path: /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
+    #     key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pkscreener-bin-
 
-    - name: Cache PKScreener Binary (Windows)
-      if: startsWith(runner.os, 'Windows')
-      uses: actions/cache@v4
-      id: binary-cache-windows
-      with:
-        path: pkscreenercli.exe
-        key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
-        restore-keys: |
-          ${{ runner.os }}-pkscreener-bin-
+    # - name: Cache PKScreener Binary (Windows)
+    #   if: startsWith(runner.os, 'Windows')
+    #   uses: actions/cache@v4
+    #   id: binary-cache-windows
+    #   with:
+    #     path: pkscreenercli.exe
+    #     key: ${{ runner.os }}-pkscreener-bin-${{ steps.releaseurlsetter.outputs.VERSION }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pkscreener-bin-
 
     - name: Download latest executable on Windows
       shell: cmd
-      if: startsWith(runner.os, 'Windows') && steps.binary-cache-windows.outputs.cache-hit != 'true'
+      if: startsWith(runner.os, 'Windows') && steps.check-tensorflow.outputs.requires_tensorflow != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
@@ -183,49 +281,50 @@ jobs:
 
     - name: Download latest executable on Ubuntu
       shell: bash
-      if: startsWith(runner.os, 'Linux') && steps.binary-cache-linux.outputs.cache-hit != 'true'
+      if: startsWith(runner.os, 'Linux') && steps.check-tensorflow.outputs.requires_tensorflow != 'true'
       env:
         exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
       run: |
         curl -o /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin -JL $exe_path
         chmod +x /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin
 
-    - name: Validate and ensure binary is executable
-      shell: bash
-      if: startsWith(runner.os, 'Linux')
-      env:
-        exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
-      run: |
-        BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
-        download_binary() {
-          echo "Downloading binary from: $exe_path"
-          curl -f -o "$BINARY_PATH" -JL "$exe_path" || {
-            echo "ERROR: Failed to download binary. The release may not include Linux binaries yet."
-            echo "Please ensure the build workflow has completed and created the Linux binary."
-            exit 1
-          }
-          chmod +x "$BINARY_PATH"
-        }
-        # Check if binary exists and is valid ELF format
-        if [ -f "$BINARY_PATH" ]; then
-          if file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
-            echo "Binary is valid ELF format"
-            chmod +x "$BINARY_PATH"
-          else
-            echo "Binary is corrupted or wrong format, re-downloading..."
-            rm -f "$BINARY_PATH"
-            download_binary
-          fi
-        else
-          echo "Binary not found, downloading..."
-          download_binary
-        fi
-        # Final validation
-        if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
-          echo "ERROR: Downloaded file is not a valid Linux binary"
-          file "$BINARY_PATH"
-          exit 1
-        fi
+    # - name: Validate and ensure binary is executable
+    #   shell: bash
+    #   if: startsWith(runner.os, 'Linux')
+    #   env:
+    #     exe_path: ${{ steps.releaseurlsetter.outputs.DOWNLOAD_URL }}
+    #   run: |
+    #     BINARY_PATH="/home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin"
+    #     download_binary() {
+    #       echo "Downloading binary from: $exe_path"
+    #       curl -f -o "$BINARY_PATH" -JL "$exe_path" || {
+    #         echo "ERROR: Failed to download binary. The release may not include Linux binaries yet."
+    #         echo "Please ensure the build workflow has completed and created the Linux binary."
+    #         exit 1
+    #       }
+    #       chmod +x "$BINARY_PATH"
+    #     }
+    #     # Check if binary exists and is valid ELF format
+    #     if [ -f "$BINARY_PATH" ]; then
+    #       if file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+    #         echo "Binary is valid ELF format"
+    #         chmod +x "$BINARY_PATH"
+    #       else
+    #         echo "Binary is corrupted or wrong format, re-downloading..."
+    #         rm -f "$BINARY_PATH"
+    #         download_binary
+    #       fi
+    #     else
+    #       echo "Binary not found, downloading..."
+    #       download_binary
+    #     fi
+    #     # Final validation
+    #     if ! file "$BINARY_PATH" | grep -q "ELF 64-bit"; then
+    #       echo "ERROR: Downloaded file is not a valid Linux binary"
+    #       file "$BINARY_PATH"
+    #       exit 1
+    #     fi
+
     - name: Configure env.dev file
       shell: bash
       env:
@@ -296,54 +395,73 @@ jobs:
         
         echo "Created .env.dev file with secrets (values quoted)"
 
-
     # Phase 2: Restore pre-cached stock data for faster scans (only during non-trading hours)
-    - name: Check current time in IST
-      id: time-check
-      shell: bash
-      run: |
-        # Get current time in IST
-        CURRENT_HOUR=$(TZ='Asia/Kolkata' date +%H)
-        CURRENT_MIN=$(TZ='Asia/Kolkata' date +%M)
-        CURRENT_TIME=$((10#$CURRENT_HOUR * 60 + 10#$CURRENT_MIN))
-        
-        # Trading hours: 9:15 AM to 4:00 PM IST
-        MARKET_OPEN=$((9 * 60 + 15))  # 9:15 AM
-        MARKET_CLOSE=$((16 * 60 + 0))   # 4:00 PM
-        
-        echo "Current IST time: $CURRENT_HOUR:$CURRENT_MIN"
-        echo "Market open: 9:15, Market close: 16:00"
-        
-        if [ $CURRENT_TIME -ge $MARKET_OPEN ] && [ $CURRENT_TIME -lt $MARKET_CLOSE ]; then
-          echo "🕒 Market hours detected - skipping cache restore to ensure fresh data"
-          echo "USE_CACHE=false" >> $GITHUB_OUTPUT
-        else
-          echo "🕒 Non-market hours detected - using cached data for faster scans"
-          echo "USE_CACHE=true" >> $GITHUB_OUTPUT
-        fi
+  # - name: Check current time in IST
+  #   id: time-check
+  #   shell: bash
+  #   run: |
+  #     # Get current time in IST
+  #     CURRENT_HOUR=$(TZ='Asia/Kolkata' date +%H)
+  #     CURRENT_MIN=$(TZ='Asia/Kolkata' date +%M)
+  #     CURRENT_TIME=$((10#$CURRENT_HOUR * 60 + 10#$CURRENT_MIN))
+      
+  #     # Trading hours: 9:15 AM to 4:00 PM IST
+  #     MARKET_OPEN=$((9 * 60 + 15))  # 9:15 AM
+  #     MARKET_CLOSE=$((16 * 60 + 0))   # 4:00 PM
+      
+  #     echo "Current IST time: $CURRENT_HOUR:$CURRENT_MIN"
+  #     echo "Market open: 9:15, Market close: 16:00"
+      
+  #     if [ $CURRENT_TIME -ge $MARKET_OPEN ] && [ $CURRENT_TIME -lt $MARKET_CLOSE ]; then
+  #       echo "🕒 Market hours detected - skipping cache restore to ensure fresh data"
+  #       echo "USE_CACHE=false" >> $GITHUB_OUTPUT
+  #     else
+  #       echo "🕒 Non-market hours detected - using cached data for faster scans"
+  #       echo "USE_CACHE=true" >> $GITHUB_OUTPUT
+  #     fi
 
-    - name: Restore Stock Data Cache (Non-market hours only)
-      if: steps.time-check.outputs.USE_CACHE == 'true'
-      uses: actions/cache@v4
-      with:
-        path: results/Data/
-        key: stock-data-${{ github.run_id }}
-        restore-keys: |
-          stock-data-
+  # - name: Restore Stock Data Cache (Non-market hours only)
+  #   if: steps.time-check.outputs.USE_CACHE == 'true'
+  #   uses: actions/cache@v4
+  #   with:
+  #     path: results/Data/
+  #     key: stock-data-${{ github.run_id }}
+  #     restore-keys: |
+  #       stock-data-
           
-    - name: Clear cache during market hours (optional)
-      if: steps.time-check.outputs.USE_CACHE == 'false'
-      shell: bash
-      run: |
-        echo "🧹 Market hours - ensuring fresh data by removing any cached stock data"
-        rm -rf results/Data/*.pkl results/Data/*.csv 2>/dev/null || true
-        echo "✓ Cache cleared for fresh market data"
+  # - name: Clear cache during market hours (optional)
+  #   if: steps.time-check.outputs.USE_CACHE == 'false'
+  #   shell: bash
+  #   run: |
+  #     echo "🧹 Market hours - ensuring fresh data by removing any cached stock data"
+  #     rm -rf results/Data/*.pkl results/Data/*.csv 2>/dev/null || true
+  #     echo "✓ Cache cleared for fresh market data"
 
     - name: Create session file
       run: |
         echo ${{ secrets.TEL_SESSION_DATA }} | base64 -d > user_session.session
         chmod 600 user_session.session
-  
+
+    # ============================================================================
+    # POST-TENSORFLOW SETUP (if needed)
+    # ============================================================================
+    - name: Set environment variables for TensorFlow (if installed)
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true'
+      shell: bash
+      run: |
+        echo "🔧 Configuring TensorFlow environment..."
+        
+        # Disable TensorFlow warnings
+        echo "TF_CPP_MIN_LOG_LEVEL=2" >> $GITHUB_ENV
+        
+        # Set memory growth for GPU if available
+        echo "TF_FORCE_GPU_ALLOW_GROWTH=true" >> $GITHUB_ENV
+        
+        # Suppress oneDNN messages
+        echo "TF_ENABLE_ONEDNN_OPTS=0" >> $GITHUB_ENV
+        
+        echo "✓ TensorFlow environment configured"
+
     - name: Run Scan on Windows
       shell: cmd
       timeout-minutes: 10
@@ -353,15 +471,16 @@ jobs:
         GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
         GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
         ALERT_TRIGGER: ${{ inputs.alertTrigger || 'N' }}
+        TF_CPP_MIN_LOG_LEVEL: ${{ steps.check-tensorflow.outputs.requires_tensorflow == 'true' && '2' || '' }}
       run: |
         ${{ inputs.prerequisites }}
         pkscreenercli.exe ${{ inputs.params }}
         ${{ inputs.postrun }}
 
-    - name: Run Scan on Ubuntu
+    - name: Run Scan on Ubuntu (binary, no TensorFlow)
       shell: bash
       timeout-minutes: 10
-      if: startsWith(runner.os, 'Linux')
+      if: startsWith(runner.os, 'Linux') && steps.check-tensorflow.outputs.requires_tensorflow != 'true'
       env:
         RUNNER : "GitHub_Actions"
         GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
@@ -369,6 +488,22 @@ jobs:
         ALERT_TRIGGER: ${{ inputs.alertTrigger || 'N' }}
       run: |
         ${{ inputs.prerequisites }}
-        pip3 install libsql
+        # pip install libsql
         /home/runner/work/PKScreener/PKScreener/pkscreenercli_x64.bin ${{ inputs.params }}
+        ${{ inputs.postrun }}
+
+    - name: Run Scan on Ubuntu from source with TensorFlow (if required)
+      shell: bash
+      if: steps.check-tensorflow.outputs.requires_tensorflow == 'true' && startsWith(runner.os, 'Linux')
+      timeout-minutes: 15  # Increased timeout for TensorFlow runs
+      env:
+        RUNNER : "GitHub_Actions"
+        GSHEET_SERVICE_ACCOUNT_DEV: ${{secrets.GSHEET_SERVICE_ACCOUNT_DEV}}
+        GSHEET_VIEWONLY_LINK: ${{secrets.GSHEET_VIEWONLY_LINK}}
+        ALERT_TRIGGER: ${{ inputs.alertTrigger || 'N' }}
+        TF_CPP_MIN_LOG_LEVEL: "2"
+      run: |
+        ${{ inputs.prerequisites }}
+        cd /home/runner/work/PKScreener/PKScreener/
+        python3 pkscreener/pkscreenercli.py ${{ inputs.params }}
         ${{ inputs.postrun }}

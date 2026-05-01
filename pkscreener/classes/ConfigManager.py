@@ -102,6 +102,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
         self.atrTrailingStopPeriod = 10
         self.atrTrailingStopEMAPeriod = 200
         self.vcpRangePercentageFromTop = 20
+        self.vcp321RulePullbackPercentage = 70
         self.vcpLegsToCheckForConsolidation = 3
         self.enableAdditionalVCPFilters = True
         self.enableAdditionalVCPEMAFilters = False
@@ -288,6 +289,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
             parser.set("config", "vcpLegsToCheckForConsolidation", str(self.vcpLegsToCheckForConsolidation))
             parser.set("config", "vcpRangePercentageFromTop", str(self.vcpRangePercentageFromTop))
             parser.set("config", "vcpVolumeContractionRatio", str(self.vcpVolumeContractionRatio))
+            parser.set("config", "vcp321RulePullbackPercentage", str(self.vcp321RulePullbackPercentage))
 
             parser.set("filters", "consolidationPercentage", str(self.consolidationPercentage))
             parser.set("filters", "maxPrice", str(self.maxLTP))
@@ -467,6 +469,9 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 self.vcpRangePercentageFromTop = OutputControls().takeUserInput(
                     f"  [+] Range percentage from the highest high(top) for VCP:[Recommended: 20] (number)({colorText.GREEN}Optimal = 20 to 60{colorText.END}, Current: {colorText.FAIL}{self.vcpRangePercentageFromTop}{colorText.END}): "
                 ) or self.vcpRangePercentageFromTop
+                self.vcp321RulePullbackPercentage = OutputControls().takeUserInput(
+                    f"  [+] Pullback percentage for 3-2-1 rule in VCP. (number)({colorText.GREEN}Optimal = 70{colorText.END}, Current: {colorText.FAIL}{self.vcp321RulePullbackPercentage}{colorText.END}) (Set to 0 or 100 to disable): "
+                ) or self.vcp321RulePullbackPercentage
                 self.vcpVolumeContractionRatio = OutputControls().takeUserInput(
                     f"  [+] Ratio of volume of recent largest to pullback candles for VCP. (number)({colorText.GREEN}Optimal = 0.4{colorText.END}, Current: {colorText.FAIL}{self.vcpVolumeContractionRatio}{colorText.END}): "
                 ) or self.vcpVolumeContractionRatio
@@ -579,6 +584,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 parser.set("config", "vcpLegsToCheckForConsolidation", str(self.vcpLegsToCheckForConsolidation))
                 parser.set("config", "vcpVolumeContractionRatio", str(self.vcpVolumeContractionRatio))
                 parser.set("config", "vcpRangePercentageFromTop", str(self.vcpRangePercentageFromTop))
+                parser.set("config", "vcp321RulePullbackPercentage", str(self.vcp321RulePullbackPercentage))
 
                 parser.set("filters", "consolidationPercentage", str(self.consolidationPercentage))
                 parser.set("filters", "maxPrice", str(self.maxLTP))
@@ -753,6 +759,7 @@ class tools(SingletonMixin, metaclass=SingletonType):
                 self.vcpLegsToCheckForConsolidation = int(parser.get("config", "vcpLegsToCheckForConsolidation"))
                 self.vcpVolumeContractionRatio = float(parser.get("config", "vcpVolumeContractionRatio"))
                 self.vcpRangePercentageFromTop = float(parser.get("config", "vcpRangePercentageFromTop"))
+                self.vcp321RulePullbackPercentage = float(parser.get("config", "vcp321RulePullbackPercentage"))
                 self.soundAlertForMonitorOptions = str(parser.get("config", "soundAlertForMonitorOptions"))
                 self.superConfluenceEMAPeriods = str(parser.get("config", "superConfluenceEMAPeriods"))
                 self.baseIndex = str(parser.get("config", "baseIndex"))

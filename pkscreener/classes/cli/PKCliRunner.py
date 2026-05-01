@@ -32,6 +32,11 @@ This module handles the CLI application execution, including:
 - Progress status updates
 - Monitor and piped scan handling
 - Configuration duration management
+
+Classes:
+    PKCliRunner: Main CLI runner for scan execution and result piping
+    IntradayAnalysisRunner: Handles intraday analysis report generation
+    CliConfigManager: Manages CLI-specific configuration and TOS validation
 """
 
 import os
@@ -50,17 +55,20 @@ import pkscreener.classes.ConfigManager as ConfigManager
 
 class PKCliRunner:
     """
-    Handles CLI execution flow including application running,
-    piped scans, and monitor modes.
+    Handles CLI execution flow including application running, piped scans, and monitor modes.
+    
+    This class manages the core execution logic for command-line operations including
+    progress tracking, configuration updates, and chaining multiple scans together
+    through pipe operations.
     """
     
     def __init__(self, config_manager, args):
         """
-        Initialize the CLI runner.
+        Initialize the CLI runner with configuration and command line arguments.
         
         Args:
-            config_manager: Configuration manager instance
-            args: Parsed command line arguments
+            config_manager: Configuration manager instance that holds application settings
+            args: Parsed command line arguments from argparse
         """
         self.config_manager = config_manager
         self.args = args
@@ -73,13 +81,19 @@ class PKCliRunner:
     
     def update_progress_status(self, monitor_options=None):
         """
-        Update progress status for display.
+        Update progress status for display in the console or Telegram bot.
+        
+        This method generates a progress status string that shows which scan is
+        currently running, formats the options appropriately, and updates the
+        args object with the current progress information.
         
         Args:
-            monitor_options: Optional monitor options string
-            
+            monitor_options: Optional string of monitor options. If provided,
+                            these override the options from self.args.
+        
         Returns:
-            tuple: (args, choices)
+            tuple: (args, choices) where args is the updated arguments object
+                  and choices is a string representing the menu choices.
         """
         from pkscreener.classes.MenuOptions import PREDEFINED_SCAN_MENU_TEXTS, PREDEFINED_SCAN_MENU_VALUES
         
@@ -109,13 +123,16 @@ class PKCliRunner:
     
     def check_intraday_component(self, monitor_option):
         """
-        Check and handle intraday component in monitor option.
+        Check and handle intraday component in monitor option string.
+        
+        Parses the monitor option to detect intraday scan components and updates
+        the configuration accordingly.
         
         Args:
-            monitor_option: Monitor option string
-            
+            monitor_option: Monitor option string that may contain intraday indicators
+        
         Returns:
-            str: Modified monitor option
+            str: Modified monitor option with intraday component removed if present
         """
         last_component = monitor_option.split(":")[-1]
         if "i" not in last_component:
@@ -136,7 +153,16 @@ class PKCliRunner:
         return monitor_option
     
     def update_config_durations(self):
-        """Update configuration durations based on args options."""
+        """
+        Update configuration durations based on args options.
+        
+        Parses the options string to detect duration specifications and updates
+        the configuration manager with appropriate candle duration settings for
+        either daily or intraday scans.
+        
+        Returns:
+            None
+        """
         if self.args is None or self.args.options is None:
             return
         
@@ -163,13 +189,19 @@ class PKCliRunner:
     
     def pipe_results(self, prev_output):
         """
-        Pipe results from previous scan to next scan.
+        Pipe results from previous scan to next scan for chained analysis.
+        
+        This method enables chaining multiple scans together where the output
+        of one scan becomes the input for the next scan. It parses the options
+        string to determine the next scan configuration and prepares the input
+        for the subsequent scan.
         
         Args:
-            prev_output: Previous scan output dataframe
-            
+            prev_output: Previous scan output dataframe containing stock data
+        
         Returns:
-            bool: Whether to continue with piped scan
+            bool: True if piped scan should continue and has found stocks,
+                 False if no piped scan is configured or no stocks found
         """
         if self.args is None or self.args.options is None:
             return False
@@ -234,7 +266,15 @@ class PKCliRunner:
         return False
     
     def update_config(self):
-        """Update configuration based on args."""
+        """
+        Update configuration based on command line arguments.
+        
+        Applies settings from parsed arguments to the configuration manager,
+        including intraday/daily scan settings and period/duration parameters.
+        
+        Returns:
+            None
+        """
         if self.args is None:
             return
         
@@ -256,21 +296,43 @@ class PKCliRunner:
 
 
 class IntradayAnalysisRunner:
-    """Handles intraday analysis report generation."""
+    """
+    Handles intraday analysis report generation and management.
+    
+    This class is responsible for generating comprehensive intraday analysis
+    reports for multiple scan configurations, managing piped scans, and
+    producing final outcome summaries.
+    """
     
     def __init__(self, config_manager, args):
         """
         Initialize the intraday analysis runner.
         
         Args:
-            config_manager: Configuration manager instance
+            config_manager: Configuration manager instance for accessing settings
             args: Parsed command line arguments
         """
         self.config_manager = config_manager
         self.args = args
     
     def generate_reports(self):
-        """Generate intraday analysis reports."""
+        """
+        Generate intraday analysis reports for all configured scans.
+        
+        This method orchestrates the complete intraday analysis process:
+        1. Configures display settings
+        2. Runs multiple scan configurations in sequence
+        3. Handles piped scans between runs
+        4. Processes results and generates final summaries
+        5. Saves and sends final outcome reports
+        
+        Returns:
+            None
+        
+        Raises:
+            KeyboardInterrupt: If user interrupts the process
+            Exception: Other exceptions are caught and logged
+        """
         from pkscreener.globals import (
             main, isInterrupted, closeWorkersAndExit, 
             resetUserMenuChoiceOptions, showBacktestResults
@@ -388,10 +450,18 @@ class IntradayAnalysisRunner:
     
     def _save_send_final_outcome(self, optional_final_outcome_df):
         """
-        Save and send final outcome dataframe.
+        Save and send final outcome dataframe as formatted report.
+        
+        This private method processes the aggregated results from all analyses,
+        creates a grouped summary by stock, formats it as a table, and sends
+        it via Telegram if configured.
         
         Args:
-            optional_final_outcome_df: Final outcome dataframe
+            optional_final_outcome_df: Final outcome dataframe containing aggregated
+                                      results from all scan iterations
+        
+        Returns:
+            None
         """
         import pandas as pd
         from pkscreener.classes import Utility
@@ -459,14 +529,19 @@ class IntradayAnalysisRunner:
 
 
 class CliConfigManager:
-    """Manages CLI-specific configuration and initialization."""
+    """
+    Manages CLI-specific configuration and initialization.
+    
+    This class handles CLI-specific tasks including removing old instance files,
+    validating Terms of Service acceptance, and initializing the CLI environment.
+    """
     
     def __init__(self, config_manager, args):
         """
-        Initialize CLI config manager.
+        Initialize CLI config manager with configuration and arguments.
         
         Args:
-            config_manager: Configuration manager instance
+            config_manager: Configuration manager instance for accessing settings
             args: Parsed command line arguments
         """
         self.config_manager = config_manager
@@ -474,7 +549,16 @@ class CliConfigManager:
     
     @staticmethod
     def remove_old_instances():
-        """Remove old CLI instances."""
+        """
+        Remove old CLI instance files to prevent conflicts.
+        
+        Scans the current directory for files matching the pattern "pkscreenercli*"
+        and removes any that are not the current running instance. This helps
+        prevent conflicts from multiple simultaneous CLI instances.
+        
+        Returns:
+            None
+        """
         import glob
         pattern = "pkscreenercli*"
         this_instance = sys.argv[0]
@@ -490,10 +574,22 @@ class CliConfigManager:
     
     def validate_tos_acceptance(self):
         """
-        Validate Terms of Service acceptance.
+        Validate Terms of Service acceptance before allowing use of the software.
+        
+        This method checks whether the user has accepted the Terms of Service
+        and Disclaimer. If not, it prompts for acceptance or rejects usage.
+        For automated/system-launched modes, it may infer acceptance from
+        command line arguments.
+        
+        The method displays links to the Disclaimer and Terms of Service and
+        requires explicit user confirmation.
         
         Returns:
-            bool: True if TOS accepted, False otherwise
+            bool: True if TOS accepted and validation passes, False otherwise
+            
+        Note:
+            If validation fails, the method prints error messages and the
+            program should exit.
         """
         user_acceptance = self.config_manager.tosAccepted
         
@@ -522,7 +618,8 @@ class CliConfigManager:
                         f"[+]{colorText.GREEN} and accept Terms Of Service {colorText.END}({tos_link}){colorText.GREEN} of PKScreener. {colorText.END}\n"
                         f"[+] {colorText.WARN}If that is not the case, you MUST immediately terminate PKScreener by pressing Ctrl+C now!{colorText.END}"
                     )
-                    sleep(2)
+                    if "RUNNER" not in os.environ.keys():
+                        sleep(2)
                     break
         
         if (not user_acceptance and 
@@ -552,9 +649,3 @@ class CliConfigManager:
                 return False
         
         return True
-
-
-
-
-
-

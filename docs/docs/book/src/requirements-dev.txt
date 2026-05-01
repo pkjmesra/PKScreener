@@ -1,0 +1,23 @@
+-r requirements.txt
+
+black
+coverage==7.5.1
+coveralls
+distro
+isort
+mistletoe
+pep517
+pip
+pip-chill
+pyinstaller
+pytest
+pytest-cov
+pytest-mock
+pytest-timeout
+pytoml
+ruff
+setuptools
+# because tensorflow recently moved the keras 
+# out of the default package and now is only 
+# available through the tf-nightly install.
+# tf-nightly

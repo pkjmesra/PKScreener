@@ -64,13 +64,16 @@ jobs:
   Download_Sub_Data:
 
     runs-on: ${{ inputs.runson || 'ubuntu-latest'}} #ubuntu-latest #windows-latest
-    permissions: write-all
+    permissions: 
+      contents: write
+      actions: write
 
     steps:
     - uses: actions/checkout@v4
       with:
         ref: SubData
-        # fetch-depth: 1 is the default - only gets the latest commit
+        fetch-depth: 1  # Keep it shallow, we don't need history
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python 
       uses: actions/setup-python@v5
@@ -157,7 +160,12 @@ jobs:
           
           echo "Created .env.dev file with secrets (values quoted)"
           cp .env.dev /home/runner/work/PKScreener/PKScreener/pkscreener/.env.dev
-  
+
+    - name: Install jq (for JSON parsing)
+      shell: bash
+      run: |
+        sudo apt-get update && sudo apt-get install -y jq
+
     - name: Update Sub Data
       shell: bash
       timeout-minutes: 5
@@ -188,79 +196,213 @@ jobs:
         ls -l results/Data
         git status
 
-    - name: Remove PDF files committed >=24 hours ago
+    - name: Remove PDF files committed >=24 hours ago using GitHub API
+      id: cleanup
       shell: bash
       timeout-minutes: 5
       continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "🔍 Checking for PDF files committed >=24 hours ago in results/Data..."
+        echo "🔍 Checking PDF files via GitHub API (no git history needed)..."
+        echo ""
+        
+        # Repository information
+        REPO="pkjmesra/PKScreener"
+        BRANCH="SubData"
+        FOLDER_PATH="results/Data"
         
         # Get current timestamp in UTC
         CURRENT_TIME=$(date +%s)
         # 24 hours in seconds
         CUTOFF_TIME=$((CURRENT_TIME - 24*60*60))
+        CUTOFF_DATE=$(date -u -d @$CUTOFF_TIME +"%Y-%m-%d %H:%M:%S" 2>/dev/null || date -u -r $CUTOFF_TIME +"%Y-%m-%d %H:%M:%S" 2>/dev/null)
+        echo "⏰ Keeping files committed after: $CUTOFF_DATE UTC"
+        echo ""
+        
+        # Get list of PDF files from GitHub API
+        echo "Fetching list of PDF files from GitHub..."
+        API_URL="https://api.github.com/repos/$REPO/contents/$FOLDER_PATH?ref=$BRANCH"
+        
+        # Use GitHub API to get file list
+        curl -s -H "Authorization: token $GH_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "$API_URL" > files_response.json
+        
+        # Check if API call was successful
+        if [ $? -ne 0 ] || [ ! -s files_response.json ]; then
+          echo "❌ Failed to fetch file list from GitHub API"
+          echo "removed_count=0" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Check if response contains an error message
+        if grep -q '"message"' files_response.json; then
+          ERROR_MSG=$(jq -r '.message // empty' files_response.json)
+          echo "❌ GitHub API error: $ERROR_MSG"
+          echo "removed_count=0" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Extract PDF files
+        jq -r '.[] | select(.name | endswith(".pdf")) | "\(.name)|\(.path)|\(.sha)"' files_response.json > pdf_files.txt
+        
+        PDF_COUNT=$(wc -l < pdf_files.txt)
+        echo "📋 Found $PDF_COUNT PDF files to check"
+        echo ""
         
         REMOVED_COUNT=0
         TOTAL_SIZE=0
+        KEPT_COUNT=0
         
-        # Find all PDF files in results/Data
-        if [ -d "results/Data" ]; then
-          while IFS= read -r pdf_file; do
-            if [ -f "$pdf_file" ]; then
-              # Use git log with -n 1 to get only the most recent commit for this file
-              # This works with default shallow clone (fetch-depth=1)
-              COMMIT_INFO=$(git log -n 1 --pretty="format:%ct|%ci" -- "$pdf_file" 2>/dev/null)
+        # Process each PDF file
+        while IFS='|' read -r name path sha; do
+          if [ -n "$name" ]; then
+            echo "📄 Checking: $name"
+            
+            # Get commit date for this file using the commits API
+            COMMITS_API="https://api.github.com/repos/$REPO/commits?path=$path&sha=$BRANCH&per_page=1"
+            
+            COMMIT_RESPONSE=$(curl -s -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "$COMMITS_API")
+            
+            # Extract commit date
+            COMMIT_DATE=$(echo "$COMMIT_RESPONSE" | jq -r '.[0].commit.committer.date // empty' 2>/dev/null)
+            
+            if [ -n "$COMMIT_DATE" ] && [ "$COMMIT_DATE" != "null" ]; then
+              # Convert to timestamp (cross-platform)
+              if date --version >/dev/null 2>&1; then
+                # GNU date
+                COMMIT_TIMESTAMP=$(date -d "$COMMIT_DATE" +%s 2>/dev/null || echo "0")
+              else
+                # BSD date (macOS)
+                COMMIT_TIMESTAMP=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$COMMIT_DATE" +%s 2>/dev/null || echo "0")
+              fi
               
-              if [ -n "$COMMIT_INFO" ]; then
-                # Parse timestamp and date
-                COMMIT_TIMESTAMP=$(echo "$COMMIT_INFO" | cut -d'|' -f1)
-                COMMIT_DATE=$(echo "$COMMIT_INFO" | cut -d'|' -f2 | cut -d' ' -f1,2)
+              if [ "$COMMIT_TIMESTAMP" -gt 0 ]; then
+                FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
                 
-                if [ -n "$COMMIT_TIMESTAMP" ] && [ $COMMIT_TIMESTAMP -lt $CUTOFF_TIME ]; then
-                  FILE_SIZE=$(stat -c %s "$pdf_file" 2>/dev/null || stat -f %z "$pdf_file" 2>/dev/null)
-                  FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
-                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
+                if [ $COMMIT_TIMESTAMP -lt $CUTOFF_TIME ]; then
+                  # File is old - remove it
+                  FILE_AGE_DAYS=$((FILE_AGE_HOURS / 24))
+                  echo "  🗑️ REMOVING: Older than 24 hours"
+                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_DAYS}d ${FILE_AGE_HOURS}h ago)"
                   
-                  echo "  🗑️ Removing old PDF: $(basename "$pdf_file")"
-                  echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago, ${FILE_SIZE_MB}MB)"
-                  rm -f "$pdf_file"
-                  REMOVED_COUNT=$((REMOVED_COUNT + 1))
-                  TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                  # Get file size if available locally
+                  if [ -f "results/Data/$name" ]; then
+                    FILE_SIZE=$(stat -c %s "results/Data/$name" 2>/dev/null || stat -f %z "results/Data/$name" 2>/dev/null)
+                    FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
+                    TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+                    echo "     └─ Size: ${FILE_SIZE_MB}MB"
+                    
+                    # Remove the file
+                    rm -f "results/Data/$name"
+                    REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                  else
+                    echo "     ⚠️ File not found locally, skipping"
+                  fi
                 else
-                  FILE_AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIMESTAMP) / 3600 ))
-                  echo "  ✅ Keeping recent PDF: $(basename "$pdf_file")"
+                  # File is recent - keep it
+                  echo "  ✅ KEEPING: Less than 24 hours old"
                   echo "     └─ Committed: $COMMIT_DATE (${FILE_AGE_HOURS}h ago)"
+                  KEPT_COUNT=$((KEPT_COUNT + 1))
                 fi
               else
-                # If git can't find commit info, this is a new file from this run
-                echo "  📄 New file (not yet committed): $(basename "$pdf_file") - keeping"
+                echo "  ⚠️ Could not parse commit date: $COMMIT_DATE"
+                KEPT_COUNT=$((KEPT_COUNT + 1))
               fi
+            else
+              echo "  ⚠️ No commit information found for $name"
+              KEPT_COUNT=$((KEPT_COUNT + 1))
             fi
-          done < <(find results/Data -name "*.pdf" -type f 2>/dev/null | sort || true)
-        fi
+            echo ""
+          fi
+        done < pdf_files.txt
         
         TOTAL_SIZE_MB=$((TOTAL_SIZE / 1024 / 1024))
         echo ""
-        echo "📊 Cleanup Summary: Removed $REMOVED_COUNT PDF files (${TOTAL_SIZE_MB}MB total)"
+        echo "📊 Cleanup Summary:"
+        echo "   • Removed: $REMOVED_COUNT PDF files (${TOTAL_SIZE_MB}MB total)"
+        echo "   • Kept: $KEPT_COUNT PDF files"
         echo ""
+        
+        # Save removed count for later steps
+        echo "removed_count=$REMOVED_COUNT" >> $GITHUB_OUTPUT
+        
+        # Cleanup temp files
+        rm -f files_response.json pdf_files.txt
+
+    - name: Stage and commit changes
+      id: commit
+      shell: bash
+      run: |
+        # Configure git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Check if there are any changes
+        git status --porcelain > status.txt
+        
+        if [ -s status.txt ]; then
+          echo "📝 Changes detected:"
+          cat status.txt
+          echo ""
+          
+          # Stage ALL changes (including deletions) in the results/Data directory
+          # The -A flag stages all changes, including deletions
+          git add -A results/Data/ -f
+          
+          # Show what's being committed
+          echo ""
+          echo "Files staged for commit:"
+          git status --short
+          echo ""
+          
+          # Count the number of files being committed
+          FILE_COUNT=$(git status --short | wc -l)
+          
+          # Commit the changes
+          git commit -m "Cleanup: Remove $FILE_COUNT old PDF files (older than 24 hours)"
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Changes committed successfully"
+            # Set output for this step
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Commit failed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        else
+          echo "✅ No changes to commit"
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+        
+        # Cleanup
+        rm -f status.txt
 
     - name: Push Sub Data
+      if: steps.commit.outputs.has_changes == 'true'
       continue-on-error: true
       timeout-minutes: 5
       shell: bash
       run: |
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git config --global http.postBuffer 150000000
-        git pull -v origin +SubData
-        git add results/Data/*.pdf --force
-        git add results/Data/*.pdf -u
-        git commit -m "GitHub-Action-Workflow-SubData-(Default-Config)"
-        git push -v -u origin +SubData
-      env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
         
+        # Pull latest changes to avoid conflicts
+        git pull --rebase origin SubData
+        
+        # Push the changes
+        if git push origin SubData; then
+          echo "✅ Successfully pushed cleanup commit"
+        else
+          echo "⚠️ Push failed, trying with force (safe since we're just cleaning old files)"
+          git push --force-with-lease origin SubData
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Squash Commits (Python)
       shell: bash
       timeout-minutes: 5
@@ -272,7 +414,7 @@ jobs:
         git pull -v origin +SubData
         python3 .github/workflows/squash.py --b SubData -m "GitHub-Action-Workflow-SubData-(Default-Config)"
       env:
-        GITHUB_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Delete this workflow run
       continue-on-error: true
@@ -281,4 +423,4 @@ jobs:
         gh run list --status success --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
         gh run list --status cancelled --limit 1000 --json databaseId -q '.[].databaseId' | xargs -IID gh api "repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/ID" -X DELETE
       env:
-        GH_TOKEN : ${{secrets.GITHUB_TOKEN}}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

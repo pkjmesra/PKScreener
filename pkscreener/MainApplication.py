@@ -482,6 +482,8 @@ class MainApplication:
         if keyboardInterruptEventFired:
             return None, None
         
+        startupoptions = None if userArgs is None else userArgs.options
+        firstScanKey = startupoptions.split(">|")[0]
         # Handle intraday analysis if requested
         if self.handle_intraday_analysis(userArgs, optionalFinalOutcome_df):
             savedAnalysisDict = analysis_dict.get(firstScanKey)

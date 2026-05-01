@@ -259,7 +259,7 @@ if __name__ == '__main__':
     if args.skiplistlevel1 is None:
         args.skiplistlevel1 = ",".join(["W,N,E,M,Z,S,0,1,2,3,4,5,6,7,8,9,10,11,13,14,15"])
     if args.skiplistlevel2 is None:
-        args.skiplistlevel2 = ",".join(["0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,50,M,Z"])
+        args.skiplistlevel2 = ",".join(["0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,M,Z"])
     if args.skiplistlevel3 is None:
         args.skiplistlevel3 = ",".join(["0,1,2,3,4,5,6,7,8,9,10"])
     if args.skiplistlevel4 is None:
@@ -878,6 +878,7 @@ def shouldRunBacktests(backtestName="",df=None):
 def updateHolidays():
     _, raw = nse.updatedHolidays()
     if raw is None or len(raw) == 0:
+        print(f"{datetime.datetime.now(pytz.timezone('Asia/Kolkata'))} : No updates found for holidays!")
         return
     import json
     holidays_file = os.path.join(os.getcwd(),".github/dependencies/nse-holidays.json")

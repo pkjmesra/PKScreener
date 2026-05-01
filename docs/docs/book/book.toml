@@ -1,0 +1,26 @@
+[book]
+authors = ["pkjmesra"]
+language = "en"
+src = "src"
+title = "PKScreener Documentation"
+description = "Complete documentation for PKScreener - Professional Stock Screening Tool"
+
+[output.html]
+git-repository-url = "https://github.com/pkjmesra/PKScreener"
+edit-url-template = "https://github.com/pkjmesra/PKScreener/edit/main/docs/docs/book/src/{path}"
+site-url = "/PKScreener/help/"
+default-theme = "light"
+preferred-dark-theme = "navy"
+additional-css = ["src/custom.css"]
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+limit-results = 30
+
+[build]
+build-dir = "book"
+create-missing = false

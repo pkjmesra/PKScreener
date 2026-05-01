@@ -96,8 +96,14 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
         try:
             if "RUNNER" in os.environ.keys():
                 return True, ValidationResult.Success
+            # Clear any cached responses for this user
+            import requests_cache
+            requests_cache.clear()
+            # Also clear the fetcher's session cache
+            from PKDevTools.classes.Fetcher import session
+            session.cache.clear()
             PKPikey.removeSavedFile(f"{PKUserRegistration().userID}")
-            resp = Utility.tools.tryFetchFromServer(cache_file=f"{PKUserRegistration().userID}.pdf",directory="results/Data",hideOutput=True, branchName="SubData")
+            resp = Utility.tools.tryFetchFromServer(cache_file=f"{PKUserRegistration().userID}.pdf",directory="results/Data",hideOutput=True, branchName="SubData", no_cache=True)
             if resp is None or resp.status_code != 200:
                 PKUserRegistration.resetSavedUserCreds()
                 return False, ValidationResult.BadUserID
@@ -109,7 +115,7 @@ class PKUserRegistration(SingletonMixin, metaclass=SingletonType):
             
             PKUserRegistration.savedUserCreds()
             return True, ValidationResult.Success
-        except: # pragma: no cover
+        except Exception as e: # pragma: no cover
             if "RUNNER" in os.environ.keys():
                 return True, ValidationResult.Success
             PKUserRegistration.resetSavedUserCreds()

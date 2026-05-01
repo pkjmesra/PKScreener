@@ -56,7 +56,7 @@ userDemoMenuDict = {
 }
 
 level0MenuDict = {
-    # "F": "Find a stock in scanners",
+    "F": "Find a stock in scanners",
     # "M": "Monitor Intraday",
     # "S": "Strategies",
     # "B": "Backtests",
@@ -136,7 +136,7 @@ LEVEL_1_DATA_DOWNLOADS = {
     "S": "NSE Symbols with Sector/Industry Details",
     "M": "Back to the Top/Main menu",
 }
-PREDEFINED_SCAN_ALERT_MENU_KEYS = ["2","5","6","18","25","27","29","30","31","32","33","34"]
+PREDEFINED_SCAN_ALERT_MENU_KEYS = ["2"]
 PREDEFINED_SCAN_MENU_TEXTS = [
     "Volume Scanners | High Momentum | Breaking Out Now | ATR Cross     ",  # 1
     "Volume Scanners | High Momentum | ATR Cross",                          # 2
@@ -297,25 +297,25 @@ level1_S_MenuDict = {
 INDICES_MAP = {}
 
 level1_X_MenuDict = {
-    # "0": "Screen stocks by the stock names",
-    # "1": "Nifty 50          ",
+    "W": "Screen stocks from my own Watchlist ",
     "N": "Nifty Prediction using Artifical Intelligence (Use for Gap-Up/Gap-Down/BTST/STBT)",
     # "S": "Sectoral Indices",
     # "E": "Live Index Scan : 5 EMA for Intraday",
-    # "W": "Screen stocks from my own Watchlist",
-    # "2": "Nifty Next 50     ",
-    # "3": "Nifty 100         ",
-    # "4": "Nifty 200         ",
-    # "5": "Nifty 500         ",
-    # "6": "Nifty Smallcap 50 ",
-    # "7": "Nifty Smallcap 100",
-    # "8": "Nifty Smallcap 250",
-    # "9": "Nifty Midcap 50   ",
-    # "10": "Nifty Midcap 100",
-    # "11": "Nifty Midcap 150",
+    "0": "Screen stocks by the stock names",
+    "1": "Nifty 50          ",
+    "2": "Nifty Next 50     ",
+    "3": "Nifty 100         ",
+    "4": "Nifty 200         ",
+    "5": "Nifty 500         ",
+    "6": "Nifty Smallcap 50 ",
+    "7": "Nifty Smallcap 100",
+    "8": "Nifty Smallcap 250",
+    "9": "Nifty Midcap 50   ",
+    "10": "Nifty Midcap 100",
+    "11": "Nifty Midcap 150",
     "12": "Nifty (All Stocks)",
-    # "13": "Newly Listed (IPOs in last 1 Year)           ",
-    # "14": "F&O Stocks Only", #Discontinued:  https://nsearchives.nseindia.com/content/circulars/FAOP61157.pdf
+    "13": "Newly Listed (IPOs in last 1 Year)           ",
+    "14": "F&O Stocks Only", #Discontinued:  https://nsearchives.nseindia.com/content/circulars/FAOP61157.pdf
     # "15": "NASDAQ",
 
     "M": "Back to the Top/Main menu",
@@ -374,12 +374,14 @@ level2_X_MenuDict = {
     "45": "Strong Sell Signals (Multi-Indicator)    ",
     "46": "All Buy Signals (Any strength)           ",
     "47": "All Sell Signals (Any strength)          ",
+    "48": "Bullish 10-day high breakout             ",
+    "49": "52-week high approaching breakout        ",
     "50": "Show Last Screened Results               ",
 
     "M": "Back to the Top/Main menu                 ",
     "Z": "Exit (Ctrl + C)                           ",
 }
-MAX_SUPPORTED_MENU_OPTION = 47
+MAX_SUPPORTED_MENU_OPTION = 49
 MAX_MENU_OPTION = 50
 
 level3_X_Reversal_MenuDict = {
@@ -858,7 +860,7 @@ class menus:
                                                  renderStyle=renderStyle, 
                                                  parent=selectedMenu,
                                                  checkUpdate=True,
-                                                 subOnly=["S", "B", "G", "P", "D"]) # "F", "M", "C"
+                                                 subOnly=["S", "B", "G", "P", "D", "F"]) # "M", "C"
         elif selectedMenu is not None:
             if selectedMenu.menuKey == "S" and selectedMenu.level == 0:
                 strategies = self.strategyNames
@@ -916,7 +918,7 @@ class menus:
                 else:
                     # sub-menu of the top level main selected menu
                     return self.renderMenuFromDictionary(dict=level1_X_MenuDict,
-                                                         exceptionKeys= [], #["E", "M", "S", "15"],
+                                                         exceptionKeys= ["N"], #["E", "M", "S", "15"],
                                                          coloredValues= [], #(["15",str(configManager.defaultIndex)] if not asList else []),
                                                          defaultMenu=str(configManager.defaultIndex),
                                                          skip=skip, 

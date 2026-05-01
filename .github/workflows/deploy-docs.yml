@@ -1,0 +1,136 @@
+name: Deploy mdBook Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pkscreener/**/*.py'           # Any Python file change triggers generation
+      - 'docs/**/*.md'                  # Documentation changes
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:                    # Manual trigger
+  schedule:
+    - cron: '0 */6 * * *'               # Run every 6 hours to ensure freshness
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install any dependencies needed for parsing your code
+          pip install pandas numpy 2>/dev/null || true
+      
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: '0.4.36'
+      
+      - name: Generate API documentation from source code
+        run: |
+          python docs/generate_api_docs.py
+        continue-on-error: false
+      
+      - name: Verify documentation generation
+        run: |
+          echo "📊 Generated API files:"
+          ls -la docs/docs/book/src/api/ | head -50
+          echo ""
+          echo "📄 Main API Reference:"
+          ls -la docs/docs/book/src/API_INDEX.md
+      
+      - name: Build mdBook
+        run: |
+          cd docs/docs/book
+          mdbook build
+        continue-on-error: false
+      
+      - name: Prepare deployment with help subdirectory
+        run: |
+          # Create deployment directory with /help subdirectory
+          mkdir -p deployment/help
+          
+          # Copy the built book
+          cp -r docs/docs/book/book/* deployment/help/
+          
+          # Copy any additional static files
+          if [ -d "screenshots" ]; then
+            mkdir -p deployment/help/screenshots
+            cp -r screenshots/* deployment/help/screenshots/ 2>/dev/null || true
+          fi
+          
+          # Create a README for the deployment
+          cat > deployment/README.md << 'EOF'
+          # PKScreener Documentation
+          
+          This documentation is automatically generated from the source code.
+          
+          - Main documentation: [help/](help/)
+          - API Reference: [help/api/](help/api/)
+          
+          Last updated: $(date -u)
+          EOF
+          
+          # Optional: Create redirect at root (only if you want it)
+          # Comment out if you want to keep existing root content
+          cat > deployment/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>PKScreener Documentation</title>
+              <meta charset="utf-8">
+              <meta http-equiv="refresh" content="0; url=help/">
+              <link rel="canonical" href="help/">
+            </head>
+            <body>
+              <p>Redirecting to <a href="help/">PKScreener Documentation</a>...</p>
+            </body>
+          </html>
+          EOF
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'deployment/'
+      
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4      
+      - name: Log documentation stats
+        if: always()
+        run: |
+          echo "📊 Documentation Generation Stats:"
+          echo "=================================="
+          echo "Python files processed: $(find pkscreener -name '*.py' -not -path '*/__pycache__/*' | wc -l)"
+          echo "API docs generated: $(ls -1 docs/docs/book/src/api/*.md 2>/dev/null | wc -l)"
+          echo "Book size: $(du -sh docs/docs/book/book 2>/dev/null | cut -f1)"

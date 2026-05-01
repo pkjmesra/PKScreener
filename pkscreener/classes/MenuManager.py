@@ -554,7 +554,8 @@ class MenuManager:
         
         if len(run_option_name) >= 5:
             PKAnalyticsService().send_event(run_option_name)
-            
+        
+        ConsoleUtility.PKConsoleTools.clearScreen(forceTop=True)
         OutputControls().printOutput(
             colorText.FAIL
             + f"  [+] You chose: {report_title} "
@@ -778,14 +779,6 @@ class ScanExecutor:
     def run_scanners(self, menu_option, items, tasks_queue, results_queue, num_stocks,
                     backtest_period, iterations, consumers, screen_results, save_results,
                     backtest_df, testing=False):
-        # #region agent log
-        # import json
-        # log_path = os.path.join(Archiver.get_user_data_dir(), "pkscreener-logs.txt")
-        # try:
-        #     with open(log_path, 'a') as f:
-        #         f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"ALL","location":"MenuManager.py:run_scanners:778","message":"run_scanners entry - scan starting","data":{"menu_option":menu_option,"num_stocks":num_stocks},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-        # except: pass
-        # #endregion
         """
         Execute scanning operations with the given parameters.
         
@@ -1433,7 +1426,7 @@ class TelegramNotifier:
                     if caption is not None:
                         caption = f"{caption.replace('&','n')}"
                     send_photo(photo_file_path, (caption if len(caption) <= 1024 else ""), userID=user)
-                    sleep(2)
+                    # sleep(2)
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
                     
@@ -1442,7 +1435,7 @@ class TelegramNotifier:
                     if caption is not None and isinstance(caption, str):
                         caption = f"{caption.replace('&','n')}"
                     send_document(document_file_path, (caption if len(caption) <= 1024 else ""), userID=user)
-                    sleep(2)
+                    # sleep(2)
                 except Exception as e:
                     default_logger().debug(e, exc_info=True)
         else:

@@ -244,7 +244,10 @@ def _configure_vcp_filters(configManager, ConfigManager):
             f"  [+] Range percentage from top: [Recommended: 20] "
             f"(Current: {colorText.FAIL}{configManager.vcpRangePercentageFromTop}{colorText.END}): "
         ) or configManager.vcpRangePercentageFromTop
-        
+        configManager.vcp321RulePullbackPercentage = OutputControls().takeUserInput(
+            f"  [+] Pullback percentage for 3-2-1 rule in VCP. (number)({colorText.GREEN}Optimal = 70{colorText.END}, Current: {colorText.FAIL}{configManager.vcp321RulePullbackPercentage}{colorText.END}) (Set to 0 or 100 to disable): "
+        ) or configManager.vcp321RulePullbackPercentage
+
         configManager.vcpLegsToCheckForConsolidation = OutputControls().takeUserInput(
             f"  [+] Number of consolidation legs [Recommended: 3] "
             f"(Current: {colorText.FAIL}{configManager.vcpLegsToCheckForConsolidation}{colorText.END}): "

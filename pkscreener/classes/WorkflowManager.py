@@ -39,6 +39,13 @@ def run_workflow(command=None, user=None, options=None, workflowType="B",repo=No
         repo = os.popen('git ls-remote --get-url origin | cut -d/ -f5').read().replace(".git","").replace("\n","")
     if branch is None:
         branch = "main"
+    data = (
+            '{"ref":"'
+            + branch
+            + '","inputs":{"targetPythonVersion":"3.12","name":"Triggered by PTB"}}'
+        )
+    if options is None:
+        options = ""
     timestamp = int(PKDateUtilities.currentDateTimestamp())
     if workflowType == "B":
         if workflow_name is None:

@@ -203,6 +203,10 @@ jobs:
                 --collect-all apscheduler \
                 --hidden-import libsql \
                 --collect-all libsql \
+                --hidden-import tensorflow \
+                --hidden-import keras \
+                --collect-submodules keras \
+                --collect-all tensorflow.keras \
                 pkscreener/pkscreenercli.py
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin
@@ -219,6 +223,7 @@ jobs:
               pip3 install libsql
               pip3 install ta-lib==0.6.4
               pip3 install .
+              pip3 install tensorflow==2.16.1
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_x64.bin --testbuild
               exit $?
@@ -259,6 +264,10 @@ jobs:
                 --collect-all apscheduler \
                 --hidden-import libsql \
                 --collect-all libsql \
+                --hidden-import tensorflow \
+                --hidden-import keras \
+                --collect-submodules keras \
+                --collect-all tensorflow.keras \
                 pkscreener/pkscreenercli.py
               mv /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
               chmod +x /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin
@@ -275,6 +284,7 @@ jobs:
               pip3 install ta-lib==0.6.4
               pip3 install libsql
               pip3 install .
+              pip3 install tensorflow==2.16.1
             TEST_BUILD: |
               /home/runner/work/PKScreener/PKScreener/dist/pkscreenercli_arm64.bin --testbuild
               exit $?
