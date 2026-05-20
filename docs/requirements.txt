@@ -3,3 +3,4 @@ sphinx_rtd_theme
 sphinx-toolbox
 myst-parser
 linkify-it-py
+idna>=3.15 # not directly required, pinned by Snyk to avoid a vulnerability
