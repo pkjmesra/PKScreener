@@ -2012,7 +2012,7 @@
   "4865": {
     "instrument_token": 4865,
     "trading_symbol": "STYRENIX",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:38+05:30",
       "open": 2258.5,
@@ -2042,7 +2042,7 @@
   "12289": {
     "instrument_token": 12289,
     "trading_symbol": "HAPPSTMNDS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 362.4,
@@ -2882,7 +2882,7 @@
   "233729": {
     "instrument_token": 233729,
     "trading_symbol": "EQUITASBNK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:41+05:30",
       "open": 67.79,
@@ -2927,7 +2927,7 @@
   "237569": {
     "instrument_token": 237569,
     "trading_symbol": "ELECTCAST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:41+05:30",
       "open": 75.5,
@@ -2942,7 +2942,7 @@
   "239873": {
     "instrument_token": 239873,
     "trading_symbol": "ELGIEQUIP",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 542.0,
@@ -3617,7 +3617,7 @@
   "379393": {
     "instrument_token": 379393,
     "trading_symbol": "IFBAGRO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T15:26:02+05:30",
       "open": 964.85,
@@ -3677,7 +3677,7 @@
   "386049": {
     "instrument_token": 386049,
     "trading_symbol": "ASTERDM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:38+05:30",
       "open": 749.3,
@@ -3812,7 +3812,7 @@
   "414977": {
     "instrument_token": 414977,
     "trading_symbol": "TATAINVEST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 664.95,
@@ -3992,7 +3992,7 @@
   "469761": {
     "instrument_token": 469761,
     "trading_symbol": "KANORICHEM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:59:12+05:30",
       "open": 93.64,
@@ -4022,7 +4022,7 @@
   "475905": {
     "instrument_token": 475905,
     "trading_symbol": "KESORAMIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T15:26:46+05:30",
       "open": 12.3,
@@ -4202,7 +4202,7 @@
   "526337": {
     "instrument_token": 526337,
     "trading_symbol": "HOMEFIRST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 1080.0,
@@ -4247,7 +4247,7 @@
   "539393": {
     "instrument_token": 539393,
     "trading_symbol": "STOVEKRAFT",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:34+05:30",
       "open": 540.45,
@@ -4262,7 +4262,7 @@
   "543745": {
     "instrument_token": 543745,
     "trading_symbol": "MASTEK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:33+05:30",
       "open": 1661.0,
@@ -4337,7 +4337,7 @@
   "563713": {
     "instrument_token": 563713,
     "trading_symbol": "MIRCELECTR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:57+05:30",
       "open": 40.42,
@@ -4442,7 +4442,7 @@
   "590337": {
     "instrument_token": 590337,
     "trading_symbol": "BESTAGRO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:22+05:30",
       "open": 16.96,
@@ -5297,7 +5297,7 @@
   "848897": {
     "instrument_token": 848897,
     "trading_symbol": "MODISONLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:32+05:30",
       "open": 283.71,
@@ -5372,7 +5372,7 @@
   "856321": {
     "instrument_token": 856321,
     "trading_symbol": "SUNDRMFAST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:42+05:30",
       "open": 852.3,
@@ -5627,7 +5627,7 @@
   "895745": {
     "instrument_token": 895745,
     "trading_symbol": "TATASTEEL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:41+05:30",
       "open": 208.92,
@@ -5687,7 +5687,7 @@
   "907777": {
     "instrument_token": 907777,
     "trading_symbol": "TTKPRESTIG",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 522.4,
@@ -5822,7 +5822,7 @@
   "953345": {
     "instrument_token": 953345,
     "trading_symbol": "VSTIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:34+05:30",
       "open": 256.55,
@@ -5912,7 +5912,7 @@
   "972545": {
     "instrument_token": 972545,
     "trading_symbol": "WSTCSTPAPR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 474.0,
@@ -6422,7 +6422,7 @@
   "1234177": {
     "instrument_token": 1234177,
     "trading_symbol": "GTL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:34+05:30",
       "open": 7.39,
@@ -6662,7 +6662,7 @@
   "1327617": {
     "instrument_token": 1327617,
     "trading_symbol": "STYLAMIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 2760.1,
@@ -7322,7 +7322,7 @@
   "1723649": {
     "instrument_token": 1723649,
     "trading_symbol": "JINDALSTEL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 1226.9,
@@ -7367,7 +7367,7 @@
   "1741569": {
     "instrument_token": 1741569,
     "trading_symbol": "STEELCAS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 276.05,
@@ -7487,7 +7487,7 @@
   "1796097": {
     "instrument_token": 1796097,
     "trading_symbol": "SHIVALIK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-02T17:33:47+05:30",
       "open": 252.5,
@@ -7517,7 +7517,7 @@
   "1804289": {
     "instrument_token": 1804289,
     "trading_symbol": "HESTERBIO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:17+05:30",
       "open": 1808.4,
@@ -7532,7 +7532,7 @@
   "1813249": {
     "instrument_token": 1813249,
     "trading_symbol": "STARHEALTH",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 516.75,
@@ -7667,7 +7667,7 @@
   "1887745": {
     "instrument_token": 1887745,
     "trading_symbol": "STAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 1155.0,
@@ -7832,7 +7832,7 @@
   "2013697": {
     "instrument_token": 2013697,
     "trading_symbol": "GVPIL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:43+05:30",
       "open": 661.3,
@@ -8012,7 +8012,7 @@
   "2127617": {
     "instrument_token": 2127617,
     "trading_symbol": "BLUESTARCO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 1680.2,
@@ -8342,7 +8342,7 @@
   "2384129": {
     "instrument_token": 2384129,
     "trading_symbol": "STLTECH-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 400.95,
@@ -8387,7 +8387,7 @@
   "2395137": {
     "instrument_token": 2395137,
     "trading_symbol": "MSTCLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 422.2,
@@ -8672,7 +8672,7 @@
   "2542849": {
     "instrument_token": 2542849,
     "trading_symbol": "VIKASLIFE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:56+05:30",
       "open": 1.5,
@@ -8777,7 +8777,7 @@
   "2636801": {
     "instrument_token": 2636801,
     "trading_symbol": "RAMASTEEL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 5.18,
@@ -8822,7 +8822,7 @@
   "2661633": {
     "instrument_token": 2661633,
     "trading_symbol": "JISLJALEQS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:34+05:30",
       "open": 29.8,
@@ -8837,7 +8837,7 @@
   "2663937": {
     "instrument_token": 2663937,
     "trading_symbol": "STEELCITY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:49+05:30",
       "open": 79.0,
@@ -9242,7 +9242,7 @@
   "2863105": {
     "instrument_token": 2863105,
     "trading_symbol": "IDFCFIRSTB",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 67.8,
@@ -9347,7 +9347,7 @@
   "2881537": {
     "instrument_token": 2881537,
     "trading_symbol": "JAIBALAJI",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:45+05:30",
       "open": 73.74,
@@ -9737,7 +9737,7 @@
   "2974209": {
     "instrument_token": 2974209,
     "trading_symbol": "ASTRAMICRO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:33+05:30",
       "open": 1090.0,
@@ -9887,7 +9887,7 @@
   "3001089": {
     "instrument_token": 3001089,
     "trading_symbol": "JSWSTEEL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 1284.6,
@@ -9962,7 +9962,7 @@
   "3024129": {
     "instrument_token": 3024129,
     "trading_symbol": "SHOPERSTOP",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:00+05:30",
       "open": 334.15,
@@ -10142,7 +10142,7 @@
   "3062017": {
     "instrument_token": 3062017,
     "trading_symbol": "SEMAC",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T15:16:18+05:30",
       "open": 390.65,
@@ -10292,7 +10292,7 @@
   "3080193": {
     "instrument_token": 3080193,
     "trading_symbol": "FIVESTAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 454.55,
@@ -10472,7 +10472,7 @@
   "3343361": {
     "instrument_token": 3343361,
     "trading_symbol": "NAGAFERT-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:11:17+05:30",
       "open": 3.82,
@@ -10832,7 +10832,7 @@
   "3433985": {
     "instrument_token": 3433985,
     "trading_symbol": "RSYSTEMS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 276.75,
@@ -11102,7 +11102,7 @@
   "3507969": {
     "instrument_token": 3507969,
     "trading_symbol": "VISHWARAJ-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:06+05:30",
       "open": 5.29,
@@ -11342,7 +11342,7 @@
   "3563521": {
     "instrument_token": 3563521,
     "trading_symbol": "PLASTIBLEN",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:36+05:30",
       "open": 165.45,
@@ -11417,7 +11417,7 @@
   "3585537": {
     "instrument_token": 3585537,
     "trading_symbol": "ZEEMEDIA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:28+05:30",
       "open": 7.66,
@@ -11762,7 +11762,7 @@
   "3691009": {
     "instrument_token": 3691009,
     "trading_symbol": "ASTRAL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:43+05:30",
       "open": 1444.9,
@@ -12047,7 +12047,7 @@
   "3782401": {
     "instrument_token": 3782401,
     "trading_symbol": "TARMAT-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:14:09+05:30",
       "open": 51.0,
@@ -12077,7 +12077,7 @@
   "3799809": {
     "instrument_token": 3799809,
     "trading_symbol": "VIPCLOTHNG",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T15:26:01+05:30",
       "open": 27.21,
@@ -12452,7 +12452,7 @@
   "3903489": {
     "instrument_token": 3903489,
     "trading_symbol": "KAVDEFENCE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:33+05:30",
       "open": 60.03,
@@ -12677,7 +12677,7 @@
   "3947265": {
     "instrument_token": 3947265,
     "trading_symbol": "DPSCLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:26+05:30",
       "open": 9.3,
@@ -12992,7 +12992,7 @@
   "4387841": {
     "instrument_token": 4387841,
     "trading_symbol": "IDEAFORGE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:57+05:30",
       "open": 790.3,
@@ -13007,7 +13007,7 @@
   "4399617": {
     "instrument_token": 4399617,
     "trading_symbol": "SHRIPISTON",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:29+05:30",
       "open": 3310.1,
@@ -13577,7 +13577,7 @@
   "4598529": {
     "instrument_token": 4598529,
     "trading_symbol": "NESTLEIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:42+05:30",
       "open": 1431.6,
@@ -13697,7 +13697,7 @@
   "4639745": {
     "instrument_token": 4639745,
     "trading_symbol": "DBREALTY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:57+05:30",
       "open": 112.9,
@@ -13727,7 +13727,7 @@
   "4647169": {
     "instrument_token": 4647169,
     "trading_symbol": "TVSSCS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:19+05:30",
       "open": 110.3,
@@ -13832,7 +13832,7 @@
   "4701441": {
     "instrument_token": 4701441,
     "trading_symbol": "PERSISTENT",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:43+05:30",
       "open": 5061.5,
@@ -14477,7 +14477,7 @@
   "5029377": {
     "instrument_token": 5029377,
     "trading_symbol": "MAXESTATES",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:20+05:30",
       "open": 406.05,
@@ -14492,7 +14492,7 @@
   "5037313": {
     "instrument_token": 5037313,
     "trading_symbol": "ANSALAPI-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:43+05:30",
       "open": 3.73,
@@ -14762,7 +14762,7 @@
   "5197313": {
     "instrument_token": 5197313,
     "trading_symbol": "PRESTIGE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:36+05:30",
       "open": 1373.3,
@@ -14987,7 +14987,7 @@
   "5330433": {
     "instrument_token": 5330433,
     "trading_symbol": "SURAJEST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:09+05:30",
       "open": 216.36,
@@ -15137,7 +15137,7 @@
   "5399297": {
     "instrument_token": 5399297,
     "trading_symbol": "STARCEMENT",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:36+05:30",
       "open": 210.69,
@@ -15272,7 +15272,7 @@
   "5499905": {
     "instrument_token": 5499905,
     "trading_symbol": "STEL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:33+05:30",
       "open": 438.5,
@@ -15362,7 +15362,7 @@
   "5556481": {
     "instrument_token": 5556481,
     "trading_symbol": "MEDIASSIST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 388.8,
@@ -15482,7 +15482,7 @@
   "5724673": {
     "instrument_token": 5724673,
     "trading_symbol": "MCL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:24+05:30",
       "open": 63.81,
@@ -15602,7 +15602,7 @@
   "5818881": {
     "instrument_token": 5818881,
     "trading_symbol": "VSTL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:33+05:30",
       "open": 119.4,
@@ -16007,7 +16007,7 @@
   "6352385": {
     "instrument_token": 6352385,
     "trading_symbol": "FIRSTCRY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:40+05:30",
       "open": 221.2,
@@ -16112,7 +16112,7 @@
   "6399745": {
     "instrument_token": 6399745,
     "trading_symbol": "IBULLSLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:46+05:30",
       "open": 18.31,
@@ -16157,7 +16157,7 @@
   "6429185": {
     "instrument_token": 6429185,
     "trading_symbol": "STYLEBAAZA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:50+05:30",
       "open": 369.5,
@@ -16367,7 +16367,7 @@
   "6564609": {
     "instrument_token": 6564609,
     "trading_symbol": "KRN",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:42+05:30",
       "open": 1119.3,
@@ -16712,7 +16712,7 @@
   "7002369": {
     "instrument_token": 7002369,
     "trading_symbol": "ROSSTECH",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:41+05:30",
       "open": 909.65,
@@ -17012,7 +17012,7 @@
   "7458561": {
     "instrument_token": 7458561,
     "trading_symbol": "INDUSTOWER",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:43+05:30",
       "open": 428.8,
@@ -17027,7 +17027,7 @@
   "7476225": {
     "instrument_token": 7476225,
     "trading_symbol": "STALLION",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:43+05:30",
       "open": 165.6,
@@ -17147,7 +17147,7 @@
   "7606017": {
     "instrument_token": 7606017,
     "trading_symbol": "QPOWER",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:58+05:30",
       "open": 1015.0,
@@ -17177,7 +17177,7 @@
   "7670273": {
     "instrument_token": 7670273,
     "trading_symbol": "JUSTDIAL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 517.0,
@@ -17267,7 +17267,7 @@
   "7996929": {
     "instrument_token": 7996929,
     "trading_symbol": "SCHNEIDER-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:54+05:30",
       "open": 1201.1,
@@ -17327,7 +17327,7 @@
   "193618945": {
     "instrument_token": 193618945,
     "trading_symbol": "NPST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:11+05:30",
       "open": 1033.5,
@@ -17657,7 +17657,7 @@
   "194092289": {
     "instrument_token": 194092289,
     "trading_symbol": "PROSTARM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:30+05:30",
       "open": 147.8,
@@ -17747,7 +17747,7 @@
   "194293249": {
     "instrument_token": 194293249,
     "trading_symbol": "STLNETWORK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:32+05:30",
       "open": 25.42,
@@ -18017,7 +18017,7 @@
   "194436353": {
     "instrument_token": 194436353,
     "trading_symbol": "MIDWESTLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:26+05:30",
       "open": 1348.9,
@@ -18047,7 +18047,7 @@
   "194454273": {
     "instrument_token": 194454273,
     "trading_symbol": "STUDDS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 439.6,
@@ -18212,7 +18212,7 @@
   "194543105": {
     "instrument_token": 194543105,
     "trading_symbol": "STYL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 271.29,
@@ -18362,7 +18362,7 @@
   "194619905": {
     "instrument_token": 194619905,
     "trading_symbol": "AEQUS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:37+05:30",
       "open": 197.12,
@@ -18407,7 +18407,7 @@
   "194630913": {
     "instrument_token": 194630913,
     "trading_symbol": "MODINATUR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-25T12:15:50+05:30",
       "open": 462.8,
@@ -18932,7 +18932,7 @@
   "195415297": {
     "instrument_token": 195415297,
     "trading_symbol": "EFCIL-RE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:15+05:30",
       "open": 15.1,
@@ -19097,7 +19097,7 @@
   "3702273": {
     "instrument_token": 3702273,
     "trading_symbol": "LEXUS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:24+05:30",
       "open": 19.19,
@@ -19187,7 +19187,7 @@
   "2030081": {
     "instrument_token": 2030081,
     "trading_symbol": "BYKE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:13+05:30",
       "open": 34.92,
@@ -19202,7 +19202,7 @@
   "2531585": {
     "instrument_token": 2531585,
     "trading_symbol": "SMARTLINK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:02+05:30",
       "open": 161.2,
@@ -19322,7 +19322,7 @@
   "3778817": {
     "instrument_token": 3778817,
     "trading_symbol": "NELCAST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:36+05:30",
       "open": 135.66,
@@ -19352,7 +19352,7 @@
   "5089537": {
     "instrument_token": 5089537,
     "trading_symbol": "RADIOCITY-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:00:15+05:30",
       "open": 6.11,
@@ -19517,7 +19517,7 @@
   "7728897": {
     "instrument_token": 7728897,
     "trading_symbol": "CURAA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:42+05:30",
       "open": 88.0,
@@ -19652,7 +19652,7 @@
   "3611137": {
     "instrument_token": 3611137,
     "trading_symbol": "AUTOIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-21T11:37:47+05:30",
       "open": 87.44,
@@ -19802,7 +19802,7 @@
   "2761217": {
     "instrument_token": 2761217,
     "trading_symbol": "NOIDATOLL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:59:46+05:30",
       "open": 7.22,
@@ -19832,7 +19832,7 @@
   "7963393": {
     "instrument_token": 7963393,
     "trading_symbol": "DBSTOCKBRO",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:13+05:30",
       "open": 27.5,
@@ -19937,7 +19937,7 @@
   "195314945": {
     "instrument_token": 195314945,
     "trading_symbol": "THAKDEV",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:41+05:30",
       "open": 123.65,
@@ -20147,7 +20147,7 @@
   "677121": {
     "instrument_token": 677121,
     "trading_symbol": "DRCSYSTEMS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:10+05:30",
       "open": 15.76,
@@ -20237,7 +20237,7 @@
   "2087169": {
     "instrument_token": 2087169,
     "trading_symbol": "MEGASTAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:35+05:30",
       "open": 319.45,
@@ -20612,7 +20612,7 @@
   "5485313": {
     "instrument_token": 5485313,
     "trading_symbol": "THEINVEST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:14+05:30",
       "open": 101.0,
@@ -21077,7 +21077,7 @@
   "6628353": {
     "instrument_token": 6628353,
     "trading_symbol": "DBEIL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:13:56+05:30",
       "open": 82.57,
@@ -21092,7 +21092,7 @@
   "1082625": {
     "instrument_token": 1082625,
     "trading_symbol": "ZFSTEERING",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:05+05:30",
       "open": 723.45,
@@ -21242,7 +21242,7 @@
   "1100545": {
     "instrument_token": 1100545,
     "trading_symbol": "STERTOOLS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:20+05:30",
       "open": 235.0,
@@ -21407,7 +21407,7 @@
   "5895681": {
     "instrument_token": 5895681,
     "trading_symbol": "LANCORHOL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T11:56:13+05:30",
       "open": 24.05,
@@ -21692,7 +21692,7 @@
   "4317953": {
     "instrument_token": 4317953,
     "trading_symbol": "LPDC-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:53+05:30",
       "open": 6.84,
@@ -21737,7 +21737,7 @@
   "2401537": {
     "instrument_token": 2401537,
     "trading_symbol": "IL&FSTRANS-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:14:22+05:30",
       "open": 2.3,
@@ -21767,7 +21767,7 @@
   "6292993": {
     "instrument_token": 6292993,
     "trading_symbol": "SANSTAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:41+05:30",
       "open": 112.25,
@@ -21812,7 +21812,7 @@
   "2500865": {
     "instrument_token": 2500865,
     "trading_symbol": "EASTSILK-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T14:42:31+05:30",
       "open": 57.77,
@@ -21842,7 +21842,7 @@
   "2460161": {
     "instrument_token": 2460161,
     "trading_symbol": "ICDSLTD-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:00:28+05:30",
       "open": 43.65,
@@ -22352,7 +22352,7 @@
   "6201857": {
     "instrument_token": 6201857,
     "trading_symbol": "STANLEY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:23+05:30",
       "open": 159.87,
@@ -22427,7 +22427,7 @@
   "3499009": {
     "instrument_token": 3499009,
     "trading_symbol": "MADHUCON-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:03:51+05:30",
       "open": 5.42,
@@ -22487,7 +22487,7 @@
   "6039041": {
     "instrument_token": 6039041,
     "trading_symbol": "GLOSTERLTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 633.45,
@@ -22532,7 +22532,7 @@
   "5171201": {
     "instrument_token": 5171201,
     "trading_symbol": "BEDMUTHA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T11:22:12+05:30",
       "open": 111.0,
@@ -22592,7 +22592,7 @@
   "1681921": {
     "instrument_token": 1681921,
     "trading_symbol": "LAXMICOT-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:27:29+05:30",
       "open": 14.04,
@@ -22607,7 +22607,7 @@
   "7449089": {
     "instrument_token": 7449089,
     "trading_symbol": "DDEVPLSTIK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:22+05:30",
       "open": 237.35,
@@ -22862,7 +22862,7 @@
   "2382081": {
     "instrument_token": 2382081,
     "trading_symbol": "STARTECK",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:45+05:30",
       "open": 248.0,
@@ -22907,7 +22907,7 @@
   "7805697": {
     "instrument_token": 7805697,
     "trading_symbol": "FELDVR-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:41+05:30",
       "open": 2.6,
@@ -22922,7 +22922,7 @@
   "5143553": {
     "instrument_token": 5143553,
     "trading_symbol": "TASTYBITE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:10+05:30",
       "open": 7430.0,
@@ -22997,7 +22997,7 @@
   "4979457": {
     "instrument_token": 4979457,
     "trading_symbol": "CAPTRUST-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:50+05:30",
       "open": 13.36,
@@ -23417,7 +23417,7 @@
   "195227649": {
     "instrument_token": 195227649,
     "trading_symbol": "BNAGROCHEM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:05:54+05:30",
       "open": 295.0,
@@ -23432,7 +23432,7 @@
   "376833": {
     "instrument_token": 376833,
     "trading_symbol": "ACCURACY-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:58:06+05:30",
       "open": 5.45,
@@ -23522,7 +23522,7 @@
   "2831873": {
     "instrument_token": 2831873,
     "trading_symbol": "SECURKLOUD-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:02:09+05:30",
       "open": 21.74,
@@ -23777,7 +23777,7 @@
   "3830017": {
     "instrument_token": 3830017,
     "trading_symbol": "MAGNUM-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T11:55:33+05:30",
       "open": 20.1,
@@ -23792,7 +23792,7 @@
   "4616449": {
     "instrument_token": 4616449,
     "trading_symbol": "MBLINFRA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:46:07+05:30",
       "open": 25.0,
@@ -23867,7 +23867,7 @@
   "3807233": {
     "instrument_token": 3807233,
     "trading_symbol": "USK-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:45+05:30",
       "open": 21.7,
@@ -24317,7 +24317,7 @@
   "1436161": {
     "instrument_token": 1436161,
     "trading_symbol": "ASTRAZEN",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 8700.0,
@@ -24437,7 +24437,7 @@
   "2802689": {
     "instrument_token": 2802689,
     "trading_symbol": "STCINDIA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:19+05:30",
       "open": 116.0,
@@ -24512,7 +24512,7 @@
   "5799937": {
     "instrument_token": 5799937,
     "trading_symbol": "SIGNPOST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:33+05:30",
       "open": 278.0,
@@ -24617,7 +24617,7 @@
   "461313": {
     "instrument_token": 461313,
     "trading_symbol": "JYOTISTRUC",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 12.32,
@@ -24917,7 +24917,7 @@
   "6404353": {
     "instrument_token": 6404353,
     "trading_symbol": "BODALCHEM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-25T12:15:57+05:30",
       "open": 76.56,
@@ -24962,7 +24962,7 @@
   "555777": {
     "instrument_token": 555777,
     "trading_symbol": "RAJMET-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:06:58+05:30",
       "open": 3.95,
@@ -24977,7 +24977,7 @@
   "4487937": {
     "instrument_token": 4487937,
     "trading_symbol": "MAHASTEEL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:28+05:30",
       "open": 792.0,
@@ -25292,7 +25292,7 @@
   "6218753": {
     "instrument_token": 6218753,
     "trading_symbol": "VSTTILLERS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:29+05:30",
       "open": 4560.0,
@@ -25547,7 +25547,7 @@
   "1576705": {
     "instrument_token": 1576705,
     "trading_symbol": "ARTNIRMAN-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:57+05:30",
       "open": 38.42,
@@ -25562,7 +25562,7 @@
   "225281": {
     "instrument_token": 225281,
     "trading_symbol": "ASTRON-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:26:26+05:30",
       "open": 4.2,
@@ -25712,7 +25712,7 @@
   "1915393": {
     "instrument_token": 1915393,
     "trading_symbol": "MANAKSTEEL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:11+05:30",
       "open": 63.0,
@@ -25847,7 +25847,7 @@
   "4333313": {
     "instrument_token": 4333313,
     "trading_symbol": "JOCIL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:10:06+05:30",
       "open": 149.4,
@@ -25907,7 +25907,7 @@
   "2154753": {
     "instrument_token": 2154753,
     "trading_symbol": "HAVISHA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:04:42+05:30",
       "open": 1.56,
@@ -25982,7 +25982,7 @@
   "2516225": {
     "instrument_token": 2516225,
     "trading_symbol": "SAMBHAAV-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:30:11+05:30",
       "open": 6.85,
@@ -26282,7 +26282,7 @@
   "3537153": {
     "instrument_token": 3537153,
     "trading_symbol": "KAMOPAINTS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:02:32+05:30",
       "open": 5.24,
@@ -26402,7 +26402,7 @@
   "4341505": {
     "instrument_token": 4341505,
     "trading_symbol": "ALKALI",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:13:27+05:30",
       "open": 97.45,
@@ -26567,7 +26567,7 @@
   "4637185": {
     "instrument_token": 4637185,
     "trading_symbol": "VASCONEQ-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:23:18+05:30",
       "open": 34.57,
@@ -26627,7 +26627,7 @@
   "3909377": {
     "instrument_token": 3909377,
     "trading_symbol": "CORDSCABLE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:34+05:30",
       "open": 243.52,
@@ -26642,7 +26642,7 @@
   "4795137": {
     "instrument_token": 4795137,
     "trading_symbol": "MASKINVEST-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:07:28+05:30",
       "open": 148.99,
@@ -26687,7 +26687,7 @@
   "194343169": {
     "instrument_token": 194343169,
     "trading_symbol": "VMSTMT-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:10+05:30",
       "open": 46.3,
@@ -26732,7 +26732,7 @@
   "6525953": {
     "instrument_token": 6525953,
     "trading_symbol": "ONELIFECAP",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-21T10:56:31+05:30",
       "open": 23.91,
@@ -26927,7 +26927,7 @@
   "254209": {
     "instrument_token": 254209,
     "trading_symbol": "EVERESTIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:36+05:30",
       "open": 368.4,
@@ -27062,7 +27062,7 @@
   "2263297": {
     "instrument_token": 2263297,
     "trading_symbol": "BCG-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:52+05:30",
       "open": 9.05,
@@ -27227,7 +27227,7 @@
   "5462785": {
     "instrument_token": 5462785,
     "trading_symbol": "STEELXIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 10.35,
@@ -27257,7 +27257,7 @@
   "320001": {
     "instrument_token": 320001,
     "trading_symbol": "CASTROLIND",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:37+05:30",
       "open": 183.02,
@@ -27287,7 +27287,7 @@
   "2089473": {
     "instrument_token": 2089473,
     "trading_symbol": "FIBERWEB-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:41+05:30",
       "open": 32.97,
@@ -27467,7 +27467,7 @@
   "3640833": {
     "instrument_token": 3640833,
     "trading_symbol": "CTE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T10:33:51+05:30",
       "open": 32.45,
@@ -27482,7 +27482,7 @@
   "6524417": {
     "instrument_token": 6524417,
     "trading_symbol": "TIJARIA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:01:58+05:30",
       "open": 4.68,
@@ -27542,7 +27542,7 @@
   "7893761": {
     "instrument_token": 7893761,
     "trading_symbol": "PILITA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:06:45+05:30",
       "open": 8.12,
@@ -27662,7 +27662,7 @@
   "5109505": {
     "instrument_token": 5109505,
     "trading_symbol": "WAAREEINDO-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:07+05:30",
       "open": 388.0,
@@ -27707,7 +27707,7 @@
   "5068801": {
     "instrument_token": 5068801,
     "trading_symbol": "WELINV",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:02:14+05:30",
       "open": 1914.9,
@@ -27947,7 +27947,7 @@
   "6415361": {
     "instrument_token": 6415361,
     "trading_symbol": "ECOSMOBLTY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:30+05:30",
       "open": 138.52,
@@ -28052,7 +28052,7 @@
   "6211841": {
     "instrument_token": 6211841,
     "trading_symbol": "ESTER",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:24+05:30",
       "open": 96.65,
@@ -28157,7 +28157,7 @@
   "4538369": {
     "instrument_token": 4538369,
     "trading_symbol": "ASTEC",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 739.8,
@@ -28172,7 +28172,7 @@
   "2297601": {
     "instrument_token": 2297601,
     "trading_symbol": "PARASPETRO-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:05:33+05:30",
       "open": 2.13,
@@ -28202,7 +28202,7 @@
   "3264769": {
     "instrument_token": 3264769,
     "trading_symbol": "DJML-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:20:00+05:30",
       "open": 94.0,
@@ -28247,7 +28247,7 @@
   "4855553": {
     "instrument_token": 4855553,
     "trading_symbol": "KAPSTON",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:17+05:30",
       "open": 325.25,
@@ -28367,7 +28367,7 @@
   "1506305": {
     "instrument_token": 1506305,
     "trading_symbol": "NA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T15:13:34+05:30",
       "open": 667.0,
@@ -28472,7 +28472,7 @@
   "762881": {
     "instrument_token": 762881,
     "trading_symbol": "ORTINGLOBE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:51:33+05:30",
       "open": 15.97,
@@ -28652,7 +28652,7 @@
   "4367105": {
     "instrument_token": 4367105,
     "trading_symbol": "PALREDTEC-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:41+05:30",
       "open": 47.7,
@@ -28712,7 +28712,7 @@
   "195307265": {
     "instrument_token": 195307265,
     "trading_symbol": "SONAL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:41+05:30",
       "open": 88.0,
@@ -29057,7 +29057,7 @@
   "3128065": {
     "instrument_token": 3128065,
     "trading_symbol": "RUSTOMJEE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:17+05:30",
       "open": 398.05,
@@ -29177,7 +29177,7 @@
   "3629569": {
     "instrument_token": 3629569,
     "trading_symbol": "IZMO-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:43+05:30",
       "open": 638.0,
@@ -29222,7 +29222,7 @@
   "195216129": {
     "instrument_token": 195216129,
     "trading_symbol": "BAJAJST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:37+05:30",
       "open": 407.25,
@@ -29417,7 +29417,7 @@
   "3665409": {
     "instrument_token": 3665409,
     "trading_symbol": "TTL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:55:13+05:30",
       "open": 7.84,
@@ -29447,7 +29447,7 @@
   "4976129": {
     "instrument_token": 4976129,
     "trading_symbol": "AHLEAST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:23:35+05:30",
       "open": 160.1,
@@ -29627,7 +29627,7 @@
   "1382657": {
     "instrument_token": 1382657,
     "trading_symbol": "NGIL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:00:40+05:30",
       "open": 39.35,
@@ -29657,7 +29657,7 @@
   "3398401": {
     "instrument_token": 3398401,
     "trading_symbol": "INDOTECH",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:10+05:30",
       "open": 2485.0,
@@ -29747,7 +29747,7 @@
   "6422017": {
     "instrument_token": 6422017,
     "trading_symbol": "TREEHOUSE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:36:54+05:30",
       "open": 7.58,
@@ -29807,7 +29807,7 @@
   "1607169": {
     "instrument_token": 1607169,
     "trading_symbol": "MEDICAMEQ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:38+05:30",
       "open": 268.0,
@@ -29912,7 +29912,7 @@
   "195405057": {
     "instrument_token": 195405057,
     "trading_symbol": "GRADIENTE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-21T11:07:18+05:30",
       "open": 5.67,
@@ -29957,7 +29957,7 @@
   "3917825": {
     "instrument_token": 3917825,
     "trading_symbol": "VIRINCHI-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:05:42+05:30",
       "open": 16.5,
@@ -30137,7 +30137,7 @@
   "6575105": {
     "instrument_token": 6575105,
     "trading_symbol": "JISLDVREQS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:30+05:30",
       "open": 22.97,
@@ -30257,7 +30257,7 @@
   "4540161": {
     "instrument_token": 4540161,
     "trading_symbol": "BAFNAPH-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-15T14:44:52+05:30",
       "open": 135.3,
@@ -30332,7 +30332,7 @@
   "3410177": {
     "instrument_token": 3410177,
     "trading_symbol": "ORTEL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:41+05:30",
       "open": 1.6,
@@ -30602,7 +30602,7 @@
   "194589697": {
     "instrument_token": 194589697,
     "trading_symbol": "GLOTTIS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T11:00:00+05:30",
       "open": 68.43,
@@ -30692,7 +30692,7 @@
   "5380353": {
     "instrument_token": 5380353,
     "trading_symbol": "FMNL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:56:18+05:30",
       "open": 10.75,
@@ -30737,7 +30737,7 @@
   "842497": {
     "instrument_token": 842497,
     "trading_symbol": "STARPAPER",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 139.65,
@@ -30752,7 +30752,7 @@
   "5561089": {
     "instrument_token": 5561089,
     "trading_symbol": "LASA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:57+05:30",
       "open": 7.67,
@@ -30902,7 +30902,7 @@
   "2392577": {
     "instrument_token": 2392577,
     "trading_symbol": "PNC-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:00:17+05:30",
       "open": 18.38,
@@ -30977,7 +30977,7 @@
   "4186881": {
     "instrument_token": 4186881,
     "trading_symbol": "PANACHE-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:57+05:30",
       "open": 370.0,
@@ -30992,7 +30992,7 @@
   "195208449": {
     "instrument_token": 195208449,
     "trading_symbol": "ACSTECH",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:37+05:30",
       "open": 33.15,
@@ -31037,7 +31037,7 @@
   "194299905": {
     "instrument_token": 194299905,
     "trading_symbol": "RNBDENIMS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:35+05:30",
       "open": 11.9,
@@ -31112,7 +31112,7 @@
   "3558401": {
     "instrument_token": 3558401,
     "trading_symbol": "CREST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:23:09+05:30",
       "open": 352.0,
@@ -31442,7 +31442,7 @@
   "769281": {
     "instrument_token": 769281,
     "trading_symbol": "SUVIDHAA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:54+05:30",
       "open": 2.89,
@@ -31517,7 +31517,7 @@
   "1421057": {
     "instrument_token": 1421057,
     "trading_symbol": "ABMINTLLTD-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:01:45+05:30",
       "open": 48.12,
@@ -31652,7 +31652,7 @@
   "2360065": {
     "instrument_token": 2360065,
     "trading_symbol": "TPLPLASTEH",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:27+05:30",
       "open": 63.18,
@@ -31697,7 +31697,7 @@
   "967937": {
     "instrument_token": 967937,
     "trading_symbol": "WIMPLAST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:48+05:30",
       "open": 347.05,
@@ -31787,7 +31787,7 @@
   "4958721": {
     "instrument_token": 4958721,
     "trading_symbol": "AHLWEST-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:14:45+05:30",
       "open": 649.15,
@@ -31832,7 +31832,7 @@
   "3788033": {
     "instrument_token": 3788033,
     "trading_symbol": "SIGMAADV-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:59:56+05:30",
       "open": 349.55,
@@ -31892,7 +31892,7 @@
   "5017345": {
     "instrument_token": 5017345,
     "trading_symbol": "PRAKASHSTL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:17+05:30",
       "open": 4.37,
@@ -32117,7 +32117,7 @@
   "2288641": {
     "instrument_token": 2288641,
     "trading_symbol": "E2E-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:47+05:30",
       "open": 3070.0,
@@ -32237,7 +32237,7 @@
   "5352961": {
     "instrument_token": 5352961,
     "trading_symbol": "A2ZINFRA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:52:21+05:30",
       "open": 14.89,
@@ -32282,7 +32282,7 @@
   "790529": {
     "instrument_token": 790529,
     "trading_symbol": "INDOSTAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:22+05:30",
       "open": 193.91,
@@ -32477,7 +32477,7 @@
   "6924033": {
     "instrument_token": 6924033,
     "trading_symbol": "MASTERTR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:12+05:30",
       "open": 91.11,
@@ -32552,7 +32552,7 @@
   "195000321": {
     "instrument_token": 195000321,
     "trading_symbol": "NIMBSPROJ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:11:58+05:30",
       "open": 217.15,
@@ -32657,7 +32657,7 @@
   "3513089": {
     "instrument_token": 3513089,
     "trading_symbol": "JHS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:00:15+05:30",
       "open": 8.75,
@@ -32732,7 +32732,7 @@
   "5085953": {
     "instrument_token": 5085953,
     "trading_symbol": "AMNPLST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:25:28+05:30",
       "open": 196.54,
@@ -32792,7 +32792,7 @@
   "7059201": {
     "instrument_token": 7059201,
     "trading_symbol": "ODIGMA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:05:41+05:30",
       "open": 26.0,
@@ -32822,7 +32822,7 @@
   "195278593": {
     "instrument_token": 195278593,
     "trading_symbol": "NATIONSTD",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:25:04+05:30",
       "open": 1177.0,
@@ -32867,7 +32867,7 @@
   "5404929": {
     "instrument_token": 5404929,
     "trading_symbol": "BFINVEST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:26+05:30",
       "open": 400.85,
@@ -32927,7 +32927,7 @@
   "2825985": {
     "instrument_token": 2825985,
     "trading_symbol": "DCMNVL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:05:44+05:30",
       "open": 149.76,
@@ -33122,7 +33122,7 @@
   "3727873": {
     "instrument_token": 3727873,
     "trading_symbol": "ZENITHSTL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:25:35+05:30",
       "open": 5.92,
@@ -33167,7 +33167,7 @@
   "909569": {
     "instrument_token": 909569,
     "trading_symbol": "EQUIPPP-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:25:36+05:30",
       "open": 14.55,
@@ -33272,7 +33272,7 @@
   "1025": {
     "instrument_token": 1025,
     "trading_symbol": "21STCENMGM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:10:02+05:30",
       "open": 30.92,
@@ -33302,7 +33302,7 @@
   "195298305": {
     "instrument_token": 195298305,
     "trading_symbol": "SCANSTL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 40.44,
@@ -33377,7 +33377,7 @@
   "1935361": {
     "instrument_token": 1935361,
     "trading_symbol": "UNITEDPOLY",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-22T10:51:57+05:30",
       "open": 34.72,
@@ -33557,7 +33557,7 @@
   "2127361": {
     "instrument_token": 2127361,
     "trading_symbol": "PRITI-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:03:51+05:30",
       "open": 42.76,
@@ -33692,7 +33692,7 @@
   "2477569": {
     "instrument_token": 2477569,
     "trading_symbol": "SOUTHWEST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:39+05:30",
       "open": 249.35,
@@ -33707,7 +33707,7 @@
   "380417": {
     "instrument_token": 380417,
     "trading_symbol": "REPL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:02:57+05:30",
       "open": 69.58,
@@ -33902,7 +33902,7 @@
   "3806209": {
     "instrument_token": 3806209,
     "trading_symbol": "FLFL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:46+05:30",
       "open": 1.4,
@@ -33962,7 +33962,7 @@
   "2979073": {
     "instrument_token": 2979073,
     "trading_symbol": "SALSTEEL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 61.5,
@@ -33977,7 +33977,7 @@
   "5035521": {
     "instrument_token": 5035521,
     "trading_symbol": "COMPINFO-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-03T09:07:39+05:30",
       "open": 1.31,
@@ -34157,7 +34157,7 @@
   "6183425": {
     "instrument_token": 6183425,
     "trading_symbol": "DEEDEV",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:23+05:30",
       "open": 476.35,
@@ -34292,7 +34292,7 @@
   "6594561": {
     "instrument_token": 6594561,
     "trading_symbol": "VIKASECO-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:07:07+05:30",
       "open": 1.32,
@@ -34307,7 +34307,7 @@
   "2159873": {
     "instrument_token": 2159873,
     "trading_symbol": "VIPULLTD-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:58:02+05:30",
       "open": 8.79,
@@ -34532,7 +34532,7 @@
   "189953": {
     "instrument_token": 189953,
     "trading_symbol": "COSMOFIRST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:33+05:30",
       "open": 806.1,
@@ -34547,7 +34547,7 @@
   "3073537": {
     "instrument_token": 3073537,
     "trading_symbol": "FAZE3Q-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:01:23+05:30",
       "open": 439.95,
@@ -34562,7 +34562,7 @@
   "5041921": {
     "instrument_token": 5041921,
     "trading_symbol": "JITFINFRA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:28+05:30",
       "open": 308.75,
@@ -34682,7 +34682,7 @@
   "1855489": {
     "instrument_token": 1855489,
     "trading_symbol": "LYKALABS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:42:36+05:30",
       "open": 59.9,
@@ -34772,7 +34772,7 @@
   "2083585": {
     "instrument_token": 2083585,
     "trading_symbol": "BLBLIMITED-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:20+05:30",
       "open": 17.1,
@@ -34817,7 +34817,7 @@
   "2264321": {
     "instrument_token": 2264321,
     "trading_symbol": "UMAEXPORTS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:56:39+05:30",
       "open": 24.0,
@@ -34847,7 +34847,7 @@
   "7762689": {
     "instrument_token": 7762689,
     "trading_symbol": "ESSENTIA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:06:55+05:30",
       "open": 1.63,
@@ -34862,7 +34862,7 @@
   "2485761": {
     "instrument_token": 2485761,
     "trading_symbol": "TOKYOPLAST-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:15:35+05:30",
       "open": 87.5,
@@ -34907,7 +34907,7 @@
   "3003393": {
     "instrument_token": 3003393,
     "trading_symbol": "CONSOFINVT-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:34:40+05:30",
       "open": 225.0,
@@ -35012,7 +35012,7 @@
   "2054145": {
     "instrument_token": 2054145,
     "trading_symbol": "CINEVISTA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:26:17+05:30",
       "open": 15.78,
@@ -35057,7 +35057,7 @@
   "3389441": {
     "instrument_token": 3389441,
     "trading_symbol": "SADBHAV-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:08+05:30",
       "open": 9.75,
@@ -35117,7 +35117,7 @@
   "4372737": {
     "instrument_token": 4372737,
     "trading_symbol": "URAVIDEF-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:21+05:30",
       "open": 123.75,
@@ -35147,7 +35147,7 @@
   "195213569": {
     "instrument_token": 195213569,
     "trading_symbol": "ASTAR",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T14:48:06+05:30",
       "open": 610.1,
@@ -35237,7 +35237,7 @@
   "2964481": {
     "instrument_token": 2964481,
     "trading_symbol": "WESTLIFE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:35+05:30",
       "open": 463.5,
@@ -35312,7 +35312,7 @@
   "580609": {
     "instrument_token": 580609,
     "trading_symbol": "MOTOGENFIN",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-02T17:33:47+05:30",
       "open": 25.77,
@@ -35417,7 +35417,7 @@
   "1537537": {
     "instrument_token": 1537537,
     "trading_symbol": "COASTCORP",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:38+05:30",
       "open": 60.38,
@@ -35477,7 +35477,7 @@
   "4858113": {
     "instrument_token": 4858113,
     "trading_symbol": "UNIVASTU",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:24+05:30",
       "open": 70.0,
@@ -35822,7 +35822,7 @@
   "3601153": {
     "instrument_token": 3601153,
     "trading_symbol": "WANBURY-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:29+05:30",
       "open": 308.0,
@@ -35912,7 +35912,7 @@
   "1644033": {
     "instrument_token": 1644033,
     "trading_symbol": "MANORG",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:02:58+05:30",
       "open": 562.25,
@@ -35987,7 +35987,7 @@
   "3881217": {
     "instrument_token": 3881217,
     "trading_symbol": "HITECHCORP",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:13:24+05:30",
       "open": 266.39,
@@ -36107,7 +36107,7 @@
   "194378497": {
     "instrument_token": 194378497,
     "trading_symbol": "BLUESTONE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:31+05:30",
       "open": 461.0,
@@ -36167,7 +36167,7 @@
   "2189313": {
     "instrument_token": 2189313,
     "trading_symbol": "BLUECOAST-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:17:40+05:30",
       "open": 31.98,
@@ -36197,7 +36197,7 @@
   "491265": {
     "instrument_token": 491265,
     "trading_symbol": "KOPRAN",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-29T15:06:33+05:30",
       "open": 206.37,
@@ -36242,7 +36242,7 @@
   "4991489": {
     "instrument_token": 4991489,
     "trading_symbol": "SECMARK-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:03:19+05:30",
       "open": 121.31,
@@ -36272,7 +36272,7 @@
   "1033473": {
     "instrument_token": 1033473,
     "trading_symbol": "AUSOMENT",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:02+05:30",
       "open": 125.48,
@@ -36317,7 +36317,7 @@
   "194495745": {
     "instrument_token": 194495745,
     "trading_symbol": "SHIVAUM-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:05:38+05:30",
       "open": 325.0,
@@ -36377,7 +36377,7 @@
   "5932801": {
     "instrument_token": 5932801,
     "trading_symbol": "KRYSTAL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:20+05:30",
       "open": 584.0,
@@ -36407,7 +36407,7 @@
   "1394945": {
     "instrument_token": 1394945,
     "trading_symbol": "CHEMPLASTS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:33+05:30",
       "open": 229.95,
@@ -36467,7 +36467,7 @@
   "2018561": {
     "instrument_token": 2018561,
     "trading_symbol": "KREBSBIO-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:58:01+05:30",
       "open": 55.62,
@@ -36602,7 +36602,7 @@
   "195277313": {
     "instrument_token": 195277313,
     "trading_symbol": "MMWL",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:06:07+05:30",
       "open": 14.62,
@@ -36632,7 +36632,7 @@
   "8065793": {
     "instrument_token": 8065793,
     "trading_symbol": "JPOLYINVST",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:38+05:30",
       "open": 1025.0,
@@ -36932,7 +36932,7 @@
   "3744513": {
     "instrument_token": 3744513,
     "trading_symbol": "HILTON",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-21T11:37:24+05:30",
       "open": 21.5,
@@ -37157,7 +37157,7 @@
   "4828929": {
     "instrument_token": 4828929,
     "trading_symbol": "VERTOZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:10:55+05:30",
       "open": 47.86,
@@ -37202,7 +37202,7 @@
   "194901249": {
     "instrument_token": 194901249,
     "trading_symbol": "AEPL-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:32:44+05:30",
       "open": 16.07,
@@ -37247,7 +37247,7 @@
   "194394881": {
     "instrument_token": 194394881,
     "trading_symbol": "SYSTMTXC",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:27:30+05:30",
       "open": 66.3,
@@ -37262,7 +37262,7 @@
   "4824065": {
     "instrument_token": 4824065,
     "trading_symbol": "NIRAJISPAT-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:27:58+05:30",
       "open": 221.13,
@@ -37367,7 +37367,7 @@
   "383233": {
     "instrument_token": 383233,
     "trading_symbol": "SHIVAMILLS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T12:32:25+05:30",
       "open": 64.2,
@@ -37667,7 +37667,7 @@
   "6171393": {
     "instrument_token": 6171393,
     "trading_symbol": "SKIL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T14:29:29+05:30",
       "open": 0.99,
@@ -37697,7 +37697,7 @@
   "2910977": {
     "instrument_token": 2910977,
     "trading_symbol": "BGLOBAL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:09:52+05:30",
       "open": 3.27,
@@ -37727,7 +37727,7 @@
   "194355713": {
     "instrument_token": 194355713,
     "trading_symbol": "NA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T13:08:46+05:30",
       "open": 2.35,
@@ -37757,7 +37757,7 @@
   "5037057": {
     "instrument_token": 5037057,
     "trading_symbol": "CMICABLES-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:11:45+05:30",
       "open": 3.22,
@@ -37772,7 +37772,7 @@
   "194688001": {
     "instrument_token": 194688001,
     "trading_symbol": "FCONSUMER-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:13:54+05:30",
       "open": 0.32,
@@ -37787,7 +37787,7 @@
   "194678273": {
     "instrument_token": 194678273,
     "trading_symbol": "DIL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:12:34+05:30",
       "open": 1.0,
@@ -37847,7 +37847,7 @@
   "7821825": {
     "instrument_token": 7821825,
     "trading_symbol": "NEUEON-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T14:46:00+05:30",
       "open": 23.06,
@@ -37862,7 +37862,7 @@
   "2836225": {
     "instrument_token": 2836225,
     "trading_symbol": "NA",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-18T11:12:36+05:30",
       "open": 12.97,
@@ -37877,7 +37877,7 @@
   "1986305": {
     "instrument_token": 1986305,
     "trading_symbol": "ABAN-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:12:31+05:30",
       "open": 16.15,
@@ -37892,7 +37892,7 @@
   "2653697": {
     "instrument_token": 2653697,
     "trading_symbol": "UNIVAFOODS-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-25T14:59:28+05:30",
       "open": 8.17,
@@ -37937,7 +37937,7 @@
   "1602305": {
     "instrument_token": 1602305,
     "trading_symbol": "RAJVIR-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T14:38:17+05:30",
       "open": 7.6,
@@ -37982,7 +37982,7 @@
   "2400257": {
     "instrument_token": 2400257,
     "trading_symbol": "QUINTEGRA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T12:34:35+05:30",
       "open": 1.31,
@@ -38012,7 +38012,7 @@
   "7330561": {
     "instrument_token": 7330561,
     "trading_symbol": "SRPL-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:12:18+05:30",
       "open": 0.42,
@@ -38027,7 +38027,7 @@
   "5567233": {
     "instrument_token": 5567233,
     "trading_symbol": "EDUCOMP-BZ",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:12:36+05:30",
       "open": 0.96,
@@ -38222,7 +38222,7 @@
   "3514881": {
     "instrument_token": 3514881,
     "trading_symbol": "INSPIRISYS",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:06:33+05:30",
       "open": 126.31,
@@ -38477,7 +38477,7 @@
   "194298369": {
     "instrument_token": 194298369,
     "trading_symbol": "STLNETWORK-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:32+05:30",
       "open": 24.91,
@@ -38627,7 +38627,7 @@
   "5177089": {
     "instrument_token": 5177089,
     "trading_symbol": "CLEDUCATE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-27T13:10:05+05:30",
       "open": 47.58,
@@ -38927,7 +38927,7 @@
   "6429697": {
     "instrument_token": 6429697,
     "trading_symbol": "STYLEBAAZA-BE",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-05-19T15:28:20+05:30",
       "open": 351.55,
@@ -39767,7 +39767,7 @@
   "2807553": {
     "instrument_token": 2807553,
     "trading_symbol": "VIVIANA-SM",
-    "tick_count": 2,
+    "tick_count": 1,
     "ohlcv": {
       "timestamp": "2026-06-01T15:11:43+05:30",
       "open": 931.95,
