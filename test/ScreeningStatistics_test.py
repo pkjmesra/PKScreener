@@ -3814,6 +3814,49 @@ class TestUncoveredMethods(unittest.TestCase):
         result = self.stats.findHigherBullishOpens(df)
         self.assertIsNotNone(result)
 
+    def test_findDarvasBoxBreakout_breaks_above_box_top(self):
+        """A close above the historical box top should report an 'up' breakout."""
+        # Newest-first: row 0 is "today", breaking out above box_top=110.
+        # box_bottom is the lowest low reached since the swing high (100).
+        df = pd.DataFrame({
+            'high': [115, 108, 107, 106, 110],
+            'low':  [112, 103, 102, 100, 105],
+            'close': [114, 106, 104, 103, 109],
+        })
+        is_breakout, box_top, box_bottom, box_range_pct, direction = (
+            self.stats.findDarvasBoxBreakout(df, lookback_periods=5)
+        )
+        self.assertTrue(is_breakout)
+        self.assertEqual(box_top, 110)
+        self.assertEqual(box_bottom, 100)
+        self.assertEqual(direction, "up")
+
+    def test_findDarvasBoxBreakout_inside_box_is_not_a_breakout(self):
+        """A close still between box_bottom and box_top should not breakout."""
+        df = pd.DataFrame({
+            'high': [106, 108, 107, 106, 110],
+            'low':  [101, 103, 102, 100, 105],
+            'close': [104, 106, 104, 103, 109],
+        })
+        is_breakout, box_top, box_bottom, box_range_pct, direction = (
+            self.stats.findDarvasBoxBreakout(df, lookback_periods=5)
+        )
+        self.assertFalse(is_breakout)
+        self.assertIsNone(direction)
+
+    def test_findDarvasBoxBreakout_rejects_box_outside_size_range(self):
+        """A box tighter than min_box_pct should be rejected (no breakout)."""
+        df = pd.DataFrame({
+            'high': [100.4, 100.3, 100.4, 100.6],
+            'low':  [100.1, 100.0, 100.0, 100.0],
+            'close': [100.2, 100.2, 100.1, 100.5],
+        })
+        is_breakout, box_top, box_bottom, box_range_pct, direction = (
+            self.stats.findDarvasBoxBreakout(df, lookback_periods=5, min_box_pct=2.0)
+        )
+        self.assertFalse(is_breakout)
+        self.assertIsNone(direction)
+
     def test_findHigherOpens(self):
         """Test findHigherOpens method."""
         df = pd.DataFrame({
