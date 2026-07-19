@@ -4339,6 +4339,50 @@ class TestRSIMethods(unittest.TestCase):
         result = self.stats.findRSICrossingMA(df, screenDict, saveDict, lookFor=1, maLength=5)
         self.assertIsInstance(result, (bool, np.bool_))
 
+    def test_findRSIDivergence_bullish(self):
+        """Test findRSIDivergence detects a bullish divergence (price lower low, RSI higher low)."""
+        closes_oldest_first = [100,98,96,94,92,94,96,98,100,96,92,86,90,94,96,98,100,102]
+        rsis_oldest_first = [50,45,40,35,30,35,40,45,50,45,38,40,45,50,55,58,60,62]
+        df = pd.DataFrame({
+            'close': list(reversed(closes_oldest_first)),
+            'RSI': list(reversed(rsis_oldest_first)),
+        })
+        screenDict = {}
+        saveDict = {}
+        result = self.stats.findRSIDivergence(df, screenDict, saveDict, lookFor=1, lookback=14)
+        self.assertTrue(result)
+        self.assertIn('Bullish', saveDict.get('Pattern', ''))
+
+    def test_findRSIDivergence_bearish(self):
+        """Test findRSIDivergence detects a bearish divergence (price higher high, RSI lower high)."""
+        closes_oldest_first = [100,102,104,106,108,106,104,102,100,104,108,114,110,106,104,102,100,98]
+        rsis_oldest_first = [50,55,60,65,70,65,60,55,50,55,62,60,55,50,45,42,40,38]
+        df = pd.DataFrame({
+            'close': list(reversed(closes_oldest_first)),
+            'RSI': list(reversed(rsis_oldest_first)),
+        })
+        screenDict = {}
+        saveDict = {}
+        result = self.stats.findRSIDivergence(df, screenDict, saveDict, lookFor=2, lookback=14)
+        self.assertTrue(result)
+        self.assertIn('Bearish', saveDict.get('Pattern', ''))
+
+    def test_findRSIDivergence_none(self):
+        """Test findRSIDivergence returns False when price and RSI trend together (no divergence)."""
+        closes = list(range(100, 118))
+        rsis = list(range(40, 58))
+        df = pd.DataFrame({'close': closes, 'RSI': rsis})
+        result = self.stats.findRSIDivergence(df, {}, {}, lookFor=3, lookback=14)
+        self.assertFalse(result)
+
+    def test_findRSIDivergence_invalid_input(self):
+        """Test findRSIDivergence handles missing columns, empty and short dataframes gracefully."""
+        self.assertFalse(self.stats.findRSIDivergence(None, {}, {}))
+        self.assertFalse(self.stats.findRSIDivergence(pd.DataFrame(), {}, {}))
+        self.assertFalse(self.stats.findRSIDivergence(pd.DataFrame({'close': [1, 2, 3]}), {}, {}))
+        shortDf = pd.DataFrame({'close': [100, 99, 98], 'RSI': [40, 42, 44]})
+        self.assertFalse(self.stats.findRSIDivergence(shortDf, {}, {}))
+
     def test_findRSRating(self):
         """Test findRSRating method."""
         df = pd.DataFrame({'close': [100, 102, 104, 106, 108]})
