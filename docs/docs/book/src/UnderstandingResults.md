@@ -358,7 +358,7 @@ If you are a 3rd year or final year engineering graduate or pursuing masters in 
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=pkjmesra/pkscreener&type=Date)](https://star-history.com/#pkjmesra/pkscreener&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=pkjmesra/pkscreener&type=Date)](https://star-history.dera.page/#pkjmesra/pkscreener&Date)
 
 [MADE-IN-INDIA-badge]: https://img.shields.io/badge/MADE%20WITH%20%E2%9D%A4%20IN-INDIA-orange
 [MADE-IN-INDIA]: https://en.wikipedia.org/wiki/India
