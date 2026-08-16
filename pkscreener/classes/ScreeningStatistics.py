@@ -4255,6 +4255,65 @@ class ScreeningStatistics:
         is_near = min_dist <= threshold_pct
         return is_near, extension_levels, nearest, min_dist * 100
 
+    def findDarvasBoxBreakout(self, df, lookback_periods=20, min_box_pct=2.0, max_box_pct=25.0,
+                               high_col='high', low_col='low', close_col='close'):
+        """
+        Detect a Darvas Box formation and any breakout/breakdown from it.
+
+        The box is formed from the historical window *excluding* the most
+        recent (today's) row, so that today's own high/close can be
+        evaluated against it as a potential breakout:
+          - Box top: the swing high within the historical window.
+          - Box bottom: the lowest low reached since that swing high, i.e.
+            the consolidation low that followed the peak.
+
+        Returns:
+            (is_breakout, box_top, box_bottom, box_range_pct, direction)
+            direction is 'up' for today's close above box_top, 'down' for a
+            close below box_bottom, or None if price is still inside the box
+            or no valid box could be formed (e.g. box size outside
+            [min_box_pct, max_box_pct]).
+        """
+        if df is None or len(df) < 3:
+            return False, None, None, 0, None
+
+        data = df.copy()
+        # Data is newest-first; reset to a plain positional index so we can
+        # safely slice by position. Row 0 is "today" and is excluded from
+        # box formation — the box must already exist before today's move.
+        window = data.head(lookback_periods + 1) if lookback_periods else data
+        window = window.reset_index(drop=True)
+        if len(window) < 3:
+            return False, None, None, 0, None
+
+        current_close = window.loc[0, close_col]
+        historical = window.iloc[1:].reset_index(drop=True)
+
+        box_top_pos = historical[high_col].idxmax()
+        box_top = historical.loc[box_top_pos, high_col]
+        # Rows from the most recent historical row up to and including the
+        # swing high — the consolidation that followed the peak.
+        post_peak = historical.iloc[: box_top_pos + 1]
+        if len(post_peak) < 2:
+            return False, box_top, None, 0, None
+
+        box_bottom = post_peak[low_col].min()
+        if box_bottom <= 0 or box_top <= box_bottom:
+            return False, box_top, box_bottom, 0, None
+
+        box_range_pct = (box_top - box_bottom) / box_bottom * 100
+        if box_range_pct < min_box_pct or box_range_pct > max_box_pct:
+            return False, box_top, box_bottom, box_range_pct, None
+
+        direction = None
+        if current_close > box_top:
+            direction = "up"
+        elif current_close < box_bottom:
+            direction = "down"
+
+        is_breakout = direction is not None
+        return is_breakout, box_top, box_bottom, box_range_pct, direction
+
     def findHigherBullishOpens(self, df):
         if df is None or len(df) == 0:
             return False
