@@ -3376,7 +3376,72 @@ class ScreeningStatistics:
         cond3 = cond2 and (recent["close"].iloc[0] > recent["EMA10"].iloc[0])
         cond4 = cond3 and (recent["close"].iloc[0] > recent["EMA200"].iloc[0])
         return cond4
-    
+
+    # Find stocks with RSI(14) divergence signals
+    def findRSIDivergence(self, df, divergence_type='bullish', saveDict=None, screenDict=None):
+        """
+        Find stocks showing RSI(14) divergence patterns.
+
+        Parameters:
+        -----------
+        df : DataFrame
+            Stock price data with OHLC
+        divergence_type : str
+            Type of divergence to detect: 'bullish', 'bearish', 'hidden_bullish', 'hidden_bearish', 'any'
+        saveDict : dict
+            Dictionary to save additional screening data
+        screenDict : dict
+            Dictionary for screen output data
+
+        Returns:
+        --------
+        bool
+            True if divergence is detected, False otherwise
+        """
+        if df is None or len(df) == 0:
+            return False
+
+        data = df.copy()
+        data = data.fillna(0)
+        data = data.replace([np.inf, -np.inf], 0)
+        data = data[::-1]  # Reverse the dataframe so that its the oldest date first
+
+        # Detect divergences using pktalib
+        divergences = pktalib.detect_rsi_divergence(data, rsi_period=14, swing_order=5, tolerance=2)
+
+        # Check recent divergence signals (last 5 bars)
+        recent_bars = 5
+        has_divergence = False
+        divergence_desc = []
+
+        if divergence_type == 'bullish' or divergence_type == 'any':
+            if np.any(divergences['regular_bullish'][-recent_bars:]):
+                has_divergence = True
+                divergence_desc.append("Regular Bullish")
+
+        if divergence_type == 'bearish' or divergence_type == 'any':
+            if np.any(divergences['regular_bearish'][-recent_bars:]):
+                has_divergence = True
+                divergence_desc.append("Regular Bearish")
+
+        if divergence_type == 'hidden_bullish' or divergence_type == 'any':
+            if np.any(divergences['hidden_bullish'][-recent_bars:]):
+                has_divergence = True
+                divergence_desc.append("Hidden Bullish")
+
+        if divergence_type == 'hidden_bearish' or divergence_type == 'any':
+            if np.any(divergences['hidden_bearish'][-recent_bars:]):
+                has_divergence = True
+                divergence_desc.append("Hidden Bearish")
+
+        # Store divergence information in dictionaries if found
+        if has_divergence and saveDict is not None:
+            saveDict['RSI_Divergence'] = ', '.join(divergence_desc)
+        if has_divergence and screenDict is not None:
+            screenDict['RSI Div'] = ', '.join(divergence_desc)
+
+        return has_divergence
+
     def findBuySellSignalsFromATRTrailing(self,df, key_value=1, atr_period=10, ema_period=200,buySellAll=1,saveDict=None,screenDict=None):
         if df is None or len(df) == 0:
             return False

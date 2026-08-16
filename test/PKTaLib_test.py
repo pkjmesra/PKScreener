@@ -258,3 +258,60 @@ class TestPktalib(unittest.TestCase):
         self.assertTrue(result)
         result = pktalib.CDLCUPANDHANDLE(None,df["high"].tail(6),None,None)
         self.assertFalse(result)
+
+    def test_detect_rsi_divergence(self):
+        """Test RSI divergence detection"""
+        # Create test data with sufficient length for RSI calculation
+        dates = pd.date_range(start='2023-01-01', periods=100)
+
+        # Create a scenario with potential bullish divergence
+        # Price makes lower lows while RSI makes higher lows
+        close_prices = np.concatenate([
+            np.linspace(100, 90, 30),  # Downtrend
+            np.linspace(90, 95, 20),   # Small bounce
+            np.linspace(95, 85, 30),   # Lower low in price
+            np.linspace(85, 90, 20)    # Recovery
+        ])
+
+        df = pd.DataFrame({
+            "high": close_prices + np.random.rand(100) * 2,
+            "low": close_prices - np.random.rand(100) * 2,
+            "close": close_prices,
+            'Date': dates
+        })
+        df.set_index('Date', inplace=True)
+
+        result = pktalib.detect_rsi_divergence(df, rsi_period=14, swing_order=5, tolerance=2)
+
+        # Verify the result structure
+        self.assertIsInstance(result, dict)
+        self.assertIn('regular_bullish', result)
+        self.assertIn('regular_bearish', result)
+        self.assertIn('hidden_bullish', result)
+        self.assertIn('hidden_bearish', result)
+
+        # Verify all arrays have correct length
+        self.assertEqual(len(result['regular_bullish']), len(df))
+        self.assertEqual(len(result['regular_bearish']), len(df))
+        self.assertEqual(len(result['hidden_bullish']), len(df))
+        self.assertEqual(len(result['hidden_bearish']), len(df))
+
+        # Verify arrays are boolean type
+        self.assertTrue(result['regular_bullish'].dtype == bool)
+        self.assertTrue(result['regular_bearish'].dtype == bool)
+
+    def test_detect_rsi_divergence_insufficient_data(self):
+        """Test RSI divergence detection with insufficient data"""
+        df = pd.DataFrame({
+            "high": [10, 20, 30],
+            "low": [5, 10, 15],
+            "close": [8, 18, 28],
+            'Date': pd.date_range(start='2023-01-01', periods=3)
+        })
+        df.set_index('Date', inplace=True)
+
+        result = pktalib.detect_rsi_divergence(df, rsi_period=14)
+
+        # Should return empty arrays for insufficient data
+        self.assertEqual(len(result['regular_bullish']), 0)
+        self.assertEqual(len(result['regular_bearish']), 0)

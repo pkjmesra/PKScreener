@@ -739,6 +739,129 @@ class pktalib:
             return talib.CDLENGULFING(open, high, low, close)
 
     @classmethod
+    def detect_rsi_divergence(self, df, rsi_period=14, swing_order=5, tolerance=2):
+        """
+        Detect RSI(14) divergences in price data.
+
+        This function identifies four types of divergences:
+        1. Regular Bullish: Price makes lower lows while RSI makes higher lows
+        2. Regular Bearish: Price makes higher highs while RSI makes lower highs
+        3. Hidden Bullish: Price makes higher lows while RSI makes lower lows
+        4. Hidden Bearish: Price makes lower highs while RSI makes higher highs
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            DataFrame with OHLC data (must have 'high', 'low', 'close' columns)
+        rsi_period : int, optional
+            Period for RSI calculation (default: 14)
+        swing_order : int, optional
+            How many points on each side to use for swing detection (default: 5)
+        tolerance : int, optional
+            Tolerance window for matching price and indicator swings (default: 2)
+
+        Returns
+        -------
+        dict
+            Dictionary with keys: 'regular_bullish', 'regular_bearish',
+            'hidden_bullish', 'hidden_bearish'. Each contains a boolean array.
+        """
+        if df is None or len(df) < rsi_period + swing_order * 2:
+            return {
+                'regular_bullish': np.array([]),
+                'regular_bearish': np.array([]),
+                'hidden_bullish': np.array([]),
+                'hidden_bearish': np.array([])
+            }
+
+        data = df.copy()
+
+        # Calculate RSI
+        rsi = pktalib.RSI(data["close"], rsi_period)
+
+        # Find swing highs and lows in price
+        price_highs = pktalib.argrelextrema(data["high"].values, np.greater, order=swing_order)[0]
+        price_lows = pktalib.argrelextrema(data["low"].values, np.less, order=swing_order)[0]
+
+        # Find swing highs and lows in RSI
+        rsi_highs = pktalib.argrelextrema(rsi.values, np.greater, order=swing_order)[0]
+        rsi_lows = pktalib.argrelextrema(rsi.values, np.less, order=swing_order)[0]
+
+        # Initialize result arrays
+        n = len(data)
+        regular_bullish = np.zeros(n, dtype=bool)
+        regular_bearish = np.zeros(n, dtype=bool)
+        hidden_bullish = np.zeros(n, dtype=bool)
+        hidden_bearish = np.zeros(n, dtype=bool)
+
+        # Detect Regular Bullish Divergence (price LL, RSI HL)
+        for i in range(1, len(price_lows)):
+            price_idx = price_lows[i]
+            prev_price_idx = price_lows[i-1]
+
+            # Check if price made lower low
+            if data["low"].iloc[price_idx] < data["low"].iloc[prev_price_idx]:
+                # Find corresponding RSI lows within tolerance
+                rsi_lows_in_range = rsi_lows[(rsi_lows >= prev_price_idx - tolerance) &
+                                              (rsi_lows <= price_idx + tolerance)]
+                if len(rsi_lows_in_range) >= 2:
+                    # Check if RSI made higher low
+                    if rsi.iloc[rsi_lows_in_range[-1]] > rsi.iloc[rsi_lows_in_range[-2]]:
+                        regular_bullish[price_idx] = True
+
+        # Detect Regular Bearish Divergence (price HH, RSI LH)
+        for i in range(1, len(price_highs)):
+            price_idx = price_highs[i]
+            prev_price_idx = price_highs[i-1]
+
+            # Check if price made higher high
+            if data["high"].iloc[price_idx] > data["high"].iloc[prev_price_idx]:
+                # Find corresponding RSI highs within tolerance
+                rsi_highs_in_range = rsi_highs[(rsi_highs >= prev_price_idx - tolerance) &
+                                                (rsi_highs <= price_idx + tolerance)]
+                if len(rsi_highs_in_range) >= 2:
+                    # Check if RSI made lower high
+                    if rsi.iloc[rsi_highs_in_range[-1]] < rsi.iloc[rsi_highs_in_range[-2]]:
+                        regular_bearish[price_idx] = True
+
+        # Detect Hidden Bullish Divergence (price HL, RSI LL)
+        for i in range(1, len(price_lows)):
+            price_idx = price_lows[i]
+            prev_price_idx = price_lows[i-1]
+
+            # Check if price made higher low
+            if data["low"].iloc[price_idx] > data["low"].iloc[prev_price_idx]:
+                # Find corresponding RSI lows within tolerance
+                rsi_lows_in_range = rsi_lows[(rsi_lows >= prev_price_idx - tolerance) &
+                                              (rsi_lows <= price_idx + tolerance)]
+                if len(rsi_lows_in_range) >= 2:
+                    # Check if RSI made lower low
+                    if rsi.iloc[rsi_lows_in_range[-1]] < rsi.iloc[rsi_lows_in_range[-2]]:
+                        hidden_bullish[price_idx] = True
+
+        # Detect Hidden Bearish Divergence (price LH, RSI HH)
+        for i in range(1, len(price_highs)):
+            price_idx = price_highs[i]
+            prev_price_idx = price_highs[i-1]
+
+            # Check if price made lower high
+            if data["high"].iloc[price_idx] < data["high"].iloc[prev_price_idx]:
+                # Find corresponding RSI highs within tolerance
+                rsi_highs_in_range = rsi_highs[(rsi_highs >= prev_price_idx - tolerance) &
+                                                (rsi_highs <= price_idx + tolerance)]
+                if len(rsi_highs_in_range) >= 2:
+                    # Check if RSI made higher high
+                    if rsi.iloc[rsi_highs_in_range[-1]] > rsi.iloc[rsi_highs_in_range[-2]]:
+                        hidden_bearish[price_idx] = True
+
+        return {
+            'regular_bullish': regular_bullish,
+            'regular_bearish': regular_bearish,
+            'hidden_bullish': hidden_bullish,
+            'hidden_bearish': hidden_bearish
+        }
+
+    @classmethod
     def argrelextrema(self, data, comparator, axis=0, order=1, mode="clip"):
         """
         Calculate the relative extrema of `data`.
