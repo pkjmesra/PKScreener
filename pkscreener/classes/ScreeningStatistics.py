@@ -4740,7 +4740,62 @@ class ScreeningStatistics:
             saveDict['MA-Signal'] = saved[1] + f'RSI-MA-Sell'
             return True if (rsiKey == "RSIi") else (self.findRSICrossingMA(df, screenDict, saveDict,lookFor=lookFor, maLength=maLength, rsiKey="RSIi") or True)
         return False if (rsiKey == "RSIi") else (self.findRSICrossingMA(df, screenDict, saveDict,lookFor=lookFor, maLength=maLength, rsiKey="RSIi"))
-    
+
+    # Find price/RSI(14) divergence using swing highs/lows.
+    # Bullish: price makes a lower low while RSI makes a higher low (momentum fading on the downside).
+    # Bearish: price makes a higher high while RSI makes a lower high (momentum fading on the upside).
+    def findRSIDivergence(self, df, screenDict=None, saveDict=None, lookFor=3, lookback=14, rsiKey="RSI"):
+        if df is None or len(df) == 0:
+            return False
+        if rsiKey not in df.columns or "close" not in df.columns:
+            return False
+        data = df.copy()
+        data = data[::-1]  # oldest first, so swings read left-to-right in time
+        data = data.tail(lookback + 4)
+        if len(data) < 9:
+            return False
+        closes = data["close"].to_numpy()
+        rsis = data[rsiKey].to_numpy()
+        n = len(closes)
+        order = 2  # a bar must be the extreme within +/- `order` bars to count as a swing point
+
+        def swingIndices(values, findHigh):
+            indices = []
+            for i in range(order, n - order):
+                window = values[i - order:i + order + 1]
+                if (findHigh and values[i] == window.max()) or (not findHigh and values[i] == window.min()):
+                    indices.append(i)
+            return indices
+
+        foundBullish = False
+        foundBearish = False
+
+        if lookFor in [1, 3]:
+            lows = swingIndices(closes, findHigh=False)
+            if len(lows) >= 2:
+                i1, i2 = lows[-2], lows[-1]
+                if closes[i2] < closes[i1] and rsis[i2] > rsis[i1]:
+                    foundBullish = True
+                    if screenDict is not None and saveDict is not None:
+                        saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+                        label = f"Bullish RSI({lookback}) Divergence"
+                        screenDict["Pattern"] = saved[0] + colorText.GREEN + label + colorText.END
+                        saveDict["Pattern"] = saved[1] + label
+
+        if lookFor in [2, 3]:
+            highs = swingIndices(closes, findHigh=True)
+            if len(highs) >= 2:
+                i1, i2 = highs[-2], highs[-1]
+                if closes[i2] > closes[i1] and rsis[i2] < rsis[i1]:
+                    foundBearish = True
+                    if screenDict is not None and saveDict is not None:
+                        saved = self.findCurrentSavedValue(screenDict, saveDict, "Pattern")
+                        label = f"Bearish RSI({lookback}) Divergence"
+                        screenDict["Pattern"] = saved[0] + colorText.FAIL + label + colorText.END
+                        saveDict["Pattern"] = saved[1] + label
+
+        return foundBullish or foundBearish
+
     def findRSRating(self, stock_rs_value=-1, index_rs_value=-1,df=None,screenDict={}, saveDict={}):
         if stock_rs_value <= 0:
             stock_rs_value = self.calc_relative_strength(df=df)

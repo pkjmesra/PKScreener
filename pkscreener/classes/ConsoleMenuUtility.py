@@ -158,7 +158,7 @@ class PKConsoleMenuTools:
                     + colorText.END
                 ) or "3"
             )
-            if resp >= 0 and resp <= 10:
+            if resp >= 0 and resp <= 11:
                 if resp == 4:
                     try:
                         defaultMALength = 9 if PKConsoleMenuTools.configManager.duration.endswith("m") else 50

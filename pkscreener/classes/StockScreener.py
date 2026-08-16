@@ -386,7 +386,13 @@ class StockScreener:
                     if not isValidRsi:
                         return returnLegibleData(f"isValidRsi:{isValidRsi}")
                 elif executeOption == 6:
-                    if reversalOption == 10:
+                    if reversalOption == 11:
+                        hasRSIDivergence = screener.findRSIDivergence(processedData,
+                                                                       screeningDictionary,
+                                                                       saveDictionary) # 1 =Bullish, 2 =Bearish, 3 = Either
+                        if not hasRSIDivergence:
+                            return returnLegibleData(f"hasRSIDivergence:{hasRSIDivergence}")
+                    elif reversalOption == 10:
                         hasRSIMAReversal = screener.findRSICrossingMA(processedData,
                                                                       screeningDictionary,
                                                                       saveDictionary,

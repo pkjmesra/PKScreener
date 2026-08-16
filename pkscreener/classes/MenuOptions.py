@@ -607,6 +607,7 @@ level3_X_Reversal_MenuDict = {
     "8": "PSAR and RSI reversal",
     "9": "Rising RSI",
     "10": "RSI MA Reversal",
+    "11": "RSI(14) Divergence (Bullish/Bearish)",
 
     "0": "Cancel",
 }
