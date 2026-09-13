@@ -194,13 +194,13 @@ def backtestSummary(df):
                 col_positives = (
                     df_group[col]
                     .astype(str)
-                    .str.count(colorText.GREEN.replace("[", "\["))
+                    .str.count(colorText.GREEN.replace("[", "\\["))
                     .sum()
                 )
                 col_negatives = (
                     df_group[col]
                     .astype(str)
-                    .str.count(colorText.FAIL.replace("[", "\["))
+                    .str.count(colorText.FAIL.replace("[", "\\["))
                     .sum()
                 )
                 group_positives += col_positives
