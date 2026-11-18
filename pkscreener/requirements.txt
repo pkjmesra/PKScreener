@@ -12,6 +12,7 @@
 # Core technical analysis libraries
 advanced_ta==0.1.8
 TA-Lib>=0.6.0  # Install separately if needed. See README.
+fin-primitives>=3.9.0  # pandas-ta functions (VWAP, TriMA, ichimoku, supertrend) that work with numpy 1.26.4
 
 # Progress and CLI
 alive-progress==1.6.2
@@ -92,8 +93,9 @@ imageio==2.37.2
 
 setuptools>=78.1.1
 # Note: pandas-ta-classic is excluded due to numpy>=2.0.0 requirement
-# which conflicts with tensorflow 2.16.1. A fallback VWAP implementation
-# is provided in Pktalib.py. TA-Lib should be used for full functionality.
+# which conflicts with tensorflow 2.16.1. Pktalib.py uses fin-primitives
+# (same pandas-ta function API, works with numpy 1.26.4) when it is missing.
+# TA-Lib should be used for full functionality.
 autobahn>=19.11.2
 cryptography>=46.0.5
 filelock>=3.20.3

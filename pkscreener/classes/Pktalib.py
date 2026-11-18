@@ -35,6 +35,19 @@ from PKDevTools.classes.OutputControls import OutputControls
 
 from pkscreener import Imports
 
+# VWAP, TriMA, ichimoku and supertrend use pandas-ta's function API, which
+# TA-Lib does not have. pandas_ta_classic is not in requirements.txt (it needs
+# numpy>=2.0.0, see the note there), so when it is missing use fin_primitives.ta,
+# which has the same function names, parameters and output column names and
+# works with numpy 1.26.4.
+try:
+    import pandas_ta_classic as pandas_ta
+except Exception:  # pragma: no cover
+    try:
+        import fin_primitives.ta as pandas_ta
+    except Exception:  # pragma: no cover
+        pandas_ta = None
+
 if Imports["talib"]:
     try:
         import talib
@@ -49,10 +62,12 @@ if Imports["talib"]:
                 + colorText.END
             )
         try:
-            import pandas_ta_classic as talib
+            if pandas_ta is None:
+                raise ImportError("pandas_ta_classic")
+            talib = pandas_ta
             OutputControls().printOutput(
                 colorText.FAIL
-                + f"  [+] TA-Lib is not installed. Falling back on pandas_ta_classic.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
+                + f"  [+] TA-Lib is not installed. Falling back on {pandas_ta.__name__}.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] {taLink}"
                 + colorText.END
             )
         except: # pragma: no cover
@@ -65,10 +80,12 @@ if Imports["talib"]:
         pass
 else:
     try:
-        import pandas_ta_classic as talib
+        if pandas_ta is None:
+            raise ImportError("pandas_ta_classic")
+        talib = pandas_ta
         OutputControls().printOutput(
             colorText.FAIL
-            + "  [+] TA-Lib is not installed. Falling back on pandas_ta_classic.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
+            + f"  [+] TA-Lib is not installed. Falling back on {pandas_ta.__name__}.\n  [+] For full coverage(candle patterns), you may wish to follow instructions from\n  [+] https://github.com/ta-lib/ta-lib-python"
             + colorText.END
         )
         sleep(3)
@@ -132,10 +149,9 @@ class pktalib:
     @classmethod
     def VWAP(self, high, low, close, volume, anchor=None):
         try:
-            import pandas_ta_classic as talib
             # Aligning the series
             # high,low,close = pktalib.align_series(high, low, close, fill_value=0)
-            return talib.vwap(high, low, close, volume, anchor=anchor)
+            return pandas_ta.vwap(high, low, close, volume, anchor=anchor)
         except Exception:  # pragma: no cover
             # Fallback to manual VWAP calculation
             try:
@@ -210,8 +226,7 @@ class pktalib:
     @classmethod
     def TriMA(self, close,length=10):
         try:
-            import pandas_ta_classic as talib
-            return talib.trima(close=close, length=length)
+            return pandas_ta.trima(close=close, length=length)
         except Exception:  # pragma: no cover
             # default_logger().debug(e, exc_info=True)
             return None
@@ -352,18 +367,18 @@ class pktalib:
     def ichimoku(
         self, df, tenkan=None, kijun=None, senkou=None, include_chikou=True, offset=None
     ):
-        import pandas_ta_classic as ta
-
-        ichimokudf, spandf = ta.ichimoku(
-            df["high"], df["low"], df["close"], tenkan, kijun, senkou, False, 26
+        ichimokudf = pandas_ta.ichimoku(
+            df["high"], df["low"], df["close"], tenkan, kijun, senkou, False
         )
-        return ichimokudf
+        if isinstance(ichimokudf, tuple):
+            # pandas_ta_classic before 0.9.0 returns (ichimokudf, spandf)
+            ichimokudf = ichimokudf[0]
+        # Same as passing offset=26 to pandas_ta_classic
+        return ichimokudf.shift(26)
 
     @classmethod
     def supertrend(self, df, length=7, multiplier=3):
-        import pandas_ta_classic as ta
-
-        sti = ta.supertrend(
+        sti = pandas_ta.supertrend(
             df["high"], df["low"], df["close"], length=length, multiplier=multiplier
         )
         # trend, direction, long, short
