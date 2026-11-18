@@ -1979,7 +1979,6 @@ def test_dataframe_with_inf_validateBullishForTomorrow(tools_instance):
     })
     assert tools_instance.validateBullishForTomorrow(df) == False
 
-@pytest.mark.skip(reason="pandas_ta_classic module not available")
 def test_validateHigherHighsHigherLowsHigherClose_invalid_input(tools_instance):
     # Create a sample DataFrame for testing
     df = pd.DataFrame({"high": [10, 15, 20, 25,10, 15, 20, 25],
@@ -1989,7 +1988,6 @@ def test_validateHigherHighsHigherLowsHigherClose_invalid_input(tools_instance):
     # Call the validateHigherHighsHigherLowsHigherClose function with the sample DataFrame
     assert tools_instance.validateHigherHighsHigherLowsHigherClose(df) == False
 
-@pytest.mark.skip(reason="pandas_ta_classic module not available")
 def test_validateHigherHighsHigherLowsHigherClose_valid_input(tools_instance):
     # Create a sample DataFrame with invalid data
     df = pd.DataFrame({"high": [25, 20, 15, 10,5, 15, 20, 25],

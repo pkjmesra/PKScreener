@@ -75,7 +75,6 @@ class TestPktalib(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(result)))
         self.assertTrue(len(result) > 0)
 
-    @pytest.mark.skip(reason="Returns None")
     def test_VWAP(self):
         result = pktalib.VWAP(self.df["high"], self.df["low"], self.df["close"], self.df["volume"])
         self.assertEqual(len(result), len(self.df))
@@ -114,7 +113,6 @@ class TestPktalib(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(result)))
         self.assertTrue(len(result) > 0)
 
-    @pytest.mark.skip(reason="Returns None")
     def test_TriMA(self):
         result = pktalib.TriMA(self.df["close"], length=3)
         self.assertEqual(len(result), len(self.df))
@@ -258,3 +256,24 @@ class TestPktalib(unittest.TestCase):
         self.assertTrue(result)
         result = pktalib.CDLCUPANDHANDLE(None,df["high"].tail(6),None,None)
         self.assertFalse(result)
+
+    def test_VWAP_resets_each_day(self):
+        # With daily bars, VWAP anchored to each day ("D", the pandas-ta default)
+        # is that day's typical price, not a running average over all the days.
+        result = pktalib.VWAP(self.df["high"], self.df["low"], self.df["close"], self.df["volume"])
+        typical_price = (self.df["high"] + self.df["low"] + self.df["close"]) / 3
+        np.testing.assert_allclose(result.values, typical_price.values)
+
+    def test_supertrend(self):
+        result = pktalib.supertrend(self.large_df, 7, 3)
+        self.assertEqual(len(result), len(self.large_df))
+        supertrend = result["SUPERT_7_3.0"].dropna()
+        self.assertTrue(np.all(np.isfinite(supertrend)))
+        self.assertTrue(len(supertrend) > 0)
+
+    def test_ichimoku(self):
+        result = pktalib.ichimoku(self.large_df, 9, 26, 52, 26)
+        self.assertEqual(len(result), len(self.large_df))
+        for column in ["ISA_9", "ISB_26", "ITS_9", "IKS_26"]:
+            self.assertIn(column, result.columns)
+        self.assertTrue(len(result.dropna()) > 0)
